@@ -8,8 +8,13 @@ toc: true
 
 ## How do you say "Xo"?
 
-*Ex-oh*, like the letters X and O. When you search for it, use "Xo lang":
-plain `xo` is also the name of a popular JavaScript linter.
+*Ex-oh*, like the letters X and O. When you search for it, use "Xo lang".
+
+## Is Xo related to other projects named xo?
+
+No. Xo is unrelated to the `xo` JavaScript linter, to xoscript (a server
+side scripting language that also uses `.xo` files), and to any other
+project or company with a similar name.
 
 ## What is Xo for?
 
