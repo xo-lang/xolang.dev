@@ -1,16 +1,17 @@
 ---
 title: "Getting started"
-description: "Build the xo toolchain from source, then check, run, and test a first program."
+description: "Install the xo toolchain, then check, run, and test a first program."
 weight: 10
 ---
 
-Xo is experimental. The toolchain is built from source for now, and the
-language may change before 1.0.
+Xo is experimental, and the language may change before 1.0.
 
 ## Build the toolchain
 
-You need Go 1.26 or later. From a checkout of
-[github.com/xo-lang/xo](https://github.com/xo-lang/xo):
+{{< source-status >}}
+
+The toolchain is built from source with Go 1.26 or later. From a checkout of
+the repository:
 
 ```
 go build -o .tools/bin/xo ./cmd/xo

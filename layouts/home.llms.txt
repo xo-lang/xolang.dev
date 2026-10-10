@@ -1,6 +1,6 @@
 # {{ site.Title }}
 
-> {{ site.Params.description }} Xo is pronounced "ex-oh". Status: experimental ({{ site.Params.version }}); expect breaking changes before 1.0.
+> {{ site.Params.description }} Xo is pronounced "ex-oh". Status: experimental ({{ site.Params.version }}); expect breaking changes before 1.0.{{ if not site.Params.sourcePublic }} The source code is not public yet; it will be soon.{{ end }}
 
 Every page below is also served as Markdown: append `index.md` to its URL.
 
@@ -21,4 +21,6 @@ Every page below is also served as Markdown: append `index.md` to its URL.
 
 ## Source
 
-- [github.com/xo-lang]({{ site.Params.github }})
+{{ if site.Params.sourcePublic }}- [Source code]({{ site.Params.sourceRepo }})
+{{ else }}- Source code: not public yet; it will be published at {{ site.Params.sourceRepo }}
+{{ end }}- [GitHub organization]({{ site.Params.github }})

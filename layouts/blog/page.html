@@ -2,7 +2,7 @@
 <div class="wrap page plain">
   <article class="prose">
     <h1>{{ .Title }}</h1>
-    <div class="meta">{{ .Date.Format "2006-01-02" }}{{ with .Params.source }} · from <a href="{{ . }}">CHANGELOG.md</a>{{ end }}</div>
+    <div class="meta">{{ .Date.Format "2006-01-02" }}{{ if site.Params.sourcePublic }}{{ with .Params.source }} · from <a href="{{ . }}">CHANGELOG.md</a>{{ end }}{{ end }}</div>
     {{ .Content }}
   </article>
 </div>

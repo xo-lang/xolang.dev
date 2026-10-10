@@ -1,0 +1,5 @@
+{{- if site.Params.sourcePublic -}}
+The source is at <a href="{{ site.Params.sourceRepo }}">{{ strings.TrimPrefix "https://" site.Params.sourceRepo }}</a>.
+{{- else -}}
+<blockquote><p><b>The source code is not public yet; it will be soon.</b> Until then, the steps below show how the toolchain will be built, and the <a href="{{ "docs/spec/" | relURL }}">specification</a> describes the whole language.</p></blockquote>
+{{- end -}}

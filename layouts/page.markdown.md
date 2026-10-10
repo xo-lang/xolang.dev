@@ -1,3 +1,3 @@
 {{ if not .Params.hideTitle }}# {{ .Title }}
 
-{{ end }}{{ .RawContent }}
+{{ end }}{{ .RenderShortcodes }}
