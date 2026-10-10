@@ -1,0 +1,5 @@
+pub fn greet(out: Stdio, name: Str) {
+  out.println("hello, ${name}")
+}
+
+fn main(os: Os) { greet(os.stdio, "Ada") }

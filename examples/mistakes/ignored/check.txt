@@ -1,0 +1,4 @@
+main.xo:6:3: error XO0201: result of `parse_port` is not handled
+  note: `parse_port` can fail with `Error`; propagate with `?`, match on it, or discard it with `.ignore_err("reason")` (core 2.6)
+  fix: discard with a reason
+1 module(s), 1 error(s), 0 warning(s)

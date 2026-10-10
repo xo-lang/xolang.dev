@@ -1,0 +1,16 @@
+pub fn banner(out: Stdio, name: Str) uses stdio {
+  out.println("== ${name} ==")
+}
+
+pub fn slugify(s: Str) -> Str {
+  s.trim().to_lower().replace(" ", "-")
+}
+
+fn main(os: Os) {
+  banner(os.stdio, slugify("  Hello World "))
+}
+
+test "banner prints the name" {
+  banner(os.stdio, "x")
+  expect(os.stdio.output()) == "== x ==\n"
+}

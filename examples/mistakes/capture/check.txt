@@ -1,0 +1,4 @@
+main.xo:3:21: error XO0502: assignment mutates `count`, which is captured by a closure; closures capture by value (core 3.3)
+  note: main.xo:2:7: `count` is declared here, outside the closure
+  note: to share mutable state with a closure, capture a `Mutex` or `Atomic` handle (core 5.4)
+1 module(s), 1 error(s), 0 warning(s)

@@ -135,6 +135,9 @@ footer .wrap { display: flex; justify-content: space-between; align-items: cente
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 .meta { font: 13px "JetBrains Mono", monospace; color: var(--ink-2); margin: -8px 0 28px; }
 
+.pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font: 500 14px "JetBrains Mono", monospace; }
+.pager a { text-decoration: none; }
+.steps li { margin: 6px 0; }
 .posts { list-style: none; padding: 0; margin: 0; }
 .posts li { padding: 22px 0; border-bottom: 1px solid var(--line); }
 .posts h3 { margin: 4px 0 6px; font-size: 22px; }

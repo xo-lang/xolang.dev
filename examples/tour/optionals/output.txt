@@ -1,0 +1,6 @@
+mail ada@example.com
+no email for Bob
+unknown
+port(" 8080 ") = 8080
+port("http") = -1
+port("70000") = -1

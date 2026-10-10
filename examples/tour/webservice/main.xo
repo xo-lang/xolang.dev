@@ -1,0 +1,48 @@
+use std/http
+
+pub struct Todo {
+  pub id: Int
+  pub title: Str
+  pub done: Bool
+} derive Json
+
+pub enum ApiErr {
+  NotFound(id: Int)
+}
+
+fn (e: ApiErr) status() -> Int {
+  match e {
+    NotFound(_) => 404
+  }
+}
+
+fn (e: ApiErr) display() -> Str {
+  match e {
+    NotFound(id) => "todo ${id} not found"
+  }
+}
+
+fn find(todos: List[Todo], id: Int) -> Todo ! ApiErr {
+  todos.find(fn(t) { t.id == id }).or_err(ApiErr.NotFound(id: id))
+}
+
+fn routes(todos: List[Todo]) -> http.Router {
+  var r = http.router()
+  r.handle("GET /todos", fn(_req) { http.json(200, todos) })
+  r.handle("GET /todos/{id:Int}", fn(req) -> http.Response ! ApiErr {
+    http.json(200, find(todos, req.param_int("id"))?)
+  })
+  r
+}
+
+fn main(os: Os) ! {
+  let todos = [Todo{id: 1, title: "write the tour", done: false}]
+  http.server(os.net.listen(":8080")?, routes(todos)).serve()?
+}
+
+test "missing todo is a 404" {
+  let r = routes([])
+  let resp = r.call(http.new_request("GET", "/todos/7"))
+  expect(resp.status) == 404
+  expect(resp.text() ?? "") == "{\"error\":\"todo 7 not found\"}"
+}

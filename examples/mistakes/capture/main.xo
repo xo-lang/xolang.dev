@@ -1,0 +1,6 @@
+fn main(os: Os) {
+  var count = 0
+  let bump = fn() { count += 1 }
+  bump()
+  os.stdio.println("${count}")
+}

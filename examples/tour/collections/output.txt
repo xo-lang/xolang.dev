@@ -1,0 +1,7 @@
+sorted: 1 2 3 5
+doubled: 6 2 4 10, small: 1 2, total: 11
+ada is 36, 3 people
+ada: 36
+grace: 85
+linus: 28
+2 unique

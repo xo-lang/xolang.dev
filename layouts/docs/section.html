@@ -4,6 +4,14 @@
   <article class="prose">
     <h1>{{ .Title }}</h1>
     {{ .Content }}
+    {{- if eq .Path "/docs/tour" }}
+    <ol class="steps">
+      {{- range .RegularPages }}
+      <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>: {{ .Description }}</li>
+      {{- end }}
+    </ol>
+    {{- with index .RegularPages 0 }}<nav class="pager"><span></span><a href="{{ .RelPermalink }}">Start: {{ .LinkTitle }} →</a></nav>{{ end }}
+    {{- end }}
   </article>
 </div>
 {{ end }}

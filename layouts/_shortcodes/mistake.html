@@ -1,0 +1,11 @@
+{{- /* Usage: {{% mistake "ignored" %}}: a program with a mistake and the real `xo check` output. */ -}}
+{{- $dir := printf "examples/mistakes/%s" (.Get 0) -}}
+```xo
+{{ readFile (printf "%s/main.xo" $dir) | strings.TrimRight "\n" | safeHTML }}
+```
+
+`xo check` says:
+
+```text
+{{ readFile (printf "%s/check.txt" $dir) | strings.TrimRight "\n" | safeHTML }}
+```

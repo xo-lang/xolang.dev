@@ -1,0 +1,8 @@
+use go "strings"
+use go "net/url"
+
+fn main(os: Os) ! {
+  os.stdio.println(strings.to_upper("hello from go"))
+  let u = url.parse("https://xolang.dev/docs?tab=tour")?
+  os.stdio.println("${u.hostname()} ${u.query().get("tab")}")
+}

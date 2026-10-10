@@ -1,0 +1,5 @@
+fn main(os: Os) {
+  let ages = {"ada": 36}
+  let a = ages["ada"]
+  os.stdio.println("${a}")
+}

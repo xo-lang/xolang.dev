@@ -1,0 +1,28 @@
+fn status_text(code: Int) -> Str {
+  match code {
+    200..=299 => "ok"
+    429 | 503 => "retry later"
+    404 => "not found"
+    _ => "error"
+  }
+}
+
+fn describe(xs: List[Int]) -> Str {
+  match xs {
+    [] => "empty"
+    [x] => "one: ${x}"
+    [first, .., last] => "from ${first} to ${last}"
+  }
+}
+
+fn main(os: Os) {
+  for c in [200, 503, 404, 500] {
+    os.stdio.println("${c} ${status_text(c)}")
+  }
+  os.stdio.println(describe([]))
+  os.stdio.println(describe([7]))
+  os.stdio.println(describe([1, 2, 3]))
+  let pair = (3, "three")
+  let (n, word) = pair
+  os.stdio.println("${n} ${word} ${pair is (3, _)}")
+}

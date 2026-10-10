@@ -1,0 +1,22 @@
+fn square(n: Int) -> Int { n * n }
+
+fn main(os: Os) {
+  let sum = scope s {
+    let a = s.spawn(fn() { square(3) })
+    let b = s.spawn(fn() { square(4) })
+    a.await + b.await
+  }
+  os.stdio.println("sum ${sum}")
+
+  let ch = Chan[Int].new(cap: 8)
+  let total = scope s {
+    s.spawn(fn() {
+      for i in 1..=5 { ch.send(i) }
+      ch.close()
+    })
+    var t = 0
+    for x in ch { t += x }
+    t
+  }
+  os.stdio.println("total ${total}")
+}

@@ -1,0 +1,2 @@
+hello, Ada
+count = 3, sign = negative

@@ -1,0 +1,4 @@
+main.xo:4:9: error XO0301: match on `Shape` is not exhaustive: missing `Point`
+  note: add an arm for each missing case; matches must be exhaustive (core 2.3)
+  fix: add the missing arms as holes
+1 module(s), 1 error(s), 0 warning(s)

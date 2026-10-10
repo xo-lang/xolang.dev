@@ -1,0 +1,23 @@
+struct Account { owner: Str, balance: Int }
+
+fn (var a: Account) deposit(amount: Int) requires amount > 0 {
+  a.balance += amount
+}
+
+fn main(os: Os) {
+  var acct = Account{owner: "ada", balance: 10}
+  let snapshot = acct
+  acct.deposit(5)
+  os.stdio.println("now ${acct.balance}, snapshot ${snapshot.balance}")
+
+  var accounts: Map[Str, Account] = {"ada": acct}
+  accounts.update("ada", Account{owner: "ada", balance: 0}, fn(var a) { a.deposit(100) })
+  let stored = accounts.get("ada").map(fn(a) { a.balance }) ?? 0
+  os.stdio.println("stored ${stored}")
+
+  let hits = Atomic[Int].new(0)
+  let cache = Mutex[Map[Str, Int]].new({})
+  cache.with(fn(var m) { m.put("k", hits.add(1)) })
+  let size = cache.with_read(fn(m) { m.len() })
+  os.stdio.println("hits ${hits.get()}, cache ${size}")
+}

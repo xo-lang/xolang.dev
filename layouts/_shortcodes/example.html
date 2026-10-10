@@ -1,0 +1,15 @@
+{{- /* Usage: {{% example "basics" %}}: the checked program and what it prints. */ -}}
+{{- $dir := printf "examples/tour/%s" (.Get 0) -}}
+{{- $out := printf "%s/output.txt" $dir -}}
+`{{ (.Get 0) }}/main.xo`
+
+```xo
+{{ readFile (printf "%s/main.xo" $dir) | strings.TrimRight "\n" | safeHTML }}
+```
+{{ if fileExists $out }}
+Output:
+
+```text
+{{ readFile $out | strings.TrimRight "\n" | safeHTML }}
+```
+{{ end }}

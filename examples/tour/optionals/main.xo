@@ -1,0 +1,21 @@
+struct User { name: Str, email: Str? }
+
+fn contact(u: User) -> Str {
+  if let Some(e) = u.email { "mail ${e}" } else { "no email for ${u.name}" }
+}
+
+fn port(s: Str) -> Int? {
+  let n = Int.parse(s.trim())?
+  if n > 0 && n < 65536 { n } else { None }
+}
+
+fn main(os: Os) {
+  let a = User{name: "Ada", email: Some("ada@example.com")}
+  let b = User{name: "Bob", email: None}
+  os.stdio.println(contact(a))
+  os.stdio.println(contact(b))
+  os.stdio.println(b.email ?? "unknown")
+  for s in [" 8080 ", "http", "70000"] {
+    os.stdio.println("port(\"${s}\") = ${port(s) ?? -1}")
+  }
+}

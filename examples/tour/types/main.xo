@@ -1,0 +1,36 @@
+struct User {
+  id: Int
+  name: Str
+  email: Str?
+} derive Display
+
+enum Shape {
+  Circle(radius: Float)
+  Rect(w: Float, h: Float)
+  Point
+}
+
+fn area(s: Shape) -> Float {
+  match s {
+    Circle(radius) => 3.14159 * radius * radius
+    Rect(w, h) => w * h
+    Point => 0.0
+  }
+}
+
+type UserId = Int
+type Email struct(Str)
+
+fn domain(e: Email) -> Str {
+  e.0.split("@").last() ?? ""
+}
+
+fn main(os: Os) {
+  let ada = User{id: 1, name: "Ada", email: None}
+  let renamed = ada with {name: "Ada L."}
+  os.stdio.println("${ada}")
+  os.stdio.println("${renamed.name}")
+  let id: UserId = 7
+  os.stdio.println("user ${id}, area ${area(Shape.Rect(w: 2.0, h: 3.0))}")
+  os.stdio.println(domain(Email("ada@example.com")))
+}

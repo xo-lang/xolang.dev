@@ -9,15 +9,29 @@
     {{- end }}
     {{- end }}
   </ul>
-  {{- with site.GetPage "/docs/spec" }}
+  {{- with site.GetPage "/docs/tour" }}
   <div class="group">
-    <h4>Specification</h4>
+    <h4>Tour</h4>
     <ul>
-      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>About the spec</a></li>
-      {{- range .RegularPages }}
       <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
+      {{- range $i, $p := .RegularPages }}
+      <li><a href="{{ $p.RelPermalink }}"{{ if eq $cur $p }} class="active"{{ end }}>{{ add $i 1 }}. {{ $p.LinkTitle }}</a></li>
       {{- end }}
     </ul>
   </div>
   {{- end }}
+  <div class="group">
+    <h4>Reference</h4>
+    <ul>
+      {{- with site.GetPage "/docs/spec" }}
+      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>About the spec</a></li>
+      {{- range .RegularPages }}
+      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
+      {{- end }}
+      {{- end }}
+      {{- with site.GetPage "/docs/diagnostics" }}
+      <li><a href="{{ .RelPermalink }}"{{ if or (eq $cur .) (eq $cur.Parent .) }} class="active"{{ end }}>Diagnostic codes</a></li>
+      {{- end }}
+    </ul>
+  </div>
 </aside>

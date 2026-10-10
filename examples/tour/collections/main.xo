@@ -1,0 +1,27 @@
+fn show(xs: List[Int]) -> Str {
+  xs.map(fn(x) { "${x}" }).join(" ")
+}
+
+fn main(os: Os) {
+  var xs = [3, 1, 2]
+  xs.push(5)
+  let doubled = xs.map(fn(x) { x * 2 })
+  let small = xs.filter(fn(x) { x < 3 })
+  let total = xs.fold(0, fn(acc, x) { acc + x })
+  os.stdio.println("sorted: ${show(xs.sort())}")
+  os.stdio.println("doubled: ${show(doubled)}, small: ${show(small)}, total: ${total}")
+
+  var ages: Map[Str, Int] = {"ada": 36}
+  ages.put("grace", 85)
+  ages["linus"] = 28
+  let age = ages.get("ada") ?? 0
+  os.stdio.println("ada is ${age}, ${ages.len()} people")
+  for (name, a) in ages {
+    os.stdio.println("${name}: ${a}")
+  }
+
+  var seen = ["x"].to_set()
+  seen.add("x")
+  seen.add("y")
+  os.stdio.println("${seen.len()} unique")
+}

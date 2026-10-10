@@ -1,0 +1,3 @@
+now 15, snapshot 10
+stored 115
+hits 1, cache 1

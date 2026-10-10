@@ -1,0 +1,4 @@
+main.xo:3:11: error XO0410: reading a Map by index faults when the key is missing
+  note: use `m.get(k)` (an optional) or `m.get_or_fault(k, "why the key must exist")` (core 3.6)
+  fix: use get_or_fault
+1 module(s), 1 error(s), 0 warning(s)

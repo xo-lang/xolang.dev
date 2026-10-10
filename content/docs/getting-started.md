@@ -63,11 +63,14 @@ signature shows what it can touch.
 
 `xo check --json` reports every problem as JSON with a stable `XOnnnn` code,
 notes, and machine applicable fixes. `xo explain <code>` describes any code.
-The full list is in [section 10.6 of the spec](../spec/core/#106-diagnostic-codes).
+Every code is listed, with an example and a fix, in the
+[diagnostics reference](../diagnostics/).
 
 ## Next
 
-- Read the [core specification](../spec/core/), starting with the overview.
+- Take the [tour](../tour/): twelve short steps, each with a program that
+  checks, runs, and passes its tests.
+- Read the [core specification](../spec/core/) for everything in full.
 - See the realistic example service in `examples/notes-service` in the
   repository: HTTP and JSON, `std/sql`, auth middleware, a background job,
   and graceful shutdown.

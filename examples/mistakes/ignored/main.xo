@@ -1,0 +1,7 @@
+fn parse_port(s: Str) -> Int ! Error {
+  Int.parse(s).or_err("not a number")?
+}
+
+fn main(os: Os) {
+  parse_port("8080")
+}

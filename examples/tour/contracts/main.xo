@@ -1,0 +1,28 @@
+struct Account { id: Int, balance: Int } invariant balance >= 0
+
+enum TxErr { Insufficient } derive Display
+
+fn withdraw(a: Account, amount: Int) -> Account ! TxErr
+  requires amount > 0
+  requires a.balance >= amount else TxErr.Insufficient
+  ensures result.balance == a.balance - amount
+{
+  a with {balance: a.balance - amount}
+}
+
+fn main(os: Os) {
+  let a = Account{id: 1, balance: 50}
+  match withdraw(a, 80) {
+    Ok(b) => os.stdio.println("left ${b.balance}")
+    Err(Insufficient) => os.stdio.println("insufficient funds")
+  }
+}
+
+test "withdraw lowers the balance" {
+  let b = withdraw(Account{id: 1, balance: 50}, 20)?
+  expect(b.balance) == 30
+}
+
+test "reverse twice" for xs: List[Int] {
+  expect(xs.reverse().reverse()) == xs
+}

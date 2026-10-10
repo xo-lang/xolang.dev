@@ -55,7 +55,7 @@ suffixes = ["md"]
 [outputs]
 home = ["html", "rss", "llms"]
 page = ["html", "markdown"]
-section = ["html", "rss"]
+section = ["html", "rss", "markdown"]
 
 [markup.goldmark.renderer]
 unsafe = false

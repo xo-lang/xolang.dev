@@ -1,0 +1,19 @@
+const GREETING = "hello"
+
+fn greet(name: Str) -> Str {
+  "${GREETING}, ${name}"
+}
+
+fn sign(n: Int) -> Str {
+  if n < 0 { "negative" } else if n == 0 { "zero" } else { "positive" }
+}
+
+fn main(os: Os) {
+  let who = "Ada"
+  var count = 0
+  for i in 0..3 {
+    count += i
+  }
+  os.stdio.println(greet(who))
+  os.stdio.println("count = ${count}, sign = ${sign(count - 5)}")
+}

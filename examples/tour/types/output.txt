@@ -1,0 +1,4 @@
+User{id: 1, name: "Ada", email: None}
+Ada L.
+user 7, area 6.0
+example.com

@@ -3,7 +3,15 @@
   {{ partial "docs-nav.html" . }}
   <article class="prose">
     {{ if not .Params.hideTitle }}<h1>{{ .Title }}</h1>{{ end }}
+    {{- with .Params.severity }}<div class="meta">{{ . }} · reported by the {{ $.Params.phase }}</div>{{ end }}
     {{ .Content }}
+    {{- if eq .Parent.Path "/docs/tour" }}
+    <nav class="pager">
+      {{- /* Hugo's NextInSection is the page before this one in weight order. */}}
+      {{- with .NextInSection }}<a href="{{ .RelPermalink }}">← {{ .LinkTitle }}</a>{{ else }}<span></span>{{ end }}
+      {{- with .PrevInSection }}<a href="{{ .RelPermalink }}">{{ .LinkTitle }} →</a>{{ end }}
+    </nav>
+    {{- end }}
   </article>
   {{- if .Params.toc }}
   <aside class="toc">
