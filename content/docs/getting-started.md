@@ -19,12 +19,15 @@ export PATH="$PWD/.tools/bin:$PATH"
 
 ## A first program
 
-Make a directory with an `xo.mod` and a `main.xo`:
+Make a directory and create the module:
 
 ```
-module example.com/hello
-edition 2026
+$ mkdir hello && cd hello
+$ xo init example.com/hello
+wrote xo.mod
 ```
+
+Then add `main.xo`:
 
 ```
 fn greet(name: Str) -> Str {
