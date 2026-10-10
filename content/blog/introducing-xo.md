@@ -1,6 +1,6 @@
 ---
 title: "Introducing Xo"
-date: 2026-10-10
+date: 2026-10-10T12:00:00-04:00
 description: "A small, statically typed language for backends, designed so the compiler catches what AI agents (and people) get wrong."
 ---
 
