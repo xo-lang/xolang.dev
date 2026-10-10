@@ -42,3 +42,23 @@ XO=path/to/xo scripts/check-examples.sh
 | `designs/` | The design mockups the site came from (not published) |
 
 The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it.
+
+## Playground
+
+`/play/` checks, compiles, and runs Xo entirely in the visitor's browser
+(decision 0144 in the xo repo); there is no server.
+
+- `scripts/build-playground.py` builds the WebAssembly toolchain into
+  `static/play/assets/` and `static/play/manifest.json`: `xoplay` (the Xo
+  compiler, `cmd/xoplay`), the Go compiler and linker, the precompiled rt and
+  Go standard library archives, and `use go` bindings. Rerun it after
+  compiler, std/rt, or Go changes; it needs the xo repo (`$XO_REPO`).
+- `assets/js/play/`: `play.js` (page), `toolchain.js` (worker running the
+  tools over an in-memory file system), `runner.js` (one worker per run).
+- Safety: a Content Security Policy on the page (scripts from this site
+  only, `connect-src 'self'`); programs may import only WASI, see no files,
+  network, or environment, and are capped at 1 GiB, 1 MB of output, and
+  10 s; shared links keep the code in the URL fragment, which is never sent
+  to a server, and run only when the visitor presses run.
+- `static/play/vendor/browser_wasi_shim-0.4.2/` is
+  `@bjorn3/browser_wasi_shim` (MIT/Apache-2.0), vendored unchanged.

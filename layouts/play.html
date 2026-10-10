@@ -1,0 +1,55 @@
+{{ define "head" }}
+{{- /* The playground runs visitors' code (in WebAssembly workers). The policy
+  allows scripts only from this site, WebAssembly compilation, and no
+  network access except this site; see README.md, "Playground". */}}
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+{{ end }}
+{{ define "main" }}
+{{- $toolchain := resources.Get "js/play/toolchain.js" | fingerprint }}
+{{- $runner := resources.Get "js/play/runner.js" | fingerprint }}
+{{- $play := resources.Get "js/play/play.js" | fingerprint }}
+{{- $examples := slice }}
+{{- range $dir := slice "tour" "mistakes" }}
+  {{- range os.ReadDir (printf "examples/%s" $dir) }}
+    {{- if .IsDir }}
+      {{- $examples = $examples | append (dict "group" $dir "name" .Name "source" (readFile (printf "examples/%s/%s/main.xo" $dir .Name))) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+<div class="play" id="play" data-toolchain="{{ $toolchain.RelPermalink }}" data-runner="{{ $runner.RelPermalink }}">
+  <div class="play-bar">
+    <h1>Playground</h1>
+    <label class="play-ex">
+      <span class="sr">Example</span>
+      <select id="play-example">
+        <option value="">Examples…</option>
+      </select>
+    </label>
+    <span class="play-spacer"></span>
+    <button class="btn ghost" id="play-format" type="button" title="Format (Shift+Alt+F)">format</button>
+    <button class="btn ghost" id="play-share" type="button" title="Copy a link to this code">share</button>
+    <button class="btn primary" id="play-run" type="button" title="Run (Ctrl+Enter)">run</button>
+  </div>
+  <p class="play-note" id="play-note">Your code is checked, compiled, and run in this browser tab. It never leaves your machine. Running downloads the toolchain once (about 30 MB).</p>
+  <div class="play-main">
+    <div class="play-editor">
+      <pre class="play-lines" id="play-lines" aria-hidden="true">1</pre>
+      <textarea id="play-code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Xo source code" wrap="off"></textarea>
+    </div>
+    <div class="play-out">
+      <div class="play-tabs" role="tablist">
+        <button type="button" role="tab" data-tab="output" aria-selected="true">output</button>
+        <button type="button" role="tab" data-tab="problems" aria-selected="false">problems <span id="play-count"></span></button>
+        <button type="button" role="tab" data-tab="go" aria-selected="false">generated Go</button>
+        <span class="play-status" id="play-status" aria-live="polite"></span>
+      </div>
+      <div class="play-pane" data-pane="output"><pre id="play-output">Press run to build and run the program.</pre></div>
+      <div class="play-pane" data-pane="problems" hidden><ul class="play-problems" id="play-problems"></ul></div>
+      <div class="play-pane" data-pane="go" hidden><pre id="play-go">Run the program to see the Go that Xo generates for it.</pre></div>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="play-examples">{{ $examples | jsonify | safeJS }}</script>
+<script type="module" src="{{ $play.RelPermalink }}" integrity="{{ $play.Data.Integrity }}"></script>
+{{ end }}

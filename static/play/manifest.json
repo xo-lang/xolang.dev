@@ -1,0 +1,93 @@
+{
+  "go": "go1.26.1",
+  "tags": [
+    "xo_nohttp"
+  ],
+  "gobind": [
+    "xo_gobind_bytes.go",
+    "xo_gobind_crypto_md5.go",
+    "xo_gobind_crypto_sha1.go",
+    "xo_gobind_crypto_sha256.go",
+    "xo_gobind_encoding_base64.go",
+    "xo_gobind_encoding_csv.go",
+    "xo_gobind_encoding_hex.go",
+    "xo_gobind_errors.go",
+    "xo_gobind_fmt.go",
+    "xo_gobind_hash_crc32.go",
+    "xo_gobind_hash_fnv.go",
+    "xo_gobind_html.go",
+    "xo_gobind_maps.go",
+    "xo_gobind_math.go",
+    "xo_gobind_math_bits.go",
+    "xo_gobind_net_mail.go",
+    "xo_gobind_net_netip.go",
+    "xo_gobind_net_url.go",
+    "xo_gobind_path.go",
+    "xo_gobind_regexp.go",
+    "xo_gobind_slices.go",
+    "xo_gobind_sort.go",
+    "xo_gobind_strconv.go",
+    "xo_gobind_strings.go",
+    "xo_gobind_text_template.go",
+    "xo_gobind_time.go",
+    "xo_gobind_unicode.go",
+    "xo_gobind_unicode_utf8.go"
+  ],
+  "gobindPackages": [
+    "bytes",
+    "crypto/md5",
+    "crypto/sha1",
+    "crypto/sha256",
+    "encoding/base64",
+    "encoding/csv",
+    "encoding/hex",
+    "errors",
+    "fmt",
+    "hash/crc32",
+    "hash/fnv",
+    "html",
+    "maps",
+    "math",
+    "math/bits",
+    "net/mail",
+    "net/netip",
+    "net/url",
+    "path",
+    "regexp",
+    "slices",
+    "sort",
+    "strconv",
+    "strings",
+    "text/template",
+    "time",
+    "unicode",
+    "unicode/utf8"
+  ],
+  "files": {
+    "xoplay": {
+      "path": "assets/xoplay-83d529cbfef2.wasm.gz",
+      "size": 28511790,
+      "gzip": 6959397
+    },
+    "compile": {
+      "path": "assets/compile-58555b0d1192.wasm.gz",
+      "size": 48066563,
+      "gzip": 9359439
+    },
+    "link": {
+      "path": "assets/link-36e4abf76343.wasm.gz",
+      "size": 10987023,
+      "gzip": 2884589
+    },
+    "gobind": {
+      "path": "assets/gobind-330687bad70d.bundle.gz",
+      "size": 493737,
+      "gzip": 55677
+    },
+    "pkg": {
+      "path": "assets/pkg-38a22ae0b433.bundle.gz",
+      "size": 76525462,
+      "gzip": 14830569
+    }
+  }
+}
