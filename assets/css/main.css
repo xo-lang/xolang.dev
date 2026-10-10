@@ -248,3 +248,8 @@ button.btn:disabled { opacity: .6; cursor: progress; }
   .play-ex select { max-width: 120px; padding: 8px 6px; }
   .play-editor pre, .play-editor textarea { font-size: 13px; }
 }
+.play-consent { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 0 0 14px; padding: 12px 16px; border: 1px solid var(--accent); border-radius: 10px; background: var(--bg-2); font-size: 14px; }
+.play-consent[hidden] { display: none; }
+.play-consent p { margin: 0; flex: 1 1 420px; }
+.play-consent.flash { animation: play-flash .8s ease-out; }
+@keyframes play-flash { from { box-shadow: 0 0 0 6px var(--glow); } to { box-shadow: 0 0 0 0 transparent; } }

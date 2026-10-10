@@ -16,11 +16,14 @@ const runBtn = document.getElementById("play-run");
 const fmtBtn = document.getElementById("play-format");
 const shareBtn = document.getElementById("play-share");
 const select = document.getElementById("play-example");
+const consentBox = document.getElementById("play-consent");
+const consentBtn = document.getElementById("play-consent-ok");
 
 const RUN_LIMIT_MS = 10000; // wall clock time a program may run
 const TOOL_LIMIT_MS = 120000; // a toolchain request (includes the download)
 const MAX_SOURCE = 64 << 10; // bytes of source accepted from a shared link
 const STORE = "xo-play-source";
+const CONSENT = "xo-play-download-ok";
 
 const examples = JSON.parse(document.getElementById("play-examples").textContent);
 
@@ -250,6 +253,7 @@ function scheduleCheck() {
 }
 
 async function check() {
+  if (!consented()) return;
   const seq = ++checkSeq;
   try {
     const r = await request("check", code.value);
@@ -262,6 +266,7 @@ async function check() {
 }
 
 async function format() {
+  if (!consented()) { askConsent(); return; }
   if (busy) return;
   try {
     const r = await request("format", code.value);
@@ -289,6 +294,7 @@ function done() {
 }
 
 async function run() {
+  if (!consented()) { askConsent(); return; }
   if (runner) { stop("[stopped]"); return; }
   if (busy) return;
   busy = true;
@@ -347,6 +353,45 @@ async function run() {
 
 runBtn.addEventListener("click", run);
 fmtBtn.addEventListener("click", format);
+
+// ---- download notice --------------------------------------------------
+
+// Nothing is downloaded until the visitor agrees, once per browser.
+let agreed = false;
+
+function consented() {
+  if (agreed) return true;
+  try { agreed = localStorage.getItem(CONSENT) === "1"; } catch (e) {}
+  return agreed;
+}
+
+function askConsent() {
+  consentBox.hidden = false;
+  consentBox.classList.remove("flash");
+  void consentBox.offsetWidth;
+  consentBox.classList.add("flash");
+  consentBtn.focus();
+}
+
+consentBtn.addEventListener("click", () => {
+  agreed = true;
+  try { localStorage.setItem(CONSENT, "1"); } catch (e) {}
+  consentBox.hidden = true;
+  check();
+});
+
+// sizes shows the real download sizes from the manifest.
+async function sizes() {
+  try {
+    const m = await (await fetch("/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
+    const mb = (n) => Math.max(1, Math.round(n / 1048576)) + " MB";
+    const f = m.files;
+    consentBox.querySelector('[data-size="check"]').textContent = mb(f.xoplay.gzip + f.gobind.gzip);
+    consentBox.querySelector('[data-size="run"]').textContent = mb(f.compile.gzip + f.link.gzip + f.pkg.gzip);
+  } catch (e) {
+    // keep the sizes written in the page
+  }
+}
 
 // ---- sharing ----------------------------------------------------------
 
@@ -430,6 +475,11 @@ select.addEventListener("change", () => {
 // ---- start ------------------------------------------------------------
 
 (async () => {
+  if (!consented()) {
+    consentBox.hidden = false;
+    sizes();
+    problems.replaceChildren(el("li", "play-sys", "Download the toolchain (above) to check code."));
+  }
   const shared = await fromLink();
   if (shared != null) {
     setSource(shared);

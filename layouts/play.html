@@ -31,7 +31,11 @@
     <button class="btn ghost" id="play-share" type="button" title="Copy a link to this code">share</button>
     <button class="btn primary" id="play-run" type="button" title="Run (Ctrl+Enter)">run</button>
   </div>
-  <p class="play-note" id="play-note">Your code is checked, compiled, and run in this browser tab. It never leaves your machine. Running downloads the toolchain once (about 30 MB).</p>
+  <p class="play-note" id="play-note">Your code is checked, compiled, and run in this browser tab. It never leaves your machine.</p>
+  <div class="play-consent" id="play-consent" hidden>
+    <p><b>This playground downloads the Xo toolchain to your browser.</b> Checking code needs the compiler (<span data-size="check">7 MB</span>); the first run also downloads the Go compiler, linker, and libraries (<span data-size="run">26 MB</span> more). Downloads are cached, so this happens once per browser and version. Nothing is uploaded.</p>
+    <button class="btn primary" id="play-consent-ok" type="button">download and start</button>
+  </div>
   <div class="play-main">
     <div class="play-editor">
       <pre class="play-lines" id="play-lines" aria-hidden="true">1</pre>
