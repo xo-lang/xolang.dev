@@ -143,7 +143,7 @@ def diagnostics():
         "JSON with notes and machine applicable fixes, and `xo explain <code>`",
         "prints the explanation below in a terminal.",
         "",
-    ] + table) + "\n")
+    ] + table + ["{.codes}"]) + "\n")
 
 
 if __name__ == "__main__":

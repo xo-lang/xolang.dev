@@ -112,3 +112,4 @@ prints the explanation below in a terminal.
 | [`XO1403`](xo1403/) | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
 | [`XO1404`](xo1404/) | error | checker | recursion among real-time functions |
 | [`XO1405`](xo1405/) | error | checker | blocking operation (channel, Mutex, scope, select, task) or capability effect in a real-time function |
+{.codes}

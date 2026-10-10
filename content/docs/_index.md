@@ -7,6 +7,7 @@ Xo (pronounced *ex-oh*) is a small, statically typed language for backends and
 web services, designed so AI agents can write, check, cross compile, and debug
 programs with fast, structured feedback.
 
+- [Why Xo? (FAQ)](faq/): what Xo is for, how it relates to Go, and what experimental means.
 - [Getting started](getting-started/): build the toolchain and run a first program.
 - [A tour of Xo](tour/): twelve short steps through the language.
 - [Diagnostic codes](diagnostics/): every error code, with an example and a fix.

@@ -24,9 +24,15 @@ name = "docs"
 pageRef = "/docs"
 weight = 10
 [[menus.main]]
+name = "tour"
+pageRef = "/docs/tour"
+weight = 15
+[[menus.main]]
 name = "spec"
 pageRef = "/docs/spec"
 weight = 20
+[menus.main.params]
+wide = true
 [[menus.main]]
 name = "blog"
 pageRef = "/blog"

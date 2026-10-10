@@ -1,0 +1,3 @@
+{{- /* Xo has no Chroma lexer yet; Rust's tokens (fn, let, match, enum,
+     struct, pub, strings, numbers, comments) are a close fit. */ -}}
+{{- transform.Highlight .Inner "rust" "lineNos=false" -}}

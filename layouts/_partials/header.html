@@ -3,7 +3,7 @@
     <a class="brand" href="{{ "/" | relURL }}">{{ site.Title }}</a>
     <ul>
       {{- range site.Menus.main }}
-      <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+      <li{{ if .Params.wide }} class="wide"{{ end }}><a href="{{ .URL }}">{{ .Name }}</a></li>
       {{- end }}
     </ul>
   </nav>

@@ -1,5 +1,6 @@
 {{- $cur := . }}
-<aside class="side-nav">
+<details class="side-nav" id="side-nav">
+  <summary>Menu · {{ .LinkTitle }}</summary>
   <h4>Docs</h4>
   <ul>
     {{- with site.GetPage "/docs" }}
@@ -34,4 +35,5 @@
       {{- end }}
     </ul>
   </div>
-</aside>
+</details>
+<script>if (matchMedia("(min-width: 761px)").matches) document.getElementById("side-nav").open = true</script>
