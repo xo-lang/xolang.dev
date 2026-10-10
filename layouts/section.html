@@ -1,0 +1,13 @@
+{{ define "main" }}
+<div class="wrap page plain">
+  <article class="prose">
+    <h1>{{ .Title }}</h1>
+    {{ .Content }}
+    <ul class="posts">
+      {{- range .Pages }}
+      <li><h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3><p>{{ .Summary | plainify | truncate 200 }}</p></li>
+      {{- end }}
+    </ul>
+  </article>
+</div>
+{{ end }}

@@ -1,0 +1,6 @@
+<footer>
+  <div class="wrap">
+    <span>xolang.dev</span>
+    <span>{{ range $i, $m := site.Menus.main }}{{ if $i }} · {{ end }}<a href="{{ $m.URL }}">{{ $m.Name }}</a>{{ end }} · <a href="{{ "llms.txt" | relURL }}">llms.txt</a></span>
+  </div>
+</footer>

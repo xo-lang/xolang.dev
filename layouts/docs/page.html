@@ -1,0 +1,16 @@
+{{ define "main" }}
+<div class="wrap page{{ if not .Params.toc }} no-toc{{ end }}">
+  {{ partial "docs-nav.html" . }}
+  <article class="prose">
+    {{ if not .Params.hideTitle }}<h1>{{ .Title }}</h1>{{ end }}
+    {{ .Content }}
+  </article>
+  {{- if .Params.toc }}
+  <aside class="toc">
+    <h4>On this page</h4>
+    {{ .TableOfContents }}
+    {{- with .OutputFormats.Get "markdown" }}<a class="raw-link" href="{{ .RelPermalink }}">View as Markdown</a>{{ end }}
+  </aside>
+  {{- end }}
+</div>
+{{ end }}

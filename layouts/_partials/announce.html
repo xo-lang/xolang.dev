@@ -1,0 +1,3 @@
+{{- with site.Params.announcement }}{{ if .enabled }}
+<div class="announce">{{ .html | safeHTML }}</div>
+{{- end }}{{ end -}}

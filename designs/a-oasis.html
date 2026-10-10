@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xo Language</title>
+<meta name="description" content="Xo: a small, statically typed language for backends and web services, built for AI agents to write, check, and debug.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Design A: Oasis. Warm editorial, light first. */
+:root {
+  --bg: #fbf6ee;
+  --bg-2: #f3e9da;
+  --ink: #2a211b;
+  --ink-2: #6b5b4e;
+  --line: #e4d5c1;
+  --accent: #b9532a;
+  --accent-2: #d99a4e;
+  --card: #fffdf9;
+  --code-bg: #2a211b;
+  --code-ink: #f3e9da;
+  --k: #e59a6a; --t: #e8c27a; --s: #a9c98a; --c: #8f7f72; --f: #f0d9b5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1612; --bg-2: #241c17; --ink: #f3e9da; --ink-2: #bfae9c;
+    --line: #3a2e26; --accent: #e07a4a; --accent-2: #e8b26a; --card: #241c17;
+    --code-bg: #120e0b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1612; --bg-2: #241c17; --ink: #f3e9da; --ink-2: #bfae9c;
+  --line: #3a2e26; --accent: #e07a4a; --accent-2: #e8b26a; --card: #241c17;
+  --code-bg: #120e0b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 Inter, system-ui, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font: 700 26px Fraunces, serif; }
+.brand img { width: 40px; height: auto; }
+nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; font-weight: 500; }
+nav ul a { color: var(--ink-2); }
+
+.hero > * { min-width: 0; }
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
+.pill { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 4px 12px; border-radius: 999px; }
+h1 { font: 700 clamp(40px, 6vw, 68px)/1.05 Fraunces, serif; letter-spacing: -.02em; margin: 18px 0 20px; }
+h1 em { color: var(--accent); font-style: italic; }
+.lede { font-size: 20px; color: var(--ink-2); max-width: 34em; }
+.ctas { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 12px 22px; border-radius: 10px; font-weight: 600; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.ghost { border: 1.5px solid var(--line); color: var(--ink); }
+.btn:hover { text-decoration: none; filter: brightness(1.05); }
+.hero-art { position: relative; display: grid; place-items: center; }
+.hero-art::before { content: ""; position: absolute; width: 88%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, var(--bg-2) 0%, transparent 70%); }
+.hero-art img { position: relative; width: 100%; max-width: 440px; }
+
+.code-card { background: var(--code-bg); color: var(--code-ink); border-radius: 16px; padding: 24px 26px; overflow-x: auto; font-size: 14px; line-height: 1.65; box-shadow: 0 20px 50px -24px rgba(42,33,27,.45); }
+.code-card .bar { display: flex; gap: 7px; margin-bottom: 16px; }
+.code-card .bar i { width: 11px; height: 11px; border-radius: 50%; background: #4a3d33; }
+.code-card .bar span { margin-left: auto; font-size: 12px; color: var(--c); }
+pre { margin: 0; }
+.k { color: var(--k); } .t { color: var(--t); } .s { color: var(--s); } .c { color: var(--c); font-style: italic; } .f { color: var(--f); }
+
+section { padding: 72px 0; }
+section.alt { background: var(--bg-2); }
+h2 { font: 700 clamp(30px, 4vw, 42px)/1.15 Fraunces, serif; margin: 0 0 12px; letter-spacing: -.01em; }
+.sub { color: var(--ink-2); max-width: 40em; margin: 0 0 36px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 15px; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); background: var(--bg-2); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { color: var(--ink-2); width: 40%; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 8px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+.stat b { display: block; font: 700 44px/1 Fraunces, serif; color: var(--accent); }
+.stat span { color: var(--ink-2); font-size: 15px; }
+
+.sleep { display: grid; grid-template-columns: 300px 1fr; gap: 48px; align-items: center; }
+.sleep img { width: 100%; }
+.sleep blockquote { margin: 18px 0 0; padding-left: 18px; border-left: 3px solid var(--accent-2); color: var(--ink-2); font-style: italic; }
+
+.install { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; font-size: 15px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+.install code { color: var(--ink); }
+.install small { color: var(--ink-2); }
+
+footer { padding: 40px 0 56px; color: var(--ink-2); font-size: 14px; border-top: 1px solid var(--line); }
+footer .wrap { display: flex; align-items: center; gap: 14px; justify-content: space-between; flex-wrap: wrap; }
+footer img { width: 44px; vertical-align: middle; margin-right: 8px; }
+
+@media (max-width: 860px) {
+  .hero, .split, .sleep { grid-template-columns: 1fr; }
+  .hero-art { order: -1; }
+  .hero-art img { max-width: 260px; }
+  .sleep img { max-width: 220px; margin: 0 auto; display: block; }
+  .stats { grid-template-columns: 1fr; }
+  nav ul { gap: 16px; font-size: 15px; }
+  nav ul li.hide-sm { display: none; }
+  .wrap { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <nav>
+    <a class="brand" href="#"><img src="assets/finan-geometric.webp" alt="">Xo</a>
+    <ul>
+      <li><a href="#">Docs</a></li>
+      <li class="hide-sm"><a href="#">Spec</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="https://github.com/xo-lang">GitHub</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="pill">EXPERIMENTAL · v0.9</span>
+      <h1>Backends that agents <em>can't quietly break.</em></h1>
+      <p class="lede">Xo is a small, statically typed language for web services. It keeps what makes Go productive and moves the bugs tests usually miss into the compiler.</p>
+      <div class="ctas">
+        <a class="btn primary" href="#">Get started</a>
+        <a class="btn ghost" href="#">Read the spec</a>
+      </div>
+    </div>
+    <div class="hero-art"><img src="assets/finan-geometric.webp" alt="Finan, the Xo fennec fox, ears up"></div>
+  </div>
+
+  <div class="wrap" style="padding-bottom:72px">
+    <div class="code-card">
+      <div class="bar"><i></i><i></i><i></i><span>users.xo</span></div>
+<pre><span class="k">use</span> std/http
+
+<span class="k">pub enum</span> <span class="t">ApiErr</span> {
+  BadRequest(msg: <span class="t">Str</span>)
+  NotFound(id: <span class="t">Int</span>)
+}
+
+<span class="k">fn</span> (s: <span class="t">Store</span>) <span class="f">get</span>(id: <span class="t">Int</span>) -&gt; <span class="t">User</span> ! <span class="t">ApiErr</span>
+  <span class="k">requires</span> id &gt; 0 <span class="k">else</span> ApiErr.BadRequest(msg: <span class="s">"id must be positive"</span>)
+{
+  s.users.<span class="f">with</span>(<span class="k">fn</span>(m) { m.<span class="f">get</span>(id) }).<span class="f">or_err</span>(ApiErr.NotFound(id: id))?
+}
+
+<span class="k">fn</span> <span class="f">main</span>(os: <span class="t">Os</span>) ! {
+  <span class="k">let</span> store = <span class="t">Store</span>{users: Mutex.<span class="f">new</span>({1: <span class="t">User</span>{id: 1, name: <span class="s">"Ada"</span>, email: None}})}
+  <span class="k">var</span> r = http.<span class="f">router</span>()
+  r.<span class="f">handle</span>(<span class="s">"GET /users/{id:Int}"</span>, <span class="k">fn</span>(req) -&gt; http.<span class="t">Response</span> ! <span class="t">ApiErr</span> {
+    http.<span class="f">json</span>(200, store.<span class="f">get</span>(req.<span class="f">param_int</span>(<span class="s">"id"</span>))?)
+  })
+  http.<span class="f">server</span>(os.net.<span class="f">listen</span>(<span class="s">":8080"</span>)?, r).<span class="f">serve</span>()?
+}</pre>
+    </div>
+  </div>
+
+  <section class="alt">
+    <div class="wrap">
+      <h2>What Go lets through, Xo stops</h2>
+      <p class="sub">Each row is a class of production bug that compiles in Go. In Xo it is a compile error, a type, or a checked rule.</p>
+      <table>
+        <thead><tr><th>Problem in Go</th><th>Xo</th></tr></thead>
+        <tbody>
+          <tr><td>Ignored errors compile</td><td>An unhandled <code>Result</code> is a compile error</td></tr>
+          <tr><td>nil panics</td><td>No nil: optionals (<code>T?</code>)</td></tr>
+          <tr><td>Missing <code>switch</code> cases</td><td>Sum types with exhaustive <code>match</code></td></tr>
+          <tr><td>Data races</td><td>Value semantics; shared state only in <code>Mutex</code> and <code>Atomic</code></td></tr>
+          <tr><td>Goroutine leaks</td><td>Structured concurrency: no task outlives its scope</td></tr>
+          <tr><td>Any package can touch the network</td><td>Effects in signatures (<code>uses net</code>) and capabilities from <code>main</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Measured, not promised</h2>
+      <p class="sub">Two independent authors planted 30 safety bugs each: ignored errors, nil, missing cases, races, leaks, lost updates.</p>
+      <div class="stats">
+        <div class="stat"><b>23 to 29</b><span>of 30 caught or prevented by Xo</span></div>
+        <div class="stat"><b>13</b><span>by Go with strict analyzers</span></div>
+        <div class="stat"><b>9</b><span>by plain Go</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap sleep">
+      <img src="assets/finan-curled.webp" alt="Finan curled up asleep">
+      <div>
+        <h2>Let Finan sleep through the night</h2>
+        <p class="sub" style="margin-bottom:0">Diagnostics come back as JSON with stable <code>XO</code> codes and machine fixes, so an agent repairs its own code before it reaches review, and the pager stays quiet.</p>
+        <blockquote>Fennec foxes sleep through the desert heat and hunt at night. Your services should only need one of those.</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Try it</h2>
+      <p class="sub">Requires Go 1.26 or later.</p>
+      <div class="install"><code>go build -o .tools/bin/xo ./cmd/xo</code><small>then <code>xo run ./examples/notes-service</code></small></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span><img src="assets/finan-curled.webp" alt="">Xo, with Finan the fennec fox</span>
+    <span><a href="#">Docs</a> · <a href="#">Blog</a> · <a href="https://github.com/xo-lang">GitHub</a> · <a href="/llms.txt">llms.txt</a></span>
+  </div>
+</footer>
+</body>
+</html>

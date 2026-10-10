@@ -1,0 +1,23 @@
+{{- $cur := . }}
+<aside class="side-nav">
+  <h4>Docs</h4>
+  <ul>
+    {{- with site.GetPage "/docs" }}
+    <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>Overview</a></li>
+    {{- range .RegularPages }}
+    <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
+    {{- end }}
+    {{- end }}
+  </ul>
+  {{- with site.GetPage "/docs/spec" }}
+  <div class="group">
+    <h4>Specification</h4>
+    <ul>
+      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>About the spec</a></li>
+      {{- range .RegularPages }}
+      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
+      {{- end }}
+    </ul>
+  </div>
+  {{- end }}
+</aside>

@@ -1,0 +1,69 @@
+---
+title: "Getting started"
+description: "Build the xo toolchain from source, then check, run, and test a first program."
+weight: 10
+---
+
+Xo is experimental. The toolchain is built from source for now, and the
+language may change before 1.0.
+
+## Build the toolchain
+
+You need Go 1.26 or later. From a checkout of
+[github.com/xo-lang/xo](https://github.com/xo-lang/xo):
+
+```
+go build -o .tools/bin/xo ./cmd/xo
+export PATH="$PWD/.tools/bin:$PATH"
+```
+
+## A first program
+
+Make a directory with an `xo.mod` and a `main.xo`:
+
+```
+module example.com/hello
+edition 2026
+```
+
+```
+fn greet(name: Str) -> Str {
+  "hello, ${name}"
+}
+
+test "greet" {
+  expect(greet("Ada")) == "hello, Ada"
+}
+
+fn main(os: Os) {
+  os.stdio.println(greet("world"))
+}
+```
+
+Then check, run, and test it:
+
+```
+$ xo check .
+1 module(s), 0 error(s), 0 warning(s)
+$ xo run .
+hello, world
+$ xo test .
+ok: 1 passed, 0 failed, 0 skipped
+```
+
+`main` receives the operating system as a capability (`os`). Code that needs
+the network, files, or the clock gets them from `main`, so a function's
+signature shows what it can touch.
+
+## Diagnostics for agents
+
+`xo check --json` reports every problem as JSON with a stable `XOnnnn` code,
+notes, and machine applicable fixes. `xo explain <code>` describes any code.
+The full list is in [section 10.6 of the spec](../spec/core/#106-diagnostic-codes).
+
+## Next
+
+- Read the [core specification](../spec/core/), starting with the overview.
+- See the realistic example service in `examples/notes-service` in the
+  repository: HTTP and JSON, `std/sql`, auth middleware, a background job,
+  and graceful shutdown.

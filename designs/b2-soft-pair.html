@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xo Language</title>
+<meta name="description" content="Xo: a small, statically typed language for backends and web services, built for AI agents to write, check, and debug.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Design B: Night Watch. Dark first, terminal forward, built around the diagnostics. */
+:root {
+  --bg: #14110f;
+  --bg-2: #1c1815;
+  --panel: #211c18;
+  --ink: #f1e6d6;
+  --ink-2: #a8998a;
+  --line: #342b24;
+  --accent: #e8743b;
+  --accent-2: #f2b45a;
+  --ok: #8fc48a;
+  --err: #f07a62;
+  --glow: rgba(232,116,59,.22);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #faf6f0; --bg-2: #f2ebe1; --panel: #1f1a16; --ink: #241d18; --ink-2: #6e6053;
+    --line: #e2d6c6; --glow: rgba(232,116,59,.16);
+  }
+}
+:root[data-theme="light"] {
+  --bg: #faf6f0; --bg-2: #f2ebe1; --panel: #1f1a16; --ink: #241d18; --ink-2: #6e6053;
+  --line: #e2d6c6; --glow: rgba(232,116,59,.16);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 "Space Grotesk", system-ui, sans-serif; }
+a { color: var(--accent-2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.brand { color: var(--ink); font: 700 22px "Space Grotesk", system-ui, sans-serif; letter-spacing: -.01em; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 34px; }
+.brand span { color: var(--accent); }
+nav ul { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; font: 500 14px "JetBrains Mono", monospace; }
+nav ul a { color: var(--ink-2); }
+nav ul a::before { content: "./"; color: var(--accent); opacity: .7; }
+
+.hero > *, .rest > * { min-width: 0; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; padding: 72px 0 64px; }
+.tag { font: 500 13px "JetBrains Mono", monospace; color: var(--ok); }
+.tag::before { content: "● "; }
+h1 { font-size: clamp(38px, 5.5vw, 62px); line-height: 1.05; letter-spacing: -.03em; margin: 16px 0 20px; font-weight: 700; }
+h1 span { color: var(--accent); }
+.lede { font-size: 19px; color: var(--ink-2); max-width: 32em; }
+.ctas { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.btn { padding: 12px 20px; border-radius: 8px; font: 600 14px "JetBrains Mono", monospace; }
+.btn.primary { background: var(--accent); color: #1a120c; }
+.btn.ghost { border: 1px solid var(--line); color: var(--ink); }
+.btn:hover { text-decoration: none; filter: brightness(1.08); }
+
+.stage { position: relative; }
+.stage .fox { position: absolute; right: -12px; top: -92px; width: 168px; filter: drop-shadow(0 0 40px var(--glow)); z-index: 2; }
+.term { position: relative; background: var(--panel); color: #efe3d2; border: 1px solid #3a3029; border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px -30px var(--glow); }
+.term .top { display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: #29221d; border-bottom: 1px solid #3a3029; font-size: 12px; color: #9c8c7c; }
+.term .top i { width: 10px; height: 10px; border-radius: 50%; background: #4b3f36; }
+.term .top span { margin-left: 10px; }
+.term pre { margin: 0; padding: 18px 20px; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+.p { color: var(--accent); } .dim { color: #8a7a6b; } .key { color: #f2b45a; } .str { color: #b9d39a; } .num { color: #e9a0d0; } .e { color: var(--err); font-weight: 700; } .ok { color: var(--ok); font-weight: 700; }
+
+section { padding: 80px 0; border-top: 1px solid var(--line); }
+.eyebrow { font: 500 13px "JetBrains Mono", monospace; color: var(--accent); letter-spacing: .06em; }
+h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -.02em; margin: 10px 0 14px; }
+.sub { color: var(--ink-2); max-width: 44em; margin: 0 0 36px; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cell { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.cell h3 { margin: 8px 0 6px; font-size: 18px; }
+.cell p { margin: 0; color: var(--ink-2); font-size: 15px; }
+
+.cell .from, .ix .from { font: 500 12px "JetBrains Mono", monospace; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.interop { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.ix { min-width: 0; background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 22px; }
+.ix h3 { margin: 8px 0 6px; font-size: 18px; }
+.ix p { margin: 0 0 14px; color: var(--ink-2); font-size: 15px; }
+.snip { margin: 0; background: var(--panel); color: #efe3d2; border-radius: 8px; padding: 12px 14px; font-size: 13px; overflow-x: auto; }
+.cmds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+.cmd { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px dashed var(--line); font-size: 15px; }
+.cmd code { color: var(--accent-2); min-width: 9.5em; }
+.cmd span { color: var(--ink-2); }
+
+.rest { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.rest .term pre { font-size: 14px; }
+.rest .sleeper { width: 100%; max-width: 360px; display: block; margin: 0 auto; }
+
+.switch { background: var(--accent); color: #1a120c; text-align: center; font: 500 13px "JetBrains Mono", monospace; padding: 6px 12px; }
+.switch a { color: #1a120c; text-decoration: underline; font-weight: 700; }
+footer { padding: 36px 0 52px; border-top: 1px solid var(--line); color: var(--ink-2); font: 13px "JetBrains Mono", monospace; }
+footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+footer img { width: 36px; vertical-align: middle; margin-right: 8px; }
+
+@media (max-width: 900px) {
+  .hero, .rest, .cmds { grid-template-columns: 1fr; }
+  .grid, .interop { grid-template-columns: 1fr; }
+  .stage { margin-top: 70px; }
+  .stage .fox { width: 120px; top: -70px; right: 4px; }
+  nav ul { gap: 14px; font-size: 13px; }
+  nav ul li.hide-sm { display: none; }
+  .wrap { padding: 0 16px; }
+  .rest .sleeper { max-width: 220px; }
+}
+</style>
+</head>
+<body>
+<div class="switch">Comparing logo pairs · <b>Soft pair</b> · <a href="b1-geometric-pair.html">see geometric pair</a> (design mockup)</div>
+<header class="wrap">
+  <nav>
+    <a class="brand" href="#">Xo Language</a>
+    <ul>
+      <li><a href="#">docs</a></li>
+      <li class="hide-sm"><a href="#">spec</a></li>
+      <li><a href="#">blog</a></li>
+      <li><a href="https://github.com/xo-lang">github</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <div class="tag">v0.9 · experimental · linux, darwin, windows, wasi</div>
+      <h1>Agents write the code. <span>The compiler reviews every line.</span></h1>
+      <p class="lede">Xo is a small, statically typed language for backends and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service before it ever reaches review.</p>
+      <div class="ctas">
+        <a class="btn primary" href="#">$ get started</a>
+        <a class="btn ghost" href="#">diagnostic codes</a>
+      </div>
+    </div>
+    <div class="stage">
+      <img class="fox" src="assets/finan-soft-alert.webp" alt="Finan the fennec fox, alert">
+      <div class="term">
+        <div class="top"><i></i><i></i><i></i><span>xo check --json ./main</span></div>
+<pre><span class="dim">{</span>
+  <span class="key">"code"</span>: <span class="e">"XO0401"</span>,
+  <span class="key">"severity"</span>: <span class="str">"error"</span>,
+  <span class="key">"message"</span>: <span class="str">"expected `()`, found `Result[Str, Error]`"</span>,
+  <span class="key">"span"</span>: { <span class="key">"file"</span>: <span class="str">"main/main.xo"</span>, <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">3</span> },
+  <span class="key">"notes"</span>: [{ <span class="key">"message"</span>: <span class="str">"the value is a `Result`; propagate
+    the error with `?` or handle it with `match`"</span> }],
+  <span class="key">"fixes"</span>: [{
+    <span class="key">"title"</span>: <span class="str">"propagate with ?"</span>,
+    <span class="key">"edits"</span>: [{ <span class="key">"span"</span>: { <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">11</span> }, <span class="key">"replace"</span>: <span class="str">"?"</span> }]
+  }]
+<span class="dim">}</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// why xo</div>
+      <h2>Ideas from great languages, in one small one.</h2>
+      <p class="sub">Xo borrows what has proven itself in Go, Rust, Swift, and Kotlin, then keeps the language small enough to hold in your head. The bugs tests usually miss become compile errors: in a study of 30 planted safety bugs, Xo caught or prevented 23 to 29, against 13 for Go with strict analyzers and 9 for plain Go.</p>
+      <div class="grid">
+        <div class="cell"><div class="from">from Go</div><h3>Small and fast</h3><p>Few keywords, one obvious way, one formatter, fast builds, and static binaries for linux, darwin, windows, and wasi.</p></div>
+        <div class="cell"><div class="from">from Rust</div><h3>Errors you can't ignore</h3><p><code>Result</code> and <code>?</code>; an unhandled error is a compile error.</p></div>
+        <div class="cell"><div class="from">from Rust and ML</div><h3>Sum types, exhaustive match</h3><p>Every case handled, and every <code>match target.os</code> arm type checked for every target.</p></div>
+        <div class="cell"><div class="from">from Swift and Kotlin</div><h3>No nil</h3><p>Optionals are <code>T?</code> and checked at every use.</p></div>
+        <div class="cell"><div class="from">from Swift and Kotlin</div><h3>Structured concurrency</h3><p>No task outlives its scope; value semantics mean no data races.</p></div>
+        <div class="cell"><div class="from">new in Xo</div><h3>Effects you can see</h3><p><code>uses net, fs.read</code> in the signature, with capabilities passed from <code>main</code>.</p></div>
+      </div>
+
+      <div class="interop">
+        <div class="ix">
+          <div class="from">interop · Go</div>
+          <h3>Use any Go package</h3>
+          <p>Bindings are generated on the fly. <code>(T, error)</code> becomes <code>T ! go.Error</code>, and a nil pointer becomes <code>T?</code>.</p>
+<pre class="snip"><span class="p">use</span> go <span class="str">"regexp"</span>
+<span class="p">use</span> go <span class="str">"github.com/google/uuid"</span> <span class="p">as</span> uuid</pre>
+        </div>
+        <div class="ix">
+          <div class="from">interop · C</div>
+          <h3>Call C from native builds</h3>
+          <p>The LLVM and arm64 backends bind C headers directly, with effects declared at the boundary.</p>
+<pre class="snip"><span class="p">use</span> c <span class="str">"zlib.h"</span> <span class="p">link</span> <span class="str">"z"</span> <span class="p">uses</span> none
+<span class="dim">// zlib.crc32(0, b"hello")</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// one binary</div>
+      <h2>Tools made for machines and people.</h2>
+      <p class="sub">Semantic queries and edits work on resolved symbols, so tools never guess from text.</p>
+      <div class="cmds">
+        <div class="cmd"><code>xo check --json</code><span>Type, effect, and concurrency checks</span></div>
+        <div class="cmd"><code>xo build --targets=all</code><span>Static binaries for four OSes</span></div>
+        <div class="cmd"><code>xo test --explore=N</code><span>Searches task interleavings</span></div>
+        <div class="cmd"><code>xo query callers</code><span>Semantic queries for agents</span></div>
+        <div class="cmd"><code>xo edit rename</code><span>Edits rechecked before writing</span></div>
+        <div class="cmd"><code>xo explain XO0401</code><span>Every code, explained</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap rest">
+      <div>
+        <div class="eyebrow">// after the fixes</div>
+        <h2>Zero errors. Finan goes back to sleep.</h2>
+        <p class="sub">Fennec foxes rest through the heat of the day. A service that compiled clean can too.</p>
+        <div class="term">
+          <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> xo check ./...
+1 module(s), <span class="ok">0 error(s)</span>, 0 warning(s)
+<span class="p">$</span> xo build --targets=all ./main
+<span class="dim"># static binaries for linux, darwin, windows, wasi</span></pre>
+        </div>
+      </div>
+      <img class="sleeper" src="assets/finan-curled.webp" alt="Finan curled up asleep">
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span><img src="assets/finan-curled.webp" alt="">xolang.dev</span>
+    <span><a href="#">docs</a> · <a href="#">blog</a> · <a href="https://github.com/xo-lang">github</a> · <a href="/llms.txt">llms.txt</a></span>
+  </div>
+</footer>
+</body>
+</html>

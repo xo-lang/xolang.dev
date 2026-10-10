@@ -1,0 +1,24 @@
+# {{ site.Title }}
+
+> {{ site.Params.description }} Xo is pronounced "ex-oh". Status: experimental ({{ site.Params.version }}); expect breaking changes before 1.0.
+
+Every page below is also served as Markdown: append `index.md` to its URL.
+
+## Specification
+{{ with site.GetPage "/docs/spec" }}{{ range .RegularPages }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
+{{- end }}{{ end }}
+
+## Docs
+{{ with site.GetPage "/docs" }}{{ range .RegularPages }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
+{{- end }}{{ end }}
+
+## Release notes
+{{ with site.GetPage "/blog" }}{{ range .Pages.ByDate.Reverse }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
+{{- end }}{{ end }}
+
+## Source
+
+- [github.com/xo-lang]({{ site.Params.github }})

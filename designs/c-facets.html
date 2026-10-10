@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xo Language</title>
+<meta name="description" content="Xo: a small, statically typed language for backends and web services, built for AI agents to write, check, and debug.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500;75..125,800;75..125,900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Design C: Facets. Bold and angular, echoing the faceted fox; the curled fox is the soft counterpoint. */
+:root {
+  --bg: #fffaf3;
+  --ink: #1d1916;
+  --ink-2: #5f544b;
+  --line: #e9dccb;
+  --terra: #c4552b;
+  --gold: #dc9a45;
+  --sand: #f2dfc3;
+  --char: #26211d;
+  --band-ink: #fff6ea;
+  --card: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171310; --ink: #f5ead9; --ink-2: #b8a896; --line: #352b23;
+    --sand: #2b221c; --card: #201a16; --char: #0f0c0a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171310; --ink: #f5ead9; --ink-2: #b8a896; --line: #352b23;
+  --sand: #2b221c; --card: #201a16; --char: #0f0c0a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 "IBM Plex Sans", system-ui, sans-serif; overflow-x: hidden; }
+a { color: var(--terra); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+code, pre { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+h1, h2, h3, .brand, nav ul { font-family: Archivo, system-ui, sans-serif; }
+
+.band { position: relative; background: var(--terra); color: var(--band-ink); clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%); padding-bottom: 120px; }
+.band::before { content: ""; position: absolute; inset: 0; opacity: .16; background:
+  linear-gradient(135deg, transparent 49.5%, #fff 49.5% 50.5%, transparent 50.5%) 0 0 / 120px 120px,
+  linear-gradient(45deg, transparent 49.5%, #000 49.5% 50.5%, transparent 50.5%) 0 0 / 120px 120px; pointer-events: none; }
+nav { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--band-ink); font-weight: 900; font-size: 28px; font-stretch: 115%; letter-spacing: .02em; }
+.brand img { width: 42px; }
+nav ul { display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
+nav ul a { color: var(--band-ink); opacity: .85; }
+
+.hero { position: relative; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; padding-top: 48px; }
+h1 { font-weight: 900; font-stretch: 120%; font-size: clamp(44px, 7vw, 92px); line-height: .95; text-transform: uppercase; margin: 0 0 24px; letter-spacing: -.01em; }
+h1 .outline { color: transparent; -webkit-text-stroke: 2px var(--band-ink); }
+.hero p { font-size: 20px; max-width: 30em; opacity: .92; margin: 0; }
+.ctas { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+.btn { padding: 14px 24px; font: 800 14px Archivo, sans-serif; text-transform: uppercase; letter-spacing: .08em; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.btn.primary { background: var(--char); color: #fff6ea; }
+.btn.ghost { background: var(--band-ink); color: var(--terra); }
+.btn:hover { text-decoration: none; filter: brightness(1.1); }
+.hero img { width: 100%; max-width: 460px; justify-self: center; filter: drop-shadow(0 24px 30px rgba(0,0,0,.25)); }
+
+.code-wrap { position: relative; margin-top: -90px; z-index: 2; }
+.code { background: var(--char); color: #f3e7d6; padding: 28px 30px; overflow-x: auto; font-size: 14px; line-height: 1.7; border-left: 8px solid var(--gold); box-shadow: 0 30px 60px -30px rgba(0,0,0,.5); }
+.code pre { margin: 0; }
+.k { color: #f08a5d; } .t { color: #f2c26b; } .s { color: #a7cf8e; } .f { color: #f7dcb4; }
+
+section { padding: 96px 0 40px; }
+.num { font: 900 15px Archivo, sans-serif; color: var(--terra); letter-spacing: .12em; }
+h2 { font-weight: 900; font-stretch: 112%; font-size: clamp(32px, 4.6vw, 54px); line-height: 1; text-transform: uppercase; margin: 10px 0 18px; }
+.sub { color: var(--ink-2); max-width: 42em; margin: 0 0 40px; font-size: 18px; }
+
+.facets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 3px solid var(--ink); }
+.facet { padding: 26px 24px 30px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.facet:nth-child(3n) { border-right: 0; }
+.facet b { display: inline-block; width: 26px; height: 22px; background: var(--terra); clip-path: polygon(50% 0, 100% 100%, 0 100%); margin-bottom: 12px; }
+.facet:nth-child(2n) b { background: var(--gold); }
+.facet h3 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+.facet p { margin: 0; color: var(--ink-2); font-size: 15px; }
+
+.contrast { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 3px solid var(--ink); }
+.side { padding: 36px; display: grid; grid-template-columns: 140px 1fr; gap: 24px; align-items: center; }
+.side + .side { border-left: 3px solid var(--ink); background: var(--sand); border-radius: 0 60px 60px 0; }
+.side img { width: 100%; }
+.side h3 { font-weight: 900; font-stretch: 110%; text-transform: uppercase; font-size: 24px; margin: 0 0 8px; }
+.side p { margin: 0; color: var(--ink-2); font-size: 15px; }
+
+.bars { display: grid; gap: 14px; max-width: 760px; }
+.bar { display: grid; grid-template-columns: 180px 1fr 70px; gap: 16px; align-items: center; font-size: 15px; }
+.bar .track { height: 22px; background: var(--sand); }
+.bar .fill { height: 100%; background: var(--ink); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+.bar.xo .fill { background: var(--terra); }
+.bar span:last-child { font: 800 16px Archivo, sans-serif; text-align: right; }
+.note { color: var(--ink-2); font-size: 14px; margin-top: 16px; }
+
+.install { margin: 30px 0 0; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; background: var(--card); border: 3px solid var(--ink); padding: 18px 22px; }
+.install code { font-size: 15px; }
+
+footer { margin-top: 96px; background: var(--char); color: #d9cbb8; padding: 44px 0; clip-path: polygon(0 18%, 100% 0, 100% 100%, 0 100%); padding-top: 70px; font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+footer a { color: var(--gold); }
+footer img { width: 48px; vertical-align: middle; margin-right: 10px; }
+
+@media (max-width: 900px) {
+  .hero, .contrast { grid-template-columns: 1fr; }
+  .hero img { max-width: 240px; order: -1; }
+  .facets { grid-template-columns: 1fr; }
+  .facet { border-right: 0; }
+  .side + .side { border-left: 0; border-top: 3px solid var(--ink); border-radius: 0 0 60px 60px; }
+  .side { grid-template-columns: 96px 1fr; padding: 24px; }
+  .bar { grid-template-columns: 110px 1fr 54px; font-size: 13px; }
+  nav ul { gap: 14px; }
+  nav ul li.hide-sm { display: none; }
+  .wrap { padding: 0 16px; }
+  .band { padding-bottom: 110px; }
+}
+</style>
+</head>
+<body>
+<div class="band">
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#"><img src="assets/finan-geometric.webp" alt="">XO</a>
+      <ul>
+        <li><a href="#">Docs</a></li>
+        <li class="hide-sm"><a href="#">Spec</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="https://github.com/xo-lang">GitHub</a></li>
+      </ul>
+    </nav>
+    <div class="hero">
+      <div>
+        <h1>Sharp <span class="outline">types.</span><br>Small <span class="outline">language.</span></h1>
+        <p>Xo is a statically typed language for backends and web services, designed so AI agents can write, check, cross compile, and debug with fast, structured feedback.</p>
+        <div class="ctas">
+          <a class="btn primary" href="#">Get started</a>
+          <a class="btn ghost" href="#">Language tour</a>
+        </div>
+      </div>
+      <img src="assets/finan-geometric.webp" alt="Finan, the faceted fennec fox">
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap code-wrap">
+    <div class="code">
+<pre><span class="k">pub enum</span> <span class="t">ApiErr</span> {
+  BadRequest(msg: <span class="t">Str</span>)
+  NotFound(id: <span class="t">Int</span>)
+}
+
+<span class="k">fn</span> (s: <span class="t">Store</span>) <span class="f">get</span>(id: <span class="t">Int</span>) -&gt; <span class="t">User</span> ! <span class="t">ApiErr</span>
+  <span class="k">requires</span> id &gt; 0 <span class="k">else</span> ApiErr.BadRequest(msg: <span class="s">"id must be positive"</span>)
+{
+  s.users.<span class="f">with</span>(<span class="k">fn</span>(m) { m.<span class="f">get</span>(id) }).<span class="f">or_err</span>(ApiErr.NotFound(id: id))?
+}
+
+<span class="k">fn</span> <span class="f">main</span>(os: <span class="t">Os</span>) ! {
+  <span class="k">var</span> r = http.<span class="f">router</span>()
+  r.<span class="f">handle</span>(<span class="s">"GET /users/{id:Int}"</span>, <span class="k">fn</span>(req) -&gt; http.<span class="t">Response</span> ! <span class="t">ApiErr</span> {
+    http.<span class="f">json</span>(200, store.<span class="f">get</span>(req.<span class="f">param_int</span>(<span class="s">"id"</span>))?)
+  })
+  http.<span class="f">server</span>(os.net.<span class="f">listen</span>(<span class="s">":8080"</span>)?, r).<span class="f">serve</span>()?
+}</pre>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="num">01 / SAFETY</div>
+      <h2>Every facet checked</h2>
+      <p class="sub">What makes Go productive stays: few keywords, one obvious way, fast builds, static binaries. The bugs tests usually miss move into the compiler.</p>
+      <div class="facets">
+        <div class="facet"><b></b><h3>No ignored errors</h3><p>An unhandled <code>Result</code> does not compile.</p></div>
+        <div class="facet"><b></b><h3>No nil</h3><p>Optionals are <code>T?</code>, checked at every use.</p></div>
+        <div class="facet"><b></b><h3>Exhaustive match</h3><p>Sum types with every case handled.</p></div>
+        <div class="facet"><b></b><h3>No data races</h3><p>Value semantics; sharing only through <code>Mutex</code> and <code>Atomic</code>.</p></div>
+        <div class="facet"><b></b><h3>No leaked tasks</h3><p>Structured concurrency; cancellation flows down.</p></div>
+        <div class="facet"><b></b><h3>Visible effects</h3><p><code>uses net, fs.read</code> in the signature.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="num">02 / CHARACTER</div>
+      <h2>Strict compiler, easy going language</h2>
+      <p class="sub">Finan has two moods, and so does Xo.</p>
+      <div class="contrast">
+        <div class="side">
+          <img src="assets/finan-geometric.webp" alt="Finan alert">
+          <div><h3>Ears up</h3><p>JSON diagnostics with stable <code>XO</code> codes and machine fixes. Every <code>match target.os</code> arm is type checked for every target.</p></div>
+        </div>
+        <div class="side">
+          <img src="assets/finan-curled.webp" alt="Finan curled up asleep">
+          <div><h3>Curled up</h3><p>One formatter with no options, one obvious way to write it, and programs about half the size of the Go equivalent.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="num">03 / EVIDENCE</div>
+      <h2>30 planted bugs</h2>
+      <p class="sub">Ignored errors, nil, missing cases, races, leaks, and lost updates, planted by two independent authors.</p>
+      <div class="bars">
+        <div class="bar xo"><span>Xo</span><div class="track"><div class="fill" style="width:87%"></div></div><span>23 to 29</span></div>
+        <div class="bar"><span>Go + analyzers</span><div class="track"><div class="fill" style="width:43%"></div></div><span>13</span></div>
+        <div class="bar"><span>Plain Go</span><div class="track"><div class="fill" style="width:30%"></div></div><span>9</span></div>
+      </div>
+      <p class="note">Xo bar shows the midpoint of the two authors' results (26 of 30).</p>
+      <div class="install"><strong>Build from source</strong><code>go build -o .tools/bin/xo ./cmd/xo</code><span style="color:var(--ink-2)">Go 1.26+</span></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span><img src="assets/finan-curled.webp" alt="">Xo · Finan the fennec fox</span>
+    <span><a href="#">Docs</a> · <a href="#">Blog</a> · <a href="https://github.com/xo-lang">GitHub</a> · <a href="/llms.txt">llms.txt</a></span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{{ define "main" }}
+<div class="wrap page plain">
+  <article class="prose">
+    <h1>{{ .Title }}</h1>
+    {{ .Content }}
+    <ul class="posts">
+      {{- range .Pages.ByDate.Reverse }}
+      <li>
+        <div class="meta">{{ .Date.Format "2006-01-02" }}</div>
+        <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+        <p>{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 220 }}{{ end }}</p>
+      </li>
+      {{- end }}
+    </ul>
+  </article>
+</div>
+{{ end }}

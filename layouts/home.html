@@ -1,0 +1,98 @@
+{{ define "main" }}
+  <div class="wrap hero">
+    <div>
+      <div class="tag">{{ site.Params.version }} · experimental · linux, darwin, windows, wasi</div>
+      <h1>Agents write the code. <span>The compiler reviews every line.</span></h1>
+      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a small, statically typed language for backends and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service before it ever reaches review.</p>
+      <div class="ctas">
+        <a class="btn primary" href="{{ "docs/getting-started/" | relURL }}">$ get started</a>
+        <a class="btn ghost" href="{{ "docs/spec/core/#106-diagnostic-codes" | relURL }}">diagnostic codes</a>
+      </div>
+    </div>
+    <div class="stage">
+      <img class="fox" src="{{ "images/finan-soft-alert.webp" | relURL }}" alt="Finan the fennec fox, alert">
+      <div class="term">
+        <div class="top"><i></i><i></i><i></i><span>xo check --json ./main</span></div>
+<pre><span class="dim">{</span>
+  <span class="key">"code"</span>: <span class="e">"XO0401"</span>,
+  <span class="key">"severity"</span>: <span class="str">"error"</span>,
+  <span class="key">"message"</span>: <span class="str">"expected `()`, found `Result[Str, Error]`"</span>,
+  <span class="key">"span"</span>: { <span class="key">"file"</span>: <span class="str">"main/main.xo"</span>, <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">3</span> },
+  <span class="key">"notes"</span>: [{ <span class="key">"message"</span>: <span class="str">"the value is a `Result`; propagate
+    the error with `?` or handle it with `match`"</span> }],
+  <span class="key">"fixes"</span>: [{
+    <span class="key">"title"</span>: <span class="str">"propagate with ?"</span>,
+    <span class="key">"edits"</span>: [{ <span class="key">"span"</span>: { <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">11</span> }, <span class="key">"replace"</span>: <span class="str">"?"</span> }]
+  }]
+<span class="dim">}</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// why xo</div>
+      <h2>Ideas from great languages, in one small one.</h2>
+      <p class="sub">Xo borrows what has proven itself in Go, Rust, Swift, and Kotlin, and turns the bugs tests usually miss into compile errors. In a study of 30 planted safety bugs, Xo caught or prevented 23 to 29, against 13 for Go with strict analyzers and 9 for plain Go.</p>
+      <div class="grid">
+        <div class="cell"><div class="from">from Go</div><h3>Small and fast</h3><p>Few keywords, one obvious way, one formatter, fast builds, and static binaries for linux, darwin, windows, and wasi.</p></div>
+        <div class="cell"><div class="from">from Rust</div><h3>Errors you can't ignore</h3><p><code>Result</code> and <code>?</code>; an unhandled error is a compile error.</p></div>
+        <div class="cell"><div class="from">from Rust and ML</div><h3>Sum types, exhaustive match</h3><p>Every case handled, and every <code>match target.os</code> arm type checked for every target.</p></div>
+        <div class="cell"><div class="from">from Swift and Kotlin</div><h3>No nil</h3><p>Optionals are <code>T?</code> and checked at every use.</p></div>
+        <div class="cell"><div class="from">from Swift and Kotlin</div><h3>Structured concurrency</h3><p>No task outlives its scope; value semantics mean no data races.</p></div>
+        <div class="cell"><div class="from">new in Xo</div><h3>Effects you can see</h3><p><code>uses net, fs.read</code> in the signature, with capabilities passed from <code>main</code>.</p></div>
+      </div>
+
+      <div class="interop">
+        <div class="ix">
+          <div class="from">interop · Go</div>
+          <h3>Use any Go package</h3>
+          <p>Bindings are generated on the fly. <code>(T, error)</code> becomes <code>T ! go.Error</code>, and a nil pointer becomes <code>T?</code>.</p>
+<pre class="snip"><span class="p">use</span> go <span class="str">"regexp"</span>
+<span class="p">use</span> go <span class="str">"github.com/google/uuid"</span> <span class="p">as</span> uuid</pre>
+        </div>
+        <div class="ix">
+          <div class="from">interop · C</div>
+          <h3>Call C from native builds</h3>
+          <p>The LLVM and arm64 backends bind C headers directly, with effects declared at the boundary.</p>
+<pre class="snip"><span class="p">use</span> c <span class="str">"zlib.h"</span> <span class="p">link</span> <span class="str">"z"</span> <span class="p">uses</span> none
+<span class="dim">// zlib.crc32(0, b"hello")</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// one binary</div>
+      <h2>Tools made for machines and people.</h2>
+      <p class="sub">Semantic queries and edits work on resolved symbols, so tools never guess from text.</p>
+      <div class="cmds">
+        <div class="cmd"><code>xo check --json</code><span>Type, effect, and concurrency checks</span></div>
+        <div class="cmd"><code>xo build --targets=all</code><span>Static binaries for four OSes</span></div>
+        <div class="cmd"><code>xo test --explore=N</code><span>Searches task interleavings</span></div>
+        <div class="cmd"><code>xo query callers</code><span>Semantic queries for agents</span></div>
+        <div class="cmd"><code>xo edit rename</code><span>Edits rechecked before writing</span></div>
+        <div class="cmd"><code>xo explain XO0401</code><span>Every code, explained</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap rest">
+      <div>
+        <div class="eyebrow">// after the fixes</div>
+        <h2>Zero errors. Finan goes back to sleep.</h2>
+        <p class="sub">Fennec foxes rest through the heat of the day. A service that compiled clean can too.</p>
+        <div class="term">
+          <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> xo check ./...
+1 module(s), <span class="ok">0 error(s)</span>, 0 warning(s)
+<span class="p">$</span> xo build --targets=all ./main
+<span class="dim"># static binaries for linux, darwin, windows, wasi</span></pre>
+        </div>
+      </div>
+      <img class="sleeper" src="{{ "images/finan-soft-sleep.webp" | relURL }}" alt="Finan curled up asleep">
+    </div>
+  </section>
+{{ end }}
