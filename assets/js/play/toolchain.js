@@ -215,7 +215,7 @@ async function format(source, progress) {
   return { source: readFile(root, "/w/src/main.xo"), changed: out.changed };
 }
 
-async function build(source, progress, status) {
+async function build(source, progress, status, test) {
   const m = await loadManifest();
   status("Loading the toolchain");
   const [xo, compile, link, pkgs] = await Promise.all([
@@ -223,7 +223,7 @@ async function build(source, progress, status) {
   ]);
   status("Checking");
   const root = workspace(source);
-  const plan = xoplay(xo, ["gen", "/w/src", "/w/out"], root);
+  const plan = xoplay(xo, ["gen", ...(test ? ["--test"] : []), "/w/src", "/w/out"], root);
   friendly(plan.diagnostics);
   if (!plan.packages) return { diagnostics: plan.diagnostics };
   const missing = plan.runtime.filter((f) => !m.gobind.includes(f));
@@ -234,7 +234,7 @@ async function build(source, progress, status) {
   if (plan.tags.join(",") !== want) {
     return {
       diagnostics: plan.diagnostics,
-      refused: "This program uses std/http, so it can be checked here but not run: a browser tab cannot open a server. Run it with `xo run`.",
+      refused: "This program uses std/http, so it can be checked here but not " + (test ? "tested" : "run") + ": the playground's runtime leaves out the HTTP server and client. Use `xo " + (test ? "test" : "run") + "`.",
     };
   }
   const go = {};
@@ -287,7 +287,8 @@ self.onmessage = async (e) => {
     let result;
     if (cmd === "check") result = await check(source, progress);
     else if (cmd === "format") result = await format(source, progress);
-    else if (cmd === "build") result = await build(source, progress, status);
+    else if (cmd === "build") result = await build(source, progress, status, false);
+    else if (cmd === "test") result = await build(source, progress, status, true);
     else throw new Error("unknown command " + cmd);
     self.postMessage({ id, result }, result.wasm ? [result.wasm] : []);
   } catch (err) {

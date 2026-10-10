@@ -68,7 +68,7 @@ self.onmessage = async (e) => {
       if (imp.module !== "wasi_snapshot_preview1") throw new Error("the program imports " + imp.module + "." + imp.name);
     }
     const fds = [new OpenFile(new File([])), stream(1), stream(2), new PreopenDirectory("/tmp", new Map())];
-    const wasi = new WASI(["play"], [], fds, { debug: false });
+    const wasi = new WASI(e.data.args || ["play"], [], fds, { debug: false });
     const inst = await WebAssembly.instantiate(mod, { wasi_snapshot_preview1: wasi.wasiImport });
     const t0 = performance.now();
     let code;

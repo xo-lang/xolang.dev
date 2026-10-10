@@ -32,7 +32,8 @@ WebAssembly:
    and link them against precompiled archives of Xo's runtime and the Go
    standard library. The output is a WebAssembly program.
 3. **Run.** The program runs in a separate worker, with the WASI system
-   interface over an empty in-memory file system.
+   interface over an empty in-memory file system. The test button builds
+   the program's `test` blocks instead and runs them as `xo test -v` does.
 
 The tools see a small in-memory file system, as if they were running on a
 tiny computer. A build and run of a tour program takes about two seconds.
@@ -69,7 +70,7 @@ once per browser and version.
 - **Any Go package.** `use go` works with 28 common standard packages
   (`strings`, `net/url`, `regexp`, `time`, and more), bound ahead of time.
   With the `xo` toolchain installed, `use go` binds any Go package.
-- **Tests.** The playground runs `main`; `xo test` is next.
 
-Open the [playground](/play/), pick an example, and press run. The "mistakes"
+Open the [playground](/play/), pick an example, and press run, or follow
+the "Run it in the playground" link under any step of the [tour](/docs/tour/). The "mistakes"
 examples show what the compiler catches before anything runs.

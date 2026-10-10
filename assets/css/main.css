@@ -214,7 +214,21 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-editor { display: flex; }
 .play-editor pre, .play-editor textarea { margin: 0; padding: 14px 0; font: 14px/1.6 "JetBrains Mono", ui-monospace, monospace; font-variant-ligatures: none; }
 .play-lines { width: 3.2em; flex: none; text-align: right; padding-right: 10px !important; color: #6f6153; overflow: hidden; user-select: none; border-right: 1px solid #3a3029; }
-.play-editor textarea { flex: 1; min-width: 0; resize: none; border: 0; outline: none; background: transparent; color: inherit; padding-left: 14px; padding-right: 14px; tab-size: 2; white-space: pre; overflow: auto; caret-color: var(--accent); }
+.play-text { position: relative; flex: 1; min-width: 0; }
+.play-editor .play-text > * { position: absolute; inset: 0; width: 100%; height: 100%; padding: 14px; tab-size: 2; white-space: pre; letter-spacing: 0; }
+.play-editor textarea { resize: none; border: 0; outline: none; background: transparent; color: transparent; -webkit-text-fill-color: transparent; overflow: auto; caret-color: var(--accent); }
+.play-editor textarea::selection { background: rgba(232,116,59,.35); -webkit-text-fill-color: transparent; }
+.play-hl { overflow: hidden; color: #efe3d2; pointer-events: none; }
+.play-hl .xk { color: #f08a5d; }
+.play-hl .xkc { color: #e9a0d0; }
+.play-hl .xt { color: #f2c26b; }
+.play-hl .xf { color: #f7dcb4; }
+.play-hl .xs { color: #b9d39a; }
+.play-hl .xsi { color: #f08a5d; }
+.play-hl .xm { color: #e9a0d0; }
+.play-hl .xc { color: #8a7a6b; font-style: italic; }
+.play-hl .xh { color: var(--err); font-weight: 700; }
+.play-hl .xp { color: #d9cbb8; }
 .play-out { display: flex; flex-direction: column; }
 .play-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 8px; background: #29221d; border-bottom: 1px solid #3a3029; flex-wrap: wrap; }
 .play-tabs button { background: none; border: 0; color: #9c8c7c; font: 500 13px "JetBrains Mono", monospace; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
@@ -253,3 +267,5 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-consent p { margin: 0; flex: 1 1 420px; }
 .play-consent.flash { animation: play-flash .8s ease-out; }
 @keyframes play-flash { from { box-shadow: 0 0 0 6px var(--glow); } to { box-shadow: 0 0 0 0 transparent; } }
+.prose .play-link { margin-top: -6px; font: 500 14px "JetBrains Mono", monospace; }
+.prose .play-link a::before { content: "▶ "; font-size: 11px; }

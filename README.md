@@ -53,8 +53,15 @@ The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it
   compiler, `cmd/xoplay`), the Go compiler and linker, the precompiled rt and
   Go standard library archives, and `use go` bindings. Rerun it after
   compiler, std/rt, or Go changes; it needs the xo repo (`$XO_REPO`).
-- `assets/js/play/`: `play.js` (page), `toolchain.js` (worker running the
-  tools over an in-memory file system), `runner.js` (one worker per run).
+- `assets/js/play/`: `play.js` (page), `highlight.js` (editor coloring),
+  `toolchain.js` (worker running the tools over an in-memory file system),
+  `runner.js` (one worker per run or test run).
+- Tour examples link to `/play/#example=tour/<name>` (shortcodes `example`
+  and `mistake`).
+- Test: `.tools/bin/hugo --gc --minify && node scripts/test-playground.mjs`
+  (headless Chrome; every example, the tour's tests, the safety limits, the
+  download notice, links, and highlighting). Run it after rebuilding the
+  playground.
 - Safety: a Content Security Policy on the page (scripts from this site
   only, `connect-src 'self'`); programs may import only WASI, see no files,
   network, or environment, and are capped at 1 GiB, 1 MB of output, and

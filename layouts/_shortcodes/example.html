@@ -6,6 +6,9 @@
 ```xo
 {{ readFile (printf "%s/main.xo" $dir) | strings.TrimRight "\n" | safeHTML }}
 ```
+
+[Run it in the playground](/play/#example=tour/{{ .Get 0 }})
+{.play-link}
 {{ if fileExists $out }}
 Output:
 

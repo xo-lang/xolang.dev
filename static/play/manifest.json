@@ -65,9 +65,9 @@
   ],
   "files": {
     "xoplay": {
-      "path": "assets/xoplay-83d529cbfef2.wasm.gz",
-      "size": 28511790,
-      "gzip": 6959397
+      "path": "assets/xoplay-01c3d1769647.wasm.gz",
+      "size": 28513220,
+      "gzip": 6958937
     },
     "compile": {
       "path": "assets/compile-58555b0d1192.wasm.gz",

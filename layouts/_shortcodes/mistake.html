@@ -4,6 +4,9 @@
 {{ readFile (printf "%s/main.xo" $dir) | strings.TrimRight "\n" | safeHTML }}
 ```
 
+[Try it in the playground](/play/#example=mistakes/{{ .Get 0 }})
+{.play-link}
+
 `xo check` says:
 
 ```text

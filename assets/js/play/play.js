@@ -13,6 +13,7 @@ const goPane = document.getElementById("play-go");
 const statusEl = document.getElementById("play-status");
 const note = document.getElementById("play-note");
 const runBtn = document.getElementById("play-run");
+const testBtn = document.getElementById("play-test");
 const fmtBtn = document.getElementById("play-format");
 const shareBtn = document.getElementById("play-share");
 const select = document.getElementById("play-example");
@@ -26,6 +27,8 @@ const STORE = "xo-play-source";
 const CONSENT = "xo-play-download-ok";
 
 const examples = JSON.parse(document.getElementById("play-examples").textContent);
+const hl = document.getElementById("play-hl");
+const { render } = await import(root.dataset.highlight);
 
 // ---- toolchain worker -------------------------------------------------
 
@@ -84,7 +87,26 @@ function request(cmd, source, onStatus = () => {}) {
 
 let numbered = 0;
 
+let hlFrame = 0;
+
+// paint redraws the highlighting overlay, at most once a frame.
+function paint() {
+  if (hlFrame) return;
+  hlFrame = requestAnimationFrame(() => {
+    hlFrame = 0;
+    render(hl, code.value);
+    syncScroll();
+  });
+}
+
+function syncScroll() {
+  hl.scrollTop = code.scrollTop;
+  hl.scrollLeft = code.scrollLeft;
+  lines.scrollTop = code.scrollTop;
+}
+
 function renumber() {
+  paint();
   const n = code.value.split("\n").length;
   if (numbered !== n) {
     numbered = n;
@@ -95,10 +117,10 @@ function renumber() {
   lines.scrollTop = code.scrollTop;
 }
 
-code.addEventListener("scroll", () => { lines.scrollTop = code.scrollTop; });
+code.addEventListener("scroll", syncScroll);
 code.addEventListener("input", () => { renumber(); save(); scheduleCheck(); });
 code.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(); return; }
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(e.shiftKey); return; }
   if (e.key === "F" && e.shiftKey && e.altKey) { e.preventDefault(); format(); return; }
   if (e.key === "Tab" && !e.ctrlKey && !e.metaKey && !e.altKey) {
     e.preventDefault();
@@ -287,23 +309,29 @@ function stop(message) {
   done();
 }
 
+let active = runBtn; // the button of the current run: run or test
+
 function done() {
   busy = false;
   runBtn.textContent = "run";
-  runBtn.disabled = false;
+  testBtn.textContent = "test";
+  runBtn.disabled = testBtn.disabled = false;
 }
 
-async function run() {
+// run builds and runs the program, or with test set, its test blocks
+// (`xo test -v`).
+async function run(test = false) {
   if (!consented()) { askConsent(); return; }
   if (runner) { stop("[stopped]"); return; }
   if (busy) return;
   busy = true;
-  runBtn.disabled = true;
+  active = test ? testBtn : runBtn;
+  runBtn.disabled = testBtn.disabled = true;
   showTab("output");
   output.replaceChildren(el("span", "play-sys", "Building…"));
   let r;
   try {
-    r = await request("build", code.value, (s) => setStatus(s + "…"));
+    r = await request(test ? "test" : "build", code.value, (s) => setStatus(s + "…"));
   } catch (e) {
     output.replaceChildren(el("span", "play-err", e.message));
     setStatus("");
@@ -329,8 +357,8 @@ async function run() {
   }
   output.replaceChildren();
   setStatus("Running…");
-  runBtn.textContent = "stop";
-  runBtn.disabled = false;
+  active.textContent = "stop";
+  active.disabled = false;
   runner = new Worker(root.dataset.runner, { type: "module" });
   const timer = setTimeout(() => { setStatus(""); stop("[stopped: the program ran for more than " + RUN_LIMIT_MS / 1000 + " s]"); }, RUN_LIMIT_MS);
   const finish = (msg, cls) => {
@@ -348,10 +376,11 @@ async function run() {
     else if ("exit" in m) finish(m.exit === null ? "" : "\n[exit " + m.exit + " in " + Math.round(m.ms) + " ms]");
   };
   runner.onerror = (e) => finish("\n[the program stopped: " + (e.message || "out of memory") + "]", "play-err");
-  runner.postMessage({ wasm: r.wasm }, [r.wasm]);
+  runner.postMessage({ wasm: r.wasm, args: test ? ["play.test", "-v"] : ["play"] }, [r.wasm]);
 }
 
-runBtn.addEventListener("click", run);
+runBtn.addEventListener("click", () => run(false));
+testBtn.addEventListener("click", () => run(true));
 fmtBtn.addEventListener("click", format);
 
 // ---- download notice --------------------------------------------------
@@ -472,6 +501,11 @@ select.addEventListener("change", () => {
   check();
 });
 
+// A new #example= or #code= on this page (a link followed from the page
+// itself) loads like a fresh visit. Share uses replaceState, which does not
+// fire this.
+window.addEventListener("hashchange", () => location.reload());
+
 // ---- start ------------------------------------------------------------
 
 (async () => {
@@ -480,8 +514,12 @@ select.addEventListener("change", () => {
     sizes();
     problems.replaceChildren(el("li", "play-sys", "Download the toolchain (above) to check code."));
   }
-  const shared = await fromLink();
-  if (shared != null) {
+  const ex = /^#example=(\w+)\/([\w-]+)$/.exec(location.hash);
+  const named = ex && examples.find((x) => x.group === ex[1] && x.name === ex[2]);
+  const shared = named ? null : await fromLink();
+  if (named) {
+    setSource(named.source);
+  } else if (shared != null) {
     setSource(shared);
     note.textContent = "This code came from a shared link. It runs only in this tab, with no network access, and only when you press run.";
   } else {
