@@ -10,6 +10,7 @@ const output = document.getElementById("play-output");
 const problems = document.getElementById("play-problems");
 const count = document.getElementById("play-count");
 const goPane = document.getElementById("play-go");
+const goLines = document.getElementById("play-golines");
 const statusEl = document.getElementById("play-status");
 const note = document.getElementById("play-note");
 const runBtn = document.getElementById("play-run");
@@ -88,7 +89,7 @@ function request(cmd, source, onStatus = () => {}) {
 let numbered = 0;
 
 let hlFrame = 0;
-let marks = []; // [start, end, severity] of the last check's diagnostics
+let marks = []; // [start, end, severity, diagnostic] of the last check
 
 // paint redraws the highlighting overlay, at most once a frame.
 function paint() {
@@ -119,7 +120,7 @@ function renumber() {
 }
 
 code.addEventListener("scroll", syncScroll);
-code.addEventListener("input", () => { marks = []; renumber(); save(); scheduleCheck(); });
+code.addEventListener("input", () => { marks = []; hideTip(); renumber(); save(); scheduleCheck(); });
 code.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(e.shiftKey); return; }
   if (e.key === "F" && e.shiftKey && e.altKey) { e.preventDefault(); format(); return; }
@@ -229,13 +230,14 @@ function markRanges(ds) {
       const w = /^[A-Za-z0-9_]+/.exec(src.slice(start));
       end = start + (w ? w[0].length : 1);
     }
-    out.push([start, Math.min(end, src.length), d.severity === "error" ? "error" : "warning"]);
+    out.push([start, Math.min(end, src.length), d.severity === "error" ? "error" : "warning", d]);
   }
   return out;
 }
 
 function showDiagnostics(ds) {
   marks = markRanges(ds);
+  hideTip();
   paint();
   problems.replaceChildren();
   const errors = ds.filter((d) => d.severity === "error").length;
@@ -284,6 +286,89 @@ function applyFix(f) {
   check();
 }
 
+// ---- diagnostic tooltip -----------------------------------------------
+
+// The message of an underlined diagnostic shows when the pointer rests on
+// it, or when the caret is inside it (for the keyboard). The overlay
+// ignores the pointer, so the hit test uses the marked spans' boxes.
+const tip = el("div", "play-tip");
+tip.id = "play-tip";
+tip.setAttribute("role", "tooltip");
+tip.hidden = true;
+document.body.append(tip);
+let hovered = null; // the marked span under the pointer
+let hoverFrame = 0;
+
+function marksAt(at) {
+  return marks.filter(([a, b]) => at >= a && at < b).map((m) => m[3]);
+}
+
+function showTip(span, ds) {
+  if (!ds.length) return hideTip();
+  tip.replaceChildren();
+  for (const d of ds) {
+    const row = el("div", "play-tip-row " + d.severity);
+    row.append(el("span", "sev", d.severity + " " + d.code), ": " + d.message);
+    if (d.fixes && d.fixes.length) row.append(el("span", "play-tip-fix", " (fix in problems)"));
+    tip.append(row);
+  }
+  tip.hidden = false;
+  const r = span.getBoundingClientRect();
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let top = r.bottom + 6;
+  if (top + h > innerHeight - 8) top = r.top - h - 6;
+  tip.style.top = Math.max(8, top) + "px";
+  tip.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  code.setAttribute("aria-describedby", "play-tip");
+}
+
+function hideTip() {
+  tip.hidden = true;
+  hovered = null;
+  code.removeAttribute("aria-describedby");
+}
+
+function spanAt(x, y) {
+  for (const s of hl.querySelectorAll("[data-at]")) {
+    for (const r of s.getClientRects()) {
+      if (x >= r.left && x < r.right && y >= r.top && y < r.bottom) return s;
+    }
+  }
+  return null;
+}
+
+// caretTip shows the diagnostics at the caret, if any.
+function caretTip() {
+  if (hovered || document.activeElement !== code || code.selectionStart !== code.selectionEnd) {
+    if (!hovered) hideTip();
+    return;
+  }
+  const c = code.selectionStart;
+  const m = marks.find(([a, b]) => c >= a && c <= b);
+  if (!m) return hideTip();
+  const span = [...hl.querySelectorAll("[data-at]")].find((s) => +s.dataset.at >= m[0] && +s.dataset.at < m[1]);
+  if (span) showTip(span, marksAt(Math.min(c, m[1] - 1)));
+}
+
+code.addEventListener("mousemove", (e) => {
+  if (hoverFrame || !marks.length) return;
+  hoverFrame = requestAnimationFrame(() => {
+    hoverFrame = 0;
+    const s = spanAt(e.clientX, e.clientY);
+    if (s === hovered) return;
+    hovered = s;
+    if (s) showTip(s, marksAt(+s.dataset.at));
+    else caretTip();
+  });
+});
+code.addEventListener("mouseleave", () => { hovered = null; caretTip(); });
+code.addEventListener("keyup", caretTip);
+code.addEventListener("click", caretTip);
+code.addEventListener("blur", hideTip);
+code.addEventListener("scroll", () => { if (!tip.hidden) hideTip(); });
+addEventListener("scroll", () => { if (!tip.hidden) hideTip(); }, { passive: true });
+addEventListener("resize", hideTip);
+
 // ---- commands ---------------------------------------------------------
 
 let checkTimer = 0;
@@ -324,6 +409,24 @@ async function format() {
 }
 
 let runner = null;
+let lastGo = null;
+
+// showGo fills the generated Go tab. The //line directives map Go
+// positions back to main.xo (for compiler errors and stack traces) and
+// are hidden unless asked for: they are for the tools, not for reading.
+function showGo() {
+  if (!lastGo) return;
+  const lineDirs = goLines.checked;
+  goPane.replaceChildren();
+  for (const files of Object.values(lastGo)) {
+    for (const f of files) {
+      let text = f.text;
+      if (!lineDirs) text = text.split("\n").filter((l) => !l.startsWith("//line ")).join("\n");
+      goPane.append(el("span", "play-sys", "// file " + f.name.replace(/^m\//, "") + "\n"), text, "\n");
+    }
+  }
+}
+goLines.addEventListener("change", showGo);
 
 function stop(message) {
   if (runner) { runner.terminate(); runner = null; }
@@ -361,14 +464,7 @@ async function run(test = false) {
     return;
   }
   showDiagnostics(r.diagnostics || []);
-  if (r.go) {
-    goPane.replaceChildren();
-    for (const files of Object.values(r.go)) {
-      for (const f of files) {
-        goPane.append(el("span", "play-sys", "// " + f.name + "\n"), f.text, "\n");
-      }
-    }
-  }
+  if (r.go) { lastGo = r.go; showGo(); }
   if (!r.wasm) {
     setStatus("");
     if (r.refused) output.replaceChildren(el("span", "play-sys", r.refused));

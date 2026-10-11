@@ -132,7 +132,8 @@ function string(src, i, end, push) {
 
 // render replaces the children of el with the highlighted source. marks
 // are [start, end, severity] ranges (UTF-16 offsets) to underline: the
-// diagnostics of the last check.
+// diagnostics of the last check. A marked span records its offset in
+// data-at, for the page to find the diagnostics under the pointer.
 export function render(el, src, marks = []) {
   const frag = document.createDocumentFragment();
   const cuts = new Set();
@@ -155,6 +156,7 @@ export function render(el, src, marks = []) {
         const span = document.createElement("span");
         span.className = (cls ? "x" + cls : "") + (sev ? " xmark-" + sev : "");
         span.textContent = piece;
+        if (sev) span.dataset.at = off + from;
         frag.append(span);
       }
       from = k;

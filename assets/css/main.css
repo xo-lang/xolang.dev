@@ -280,3 +280,14 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-opts-body input { width: 110px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
 .play-opts-body p { margin: 4px 0 0; color: var(--ink-2); font: 12px/1.5 "Space Grotesk", system-ui, sans-serif; }
 @media (max-width: 900px) { .play-opts[open] { flex-basis: 100%; order: 10; } .play-opts[open] summary { display: inline-block; } .play-opts-body { position: static; width: auto; margin-top: 8px; } }
+.play-tip { position: fixed; z-index: 20; max-width: min(520px, calc(100vw - 16px)); padding: 8px 11px; background: #29221d; color: #efe3d2; border: 1px solid #4b3f36; border-radius: 8px; box-shadow: 0 12px 32px -12px rgba(0,0,0,.7); font: 12.5px/1.5 "JetBrains Mono", monospace; pointer-events: none; }
+.play-tip[hidden] { display: none; }
+.play-tip-row + .play-tip-row { margin-top: 6px; }
+.play-tip .sev { font-weight: 700; }
+.play-tip .error .sev { color: var(--err); }
+.play-tip .warning .sev { color: var(--accent-2); }
+.play-tip-fix { color: var(--ok); }
+.play-pane pre#play-go { tab-size: 4; white-space: pre; word-break: normal; }
+.play-go-bar { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #3a3029; color: #9c8c7c; font: 12px/1.5 "JetBrains Mono", monospace; }
+.play-go-bar label { flex: none; display: flex; gap: 6px; align-items: center; color: #c9b9a6; cursor: pointer; }
+.play-go-bar code { color: #c9b9a6; }

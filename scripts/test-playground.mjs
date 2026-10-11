@@ -8,7 +8,8 @@
 // example (tour programs must print examples/tour/*/output.txt; mistakes
 // must report the code in examples/mistakes/*/check.txt), the tests of the
 // tour programs that have them, and the safety limits, and checks the
-// download notice, example links, share links, highlighting, squiggles,
+// download notice, example links, share links, highlighting, squiggles
+// and their tooltips, the generated Go tab,
 // and the test seed and explore options. CHROME_FLAGS adds browser flags
 // (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
@@ -215,6 +216,36 @@ async function main() {
     const marked = await b.until(`[...document.querySelectorAll('#play-hl .xmark-error')].map(e => e.textContent).join('')`, 15000).catch(() => "");
     if (marked.startsWith("parse_port")) pass("diagnostics underlined", marked);
     else fail("squiggles", JSON.stringify(marked));
+
+    // their message shows on hover, and with the caret inside them
+    const hover = await b.eval(`(() => {
+      const s = document.querySelector('#play-hl .xmark-error'), r = s.getBoundingClientRect();
+      document.getElementById('play-code').dispatchEvent(new MouseEvent('mousemove', { clientX: r.left + 3, clientY: r.top + r.height / 2, bubbles: true }));
+      return true;
+    })()`);
+    const tipText = await b.until(`!document.getElementById('play-tip').hidden && document.getElementById('play-tip').textContent`, 5000).catch(() => "");
+    if (hover && /error XO0201/.test(tipText)) pass("hover shows the diagnostic", tipText.slice(0, 60));
+    else fail("hover", JSON.stringify(tipText));
+    await b.eval(`(() => {
+      const c = document.getElementById('play-code');
+      c.dispatchEvent(new MouseEvent('mouseleave'));
+      c.focus();
+      const at = c.value.indexOf('parse_port("8080")') + 2;
+      c.setSelectionRange(at, at);
+      c.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowRight' }));
+      return true;
+    })()`);
+    const caretText = await b.until(`!document.getElementById('play-tip').hidden && document.getElementById('play-tip').textContent`, 5000).catch(() => "");
+    if (/XO0201/.test(caretText)) pass("the caret shows the diagnostic");
+    else fail("caret tip", JSON.stringify(caretText));
+
+    // the generated Go tab hides //line directives unless asked
+    await b.eval(`t.set('fn main(os: Os) {\\n  os.stdio.println("hi")\\n}\\n'); true`);
+    await b.eval(`t.press('play-run')`);
+    const goText = await b.eval(`document.getElementById('play-go').textContent`);
+    const goLines = await b.eval(`(() => { const g = document.getElementById('play-golines'); g.click(); const t = document.getElementById('play-go').textContent; g.click(); return t; })()`);
+    if (/func F_main/.test(goText) && !/\/\/line /.test(goText) && /\/\/line main\.xo:1:1/.test(goLines) && !/(\/\/line [^\n]*\n)\1/.test(goLines)) pass("generated Go, //line directives on request");
+    else fail("generated Go", JSON.stringify(goText.slice(0, 200)) + " / " + JSON.stringify(goLines.slice(0, 200)));
 
     // example links from the tour
     await b.go(base + "/play/#example=tour/matching");
