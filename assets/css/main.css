@@ -313,3 +313,19 @@ button.btn:disabled { opacity: .6; cursor: progress; }
   .play-opts-body { left: 0; right: 0; width: auto; top: 100%; }
   .play-go-bar { flex-direction: column; gap: 6px; }
 }
+/* Home: status (the road to 1.0) */
+.stages { list-style: none; margin: 0 0 48px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.stages li { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; }
+.stages h3 { margin: 0 0 4px; font-size: 16px; }
+.stages p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.stages .mark { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font: 700 13px "JetBrains Mono", monospace; }
+.stages .done .mark { background: var(--ok); color: var(--bg); }
+.stages .now { border-color: var(--accent); }
+.stages .now .mark { border: 2px solid var(--accent); color: var(--accent); font-size: 10px; }
+.stages .next .mark { border: 2px dashed var(--ink-2); color: transparent; }
+.stages .next { border-style: dashed; }
+.build-title { margin: 0 0 8px; font-size: 22px; }
+@media (max-width: 760px) {
+  .stages { grid-template-columns: 1fr; }
+}
+.cell .use { display: block; margin-top: 12px; color: var(--accent-2); font-size: 13px; }

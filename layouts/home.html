@@ -3,7 +3,7 @@
     <div>
       <div class="tag">{{ site.Params.version }} · experimental · linux, darwin, windows, wasi</div>
       <h1>Agents write the code. <span>The compiler reviews every line.</span></h1>
-      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a small, statically typed language for backends and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service before it ever reaches review.</p>
+      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a fast, statically typed language for backends and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service quickly and properly.</p>
       <div class="ctas">
         <a class="btn primary" href="{{ "docs/tour/" | relURL }}">take the tour</a>
         <a class="btn ghost" href="{{ "docs/getting-started/" | relURL }}">get started</a>
@@ -64,6 +64,38 @@
 
   <section>
     <div class="wrap">
+      <div class="eyebrow">// status</div>
+      <h2>The road to 1.0.</h2>
+      <p class="sub">Xo is at {{ site.Params.version }} and still experimental. A phase is marked done when the test suite covers it. 1.0 will be a compatibility promise, and the project owner decides when Xo makes it.</p>
+      <ol class="stages">
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Language design and specification</h3><p>Syntax, types, effects, and diagnostics written down as a spec, with every design choice recorded as a numbered decision.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>A compiler that emits Go</h3><p>The type, effect, and concurrency checker, and the Go backend: every program builds into static binaries for linux, darwin, windows, and wasi.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Tools for agents</h3><p>JSON diagnostics with fixes, semantic queries and edits, a language server, concurrency tests that search task interleavings, and record and replay.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Modules</h3><p>Lock files, module proxies, a checksum log, and per definition hashes that show what a release really changed.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Native backends, in preview</h3><p>LLVM and a direct arm64 backend build programs to native code with no garbage collector (<code>--no-gc</code>).</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Real-time functions</h3><p><code>uses realtime</code>: the compiler enforces bounded loops, no recursion, and no allocation.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>A front end written in Xo</h3><p>The lexer, parser, and type checker rewritten in Xo, with output identical to the Go implementation on every program in the repository, on all three backends.</p></div></li>
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>A playground in the browser</h3><p>The compiler and the Go toolchain run in WebAssembly, so <a href="{{ "play/" | relURL }}">the playground</a> needs no server.</p></div></li>
+        <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>The rest of the compiler in Xo</h3><p>In progress: code generation in Xo, until Xo builds itself.</p></div></li>
+        <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>Stability audit</h3><p>In progress: every feature of the spec sorted into stable, preview, or gap, and the gaps closed or cut.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>1.0</h3><p>Code that builds keeps building. The Go backend is the supported path at 1.0; the native backends ship as preview.</p></div></li>
+      </ol>
+
+      <h3 class="build-title">How Xo builds</h3>
+      <p class="sub">Every Xo program compiles to Go. The compiler checks your code, writes Go source that points back to your <code>.xo</code> lines, and the Go toolchain builds it, so Go's garbage collector, scheduler, cross compilation, and debugger come for free, and stack traces name Xo lines. The Go backend builds the whole language and is the reference the others are tested against. The native backends are a second way to build the same program, for when you want no garbage collector; the one feature only they have is calling C with <code>use c</code>.</p>
+      <div class="grid">
+        <div class="cell"><div class="from">reference · default</div><h3>Go backend</h3><p>Builds every program that does not call C, on every target, and can <code>use go</code> any Go package.</p><code class="use">xo build</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>LLVM backend</h3><p>Lowers Xo's own SSA form to LLVM IR and builds optimized native code with clang.</p><code class="use">xo build --no-gc --backend=llvm</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from the same SSA form, with no LLVM in the way, for fast builds on arm64 Macs and Linux.</p><code class="use">xo build --no-gc --backend=arm64</code></div>
+        <div class="cell"><div class="from">native</div><h3>No garbage collector</h3><p>With <code>--no-gc</code>, memory is freed by reference counting the moment its last owner lets go, and a value with one owner is updated in place. What a native build cannot handle yet is a compile error (<code>XO1201</code>) naming it, never a surprise at run time.</p></div>
+        <div class="cell"><div class="from">native</div><h3>Real time</h3><p>Mark a function <code>uses realtime</code> and the compiler requires bounded loops, no recursion, and no allocation in it; frees that would land in it wait until it returns. For control loops and audio.</p></div>
+        <div class="cell"><div class="from">all three</div><h3>Same answers</h3><p>The test programs run on all three backends and must print the same output, so a native build behaves like the Go build it is checked against.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
       <div class="eyebrow">// learn</div>
       <h2>Learn Xo in twelve short steps.</h2>
       <p class="sub">Every program in the tour checks, runs, and passes its tests with the current toolchain, and every error shown is the compiler's real output.</p>
@@ -98,8 +130,8 @@
     <div class="wrap rest">
       <div>
         <div class="eyebrow">// after the fixes</div>
-        <h2>Zero errors. Finan goes back to sleep.</h2>
-        <p class="sub">Fennec foxes rest through the heat of the day. A service that compiled clean can too.</p>
+        <h2>Zero errors. Finan sleeps soundly.</h2>
+        <p class="sub">Fennec foxes rest through the heat of the day. A service that compiled clean won't wake him for the bugs the compiler already caught.</p>
         <div class="term">
           <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
 <pre><span class="p">$</span> xo check ./...

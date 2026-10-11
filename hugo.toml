@@ -5,7 +5,7 @@ enableRobotsTXT = true
 disableKinds = ["taxonomy", "term"]
 
 [params]
-description = "Xo is a small, statically typed language for backends and web services, built for AI agents to write, check, and debug."
+description = "Xo is a fast, statically typed language for backends and web services, built for AI agents to write, check, and debug."
 github = "https://github.com/xo-lang"
 # The compiler's source repo. Set sourcePublic = true when it opens; until
 # then pages say it is coming and hide links into it.
