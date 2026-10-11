@@ -105,10 +105,14 @@ async function browser() {
       const r = await send("Page.captureScreenshot", { format: "png" });
       writeFileSync(join(process.env.SHOTS, name + ".png"), Buffer.from(r.result.data, "base64"));
     },
-    close() {
+    // close stops the Chrome this function started and removes its
+    // profile once it has exited (the caller exits right after)
+    async close() {
       ws.close();
-      proc.kill(); // the Chrome this function started
-      setTimeout(() => rmSync(profile, { recursive: true, force: true }), 500);
+      const exited = new Promise((r) => proc.once("exit", r));
+      proc.kill();
+      await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
+      rmSync(profile, { recursive: true, force: true });
     },
   };
 }
@@ -342,7 +346,7 @@ async function main() {
     if (b.logs.length) fail("console", b.logs.join("\n"));
     else pass("no errors in the console");
   } finally {
-    b.close();
+    await b.close();
     if (server) server.close();
   }
   console.log(failures ? `${failures} failure(s)` : "all passed");

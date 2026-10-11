@@ -65,9 +65,9 @@
   ],
   "files": {
     "xoplay": {
-      "path": "assets/xoplay-6e946ffe9cab.brotli",
-      "size": 28561249,
-      "compressed": 4880087
+      "path": "assets/xoplay-fb0f8f0e9d20.brotli",
+      "size": 28583721,
+      "compressed": 4898929
     },
     "compile": {
       "path": "assets/compile-58555b0d1192.brotli",
@@ -85,9 +85,9 @@
       "compressed": 42108
     },
     "pkg": {
-      "path": "assets/pkg-38a22ae0b433.brotli",
-      "size": 76525462,
-      "compressed": 9322830
+      "path": "assets/pkg-86af31597eb4.brotli",
+      "size": 76525420,
+      "compressed": 9321031
     }
   }
 }
