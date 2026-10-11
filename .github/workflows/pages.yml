@@ -1,4 +1,5 @@
-# Build the site with Hugo and publish it to GitHub Pages (xolang.dev).
+# Build the site with Hugo, test the playground in headless Chrome, and
+# publish it to GitHub Pages (xolang.dev). A failing test stops the deploy.
 name: pages
 
 on:
@@ -30,6 +31,15 @@ jobs:
         run: CGO_ENABLED=0 GOBIN="$PWD/.tools/bin" go install "github.com/gohugoio/hugo@${HUGO_VERSION}"
       - name: Build
         run: .tools/bin/hugo --gc --minify
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test the playground
+        timeout-minutes: 10
+        env:
+          CHROME: /usr/bin/google-chrome
+          CHROME_FLAGS: --no-sandbox
+        run: node scripts/test-playground.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

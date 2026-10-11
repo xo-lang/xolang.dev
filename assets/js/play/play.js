@@ -88,13 +88,14 @@ function request(cmd, source, onStatus = () => {}) {
 let numbered = 0;
 
 let hlFrame = 0;
+let marks = []; // [start, end, severity] of the last check's diagnostics
 
 // paint redraws the highlighting overlay, at most once a frame.
 function paint() {
   if (hlFrame) return;
   hlFrame = requestAnimationFrame(() => {
     hlFrame = 0;
-    render(hl, code.value);
+    render(hl, code.value, marks);
     syncScroll();
   });
 }
@@ -118,7 +119,7 @@ function renumber() {
 }
 
 code.addEventListener("scroll", syncScroll);
-code.addEventListener("input", () => { renumber(); save(); scheduleCheck(); });
+code.addEventListener("input", () => { marks = []; renumber(); save(); scheduleCheck(); });
 code.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(e.shiftKey); return; }
   if (e.key === "F" && e.shiftKey && e.altKey) { e.preventDefault(); format(); return; }
@@ -215,7 +216,27 @@ function el(tag, cls, text) {
 
 function file(f) { return String(f || "").replace(/^(\/w\/)?src\//, ""); }
 
+// markRanges turns diagnostics into ranges of the current source to
+// underline; a diagnostic without an end marks the word at its start.
+function markRanges(ds) {
+  const src = code.value;
+  const out = [];
+  for (const d of ds) {
+    if (file(d.span.file) !== "main.xo" || !d.span.line) continue;
+    const start = offsetOf(src, d.span.line, d.span.col);
+    let end = d.span.end_line ? offsetOf(src, d.span.end_line, d.span.end_col) : start;
+    if (end <= start) {
+      const w = /^[A-Za-z0-9_]+/.exec(src.slice(start));
+      end = start + (w ? w[0].length : 1);
+    }
+    out.push([start, Math.min(end, src.length), d.severity === "error" ? "error" : "warning"]);
+  }
+  return out;
+}
+
 function showDiagnostics(ds) {
+  marks = markRanges(ds);
+  paint();
   problems.replaceChildren();
   const errors = ds.filter((d) => d.severity === "error").length;
   count.textContent = ds.length ? "(" + ds.length + ")" : "";
@@ -277,9 +298,10 @@ function scheduleCheck() {
 async function check() {
   if (!consented()) return;
   const seq = ++checkSeq;
+  const src = code.value;
   try {
-    const r = await request("check", code.value);
-    if (seq !== checkSeq) return;
+    const r = await request("check", src);
+    if (seq !== checkSeq || code.value !== src) return;
     showDiagnostics(r.diagnostics);
     if (!busy) setStatus("");
   } catch (e) {
@@ -376,7 +398,19 @@ async function run(test = false) {
     else if ("exit" in m) finish(m.exit === null ? "" : "\n[exit " + m.exit + " in " + Math.round(m.ms) + " ms]");
   };
   runner.onerror = (e) => finish("\n[the program stopped: " + (e.message || "out of memory") + "]", "play-err");
-  runner.postMessage({ wasm: r.wasm, args: test ? ["play.test", "-v"] : ["play"] }, [r.wasm]);
+  runner.postMessage({ wasm: r.wasm, args: test ? testArgs() : ["play"] }, [r.wasm]);
+}
+
+// testArgs is `xo test -v` with the seed and explore options (core 7.4):
+// a seed replays one schedule; explore tries that many seeds per
+// concurrent test and reports the first that fails.
+function testArgs() {
+  const args = ["play.test", "-v"];
+  const seed = parseInt(document.getElementById("play-seed").value, 10);
+  const explore = parseInt(document.getElementById("play-explore").value, 10);
+  if (seed > 0) args.push("-seed", String(seed));
+  if (explore > 1) args.push("-explore", String(Math.min(explore, 1000)));
+  return args;
 }
 
 runBtn.addEventListener("click", () => run(false));
@@ -415,8 +449,8 @@ async function sizes() {
     const m = await (await fetch("/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
     const mb = (n) => Math.max(1, Math.round(n / 1048576)) + " MB";
     const f = m.files;
-    consentBox.querySelector('[data-size="check"]').textContent = mb(f.xoplay.gzip + f.gobind.gzip);
-    consentBox.querySelector('[data-size="run"]').textContent = mb(f.compile.gzip + f.link.gzip + f.pkg.gzip);
+    consentBox.querySelector('[data-size="check"]').textContent = mb(f.xoplay.compressed + f.gobind.compressed);
+    consentBox.querySelector('[data-size="run"]').textContent = mb(f.compile.compressed + f.link.compressed + f.pkg.compressed);
   } catch (e) {
     // keep the sizes written in the page
   }

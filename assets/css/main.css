@@ -269,3 +269,14 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 @keyframes play-flash { from { box-shadow: 0 0 0 6px var(--glow); } to { box-shadow: 0 0 0 0 transparent; } }
 .prose .play-link { margin-top: -6px; font: 500 14px "JetBrains Mono", monospace; }
 .prose .play-link a::before { content: "▶ "; font-size: 11px; }
+.play-hl .xmark-error { text-decoration: underline wavy var(--err); text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.play-hl .xmark-warning { text-decoration: underline wavy var(--accent-2); text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.play-opts { position: relative; }
+.play-opts summary { list-style: none; cursor: pointer; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-2); font-size: 15px; line-height: 1.2; }
+.play-opts summary::-webkit-details-marker { display: none; }
+.play-opts[open] summary { color: var(--ink); border-color: var(--accent); }
+.play-opts-body { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; width: 280px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 16px 40px -16px rgba(0,0,0,.6); font: 13px "JetBrains Mono", monospace; }
+.play-opts-body label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--ink); }
+.play-opts-body input { width: 110px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
+.play-opts-body p { margin: 4px 0 0; color: var(--ink-2); font: 12px/1.5 "Space Grotesk", system-ui, sans-serif; }
+@media (max-width: 900px) { .play-opts[open] { flex-basis: 100%; order: 10; } .play-opts[open] summary { display: inline-block; } .play-opts-body { position: static; width: auto; margin-top: 8px; } }

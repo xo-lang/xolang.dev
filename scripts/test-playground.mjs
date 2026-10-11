@@ -8,7 +8,9 @@
 // example (tour programs must print examples/tour/*/output.txt; mistakes
 // must report the code in examples/mistakes/*/check.txt), the tests of the
 // tour programs that have them, and the safety limits, and checks the
-// download notice, example links, share links, and highlighting. Set
+// download notice, example links, share links, highlighting, squiggles,
+// and the test seed and explore options. CHROME_FLAGS adds browser flags
+// (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
@@ -46,7 +48,8 @@ function serve() {
 async function browser() {
   const profile = mkdtempSync(join(tmpdir(), "xo-play-test-"));
   const port = 9300 + Math.floor(Math.random() * 500);
-  const proc = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, "--window-size=1300,900", "about:blank"], { stdio: "ignore" });
+  const extra = (process.env.CHROME_FLAGS || "").split(" ").filter(Boolean);
+  const proc = spawn(CHROME, ["--headless=new", ...extra, `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, "--window-size=1300,900", "about:blank"], { stdio: "ignore" });
   let ws;
   for (let i = 0; i < 100 && !ws; i++) {
     try {
@@ -188,6 +191,30 @@ async function main() {
     const ft = await b.eval(`t.press('play-test')`);
     if (/1 failed/.test(ft.out)) pass("a failing test is reported");
     else fail("failing test", JSON.stringify(ft.out.slice(0, 300)));
+
+    // seed and explore (core 7.4): this test passes under seed 1 and
+    // fails under seed 2, as `xo test --explore=20` reports natively
+    const RACE = 'fn first(ch: Chan[Int]) -> Int {\n  var got = 0\n  for x in ch {\n    if got == 0 { got = x }\n  }\n  got\n}\n\ntest "the first task sends first" {\n  let ch = Chan[Int].new(cap: 2)\n  scope s {\n    s.spawn(fn() { ch.send(1) })\n    s.spawn(fn() { ch.send(2) })\n  }\n  ch.close()\n  expect(first(ch)) == 1\n}\n\nfn main(os: Os) {\n}\n';
+    await b.eval(`t.set(${JSON.stringify(RACE)}); true`);
+    const plain = await b.eval(`t.press('play-test')`);
+    await b.eval(`document.getElementById('play-explore').value = '20'; true`);
+    const explored = await b.eval(`t.press('play-test')`);
+    await b.eval(`document.getElementById('play-explore').value = ''; document.getElementById('play-seed').value = '2'; true`);
+    const seeded = await b.eval(`t.press('play-test')`);
+    await b.eval(`document.getElementById('play-seed').value = ''; true`);
+    if (/1 passed, 0 failed/.test(plain.out)) pass("test under the default seed");
+    else fail("default seed", JSON.stringify(plain.out.slice(0, 300)));
+    if (/seed 2 fails/.test(explored.out)) pass("explore finds the failing seed");
+    else fail("explore", JSON.stringify(explored.out.slice(0, 300)));
+    if (/1 failed/.test(seeded.out)) pass("seed 2 reproduces the failure");
+    else fail("seed", JSON.stringify(seeded.out.slice(0, 300)));
+
+    // diagnostics are underlined in the editor
+    const ignored = examples("mistakes").find((x) => x.name === "ignored");
+    await b.eval(`t.set(${JSON.stringify(ignored.source)}); true`);
+    const marked = await b.until(`[...document.querySelectorAll('#play-hl .xmark-error')].map(e => e.textContent).join('')`, 15000).catch(() => "");
+    if (marked.startsWith("parse_port")) pass("diagnostics underlined", marked);
+    else fail("squiggles", JSON.stringify(marked));
 
     // example links from the tour
     await b.go(base + "/play/#example=tour/matching");

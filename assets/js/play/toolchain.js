@@ -5,6 +5,7 @@
 // from this site. Running the built program happens in a separate worker
 // (runner.js) that the page can stop at any time.
 import { WASI, File, Directory, OpenFile, PreopenDirectory, ConsoleStdout } from "/play/vendor/browser_wasi_shim-0.4.2/index.js";
+import { BrotliDecode } from "/play/vendor/brotli-decode-1.1.0/decode.js";
 
 const CACHE = "xo-play";
 const MODULE = "module example.com/play\nedition 2026\n";
@@ -60,15 +61,16 @@ async function asset(name, progress) {
       if (done) break;
       parts.push(value);
       got += value.byteLength;
-      progress(name, got, m.gzip);
+      progress(name, got, m.compressed);
     }
     blob = new Blob(parts);
     if (cache) {
       try { await cache.put(url, new Response(blob)); } catch (e) {}
     }
   }
-  const stream = blob.stream().pipeThrough(new DecompressionStream("gzip"));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const out = BrotliDecode(new Int8Array(await blob.arrayBuffer()));
+  if (out.length !== m.size) throw new Error("the download of " + m.path + " is damaged; reload the page");
+  return new Uint8Array(out.buffer, out.byteOffset, out.length);
 }
 
 async function module(name, progress) {

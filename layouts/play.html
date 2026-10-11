@@ -30,12 +30,20 @@
     <span class="play-spacer"></span>
     <button class="btn ghost" id="play-format" type="button" title="Format (Shift+Alt+F)">format</button>
     <button class="btn ghost" id="play-share" type="button" title="Copy a link to this code">share</button>
+    <details class="play-opts">
+      <summary title="Test options">⚙</summary>
+      <div class="play-opts-body">
+        <label>seed <input id="play-seed" type="number" min="1" step="1" placeholder="1" inputmode="numeric"></label>
+        <label>explore <input id="play-explore" type="number" min="1" max="1000" step="1" placeholder="1" inputmode="numeric"></label>
+        <p>The seed fixes the order concurrent tests interleave in; explore runs each concurrent test under that many seeds and reports the first that fails (<code>xo test --seed</code>, <code>--explore</code>).</p>
+      </div>
+    </details>
     <button class="btn ghost" id="play-test" type="button" title="Run the test blocks (xo test)">test</button>
     <button class="btn primary" id="play-run" type="button" title="Run (Ctrl+Enter)">run</button>
   </div>
   <p class="play-note" id="play-note">Your code is checked, compiled, and run in this browser tab. It never leaves your machine.</p>
   <div class="play-consent" id="play-consent" hidden>
-    <p><b>This playground downloads the Xo toolchain to your browser.</b> Checking code needs the compiler (<span data-size="check">7 MB</span>); the first run also downloads the Go compiler, linker, and libraries (<span data-size="run">26 MB</span> more). Downloads are cached, so this happens once per browser and version. Nothing is uploaded.</p>
+    <p><b>This playground downloads the Xo toolchain to your browser.</b> Checking code needs the compiler (<span data-size="check">5 MB</span>); the first run also downloads the Go compiler, linker, and libraries (<span data-size="run">18 MB</span> more). Downloads are cached, so this happens once per browser and version. Nothing is uploaded.</p>
     <button class="btn primary" id="play-consent-ok" type="button">download and start</button>
   </div>
   <div class="play-main">

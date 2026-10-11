@@ -130,15 +130,36 @@ function string(src, i, end, push) {
   return Math.min(i, end);
 }
 
-// render replaces the children of el with the highlighted source.
-export function render(el, src) {
+// render replaces the children of el with the highlighted source. marks
+// are [start, end, severity] ranges (UTF-16 offsets) to underline: the
+// diagnostics of the last check.
+export function render(el, src, marks = []) {
   const frag = document.createDocumentFragment();
+  const cuts = new Set();
+  for (const [a, b] of marks) { cuts.add(a); cuts.add(b); }
+  const markAt = (i) => {
+    let sev = "";
+    for (const [a, b, s] of marks) if (i >= a && i < b && sev !== "error") sev = s;
+    return sev;
+  };
+  let off = 0;
   for (const [cls, text] of tokens(src)) {
-    if (!cls) { frag.append(text); continue; }
-    const span = document.createElement("span");
-    span.className = "x" + cls;
-    span.textContent = text;
-    frag.append(span);
+    // split the token where a mark starts or ends
+    let from = 0;
+    for (let k = 1; k <= text.length; k++) {
+      if (k < text.length && !cuts.has(off + k)) continue;
+      const piece = text.slice(from, k);
+      const sev = marks.length ? markAt(off + from) : "";
+      if (!cls && !sev) frag.append(piece);
+      else {
+        const span = document.createElement("span");
+        span.className = (cls ? "x" + cls : "") + (sev ? " xmark-" + sev : "");
+        span.textContent = piece;
+        frag.append(span);
+      }
+      from = k;
+    }
+    off += text.length;
   }
   // a final newline keeps the overlay as tall as the textarea's content
   frag.append("\n ");

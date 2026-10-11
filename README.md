@@ -67,5 +67,10 @@ The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it
   network, or environment, and are capped at 1 GiB, 1 MB of output, and
   10 s; shared links keep the code in the URL fragment, which is never sent
   to a server, and run only when the visitor presses run.
-- `static/play/vendor/browser_wasi_shim-0.4.2/` is
-  `@bjorn3/browser_wasi_shim` (MIT/Apache-2.0), vendored unchanged.
+- Vendored unchanged: `static/play/vendor/browser_wasi_shim-0.4.2/`
+  (`@bjorn3/browser_wasi_shim`, MIT/Apache-2.0) and
+  `static/play/vendor/brotli-decode-1.1.0/` (`js/decode.js` of google/brotli,
+  MIT). Assets are brotli compressed (the `brotli` command is needed to
+  build them).
+- CI: `.github/workflows/pages.yml` runs the playground test before every
+  deploy.

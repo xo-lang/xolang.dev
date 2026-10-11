@@ -57,8 +57,8 @@ write", for example a shared link someone sent you:
 
 ## What it costs you
 
-A download. Checking needs the Xo compiler (about 7 MB); the first run also
-fetches the Go compiler, linker, and libraries (about 26 MB more). The page
+A download. Checking needs the Xo compiler (about 5 MB); the first run also
+fetches the Go compiler, linker, and libraries (about 18 MB more). The page
 asks before downloading anything, and the files are cached, so it happens
 once per browser and version.
 

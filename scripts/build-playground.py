@@ -16,12 +16,14 @@ xo repo). This script builds, with the `go` on PATH:
                 their adapters are compiled into the rt archive, so the
                 browser never compiles rt (and never needs its source)
 
-Each is gzipped and named by its hash; manifest.json lists them. The
+Each is compressed with brotli (the `brotli` command; about a third smaller
+than gzip, decoded in the worker by Google's JS decoder, since browsers'
+DecompressionStream has no brotli) and named by its hash; manifest.json
+lists them. The
 compiler, linker, and archives must come from the same Go release, which is
 why they are built together here. Rerun after the compiler or std/rt
 changes, or after a Go upgrade.
 """
-import gzip
 import hashlib
 import json
 import os
@@ -123,12 +125,15 @@ def main():
         manifest = {"go": goversion, "tags": TAGS.split(","),
                     "gobind": ["xo_gobind_" + ident(p) + ".go" for p in GOBIND], "gobindPackages": GOBIND, "files": {}}
         for n, data in blobs.items():
-            gz = gzip.compress(data, 9, mtime=0)
-            name = f"{n}-{hashlib.sha256(data).hexdigest()[:12]}.{'wasm' if n in ('xoplay', 'compile', 'link') else 'bundle'}.gz"
-            with open(os.path.join(OUT, name), "wb") as f:
-                f.write(gz)
-            manifest["files"][n] = {"path": "assets/" + name, "size": len(data), "gzip": len(gz)}
-            print(f"wrote {name}: {len(data) >> 20} MB, {len(gz) >> 20} MB gzipped")
+            # .brotli, not .br: a host could serve .br with Content-Encoding
+            name = f"{n}-{hashlib.sha256(data).hexdigest()[:12]}.brotli"
+            raw = os.path.join(tmp, n + ".raw")
+            with open(raw, "wb") as f:
+                f.write(data)
+            run(["brotli", "-q", "11", "-w", "24", "-f", "-o", os.path.join(OUT, name), raw], tmp)
+            packed = os.path.getsize(os.path.join(OUT, name))
+            manifest["files"][n] = {"path": "assets/" + name, "size": len(data), "compressed": packed}
+            print(f"wrote {name}: {len(data) / 1e6:.1f} MB, {packed / 1e6:.1f} MB compressed")
         with open(os.path.join(SITE, "static", "play", "manifest.json"), "w") as f:
             json.dump(manifest, f, indent=2)
             f.write("\n")

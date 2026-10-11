@@ -65,29 +65,29 @@
   ],
   "files": {
     "xoplay": {
-      "path": "assets/xoplay-01c3d1769647.wasm.gz",
-      "size": 28513220,
-      "gzip": 6958937
+      "path": "assets/xoplay-c24d4658707d.brotli",
+      "size": 28531565,
+      "compressed": 4875260
     },
     "compile": {
-      "path": "assets/compile-58555b0d1192.wasm.gz",
+      "path": "assets/compile-58555b0d1192.brotli",
       "size": 48066563,
-      "gzip": 9359439
+      "compressed": 6201106
     },
     "link": {
-      "path": "assets/link-36e4abf76343.wasm.gz",
+      "path": "assets/link-36e4abf76343.brotli",
       "size": 10987023,
-      "gzip": 2884589
+      "compressed": 2054162
     },
     "gobind": {
-      "path": "assets/gobind-330687bad70d.bundle.gz",
+      "path": "assets/gobind-330687bad70d.brotli",
       "size": 493737,
-      "gzip": 55677
+      "compressed": 42108
     },
     "pkg": {
-      "path": "assets/pkg-38a22ae0b433.bundle.gz",
+      "path": "assets/pkg-38a22ae0b433.brotli",
       "size": 76525462,
-      "gzip": 14830569
+      "compressed": 9322830
     }
   }
 }
