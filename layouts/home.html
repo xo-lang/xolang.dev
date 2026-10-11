@@ -76,11 +76,25 @@
         <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Real-time functions</h3><p><code>uses realtime</code>: the compiler enforces bounded loops, no recursion, and no allocation.</p></div></li>
         <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>A front end written in Xo</h3><p>The lexer, parser, and type checker rewritten in Xo, with output identical to the Go implementation on every program in the repository, on all three backends.</p></div></li>
         <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>A playground in the browser</h3><p>The compiler and the Go toolchain run in WebAssembly, so <a href="{{ "play/" | relURL }}">the playground</a> needs no server.</p></div></li>
-        <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>The rest of the compiler in Xo</h3><p>In progress: code generation in Xo, until Xo builds itself.</p></div></li>
+        <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>The rest of the compiler in Xo</h3><p>In progress: the SSA builder, then the code generators, in the order below.</p></div></li>
         <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>Stability audit</h3><p>In progress: every feature of the spec sorted into stable, preview, or gap, and the gaps closed or cut.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>1.0</h3><p>Code that builds keeps building. The Go backend is the supported path at 1.0; the native backends ship as preview.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Native backends out of preview</h3><p>After 1.0: LLVM and arm64 build the whole language without a garbage collector, with the same guarantees as the Go backend.</p></div></li>
-        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>A bigger standard library</h3><p>After that: more of what real programs need, starting with command line tools: argument parsing, running other programs, terminals, files, and common formats.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>A bigger standard library</h3><p>More of what real programs need. Command line tools come first and are already in the plan below: argument parsing, running other programs, terminals, files, and common formats.</p></div></li>
+      </ol>
+
+      <h3 class="build-title">Xo in Xo</h3>
+      <p class="sub">The compiler is being rewritten in Xo, one stage at a time and one stage in flight, each checked against the Go implementation until the output is identical. The Go implementation stays the reference for the Go and LLVM backends. The order is set; there are no dates.</p>
+      <ol class="stages">
+        <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Front end in Xo</h3><p>The lexer, parser, and type checker give output identical to the Go compiler on all three backends: 610 of 626 repository programs (the other 16 call Go or C).</p></div></li>
+        <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>SSA builder in Xo</h3><p>Stages 1 to 5 of 8 done: 10,356 of 11,264 functions identical, including every function of the compiler's own sources. Next: standard built-ins and <code>use c</code>, test binaries, and the optimization passes.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Prebuilt runtime</h3><p>Releases ship the native C runtime prebuilt for each target, so native builds need no clang. Today arm64 builds still need clang once, to compile that runtime.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>arm64 emitter in Xo, then the switch-over</h3><p>When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Runtime pilot</h3><p>Port one small file of the C runtime to Xo and compare output and speed, to decide whether the runtime moves to Xo, as Go's did.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Standard library for tools</h3><p>Command line parsing, running other programs, terminals, files, formats, shell completions, and version stamping, each designed in a recorded decision first.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>WebAssembly backend</h3><p>SSA to <code>.wasm</code>, written in Xo, so the playground runs the Xo compiler itself, with no Go compiler or linker to download.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>LLVM emitter in Xo</h3><p>The LLVM backend's code generation moves to Xo.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Go code generator in Xo</h3><p>Last, since only the Go backend needs it. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets.</p></div></li>
       </ol>
 
       <h3 class="build-title">How Xo builds</h3>
