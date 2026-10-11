@@ -62,6 +62,37 @@
     </div>
   </section>
 
+  <section class="supply">
+    <div class="wrap">
+      <div class="eyebrow">// supply chain</div>
+      <h2>A dependency can only do what you let it.</h2>
+      <p class="sub">Put a ceiling on a dependency in <code>xo.mod</code>. If an upgrade starts doing more, the build fails at your call, before the new code ever runs. No mainstream language checks limits per dependency in the compiler: Go and Rust rely on audits and analysis tools (Capslock, cargo-vet), Deno and Node grant permissions per process rather than per dependency, and Java's SecurityManager is disabled as of JDK 24. The closest peers are a research language (Flix) and run-time systems (WASI components, LavaMoat).</p>
+      <div class="term">
+        <div class="top"><i></i><i></i><i></i><span>an upgrade that reaches into Go</span></div>
+<pre><span class="p">$</span> cat xo.mod
+module example.com/shop
+edition 2026
+
+require github.com/acme/billing v1.4.1 <span class="key">uses none</span>
+<span class="p">$</span> xo check .
+main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/acme/billing v1.4.1
+  performs `go`, above the effect ceiling `uses none` of that dependency in xo.mod
+  note: xo.mod:4:1: the ceiling is declared here
+  note: review why github.com/acme/billing needs `go`; then raise the ceiling,
+  or require a version within it (decision 0086)</pre>
+      </div>
+      <div class="grid">
+        <div class="cell"><div class="from">enforced today</div><h3>Authority is handed over</h3><p>A library cannot open the network, files, clock, environment, or processes unless it is handed a capability value, and every one starts at <code>main(os: Os)</code>.</p></div>
+        <div class="cell"><div class="from">enforced today</div><h3>Effects in every signature</h3><p>Every <code>pub</code> function declares what it does (<code>uses net, fs.read</code>), and the compiler checks the body against it, so a library's Xo code cannot misstate it.</p></div>
+        <div class="cell"><div class="from">enforced today</div><h3>A ceiling per dependency</h3><p><code>require ... uses none</code> bounds what a dependency may declare. An upgrade that adds a call above it fails the build at the call site (<code>XO1309</code>).</p></div>
+        <div class="cell"><div class="from">enforced today</div><h3>Escape hatches are labeled</h3><p>Every call into Go performs the effect <code>go</code>, which cannot be declared away, so a <code>uses none</code> ceiling also blocks a dependency that reaches into Go.</p></div>
+        <div class="cell"><div class="from">enforced today</div><h3>Upgrades show their effects</h3><p><code>xo get -u</code> prints each dependency's API and effect changes, and <code>xo publish</code> rejects a minor or patch release that adds an effect to an export (<code>XO1310</code>).</p></div>
+        <div class="cell"><div class="from">enforced today</div><h3>Nothing runs at install</h3><p>No build scripts and no install hooks, a common attack path elsewhere (npm postinstall, Rust build.rs). <code>xo.lock</code> and a checksum log pin every module.</p></div>
+      </div>
+      <p class="limits"><strong>Limits today.</strong> Ceilings are opt-in: you write <code>uses</code> on the require line. Effects are labels such as <code>net</code>, not specific hosts. A dependency can still vouch for its own C bindings, and logging needs no capability. This is checking at compile time, not a sandbox at run time. <a href="#plan">The plan</a> closes these next, right after the SSA builder.</p>
+    </div>
+  </section>
+
   <section>
     <div class="wrap">
       <div class="eyebrow">// status</div>
@@ -83,11 +114,12 @@
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>A bigger standard library</h3><p>More of what real programs need. Command line tools come first and are already in the plan below: argument parsing, running other programs, terminals, files, and common formats.</p></div></li>
       </ol>
 
-      <h3 class="build-title">Xo in Xo</h3>
-      <p class="sub">The compiler is being rewritten in Xo, one stage at a time and one stage in flight, each checked against the Go implementation until the output is identical. The Go implementation stays the reference for the Go and LLVM backends. The order is set; there are no dates.</p>
+      <h3 class="build-title" id="plan">The plan, in order</h3>
+      <p class="sub">One stage in flight at a time. Most stages move the compiler into Xo, each checked against the Go implementation until the output is identical; the Go implementation stays the reference for the Go and LLVM backends. The order is set; there are no dates.</p>
       <ol class="stages">
         <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Front end in Xo</h3><p>The lexer, parser, and type checker give output identical to the Go compiler on all three backends: 610 of 626 repository programs (the other 16 call Go or C).</p></div></li>
         <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>SSA builder in Xo</h3><p>Stages 1 to 5 of 8 done: 10,356 of 11,264 functions identical, including every function of the compiler's own sources. Next: standard built-ins and <code>use c</code>, test binaries, and the optimization passes.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Supply-chain safety by default</h3><p>Only your own module can vouch for a dependency's C bindings. <code>xo get</code> records each dependency's effects in <code>xo.lock</code>, and an upgrade that adds one fails until you approve it. Capabilities you can narrow (the network to named hosts, files to one directory), enforced at run time. <code>xo audit</code> reports every dependency's effects and escape hatches. And a measured number: the 51 real attacks of the Backstabber's Knife Collection rewritten in Xo, counting how many fail to compile.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Prebuilt runtime</h3><p>Releases ship the native C runtime prebuilt for each target, so native builds need no clang. Today arm64 builds still need clang once, to compile that runtime.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>arm64 emitter in Xo, then the switch-over</h3><p>When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Runtime pilot</h3><p>Port one small file of the C runtime to Xo and compare output and speed, to decide whether the runtime moves to Xo, as Go's did.</p></div></li>

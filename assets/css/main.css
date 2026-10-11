@@ -329,3 +329,6 @@ button.btn:disabled { opacity: .6; cursor: progress; }
   .stages { grid-template-columns: 1fr; }
 }
 .cell .use { display: block; margin-top: 12px; color: var(--accent-2); font-size: 13px; }
+.supply .term { margin-bottom: 16px; }
+.supply .term pre { white-space: pre; }
+.limits { margin: 20px 0 0; color: var(--ink-2); max-width: 52em; font-size: 15px; }
