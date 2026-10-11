@@ -65,7 +65,7 @@
   <section>
     <div class="wrap">
       <div class="eyebrow">// status</div>
-      <h2>The road to 1.0.</h2>
+      <h2>The road to 1.0, and past it.</h2>
       <p class="sub">Xo is at {{ site.Params.version }} and still experimental. A phase is marked done when the test suite covers it. 1.0 will be a compatibility promise, and the project owner decides when Xo makes it.</p>
       <ol class="stages">
         <li class="done"><span class="mark" aria-label="done">✓</span><div><h3>Language design and specification</h3><p>Syntax, types, effects, and diagnostics written down as a spec, with every design choice recorded as a numbered decision.</p></div></li>
@@ -79,6 +79,8 @@
         <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>The rest of the compiler in Xo</h3><p>In progress: code generation in Xo, until Xo builds itself.</p></div></li>
         <li class="now"><span class="mark" aria-label="in progress">●</span><div><h3>Stability audit</h3><p>In progress: every feature of the spec sorted into stable, preview, or gap, and the gaps closed or cut.</p></div></li>
         <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>1.0</h3><p>Code that builds keeps building. The Go backend is the supported path at 1.0; the native backends ship as preview.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>Native backends out of preview</h3><p>After 1.0: LLVM and arm64 build the whole language without a garbage collector, with the same guarantees as the Go backend.</p></div></li>
+        <li class="next"><span class="mark" aria-label="not started">○</span><div><h3>A bigger standard library</h3><p>After that: more of what real programs need, starting with command line tools: argument parsing, running other programs, terminals, files, and common formats.</p></div></li>
       </ol>
 
       <h3 class="build-title">How Xo builds</h3>
