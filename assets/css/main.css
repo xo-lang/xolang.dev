@@ -279,7 +279,6 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-opts-body label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--ink); }
 .play-opts-body input { width: 110px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit; }
 .play-opts-body p { margin: 4px 0 0; color: var(--ink-2); font: 12px/1.5 "Space Grotesk", system-ui, sans-serif; }
-@media (max-width: 900px) { .play-opts[open] { flex-basis: 100%; order: 10; } .play-opts[open] summary { display: inline-block; } .play-opts-body { position: static; width: auto; margin-top: 8px; } }
 .play-tip { position: fixed; z-index: 20; max-width: min(520px, calc(100vw - 16px)); padding: 8px 11px; background: #29221d; color: #efe3d2; border: 1px solid #4b3f36; border-radius: 8px; box-shadow: 0 12px 32px -12px rgba(0,0,0,.7); font: 12.5px/1.5 "JetBrains Mono", monospace; pointer-events: none; }
 .play-tip[hidden] { display: none; }
 .play-tip-row + .play-tip-row { margin-top: 6px; }
@@ -291,3 +290,26 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-go-bar { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #3a3029; color: #9c8c7c; font: 12px/1.5 "JetBrains Mono", monospace; }
 .play-go-bar label { flex: none; display: flex; gap: 6px; align-items: center; color: #c9b9a6; cursor: pointer; }
 .play-go-bar code { color: #c9b9a6; }
+#play-go .xk { color: #f08a5d; }
+#play-go .xkc { color: #e9a0d0; }
+#play-go .xt { color: #f2c26b; }
+#play-go .xf { color: #f7dcb4; }
+#play-go .xs { color: #b9d39a; }
+#play-go .xm { color: #e9a0d0; }
+#play-go .xc { color: #8a7a6b; font-style: italic; }
+#play-go .play-goline[data-xo] { cursor: pointer; }
+#play-go .play-goline[data-xo]:hover { background: rgba(232,116,59,.12); }
+@media (max-width: 900px) {
+  /* phones: the examples menu on its own row, the buttons on one row
+     below it, and the test options under the whole bar */
+  .play-bar { position: relative; }
+  .play-ex { flex: 1 1 100%; }
+  .play-ex select { width: 100%; max-width: none; }
+  .play-spacer { display: none; }
+  .play-bar { gap: 6px; }
+  .play-bar > .btn { flex: 1 1 auto; padding: 8px 4px; font-size: 13px; }
+  .play-opts summary { padding: 7px 9px; }
+  .play-opts { position: static; }
+  .play-opts-body { left: 0; right: 0; width: auto; top: 100%; }
+  .play-go-bar { flex-direction: column; gap: 6px; }
+}

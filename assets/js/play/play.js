@@ -29,7 +29,7 @@ const CONSENT = "xo-play-download-ok";
 
 const examples = JSON.parse(document.getElementById("play-examples").textContent);
 const hl = document.getElementById("play-hl");
-const { render } = await import(root.dataset.highlight);
+const { render, goTokens } = await import(root.dataset.highlight);
 
 // ---- toolchain worker -------------------------------------------------
 
@@ -411,21 +411,58 @@ async function format() {
 let runner = null;
 let lastGo = null;
 
-// showGo fills the generated Go tab. The //line directives map Go
-// positions back to main.xo (for compiler errors and stack traces) and
-// are hidden unless asked for: they are for the tools, not for reading.
+// showGo fills the generated Go tab, highlighted. The //line directives
+// map Go positions back to main.xo (for compiler errors and stack traces)
+// and are hidden unless asked for: they are for the tools, not for
+// reading. Each Go line they map is a link to its line of main.xo.
 function showGo() {
   if (!lastGo) return;
   const lineDirs = goLines.checked;
   goPane.replaceChildren();
   for (const files of Object.values(lastGo)) {
     for (const f of files) {
-      let text = f.text;
-      if (!lineDirs) text = text.split("\n").filter((l) => !l.startsWith("//line ")).join("\n");
-      goPane.append(el("span", "play-sys", "// file " + f.name.replace(/^m\//, "") + "\n"), text, "\n");
+      goPane.append(el("span", "play-sys", "// file " + f.name.replace(/^m\//, "") + "\n"));
+      // the Xo line of each Go line: a directive names the line after it,
+      // and the lines below count up from there
+      const xo = [];
+      let at = 0;
+      for (const l of f.text.split("\n")) {
+        const m = /^\/\/line (.*):(\d+):\d+$/.exec(l);
+        if (m) { at = m[1] === "main.xo" ? +m[2] : 0; xo.push(0); continue; }
+        xo.push(at);
+        if (at) at++;
+      }
+      let n = 0;
+      let line = null;
+      const flush = () => {
+        if (line && (lineDirs || !line.textContent.startsWith("//line "))) goPane.append(line, "\n");
+        line = null;
+      };
+      const open = () => {
+        if (line) return;
+        line = el("span", "play-goline");
+        if (xo[n]) {
+          line.dataset.xo = xo[n];
+          line.title = "main.xo:" + xo[n];
+        }
+      };
+      for (const [cls, text] of goTokens(f.text)) {
+        const parts = text.split("\n");
+        parts.forEach((p, i) => {
+          if (i > 0) { open(); flush(); n++; }
+          if (!p) return;
+          open();
+          line.append(cls ? el("span", "x" + cls, p) : p);
+        });
+      }
+      flush();
     }
   }
 }
+goPane.addEventListener("click", (e) => {
+  const l = e.target.closest("[data-xo]");
+  if (l) goTo(+l.dataset.xo, 1);
+});
 goLines.addEventListener("change", showGo);
 
 function stop(message) {

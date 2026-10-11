@@ -167,3 +167,35 @@ export function render(el, src, marks = []) {
   frag.append("\n ");
   el.replaceChildren(frag);
 }
+
+// ---- Go, for the generated Go tab ----
+
+const GO_KEYWORDS = new Set(("break case chan const continue default defer else fallthrough for func go goto " +
+  "if import interface map package range return select struct switch type var").split(" "));
+const GO_TYPES = new Set(("any bool byte comparable complex128 complex64 error float32 float64 int int16 int32 " +
+  "int64 int8 rune string uint uint16 uint32 uint64 uint8 uintptr").split(" "));
+const GO_CONSTANTS = new Set(["true", "false", "nil", "iota"]);
+const GO_TOKEN = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:\\.|[^"\\\n])*"?|`[^`]*`?|'(?:\\.|[^'\\\n])*'?|\d[\w.]*|[A-Za-z_]\w*|\s+|./y;
+
+// goTokens returns [class, text] pairs covering the Go source src.
+export function goTokens(src) {
+  const out = [];
+  GO_TOKEN.lastIndex = 0;
+  for (let r; GO_TOKEN.lastIndex < src.length && (r = GO_TOKEN.exec(src));) {
+    const t = r[0], c = t[0];
+    let cls = "";
+    if (t.startsWith("//") || t.startsWith("/*")) cls = "c";
+    else if (c === '"' || c === "`" || c === "'") cls = "s";
+    else if (c >= "0" && c <= "9") cls = "m";
+    else if (/[A-Za-z_]/.test(c)) {
+      if (GO_KEYWORDS.has(t)) cls = "k";
+      else if (GO_CONSTANTS.has(t)) cls = "kc";
+      else if (GO_TYPES.has(t)) cls = "t";
+      else if (src[GO_TOKEN.lastIndex] === "(") cls = "f";
+    }
+    const last = out[out.length - 1];
+    if (last && last[0] === cls) last[1] += t;
+    else out.push([cls, t]);
+  }
+  return out;
+}

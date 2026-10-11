@@ -9,13 +9,14 @@
 // must report the code in examples/mistakes/*/check.txt), the tests of the
 // tour programs that have them, and the safety limits, and checks the
 // download notice, example links, share links, highlighting, squiggles
-// and their tooltips, the generated Go tab,
+// and their tooltips, the generated Go tab, the layout at phone width
+// (SHOTS=dir saves screenshots of it),
 // and the test seed and explore options. CHROME_FLAGS adds browser flags
 // (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
 
@@ -93,6 +94,16 @@ async function browser() {
         if (Date.now() - t > ms) throw new Error("timed out waiting for " + expr);
         await new Promise((r) => setTimeout(r, 150));
       }
+    },
+    // viewport emulates a screen of w by h CSS pixels (a phone if mobile)
+    async viewport(w, h, mobile) {
+      await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: mobile ? 3 : 1, mobile });
+    },
+    // shot saves a screenshot when SHOTS names a directory
+    async shot(name) {
+      if (!process.env.SHOTS) return;
+      const r = await send("Page.captureScreenshot", { format: "png" });
+      writeFileSync(join(process.env.SHOTS, name + ".png"), Buffer.from(r.result.data, "base64"));
     },
     close() {
       ws.close();
@@ -246,6 +257,16 @@ async function main() {
     const goLines = await b.eval(`(() => { const g = document.getElementById('play-golines'); g.click(); const t = document.getElementById('play-go').textContent; g.click(); return t; })()`);
     if (/func F_main/.test(goText) && !/\/\/line /.test(goText) && /\/\/line main\.xo:1:1/.test(goLines) && !/(\/\/line [^\n]*\n)\1/.test(goLines)) pass("generated Go, //line directives on request");
     else fail("generated Go", JSON.stringify(goText.slice(0, 200)) + " / " + JSON.stringify(goLines.slice(0, 200)));
+    const goLink = await b.eval(`(() => {
+      const kw = [...document.querySelectorAll('#play-go .xk')].some((e) => e.textContent === 'func');
+      const l = [...document.querySelectorAll('#play-go [data-xo]')].find((e) => e.textContent.includes('M_println'));
+      if (!kw || !l) return 'highlighted: ' + kw + ', println line linked: ' + !!l;
+      l.click();
+      const c = document.getElementById('play-code');
+      return c.value.slice(0, c.selectionStart).split('\\n').length;
+    })()`);
+    if (goLink === 2) pass("generated Go is highlighted and links to main.xo");
+    else fail("Go links", JSON.stringify(goLink));
 
     // example links from the tour
     await b.go(base + "/play/#example=tour/matching");
@@ -274,6 +295,49 @@ async function main() {
     const note = await b.until(`document.getElementById('play-note').textContent.includes('could not be read') && document.getElementById('play-note').textContent`, 15000);
     if (/too large/.test(note)) pass("oversized share link refused");
     else fail("oversized link", note);
+
+    // phones: nothing is wider than the screen, the toolbar, test options,
+    // tooltip, and Go tab fit, and the editor is above the output
+    await b.viewport(390, 844, true);
+    await b.go(base + "/play/");
+    await b.eval(HELPERS);
+    await b.eval(`t.set(${JSON.stringify(ignored.source)}); true`);
+    await b.until(`document.querySelector('#play-hl .xmark-error')`, 15000);
+    const fits = (sel) => `[...document.querySelectorAll(${JSON.stringify(sel)})].filter((e) => { const r = e.getBoundingClientRect(); return r.width && (r.left < -0.5 || r.right > innerWidth + 0.5); }).map((e) => (e.id || e.className || e.tagName) + ' ' + Math.round(e.getBoundingClientRect().left) + '..' + Math.round(e.getBoundingClientRect().right))`;
+    const wide = async (what) => {
+      const over = await b.eval(`[...${fits(".play-bar > *, .play-opts-body, #play-tip:not([hidden]), .play-go-bar, .play-editor, .play-out, .play-consent")}, ...(document.documentElement.scrollWidth > innerWidth ? ['page ' + document.documentElement.scrollWidth] : [])]`);
+      if (over.length) fail("phone: " + what, over.join(", "));
+      else pass("phone: " + what + " fits 390 px");
+    };
+    await b.shot("phone-editor");
+    await wide("toolbar and editor");
+    const tops = await b.eval(`[...document.querySelectorAll('.play-bar > .btn, .play-opts summary')].map((e) => Math.round(e.getBoundingClientRect().top))`);
+    if (Math.max(...tops) - Math.min(...tops) < 12) pass("phone: the buttons are on one row");
+    else fail("phone toolbar", "button tops " + tops.join(", "));
+    const stacked = await b.eval(`document.querySelector('.play-out').getBoundingClientRect().top >= document.querySelector('.play-editor').getBoundingClientRect().bottom`);
+    if (stacked) pass("phone: output below the editor");
+    else fail("phone layout", "the editor and output are side by side");
+    await b.eval(`document.querySelector('.play-opts').open = true; true`);
+    await b.shot("phone-options");
+    await wide("test options");
+    const pushed = await b.eval(`document.getElementById('play-note').getBoundingClientRect().top`);
+    await b.eval(`document.querySelector('.play-opts').open = false; true`);
+    if (pushed === await b.eval(`document.getElementById('play-note').getBoundingClientRect().top`)) pass("phone: test options float over the page");
+    else fail("phone options", "opening them moves the page");
+    await b.eval(`(() => {
+      const s = document.querySelector('#play-hl .xmark-error'), r = s.getBoundingClientRect();
+      document.getElementById('play-code').dispatchEvent(new MouseEvent('mousemove', { clientX: r.left + 3, clientY: r.top + r.height / 2 }));
+      return true;
+    })()`);
+    await b.until(`!document.getElementById('play-tip').hidden`, 5000).catch(() => {});
+    await b.shot("phone-tooltip");
+    await wide("tooltip");
+    await b.eval(`t.set('fn main(os: Os) {\\n  os.stdio.println("hi")\\n}\\n'); true`);
+    await b.eval(`t.press('play-run')`);
+    await b.eval(`document.querySelector('[data-tab=go]').click(); document.querySelector('.play-out').scrollIntoView(); true`);
+    await b.shot("phone-go");
+    await wide("generated Go tab");
+    await b.viewport(1300, 900, false);
 
     if (b.logs.length) fail("console", b.logs.join("\n"));
     else pass("no errors in the console");
