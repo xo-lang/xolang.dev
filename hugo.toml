@@ -16,7 +16,7 @@ version = "v0.9"
 # The orange bar at the top of every page. Set enabled = false to hide it.
 [params.announcement]
 enabled = true
-html = "<b>Xo is experimental.</b> The source code is not public yet; it will be soon. <a href=\"/blog/\">Read the release notes</a>"
+html = "<b>Xo is experimental.</b> The source code is not public yet; until then, <a href=\"/play/\">try Xo in your browser</a>."
 
 [menus]
 [[menus.main]]

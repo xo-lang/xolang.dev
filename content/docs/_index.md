@@ -12,6 +12,7 @@ programs with fast, structured feedback.
 - [A tour of Xo](tour/): twelve short steps through the language.
 - [Dependencies and capabilities](dependencies/): limit what a dependency can do, with ceilings, the effect lock, vouches, and `xo audit`.
 - [Diagnostic codes](diagnostics/): every error code, with an example and a fix.
+- [Roadmap](/roadmap/): what is done, in progress, and next on the way to 1.0.
 - [Core language specification](spec/core/): the source of truth for syntax and semantics.
 - [Standard library](spec/std/): prelude methods and the `std` packages.
 

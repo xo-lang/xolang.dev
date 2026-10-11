@@ -1,0 +1,7 @@
+{{- /* The stages of a roadmap list (data/roadmap.toml) as cards: done, now
+     (in progress), or next (not started). */ -}}
+<ol class="stages">
+  {{- range . }}
+  <li class="{{ .status }}"><span class="mark" aria-label="{{ index (dict "done" "done" "now" "in progress" "next" "not started") .status }}">{{ index (dict "done" "✓" "now" "●" "next" "○") .status }}</span><div><h3>{{ .title | safeHTML }}</h3><p>{{ .text | safeHTML }}</p></div></li>
+  {{- end }}
+</ol>

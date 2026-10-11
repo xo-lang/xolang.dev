@@ -332,3 +332,45 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .supply .term { margin-bottom: 16px; }
 .supply .term pre { white-space: pre; }
 .limits { margin: 20px 0 0; color: var(--ink-2); max-width: 52em; font-size: 15px; }
+/* home: the code sample */
+.look-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 48px; align-items: start; }
+.points { margin: 0 0 8px; padding-left: 20px; color: var(--ink-2); }
+.points li { margin: 6px 0; }
+.code-panel { background: var(--panel); color: #efe3d2; border: 1px solid #3a3029; border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px -30px var(--glow); }
+.code-panel .top { display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: #29221d; border-bottom: 1px solid #3a3029; font-size: 12px; color: #9c8c7c; }
+.code-panel .top i { width: 10px; height: 10px; border-radius: 50%; background: #4b3f36; }
+.code-panel .top span { margin-left: 10px; }
+.code-panel .highlight { margin: 0; }
+.code-panel pre { margin: 0; padding: 16px 18px; font-size: 13px; line-height: 1.55; overflow-x: auto; background: none !important; }
+/* home: supply chain columns */
+.grid.three .cell ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
+.grid.three .cell li { margin: 6px 0; }
+/* home: status summary */
+.status-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 16px; margin-bottom: 8px; }
+.status-row .col { min-width: 0; }
+.status-row .from { font: 500 12px "JetBrains Mono", monospace; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+.status-row .stages { grid-template-columns: 1fr; margin: 0; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--ink-2); background: var(--bg-2); }
+.chips li::before { content: "✓ "; color: var(--ok); }
+.chips.next li { border-style: dashed; }
+.chips.next li::before { content: "○ "; color: var(--ink-2); }
+/* home: latest posts */
+.latest-title { margin-top: 40px; }
+.latest { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.latest a { display: grid; gap: 4px; height: 100%; padding: 16px 18px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); }
+.latest a:hover { text-decoration: none; border-color: var(--accent); }
+.latest .date { font: 500 12px "JetBrains Mono", monospace; color: var(--accent); }
+.latest .t { font-weight: 700; }
+.latest .d { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+/* the roadmap page */
+.roadmap h1 { margin: 10px 0 14px; }
+.roadmap h2.build-title { margin-top: 8px; }
+@media (max-width: 900px) {
+  .look-grid, .status-row, .latest { grid-template-columns: minmax(0, 1fr); }
+  .code-panel pre { font-size: 12px; }
+}
+/* home: the command list beside Finan is one column */
+.rest .cmds { grid-template-columns: 1fr; gap: 0; margin-bottom: 24px; }
+.rest .cmd code { min-width: 13em; }
+.latest a { align-content: start; }

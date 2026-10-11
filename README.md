@@ -29,7 +29,8 @@ XO=path/to/xo scripts/check-examples.sh
 | Path | Contents |
 |---|---|
 | `hugo.toml` | Site config: menu, the orange announcement bar (`params.announcement`), output formats |
-| `layouts/home.html` | The home page |
+| `layouts/home.html` | The home page (its status summary reads `data/roadmap.toml`) |
+| `data/roadmap.toml`, `layouts/roadmap.html`, `layouts/roadmap.markdown.md`, `layouts/_partials/stages.html` | The roadmap: every milestone and plan stage (status done, now, or next) in one file, shown in full on `/roadmap/` and summarized on the home page; edit the data, not the templates |
 | `layouts/baseof.html`, `layouts/_partials/` | Shared page shell: announcement bar, header, footer |
 | `layouts/docs/`, `layouts/blog/` | Docs (sidebar and table of contents) and blog layouts |
 | `layouts/home.llms.txt`, `layouts/page.markdown.md` | `/llms.txt` and the raw Markdown of every page (`<page>/index.md`) for agents |

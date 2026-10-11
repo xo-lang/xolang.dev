@@ -1,0 +1,117 @@
+# The road to 1.0 and the self-hosting plan. The home page summary and
+# /roadmap/ both read this. status: done, now, or next. text is HTML.
+
+[[milestones]]
+title = "Language design and specification"
+status = "done"
+text = "Syntax, types, effects, and diagnostics written down as a spec, with every design choice recorded as a numbered decision."
+
+[[milestones]]
+title = "A compiler that emits Go"
+status = "done"
+text = "The type, effect, and concurrency checker, and the Go backend: every program builds into static binaries for linux, darwin, windows, and wasi."
+
+[[milestones]]
+title = "Tools for agents"
+status = "done"
+text = "JSON diagnostics with fixes, semantic queries and edits, a language server, concurrency tests that search task interleavings, and record and replay."
+
+[[milestones]]
+title = "Modules"
+status = "done"
+text = "Lock files, module proxies, a checksum log, and per definition hashes that show what a release really changed."
+
+[[milestones]]
+title = "Native backends, in preview"
+status = "done"
+text = "LLVM and a direct arm64 backend build programs to native code with no garbage collector (<code>--no-gc</code>)."
+
+[[milestones]]
+title = "Real-time functions"
+status = "done"
+text = "<code>uses realtime</code>: the compiler enforces bounded loops, no recursion, and no allocation."
+
+[[milestones]]
+title = "A front end written in Xo"
+status = "done"
+text = "The lexer, parser, and type checker rewritten in Xo, with output identical to the Go implementation on every program in the repository, on all three backends."
+
+[[milestones]]
+title = "A playground in the browser"
+status = "done"
+text = "The compiler and the Go toolchain run in WebAssembly, so <a href=\"/play/\">the playground</a> needs no server."
+
+[[milestones]]
+title = "The rest of the compiler in Xo"
+status = "now"
+text = "In progress: the SSA builder is done; the code generators follow, in the order of the plan."
+
+[[milestones]]
+title = "Stability audit"
+status = "next"
+text = "Last pass 2026-10-10: 180 of 191 spec features stable, 1 in preview, and 10 gaps, all marked for later. The next pass is queued; the gaps are closed or cut before 1.0."
+
+[[milestones]]
+title = "1.0"
+status = "next"
+text = "Code that builds keeps building. The Go backend is the supported path at 1.0; the native backends ship as preview."
+
+[[milestones]]
+title = "Native backends out of preview"
+status = "next"
+text = "After 1.0: LLVM and arm64 build the whole language without a garbage collector, with the same guarantees as the Go backend."
+
+[[milestones]]
+title = "A bigger standard library"
+status = "next"
+text = "More of what real programs need. Command line tools come first and are already in the plan below: argument parsing, running other programs, terminals, files, and common formats."
+
+[[plan]]
+title = "Front end in Xo"
+status = "done"
+text = "The lexer, parser, and type checker give output identical to the Go compiler on all three backends: 610 of 626 repository programs (the other 16 call Go or C)."
+
+[[plan]]
+title = "SSA builder in Xo"
+status = "done"
+text = "All 8 stages. 11,543 of 11,569 functions identical to the Go builder's SSA, and 6,282 of 6,376 in test binaries; every function left over is one the Go builder rejects too. The passes give identical output on all 306 programs both build completely, and the verifier's 32,411 mutant verdicts (one per function with a retain or release removed) match. No differences on any backend. Built with LLVM, a full run through every pass and the verifier takes 1.05x the time of the Go-built compiler (1.3x with the Go or arm64 backend); the build step alone, 1.6x to 2.3x."
+
+[[plan]]
+title = "Supply-chain safety by default"
+status = "done"
+text = "Only your own module vouches for a dependency's C bindings, <code>xo.lock</code> locks each dependency's effects, capabilities can be narrowed at run time, <code>xo audit</code> reports it all, and logging is an effect. Against 15 attack scenarios from the Backstabber's Knife Collection: 10 blocked."
+
+[[plan]]
+title = "Prebuilt runtime"
+status = "done"
+text = "Release builds ship the arm64 backend's C runtime prebuilt for each target, so arm64 builds no longer compile C: no clang needed. The system C toolchain (<code>cc</code>) still assembles and links the output; the LLVM backend still compiles its IR with clang. A first build on a cold cache went from 1.94 s to 0.13 s for a small program and from 4.27 s to 0.28 s for an HTTPS server (darwin/arm64). The linux/arm64 runtime is cross compiled on a Mac and reproducible byte for byte."
+
+[[plan]]
+title = "arm64 emitter in Xo, then the switch-over"
+status = "next"
+text = "When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
+
+[[plan]]
+title = "Runtime pilot"
+status = "next"
+text = "Port one small file of the C runtime to Xo and compare output and speed, to decide whether the runtime moves to Xo, as Go's did."
+
+[[plan]]
+title = "Standard library for tools"
+status = "now"
+text = "In progress. Command line parsing, running other programs, terminals, files, formats, shell completions, and version stamping, each designed in a recorded decision first."
+
+[[plan]]
+title = "WebAssembly backend"
+status = "next"
+text = "SSA to <code>.wasm</code>, written in Xo, so the playground runs the Xo compiler itself, with no Go compiler or linker to download."
+
+[[plan]]
+title = "LLVM emitter in Xo"
+status = "next"
+text = "The LLVM backend's code generation moves to Xo."
+
+[[plan]]
+title = "Go code generator in Xo"
+status = "next"
+text = "Last, since only the Go backend needs it. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
