@@ -108,6 +108,8 @@ prints the explanation below in a terminal.
 | [`XO1313`](xo1313/) | error | modules | a fetched module version disagrees with the checksum log (XO_SUMDB), or the log's signature or proofs do not verify (4.3, decision 0124) |
 | [`XO1314`](xo1314/) | error | modules | the checksum log cannot be consulted, or XO_PROXY, XO_SUMDB, XO_NOPROXY, or XO_NOSUMDB is malformed (4.2, decisions 0124, 0126) |
 | [`XO1315`](xo1315/) | note | checker | `edition 2026` in xo.mod is the old name of `edition preview`; the fix rewrites it (13, decision 0155) |
+| [`XO1316`](xo1316/) | error | checker | `use c` or `use go` of an impure Go package in a required module without the consumer's `vouch` for that version (4.2, decision 0156) |
+| [`XO1317`](xo1317/) | error | modules | a dependency's effects are wider than its `effects` line in xo.lock (4.3, decision 0156) |
 | [`XO1401`](xo1401/) | error | checker | allocation in a real-time function (literal, interpolation, `+` on Str or List, closure, growth method) |
 | [`XO1402`](xo1402/) | error | checker | loop without a provable bound in a real-time function, or a `bound N` that is not a constant or is exceeded by a constant range |
 | [`XO1403`](xo1403/) | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
