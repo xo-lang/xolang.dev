@@ -89,7 +89,7 @@ text = "Release builds ship the arm64 backend's C runtime prebuilt for each targ
 [[plan]]
 title = "arm64 emitter in Xo, then the switch-over"
 status = "now"
-text = "In progress, staged like the SSA builder. When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
+text = "In progress: every stage is ported, and the switch-over is next. When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
 
 [[plan]]
 title = "Standard library for tools"
@@ -98,8 +98,8 @@ text = "Typed command line flags and subcommands with generated help and shell c
 
 [[plan]]
 title = "LLVM emitter in Xo"
-status = "next"
-text = "The LLVM backend's code generation moves to Xo."
+status = "now"
+text = "In progress, staged like the arm64 emitter and running alongside it. The LLVM backend's code generation moves to Xo."
 
 [[plan]]
 title = "Go code generator in Xo"
