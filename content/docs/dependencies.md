@@ -120,7 +120,8 @@ A dependency's own vouch lines are ignored: it cannot vouch for itself.
 A C binding can carry effects in the vouch (`vouch <module> <version> c
 "zlib.h" uses none`); an unvouched C binding is charged `ffi`, whatever
 its own `uses` says. There is no automatic fix for `XO1316`: a vouch is a
-human review, and an upgrade needs a new one.
+human review, and an upgrade needs a new one. `XO1316` is reported by
+`xo check` (and the build), not by `xo get`, so check after every update.
 
 ## Narrowed capabilities
 
@@ -150,13 +151,14 @@ on the Go backend; the native backends are planned.
 
 ## xo audit
 
-`xo audit` prints one JSON report of every dependency: its effects and
+`xo audit` prints one report of every dependency: its effects and
 lock state, its escape hatches and the vouches that cover them, the
 capabilities you narrowed, and which capabilities you pass into
-dependencies (abridged):
+dependencies. On a terminal it prints text; with `--json`, or when its
+output is piped, it prints JSON (abridged):
 
 ```
-$ xo audit .
+$ xo audit --json .
 {
   "module": "example.com/shop",
   "dependencies": [
