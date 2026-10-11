@@ -84,7 +84,7 @@ def main():
         bind = os.path.join(tmp, "bind")
         os.makedirs(bind)
         with open(os.path.join(bind, "xo.mod"), "w") as f:
-            f.write("module example.com/play\nedition 2026\n")
+            f.write("module example.com/play\nedition preview\n")
         gobind = os.path.join(tmp, "gobind")
         for p in GOBIND:
             run([f"{tmp}/xo", "bind", p], bind, dict(os.environ, XO_GOBIND_DIR=gobind))

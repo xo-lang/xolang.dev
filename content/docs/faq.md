@@ -87,7 +87,8 @@ The language is at specification draft 0.10 and toolchain v0.9. It is
 usable and tested, but the language may still change before 1.0, and
 changes ship with automatic rewriters (`xo fix --from=draft-0.N`). The
 compatibility promise starts at 1.0, with the first frozen edition: code
-that builds under it keeps building under it forever.
+that builds under it keeps building under it forever. Until then every
+module uses the preview edition (`edition preview` in xo.mod).
 
 ## Where is the source code?
 

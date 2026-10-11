@@ -1,2 +1,2 @@
 module example.com/basics
-edition 2026
+edition preview

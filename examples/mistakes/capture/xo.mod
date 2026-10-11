@@ -1,2 +1,2 @@
 module example.com/capture
-edition 2026
+edition preview

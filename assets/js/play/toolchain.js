@@ -8,7 +8,7 @@ import { WASI, File, Directory, OpenFile, PreopenDirectory, ConsoleStdout } from
 import { BrotliDecode } from "/play/vendor/brotli-decode-1.1.0/decode.js";
 
 const CACHE = "xo-play";
-const MODULE = "module example.com/play\nedition 2026\n";
+const MODULE = "module example.com/play\nedition preview\n";
 const MAX_OUTPUT = 4 << 20; // bytes of stdout or stderr kept from a tool
 
 let manifest = null;
