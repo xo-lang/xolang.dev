@@ -88,8 +88,8 @@ text = "Release builds ship the arm64 backend's C runtime prebuilt for each targ
 
 [[plan]]
 title = "arm64 emitter in Xo, then the switch-over"
-status = "next"
-text = "When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
+status = "now"
+text = "In progress, staged like the SSA builder. When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
 
 [[plan]]
 title = "Runtime pilot"
@@ -115,3 +115,8 @@ text = "The LLVM backend's code generation moves to Xo."
 title = "Go code generator in Xo"
 status = "next"
 text = "Last, since only the Go backend needs it. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
+
+[[plan]]
+title = "Supply-chain follow-ups"
+status = "next"
+text = "Tag each log record with the dependency that wrote it, and a capability that budgets CPU time and allocation, to bring two of the five attack scenarios Xo does not block today into scope."
