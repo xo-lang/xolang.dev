@@ -101,27 +101,38 @@ Go code (`use go` of a package that is not pure) and C code (`use c`)
 can reach files and the network without a capability, so the checker
 cannot see what they do. In a dependency, each of these escape hatches
 needs a `vouch` line in **your** xo.mod, for the exact version you
-reviewed:
+reviewed. `xo get` refuses an update that brings an escape hatch you have
+not vouched for, before it writes xo.mod or xo.lock:
 
 ```
-$ xo check .
+$ xo get --accept-effects github.com/acme/billing@v1.2.0
 cache/github.com/acme/billing@v1.2.0/billing.xo:1:1: error XO1316: `use go "os"` of github.com/acme/billing v1.2.0 is not vouched for by the consuming module: Go code reaches files, the network, and processes without a capability
   note: after reviewing the code, add to xo.mod: vouch github.com/acme/billing v1.2.0 go "os"
-  note: only the consuming module vouches for a dependency's escape hatches; a vouch names the exact version it reviewed (decision 0156)
 ```
 
+`--accept-effects` accepts new effects only; it never stands in for a
+vouch. After reviewing the code, add the line and run `xo get` again:
+
 ```
-require github.com/acme/billing v1.2.0
+require github.com/acme/billing v1.1.0
 
 vouch github.com/acme/billing v1.2.0 go "os"
+```
+
+```
+$ xo get --accept-effects github.com/acme/billing@v1.2.0
+github.com/acme/billing v1.1.0 => v1.2.0
+  github.com/acme/billing v1.1.0 => v1.2.0:
+    added fn github.com/acme/billing.region
 ```
 
 A dependency's own vouch lines are ignored: it cannot vouch for itself.
 A C binding can carry effects in the vouch (`vouch <module> <version> c
 "zlib.h" uses none`); an unvouched C binding is charged `ffi`, whatever
 its own `uses` says. There is no automatic fix for `XO1316`: a vouch is a
-human review, and an upgrade needs a new one. `XO1316` is reported by
-`xo check` (and the build), not by `xo get`, so check after every update.
+human review, and an upgrade needs a new one. `xo check` and the build
+report it too, for example after `xo mod tidy`, which records versions
+without checking vouches.
 
 ## Narrowed capabilities
 
