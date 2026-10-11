@@ -354,6 +354,14 @@ async function main() {
     else pass("phone: home page fits 390 px");
     await b.viewport(1300, 900, false);
 
+    // on a tall desktop window the playground leaves room for the footer
+    await b.viewport(1300, 1600, false);
+    await b.go(base + "/play/");
+    const [footerBottom, winHeight] = await b.eval(`[Math.round(document.querySelector('footer').getBoundingClientRect().bottom), innerHeight]`);
+    if (footerBottom <= winHeight) pass("playground footer in view on a tall window", `bottom ${footerBottom} of ${winHeight}`);
+    else fail("playground footer", `bottom at ${footerBottom} of ${winHeight}`);
+    await b.viewport(1300, 900, false);
+
     // the "On this page" index highlights the section being read, by
     // scrolling and by following an index link
     await b.eval(`location.href = ${JSON.stringify(base + "/docs/spec/std/")}; true`);
