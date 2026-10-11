@@ -9,8 +9,8 @@
 // must report the code in examples/mistakes/*/check.txt), the tests of the
 // tour programs that have them, and the safety limits, and checks the
 // download notice, example links, share links, highlighting, squiggles
-// and their tooltips, the generated Go tab, the layout at phone width
-// (SHOTS=dir saves screenshots of it),
+// and their tooltips, the generated Go tab, the layout at phone width of
+// the playground and the home page (SHOTS=dir saves screenshots of it),
 // and the test seed and explore options. CHROME_FLAGS adds browser flags
 // (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
@@ -341,6 +341,16 @@ async function main() {
     await b.eval(`document.querySelector('[data-tab=go]').click(); document.querySelector('.play-out').scrollIntoView(); true`);
     await b.shot("phone-go");
     await wide("generated Go tab");
+
+    // the home page at phone width: the cards, terminals, and status
+    // stages fit, and the page does not scroll sideways
+    await b.eval(`location.href = ${JSON.stringify(base + "/")}; true`);
+    await b.until(`location.pathname === '/' && document.readyState === 'complete' && document.querySelector('.supply .term') && document.querySelector('.stages li')`, 15000);
+    const homeOver = await b.eval(`[...${fits(".wrap > *, .cell, .term, .stages li, .limits, .ix")}, ...(document.documentElement.scrollWidth > innerWidth ? ['page ' + document.documentElement.scrollWidth] : [])]`);
+    await b.eval(`document.querySelector('.supply').scrollIntoView(); true`);
+    await b.shot("phone-home-supply");
+    if (homeOver.length) fail("phone: home page", homeOver.join(", "));
+    else pass("phone: home page fits 390 px");
     await b.viewport(1300, 900, false);
 
     if (b.logs.length) fail("console", b.logs.join("\n"));
