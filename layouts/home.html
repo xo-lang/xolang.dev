@@ -3,7 +3,7 @@
     <div>
       <div class="tag">{{ site.Params.version }} · experimental · linux, darwin, windows, wasi</div>
       <h1>Agents write the code. <span>The compiler reviews every line.</span></h1>
-      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a fast, statically typed language for backends and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service quickly and properly.</p>
+      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a fast, statically typed language for backends, tools, and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service quickly and properly.</p>
       <div class="ctas">
         <a class="btn primary" href="{{ "docs/tour/" | relURL }}">take the tour</a>
         <a class="btn ghost" href="{{ "docs/getting-started/" | relURL }}">get started</a>
@@ -82,7 +82,7 @@
       </ol>
 
       <h3 class="build-title">How Xo builds</h3>
-      <p class="sub">Every Xo program compiles to Go. The compiler checks your code, writes Go source that points back to your <code>.xo</code> lines, and the Go toolchain builds it, so Go's garbage collector, scheduler, cross compilation, and debugger come for free, and stack traces name Xo lines. The Go backend builds the whole language and is the reference the others are tested against. The native backends are a second way to build the same program, for when you want no garbage collector; the one feature only they have is calling C with <code>use c</code>.</p>
+      <p class="sub">Every Xo program compiles to Go. The compiler checks your code, writes Go source that points back to your <code>.xo</code> lines, and the Go toolchain builds it, so Go's garbage collector, scheduler, cross compilation, and debugger come for free, and stack traces name Xo lines. The Go backend builds the whole language and is the reference the others are tested against. The native backends are a second way to build the same program, for when you want no garbage collector. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call any Go package with <code>use go</code> (C stays off the Go backend so its binaries stay static and cross compile anywhere).</p>
       <div class="grid">
         <div class="cell"><div class="from">reference · default</div><h3>Go backend</h3><p>Builds every program that does not call C, on every target, and can <code>use go</code> any Go package.</p><code class="use">xo build</code></div>
         <div class="cell"><div class="from">native · preview</div><h3>LLVM backend</h3><p>Lowers Xo's own SSA form to LLVM IR and builds optimized native code with clang.</p><code class="use">xo build --no-gc --backend=llvm</code></div>
