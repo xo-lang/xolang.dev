@@ -65,9 +65,9 @@
   ],
   "files": {
     "xoplay": {
-      "path": "assets/xoplay-375aa79bd5a0.brotli",
-      "size": 28550087,
-      "compressed": 4872971
+      "path": "assets/xoplay-6e946ffe9cab.brotli",
+      "size": 28561249,
+      "compressed": 4880087
     },
     "compile": {
       "path": "assets/compile-58555b0d1192.brotli",
