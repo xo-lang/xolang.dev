@@ -41,6 +41,7 @@ XO=path/to/xo scripts/check-examples.sh
 | `examples/mistakes/<name>/` | Programs with one mistake each (`{{%/* mistake "name" */%}}` shows `main.xo` and the real `check.txt`) |
 | `static/` | Images (Finan the fennec fox), icons, `CNAME` |
 | `designs/` | The design mockups the site came from (not published) |
+| `designs/assets/finan-avatar-dark.png`, `finan-avatar-orange.png` | Finan as a square avatar (752x752, the GitHub organization picture; dark is the one in use), made from `static/images/finan-soft-alert.webp` at its native size |
 
 The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it.
 
