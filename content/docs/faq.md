@@ -86,8 +86,8 @@ in development and can also build programs without a garbage collector.
 The language is at specification draft 0.10 and toolchain v0.9. It is
 usable and tested, but the language may still change before 1.0, and
 changes ship with automatic rewriters (`xo fix --from=draft-0.N`). The
-goal after 1.0 is that code that builds under an edition keeps building under
-that edition forever.
+compatibility promise starts at 1.0, with the first frozen edition: code
+that builds under it keeps building under it forever.
 
 ## Where is the source code?
 
