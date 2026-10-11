@@ -64,7 +64,7 @@ text = "After 1.0: LLVM and arm64 build the whole language without a garbage col
 [[milestones]]
 title = "A bigger standard library"
 status = "next"
-text = "More of what real programs need. Command line tools come first and are already in the plan below: argument parsing, running other programs, terminals, files, and common formats."
+text = "More of what real programs need. Command line tools came first and are done (see the plan below)."
 
 [[plan]]
 title = "Front end in Xo"
@@ -93,8 +93,8 @@ text = "In progress, staged like the SSA builder. When the Xo compiler builds it
 
 [[plan]]
 title = "Standard library for tools"
-status = "now"
-text = "In progress. Command line parsing, running other programs, terminals, files, formats, shell completions, and version stamping, each designed in a recorded decision first."
+status = "done"
+text = "Typed command line flags and subcommands with generated help and shell completions (<code>std/cli</code>), running other programs with pipelines, terminals and colors, file handles, globs, and locks, CSV, TOML, regular expressions, and archives, and <code>xo build --stamp</code> for version stamping. Some parts are Go backend only for now; native builds report them as <code>XO1201</code>."
 
 [[plan]]
 title = "LLVM emitter in Xo"

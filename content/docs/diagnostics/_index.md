@@ -115,4 +115,5 @@ prints the explanation below in a terminal.
 | [`XO1403`](xo1403/) | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
 | [`XO1404`](xo1404/) | error | checker | recursion among real-time functions |
 | [`XO1405`](xo1405/) | error | checker | blocking operation (channel, Mutex, scope, select, task) or capability effect in a real-time function |
+| [`XO1501`](xo1501/) | error | build | `--stamp NAME=VALUE` names no `const NAME: Str = "..."` (a plain string literal) of the main module (decision 0165) |
 {.codes}
