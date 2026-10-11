@@ -19,8 +19,8 @@ arm64 emitter, the LLVM emitter, and the Go code generator. The SSA
 builder is the largest and the one the others need, so it went first
 (decision 0150). The arm64 emitter comes next; once the Xo compiler
 builds itself to a byte-identical fixed point, the released `xo` on arm64
-hosts becomes the self-hosted compiler for native builds. The [plan on
-the home page](/#plan) has the full order.
+hosts becomes the self-hosted compiler for native builds. The [roadmap](/roadmap/#plan)
+has the full order.
 
 ## How it was checked
 

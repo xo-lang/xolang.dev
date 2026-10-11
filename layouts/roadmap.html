@@ -7,7 +7,7 @@
     {{ partial "stages.html" hugo.Data.roadmap.milestones }}
 
     <h2 class="build-title" id="plan">The plan, in order</h2>
-    <p class="sub">One stage in flight at a time. Most stages move the compiler into Xo, each checked against the Go implementation until the output is identical; the Go implementation stays the reference for the Go and LLVM backends.</p>
+    <p class="sub">One stage in flight at a time. Most stages move the compiler into Xo, each checked against the Go implementation until the output is identical; the Go implementation is retired once every backend it drives exists in Xo, so that each change is made once. The WebAssembly backend comes after, since it is written only in Xo.</p>
     {{ partial "stages.html" hugo.Data.roadmap.plan }}
   </article>
 </div>

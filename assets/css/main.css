@@ -374,3 +374,4 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .rest .cmds { grid-template-columns: 1fr; gap: 0; margin-bottom: 24px; }
 .rest .cmd code { min-width: 13em; }
 .latest a { align-content: start; }
+.look-term { margin-top: 16px; box-shadow: none; }

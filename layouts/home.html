@@ -2,8 +2,8 @@
   <div class="wrap hero">
     <div>
       <div class="tag">{{ site.Params.version }} · experimental · builds for linux, darwin, windows, wasi</div>
-      <h1>Agents write the code. <span>The compiler reviews every line.</span></h1>
-      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>, like the letters X and O) is a fast, statically typed language for backends, tools, and web services. Every check reports JSON with stable codes and ready-made fixes, so an agent can write, check, and repair a service quickly and properly.</p>
+      <h1>Agents write the code. <span>Xo catches what they miss.</span></h1>
+      <p class="lede">Xo (pronounced <span class="say">ex-oh</span>) is a fast, statically typed language for backends, tools, and web services. Ignored errors, nil, missed cases, and hidden side effects are compile errors, not code review comments. Each one comes back as JSON with a stable code and a fix the agent can apply itself, so the first review happens before anyone reads the code.</p>
       <div class="ctas">
         <a class="btn primary" href="{{ "play/" | relURL }}">try it in your browser</a>
         <a class="btn ghost" href="{{ "docs/tour/" | relURL }}">take the tour</a>
@@ -33,20 +33,25 @@
     <div class="wrap look-grid">
       <div>
         <div class="eyebrow">// what it looks like</div>
-        <h2>A small web service, with its test.</h2>
-        <p class="sub">Step 11 of the tour. It checks and passes its test with the current toolchain.</p>
-        <ul class="points">
-          <li><code>! ApiErr</code> and <code>?</code>: errors are values, and an unhandled one is a compile error.</li>
-          <li><code>match</code> covers every variant, or the build fails.</li>
-          <li><code>derive Json</code> gives the type its JSON encoding.</li>
-          <li>The network arrives as <code>os.net</code>, handed down from <code>main</code>.</li>
-          <li>A <code>test</code> block sits next to the code it tests.</li>
-        </ul>
-        <div class="ctas"><a class="btn primary" href="{{ "play/#example=tour/webservice" | relURL }}">open it in the playground</a></div>
+        <h2>Hello, world. With its test.</h2>
+        <p class="sub">A test sits next to the code it tests, and <code>xo test</code> runs it. The program gets its output from <code>os</code>, handed to <code>main</code>: nothing in Xo reaches the outside world without a capability.</p>
+        <div class="ctas">
+          <a class="btn primary" href="{{ "play/#example=tour/hello" | relURL }}">run it in your browser</a>
+          <a class="btn ghost" href="{{ "docs/tour/11-web-service/" | relURL }}">see a web service</a>
+        </div>
       </div>
-      <div class="code-panel">
-        <div class="top"><i></i><i></i><i></i><span>webservice/main.xo</span></div>
-        {{ transform.Highlight (readFile "examples/tour/webservice/main.xo" | strings.TrimRight "\n") "rust" "lineNos=false" }}
+      <div>
+        <div class="code-panel">
+          <div class="top"><i></i><i></i><i></i><span>hello/main.xo</span></div>
+          {{ transform.Highlight (readFile "examples/tour/hello/main.xo" | strings.TrimRight "\n") "rust" "lineNos=false" }}
+        </div>
+        <div class="term look-term">
+          <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> xo run .
+{{ readFile "examples/tour/hello/output.txt" | strings.TrimRight "\n" }}
+<span class="p">$</span> xo test .
+<span class="ok">ok</span>: 1 passed, 0 failed, 0 skipped</pre>
+        </div>
       </div>
     </div>
   </section>
@@ -191,8 +196,8 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap rest">
       <div>
         <div class="eyebrow">// one binary</div>
-        <h2>Tools made for machines and people.</h2>
-        <p class="sub">Semantic queries and edits work on resolved symbols, so tools never guess from text. And when the check is clean, Finan sleeps soundly.</p>
+        <h2>A toolchain built for agents to drive.</h2>
+        <p class="sub">Checks, builds, and queries answer in JSON. Queries and edits work on resolved symbols, so an agent never guesses from text, and every edit is rechecked before it is written. And when the check is clean, Finan sleeps soundly.</p>
         <div class="cmds">
           <div class="cmd"><code>xo check --json</code><span>Type, effect, and concurrency checks</span></div>
           <div class="cmd"><code>xo build --targets=all</code><span>Static binaries for four OSes</span></div>

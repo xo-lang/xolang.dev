@@ -92,19 +92,9 @@ status = "now"
 text = "In progress, staged like the SSA builder. When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
 
 [[plan]]
-title = "Runtime pilot"
-status = "next"
-text = "Port one small file of the C runtime to Xo and compare output and speed, to decide whether the runtime moves to Xo, as Go's did."
-
-[[plan]]
 title = "Standard library for tools"
 status = "now"
 text = "In progress. Command line parsing, running other programs, terminals, files, formats, shell completions, and version stamping, each designed in a recorded decision first."
-
-[[plan]]
-title = "WebAssembly backend"
-status = "next"
-text = "SSA to <code>.wasm</code>, written in Xo, so the playground runs the Xo compiler itself, with no Go compiler or linker to download."
 
 [[plan]]
 title = "LLVM emitter in Xo"
@@ -114,7 +104,22 @@ text = "The LLVM backend's code generation moves to Xo."
 [[plan]]
 title = "Go code generator in Xo"
 status = "next"
-text = "Last, since only the Go backend needs it. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
+text = "The Go backend's code generation moves to Xo. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
+
+[[plan]]
+title = "Retire the Go implementation"
+status = "next"
+text = "Once every backend it drives exists in Xo and the full test suite passes on the self-hosted compiler, the Go implementation is retired, and each change is made once instead of twice."
+
+[[plan]]
+title = "WebAssembly backend"
+status = "next"
+text = "SSA to <code>.wasm</code>, written only in Xo, so it comes after the Go implementation is retired. With it, the playground runs the Xo compiler itself, with no Go compiler or linker to download."
+
+[[plan]]
+title = "Runtime pilot, then the runtime port"
+status = "next"
+text = "Port one small file of the C runtime to Xo and compare output and speed, then decide whether the whole runtime moves to Xo, as Go's did."
 
 [[plan]]
 title = "Supply-chain follow-ups"
