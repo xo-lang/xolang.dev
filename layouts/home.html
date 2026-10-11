@@ -5,56 +5,26 @@
       <h1>Agents write the code. <span>Xo catches what they miss.</span></h1>
       <p class="lede">Xo (pronounced <span class="say">ex-oh</span>) is a fast, statically typed language for backends, tools, and web services. Ignored errors, nil, missed cases, and hidden side effects are compile errors, not code review comments. Each one comes back as JSON with a stable code and a fix the agent can apply itself, so the first review happens before anyone reads the code.</p>
       <div class="ctas">
-        <a class="btn primary" href="{{ "play/" | relURL }}">try it in your browser</a>
+        <a class="btn primary" href="{{ "play/#example=tour/hello" | relURL }}">try online</a>
         <a class="btn ghost" href="{{ "docs/tour/" | relURL }}">take the tour</a>
       </div>
     </div>
     <div class="stage">
       <img class="fox" src="{{ "images/finan-soft-alert.webp" | relURL }}" alt="Finan the fennec fox, alert">
-      <div class="term">
-        <div class="top"><i></i><i></i><i></i><span>xo check --json ./main</span></div>
-<pre><span class="dim">{</span>
-  <span class="key">"code"</span>: <span class="e">"XO0401"</span>,
-  <span class="key">"severity"</span>: <span class="str">"error"</span>,
-  <span class="key">"message"</span>: <span class="str">"expected `()`, found `Result[Str, Error]`"</span>,
-  <span class="key">"span"</span>: { <span class="key">"file"</span>: <span class="str">"main/main.xo"</span>, <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">3</span> },
-  <span class="key">"notes"</span>: [{ <span class="key">"message"</span>: <span class="str">"the value is a `Result`; propagate
-    the error with `?` or handle it with `match`"</span> }],
-  <span class="key">"fixes"</span>: [{
-    <span class="key">"title"</span>: <span class="str">"propagate with ?"</span>,
-    <span class="key">"edits"</span>: [{ <span class="key">"span"</span>: { <span class="key">"line"</span>: <span class="num">6</span>, <span class="key">"col"</span>: <span class="num">11</span> }, <span class="key">"replace"</span>: <span class="str">"?"</span> }]
-  }]
-<span class="dim">}</span></pre>
+      <div class="code-panel">
+        <div class="top"><i></i><i></i><i></i><span>hello/main.xo</span></div>
+        {{ transform.Highlight (readFile "examples/tour/hello/main.xo" | strings.TrimRight "\n") "rust" "lineNos=false" }}
       </div>
-    </div>
-  </div>
-
-  <section class="look">
-    <div class="wrap look-grid">
-      <div>
-        <div class="eyebrow">// what it looks like</div>
-        <h2>Hello, world. With its test.</h2>
-        <p class="sub">A test sits next to the code it tests, and <code>xo test</code> runs it. The program gets its output from <code>os</code>, handed to <code>main</code>: nothing in Xo reaches the outside world without a capability.</p>
-        <div class="ctas">
-          <a class="btn primary" href="{{ "play/#example=tour/hello" | relURL }}">run it in your browser</a>
-          <a class="btn ghost" href="{{ "docs/tour/11-web-service/" | relURL }}">see a web service</a>
-        </div>
-      </div>
-      <div>
-        <div class="code-panel">
-          <div class="top"><i></i><i></i><i></i><span>hello/main.xo</span></div>
-          {{ transform.Highlight (readFile "examples/tour/hello/main.xo" | strings.TrimRight "\n") "rust" "lineNos=false" }}
-        </div>
-        <div class="term look-term">
-          <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
+      <div class="term look-term">
+        <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
 <pre><span class="p">$</span> xo run .
 {{ readFile "examples/tour/hello/output.txt" | strings.TrimRight "\n" }}
 <span class="p">$</span> xo test .
 <span class="ok">ok</span>: 1 passed, 0 failed, 0 skipped</pre>
-        </div>
       </div>
+      <p class="hero-more"><a href="{{ "docs/tour/11-web-service/" | relURL }}">See a web service &rarr;</a></p>
     </div>
-  </section>
+  </div>
 
   <section>
     <div class="wrap">

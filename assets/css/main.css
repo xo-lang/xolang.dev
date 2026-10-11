@@ -375,3 +375,5 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .rest .cmd code { min-width: 13em; }
 .latest a { align-content: start; }
 .look-term { margin-top: 16px; box-shadow: none; }
+.hero-more { margin: 12px 0 0; font: 500 14px "JetBrains Mono", monospace; text-align: right; }
+@media (min-width: 901px) { .hero .stage { margin-top: 64px; } }
