@@ -10,6 +10,7 @@ programs with fast, structured feedback.
 - [Why Xo? (FAQ)](faq/): what Xo is for, how it relates to Go, and what experimental means.
 - [Getting started](getting-started/): build the toolchain and run a first program.
 - [A tour of Xo](tour/): twelve short steps through the language.
+- [Dependencies and capabilities](dependencies/): limit what a dependency can do, with ceilings, the effect lock, vouches, and `xo audit`.
 - [Diagnostic codes](diagnostics/): every error code, with an example and a fix.
 - [Core language specification](spec/core/): the source of truth for syntax and semantics.
 - [Standard library](spec/std/): prelude methods and the `std` packages.
