@@ -19,6 +19,9 @@
     {{ .TableOfContents }}
     {{- with .OutputFormats.Get "markdown" }}<a class="raw-link" href="{{ .RelPermalink }}">View as Markdown</a>{{ end }}
   </aside>
+  {{- with resources.Get "js/toc.js" | js.Build (dict "minify" true) | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
   {{- end }}
 </div>
 {{ end }}

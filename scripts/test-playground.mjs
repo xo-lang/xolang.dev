@@ -10,7 +10,8 @@
 // tour programs that have them, and the safety limits, and checks the
 // download notice, example links, share links, highlighting, squiggles
 // and their tooltips, the generated Go tab, the layout at phone width of
-// the playground and the home page (SHOTS=dir saves screenshots of it),
+// the playground and the home page (SHOTS=dir saves screenshots of it), the
+// section highlight of the docs index,
 // and the test seed and explore options. CHROME_FLAGS adds browser flags
 // (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
@@ -352,6 +353,28 @@ async function main() {
     if (homeOver.length) fail("phone: home page", homeOver.join(", "));
     else pass("phone: home page fits 390 px");
     await b.viewport(1300, 900, false);
+
+    // the "On this page" index highlights the section being read, by
+    // scrolling and by following an index link
+    await b.eval(`location.href = ${JSON.stringify(base + "/docs/spec/std/")}; true`);
+    await b.until(`location.pathname === '/docs/spec/std/' && document.readyState === 'complete' && document.querySelectorAll('.toc a[href^="#"]').length > 10`, 15000);
+    const tocAt = async (how) => {
+      const want = await b.eval(`(() => {
+        const a = document.querySelectorAll('.toc a[href^="#"]')[8];
+        const h = document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
+        ${how === "click" ? "a.click();" : "scrollTo(0, h.getBoundingClientRect().top + scrollY - 40);"}
+        return a.getAttribute('href');
+      })()`);
+      await new Promise((r) => setTimeout(r, 300));
+      return [want, await b.eval(`document.querySelector('.toc a.active')?.getAttribute('href') || 'none'`)];
+    };
+    for (const how of ["scroll", "click"]) {
+      const [want, got] = await tocAt(how);
+      if (want === got) pass("index highlights the section after a " + how, want);
+      else fail("index highlight after a " + how, `want ${want}, got ${got}`);
+      if (how === "click") await b.shot("toc-active");
+      await b.eval(`scrollTo(0, 0); true`);
+    }
 
     if (b.logs.length) fail("console", b.logs.join("\n"));
     else pass("no errors in the console");
