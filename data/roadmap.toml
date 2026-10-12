@@ -118,8 +118,8 @@ text = "SSA to <code>.wasm</code>, written only in Xo, so it comes after the Go 
 
 [[plan]]
 title = "Runtime pilot, then the runtime port"
-status = "next"
-text = "Port one small file of the C runtime to Xo and compare output and speed, then decide whether the whole runtime moves to Xo, as Go's did."
+status = "now"
+text = "In progress. The pilot is done: the native runtime's Unicode operations are now written in Xo, with output identical on every backend and runtime objects 4.7 percent smaller. Case mapping of ASCII text takes 0.63 to 0.67 times the C's instructions on both native backends, but per-character work on arm64 takes 1.45 to 1.80 times, because the arm64 backend inlines only leaf functions. So the C version stays selectable, and porting more of the runtime waits until arm64 is within 5 percent of C on every workload."
 
 [[plan]]
 title = "Supply-chain follow-ups"

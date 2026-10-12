@@ -116,6 +116,27 @@ after the change, compiles itself in the same time (271.8 s and 276.4
 s), still about twice the Go-built compiler's. Profiling that run is the
 next experiment.
 
+**Update, later on 2026-10-12: the gap, found.** Timing each phase of
+the compiler compiling itself put all of the gap in one place, the
+arm64 emitter: 860.7 s in the Xo-built compiler against 227.1 s in the
+Go one. Every other phase was at parity or faster in Xo (the SSA build
+1.3 s against 4.8 s). The Xo-built compiler did not run more code; it
+retired slightly fewer instructions than the Go one, but at half the
+instructions per cycle (1.66 against 3.23), waiting on memory.
+
+A profile named two causes, both copies the emitter did not need. A
+loop like `for x in g.blocks[b].insts` over a `var` receiver copied each
+element, and an inner list read as `a[i][j]` was copied and released on
+every access. Rewriting those spots in the emitter's source to pass the
+list as a parameter (where elements are borrowed, not copied) cut the
+self-built compiler's cycles by 45 percent and its user CPU time by 28
+percent, and its assembly output stayed byte identical. In the same run
+it was within 1.18 times the Go compiler's wall clock, and used fewer
+cycles. One run each on a loaded machine, so the CPU and instruction
+counts are firmer than the wall clock. The next step is to make the
+compiler borrow in those two cases itself, so the copies go away
+everywhere without source changes.
+
 ## Meanwhile, on arm64
 
 A related change landed the same day: release builds now ship the arm64
