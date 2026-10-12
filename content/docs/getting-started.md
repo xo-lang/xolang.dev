@@ -19,7 +19,9 @@ export PATH="$PWD/.tools/bin:$PATH"
 ```
 
 To build programs, the Go backend (the default) needs Go 1.24 or newer
-on the `PATH`; an older Go is reported as `XO1502`. The native backends
+on the `PATH` (or `XO_GO` set to its go command); an older Go is
+reported as [`XO1502`](/docs/diagnostics/xo1502/), and no Go at all as
+[`XO1503`](/docs/diagnostics/xo1503/). The native backends
 (`--backend=arm64`, `--backend=llvm`) need no Go.
 
 ## A first program

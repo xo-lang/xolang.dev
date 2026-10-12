@@ -117,4 +117,5 @@ prints the explanation below in a terminal.
 | [`XO1405`](xo1405/) | error | checker | blocking operation (channel, Mutex, scope, select, task) or capability effect in a real-time function |
 | [`XO1501`](xo1501/) | error | build | `--stamp NAME=VALUE` names no `const NAME: Str = "..."` (a plain string literal) of the main module (decision 0165) |
 | [`XO1502`](xo1502/) | error | build | the go command the Go backend runs (`$XO_GO`, else `go` on PATH) is older than Go 1.24, the oldest Go that builds generated programs and the runtime (decision 0176) |
+| [`XO1503`](xo1503/) | error | build | the Go backend finds no go command: `$XO_GO` is not an executable file, or there is no `go` on PATH; the native backends need none (decision 0176) |
 {.codes}
