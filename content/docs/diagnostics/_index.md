@@ -107,7 +107,7 @@ prints the explanation below in a terminal.
 | [`XO1312`](xo1312/) | error | checker | `use` of a package that a `deny` rule of xo.mod forbids (decision 0095) |
 | [`XO1313`](xo1313/) | error | modules | a fetched module version disagrees with the checksum log (XO_SUMDB), or the log's signature or proofs do not verify (4.3, decision 0124) |
 | [`XO1314`](xo1314/) | error | modules | the checksum log cannot be consulted, or XO_PROXY, XO_SUMDB, XO_NOPROXY, or XO_NOSUMDB is malformed (4.2, decisions 0124, 0126) |
-| [`XO1315`](xo1315/) | note | checker | `edition 2026` in xo.mod is the old name of `edition preview`; the fix rewrites it (13, decision 0155) |
+| [`XO1315`](xo1315/) | note | checker | `edition 2026` in xo.mod (or `xo 2026` in xo.work) is the old name of `edition preview`; the fix rewrites it (13, decision 0155) |
 | [`XO1316`](xo1316/) | error | checker, xo get | `use c` or `use go` of an impure Go package in a required module without the consumer's `vouch` for that version (4.2, decision 0156) |
 | [`XO1317`](xo1317/) | error | modules | a dependency's effects are wider than its `effects` line in xo.lock (4.3, decision 0156) |
 | [`XO1401`](xo1401/) | error | checker | allocation in a real-time function (literal, interpolation, `+` on Str or List, closure, growth method) |
@@ -116,4 +116,5 @@ prints the explanation below in a terminal.
 | [`XO1404`](xo1404/) | error | checker | recursion among real-time functions |
 | [`XO1405`](xo1405/) | error | checker | blocking operation (channel, Mutex, scope, select, task) or capability effect in a real-time function |
 | [`XO1501`](xo1501/) | error | build | `--stamp NAME=VALUE` names no `const NAME: Str = "..."` (a plain string literal) of the main module (decision 0165) |
+| [`XO1502`](xo1502/) | error | build | the go command the Go backend runs (`$XO_GO`, else `go` on PATH) is older than Go 1.24, the oldest Go that builds generated programs and the runtime (decision 0176) |
 {.codes}

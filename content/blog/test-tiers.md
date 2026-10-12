@@ -137,6 +137,23 @@ cutting is what made the merge tier fast: three programs out of 646 were
 most of the cost, and no amount of general tuning would have found that
 as quickly as timing each one.
 
-The next experiment is already running: comparing ThinLTO with full
-link-time optimization for the LLVM test builds, which could shrink the
-full tier's longest step. We will add the numbers here when they are in.
+## Update, 2026-10-12: the LLVM build, split
+
+The experiment promised here measured the full tier's longest step, the
+LLVM build of the self-hosted SSA builder, a different way: split the
+program into modules and compile them in parallel (decision 0168).
+
+| build | total |
+|---|---|
+| one module, full link-time optimization (the default) | 2,394 s |
+| 12 modules, no link-time optimization, 4 jobs | 512 s |
+| 12 modules, ThinLTO, 4 jobs | 556 s |
+
+One module with full link-time optimization spends 2,023 s of that in
+the link, on one core. Split into 12 modules, the build takes about a
+fifth of the time. The output is as fast: with ThinLTO it is within the
+run-to-run noise of today's build, and without link-time optimization 2
+to 4 percent slower. ThinLTO's link uses every core (3,670 s of CPU in
+478 s), so on a busy machine the split build without it is the better
+neighbor. The split is opt-in for now (`XO_LLVM_SPLIT`); the default
+build is unchanged.

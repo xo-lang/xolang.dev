@@ -44,7 +44,7 @@ text = "The compiler and the Go toolchain run in WebAssembly, so <a href=\"/play
 [[milestones]]
 title = "The rest of the compiler in Xo"
 status = "now"
-text = "In progress: the front end, the SSA builder, and the arm64 and LLVM emitters are written in Xo, and Xo compiles itself; the Go code generator is next."
+text = "Every part of the Xo compiler now exists in Xo: lexer, parser, checker, SSA, and all three code generators, and Xo compiles itself. The self-hosted checker agrees with the Go checker on all 685 repository runs. Next: retiring the Go implementation."
 
 [[milestones]]
 title = "Stability audit"
@@ -103,13 +103,13 @@ text = "13,683 of 13,683 functions identical to the Go emitter's, and 318 of 318
 
 [[plan]]
 title = "Go code generator in Xo"
-status = "now"
-text = "In progress. The Go backend's code generation moves to Xo. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
+status = "done"
+text = "467 of 467 compared runs generate byte identical Go (all 27,864 declarations), and the Xo compiler builds itself with <code>--backend=go</code> to a fixed point. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
 
 [[plan]]
 title = "Retire the Go implementation"
-status = "next"
-text = "Once every backend it drives exists in Xo and the full test suite passes on the self-hosted compiler, the Go implementation is retired, and each change is made once instead of twice."
+status = "now"
+text = "In progress. Once every backend it drives exists in Xo and the full test suite passes on the self-hosted compiler, the Go implementation is retired, and each change is made once instead of twice."
 
 [[plan]]
 title = "WebAssembly backend"
@@ -124,4 +124,4 @@ text = "Port one small file of the C runtime to Xo and compare output and speed,
 [[plan]]
 title = "Supply-chain follow-ups"
 status = "done"
-text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, running time, and allocation, so a dependency that loops forever is stopped (Go backend). Log records from a dependency name the module that wrote them (Go backend), and <code>xo audit</code> lists log call sites. Against 17 attack scenarios: 12 blocked, up from 10 of 15."
+text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, running time, and allocation, so a dependency that loops forever is stopped. Log records from a dependency name the module that wrote them, and <code>xo audit</code> lists log call sites. Against 17 attack scenarios: 12 blocked, up from 10 of 15. Budgets, narrowed capabilities, and log attribution work on all three backends."

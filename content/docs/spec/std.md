@@ -175,6 +175,7 @@ Slicing (`s[a..b]`) is in core 3.6.
 ### 2.3 List[T]
 
 ```
+List[T].with_capacity(n: Int) -> List[T]     // empty, room for n elements
 fn (xs: List[T]) len() -> Int
 fn (xs: List[T]) is_empty() -> Bool
 fn (xs: List[T]) get(i: Int) -> T?
@@ -205,6 +206,11 @@ fn ([var] xs: List[T]) set(i: Int, x: T)     // also xs[i] = x on a var list
 Higher order methods (`map`, `filter`, ...) pass through the callback's effects
 and errors through effect variables (core 6.2); `map` with a failing callback
 returns `List[U] ! E`.
+
+`List[T].with_capacity(n)` (also `List.with_capacity(n)` where the type is
+known) is an empty list, equal to `[]`, whose first `n` pushes append
+without growing it; `n` below 0 counts as 0. Capacity is not observable
+(decision 0170).
 
 ### 2.4 Map[K, V] and Set[T]
 
@@ -566,8 +572,9 @@ an attenuated `Net` fails with `SqlErr.Conn` (the driver dials by
 itself, so the list cannot be enforced). `only` on an attenuated `Net`
 keeps both lists: an address must pass each. Names are checked as
 written, not as resolved: an allowed name that resolves to another
-address is allowed. Native builds (`--no-gc`) do not have `only` yet
-(XO1201, planned).
+address is allowed. Native builds (`--no-gc`) have it too (decision
+0175): a `Net` there is the lists of its attenuations; hosts in dial and
+listen addresses and in redirects are lowered ASCII only.
 
 ```
 let api = os.net.only(["api.example.com"])
@@ -1218,8 +1225,12 @@ backend `alloc` is the process wide allocation since the budget started
 (Go keeps no count per goroutine), an upper bound that also counts other
 tasks running at the same time; one std operation (a large `repeat`, a
 sort) is not interrupted; functions compiled to assembly by `--hybrid`
-do not poll. **[planned]** The native backends report `with_budget` as
-XO1201.
+do not poll. The native backends (`--no-gc`, decision 0175) poll at
+every loop iteration and at the entry of every function of the
+program's own modules (leaf functions too, so a step count runs a little
+higher than on the Go backend) and count `alloc` exactly per task (the
+bytes each task allocated); `XO-F008` there names the `with_budget` call
+as its location.
 
 ```
 enum Timed[E] { TimedOut, Failed(from E) } derive Display

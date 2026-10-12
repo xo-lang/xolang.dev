@@ -158,7 +158,7 @@ refused: Denied(addr: "metrics.example.net:443")
 The narrowing methods are `Net.only(hosts)`, `Env.only(names)`,
 `Proc.only(commands)`, and for files `Fs.sub(dir)`, `read_only()`, and
 `write_only()`. `Net`, `Env`, and `Proc` narrowing is checked at run time
-on the Go backend; the native backends are planned.
+on every backend.
 
 ## Budgets for compute
 
@@ -195,8 +195,7 @@ stopped: steps
 ```
 
 The budget covers every task started inside the call. Only a program
-that calls `with_budget` pays for the checks. It works on the Go backend
-today; the native backends report it as `XO1201` until it lands there.
+that calls `with_budget` pays for the checks. It works on every backend: Go, arm64, and LLVM.
 
 ## Log records name their module
 

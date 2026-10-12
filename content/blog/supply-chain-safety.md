@@ -15,8 +15,8 @@ call, which brings the endless-loop denial of service into scope when
 the app uses it: the measurement is now **12 of 17 scenarios blocked**
 (two new rows, both a looping dependency under a budget; the unbudgeted
 loop stays not blocked). Log records from a dependency now name the
-module that wrote them, on every backend. Budgets work on the Go
-backend today; the native backends are planned. The table
+module that wrote them, on every backend. Budgets and narrowed capabilities
+also block on arm64 and LLVM since 2026-10-12. The table
 below is the first measurement, 10 of 15.
 
 In Xo, what a function may do is part of its type, and authority is a
@@ -137,5 +137,5 @@ SecurityManager is disabled as of JDK 24.
 - **Port more scenarios** toward the 51 packages, by behaviour, and record
   which have no Xo equivalent.
 
-Narrowed `Net`, `Env`, and `Proc` capabilities work on the Go backend
-today; the native backends are planned.
+Narrowed `Net`, `Env`, and `Proc` capabilities work on every backend
+(the native backends since 2026-10-12).

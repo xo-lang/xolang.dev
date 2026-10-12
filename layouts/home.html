@@ -94,7 +94,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
         <div class="cell"><div class="from">at run time</div><h3>Less than the whole thing</h3><ul>
           <li><code>os.net.only(["api.example.com"])</code> reaches only those hosts; anything else is <code>Denied</code> before it happens.</li>
           <li><code>Env.only</code>, <code>Proc.only</code>, and <code>Fs.sub</code> narrow variables, commands, and directories.</li>
-          <li><code>task.with_budget</code> caps the steps and running time of a call, so a dependency that loops forever is stopped (Go backend).</li>
+          <li><code>task.with_budget</code> caps the steps and running time of a call, so a dependency that loops forever is stopped.</li>
           <li><code>xo audit</code> reports every dependency's effects, escape hatches, log call sites, and the capabilities you pass it.</li>
         </ul></div>
       </div>
@@ -122,7 +122,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// status</div>
       <h2>The road to 1.0.</h2>
-      <p class="sub">Xo now compiles itself: the self-hosted compiler reproduces its own assembly byte for byte. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates.</p>
+      <p class="sub">Xo now compiles itself: every part of the compiler exists in Xo, and it reproduces its own build byte for byte. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates.</p>
       {{- $ms := hugo.Data.roadmap.milestones }}
       <div class="status-row">
         <div class="col"><div class="from">done</div><ul class="chips">
