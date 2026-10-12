@@ -114,7 +114,7 @@ text = "467 of 467 compared runs generate byte identical Go (all 27,864 declarat
 [[plan]]
 title = "Retire the Go implementation"
 status = "now"
-text = "In progress. Every golden test suite now builds and runs through the self-hosted compiler with the Go-built compiler's output: the Go backend 134 of 134 programs, arm64 158 of 158, LLVM 158 of 158. The first stage, the self-hosted compiler building everything <code>xo build</code> does, is under way; the project owner has approved the switch: native <code>xo build</code>, <code>run</code>, and <code>test</code> move to the self-hosted driver first, and <code>xo</code> itself becomes the self-hosted binary once its gate passes, with the rest of the command line tools (check, fmt, the language server, and more) ported to Xo and the full test suite run against it. Those ports are in progress. After that, each change is made once instead of twice."
+text = "In progress. Native builds now go through the compiler written in Xo: <code>xo build</code>, <code>run</code>, and <code>test</code> with <code>--backend=arm64</code> or <code>llvm</code> run the self-hosted driver, which <code>xo</code> builds from its own embedded Xo sources. Its 159 arm64 test binaries are byte identical to the Go driver's, and the fixed point holds. A few options (<code>--ci</code>, <code>--hybrid</code>, <code>--real</code> on native tests) and programs it cannot build yet still use the Go driver, and <code>XO_SELF_DRIVER=0</code> switches back. <code>xo</code> itself becomes the self-hosted binary once the rest of the command line tools are ported to Xo, approved by the project owner and in progress. After that, each change is made once instead of twice."
 
 [[plan]]
 title = "WebAssembly backend"

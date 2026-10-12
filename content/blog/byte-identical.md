@@ -164,8 +164,9 @@ would cost more. The one bug the comparison found that no test had
 found is the argument.
 
 **Update, 2026-10-12:** the project owner has approved the switch.
-Native `xo build`, `xo run`, and `xo test` are moving to the
-self-hosted driver now, and `xo` itself becomes the self-hosted binary
+Native `xo build`, `xo run`, and `xo test` now run the self-hosted
+driver (its 159 arm64 test binaries byte identical to the Go driver's),
+and `xo` itself becomes the self-hosted binary
 once its gate passes: the rest of the command line tools ported to Xo,
 and the full test suite run against the Xo binary (see the
 [roadmap](/roadmap/)).
