@@ -191,6 +191,25 @@ under different load, while writing 8.5 percent more assembly), with
 the fixed point intact. LLVM, unchanged by this work, still has the
 compare at about 1.13x, so the C version stays for now.
 
+**Update, later on 2026-10-12:** the LLVM half is met too. The LLVM
+backend now runs the same value range analysis, tells LLVM the facts it
+proves, and inlines what the arm64 cost model inlines (decision 0192).
+The case-insensitive compare went from 1.126x to 0.948x the C's
+instructions, and on LLVM every Unicode workload now retires fewer
+instructions than its C version. Two experiments on the way are worth
+keeping: removing only the overflow checks or only the bounds checks
+each accounted for about half of what removing every check saved, and only together did they let
+LLVM inline the searches.
+
+With the bar met on both backends, the port continued (decision 0193).
+Number and time text, Debug quoting, `Str.replace`, and the trims are
+now Xo. On these workloads the ported code matches or beats the C it
+replaced, from 0.18x the instructions for a Time's text on LLVM (the
+old C used `snprintf`) to 1.03x for JSON's Time parse on arm64. One did not make it: a
+Duration's text is 1.16x on arm64 and 1.12x on LLVM, so it stays C for
+now; the arm64 backend does not yet turn division by a constant into a
+multiply.
+
 ## What we keep doing
 
 - **Write the guess down before testing it, and keep the answer either
