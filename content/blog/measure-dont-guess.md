@@ -167,6 +167,17 @@ waits until arm64 inlines better and every workload is within 5 percent
 of the C on both backends. The runtime objects did get 4.7 percent
 smaller along the way.
 
+**Update, later on 2026-10-12:** the arm64 half is met. The arm64
+backend now inlines small functions that call others and drops bounds,
+overflow, and shift checks it can prove safe (decision 0184). Every
+workload is now within 5 percent of the C on arm64: the closest are the
+case-insensitive compare at 1.016x and character classes at 1.027x, and
+the rest are faster than the C. The same change made the self-hosted
+compiler's own build take about 22 percent fewer cycles (one run each,
+under different load, while writing 8.5 percent more assembly), with
+the fixed point intact. LLVM, unchanged by this work, still has the
+compare at about 1.13x, so the C version stays for now.
+
 ## What we keep doing
 
 - **Write the guess down before testing it, and keep the answer either

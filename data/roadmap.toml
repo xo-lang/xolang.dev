@@ -124,7 +124,7 @@ text = "In progress, written only in Xo. Stage 1 is done: the backend turns SSA 
 [[plan]]
 title = "Runtime pilot, then the runtime port"
 status = "now"
-text = "In progress. The pilot is done: the native runtime's Unicode operations are now written in Xo, with output identical on every backend and runtime objects 4.7 percent smaller. Case mapping of ASCII text takes 0.63 to 0.67 times the C's instructions on both native backends, but per-character work on arm64 takes 1.45 to 1.80 times, because the arm64 backend inlines only leaf functions. So the C version stays selectable, and porting more of the runtime waits until arm64 is within 5 percent of C on every workload."
+text = "In progress. The pilot is done: the native runtime's Unicode operations are now written in Xo, with output identical on every backend and runtime objects 4.7 percent smaller. The bar for porting more of the runtime is every workload within 5 percent of the C version on both native backends. arm64 now meets it: after its inliner learned to inline small functions that call others and to drop checks it can prove safe, every workload is at most 1.03 times the C, and most are faster (ASCII case mapping 0.63 to 0.67 times). LLVM does not yet: the case-insensitive compare still takes about 1.13 times the C's instructions. Until both meet it, the C version stays selectable."
 
 [[plan]]
 title = "Supply-chain follow-ups"
