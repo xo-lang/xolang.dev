@@ -44,7 +44,7 @@ text = "The compiler and the Go toolchain run in WebAssembly, so <a href=\"/play
 [[milestones]]
 title = "The rest of the compiler in Xo"
 status = "now"
-text = "In progress: the SSA builder is done; the code generators follow, in the order of the plan."
+text = "In progress: the front end, the SSA builder, and the arm64 and LLVM emitters are written in Xo, and Xo compiles itself; the Go code generator is next."
 
 [[milestones]]
 title = "Stability audit"
@@ -87,9 +87,9 @@ status = "done"
 text = "Release builds ship the arm64 backend's C runtime prebuilt for each target, so arm64 builds no longer compile C: no clang needed. The system C toolchain (<code>cc</code>) still assembles and links the output; the LLVM backend still compiles its IR with clang. A first build on a cold cache went from 1.94 s to 0.13 s for a small program and from 4.27 s to 0.28 s for an HTTPS server (darwin/arm64). The linux/arm64 runtime is cross compiled on a Mac and reproducible byte for byte."
 
 [[plan]]
-title = "arm64 emitter in Xo, then the switch-over"
-status = "now"
-text = "In progress: every stage is ported, and the switch-over is next. When the Xo compiler builds itself to a byte identical fixed point and passes the arm64 tests, the released <code>xo</code> on arm64 hosts becomes the self-hosted compiler for native builds."
+title = "arm64 emitter in Xo, and the fixed point"
+status = "done"
+text = "Xo compiles itself, on arm64 Macs so far. The compiler written entirely in Xo, built by the Go compiler, compiles itself, and that build compiles it again; the assembly of both builds is byte identical to the Go compiler's (8.9 million lines). The emitter matches the Go emitter on all 10,975 functions of the repository. The self-compiled compiler passes 132 of 138 arm64 tests; the other 6 need TLS, which is being added. The released <code>xo</code> does not use it yet; switching is the owner's decision."
 
 [[plan]]
 title = "Standard library for tools"
@@ -98,13 +98,13 @@ text = "Typed command line flags and subcommands with generated help and shell c
 
 [[plan]]
 title = "LLVM emitter in Xo"
-status = "now"
-text = "In progress, staged like the arm64 emitter and running alongside it. The LLVM backend's code generation moves to Xo."
+status = "done"
+text = "13,683 of 13,683 functions identical to the Go emitter's, and 318 of 318 modules byte identical. End to end, the Xo pipeline lowered the SSA builder to 398 MB of LLVM IR byte identical to the Go emitter's, and the binary clang built from it gives the same output. The Xo emitter takes about half the Go emitter's time."
 
 [[plan]]
 title = "Go code generator in Xo"
-status = "next"
-text = "The Go backend's code generation moves to Xo. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
+status = "now"
+text = "In progress. The Go backend's code generation moves to Xo. That backend keeps using the Go toolchain for your programs, <code>use go</code>, and Go's targets."
 
 [[plan]]
 title = "Retire the Go implementation"
