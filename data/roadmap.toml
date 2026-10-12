@@ -109,7 +109,7 @@ text = "467 of 467 compared runs generate byte identical Go (all 27,864 declarat
 [[plan]]
 title = "Retire the Go implementation"
 status = "now"
-text = "In progress. Once every backend it drives exists in Xo and the full test suite passes on the self-hosted compiler, the Go implementation is retired, and each change is made once instead of twice."
+text = "In progress. Every golden test suite now builds and runs through the self-hosted compiler with the Go-built compiler's output: the Go backend 134 of 134 programs, arm64 158 of 158, LLVM 158 of 158. The first stage, the self-hosted compiler building everything <code>xo build</code> does, is under way; a plan is proposed, and the project owner decides each switch from the Go implementation. Once it is retired, each change is made once instead of twice."
 
 [[plan]]
 title = "WebAssembly backend"
