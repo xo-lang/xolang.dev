@@ -152,14 +152,20 @@ a module.
 ## What it bought
 
 The arm64, LLVM, and Go code generators are each done by the same
-definition, so "done" means the same thing for all of them. If the
-Xo compiler replaces the Go one, every function it emits has already
-been compared with the one the Go compiler emits today, on every
+definition, so "done" means the same thing for all of them. When the
+Xo compiler replaces the Go one, every function it emits will already
+have been compared with the one the Go compiler emits today, on every
 program in the repository and on hundreds of mutants.
 
 The rule costs time. The full comparison across every backend is the
-slow tier of the test suite, and the [roadmap](/roadmap/) still has
-retiring the Go implementation ahead, with the project owner deciding
-each switch. But the alternative, a self-hosted compiler that passes
-its tests and differs in ways nobody looked for, would cost more. The
-one bug the comparison found that no test had found is the argument.
+slow tier of the test suite. But the alternative, a self-hosted
+compiler that passes its tests and differs in ways nobody looked for,
+would cost more. The one bug the comparison found that no test had
+found is the argument.
+
+**Update, 2026-10-12:** the project owner has approved the switch.
+Native `xo build`, `xo run`, and `xo test` are moving to the
+self-hosted driver now, and `xo` itself becomes the self-hosted binary
+once its gate passes: the rest of the command line tools ported to Xo,
+and the full test suite run against the Xo binary (see the
+[roadmap](/roadmap/)).
