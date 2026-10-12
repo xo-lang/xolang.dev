@@ -102,9 +102,9 @@ status = "done"
 text = "13,683 of 13,683 functions identical to the Go emitter's, and 318 of 318 modules byte identical. End to end, the Xo pipeline lowered the SSA builder to 398 MB of LLVM IR byte identical to the Go emitter's, and the binary clang built from it gives the same output. The Xo emitter takes about half the Go emitter's time."
 
 [[plan]]
-title = "Mach-O assembler and linker in Xo"
+title = "Assembler and linker in Xo"
 status = "done"
-text = "On arm64 Macs the self-hosted compiler now assembles and links its own executables, with no C toolchain. Its objects for all 158 arm64 test programs and for the compiler itself are byte identical to the system assembler's (the compiler's own in 4.92 s against 35.40 s). With no C compiler, assembler, or linker on the <code>PATH</code>, the compiler links itself to a fixed point and passes 158 of 158 tests. Opt-in with <code>--ld=macho</code> for now; ELF for Linux comes later."
+text = "On arm64 Macs the self-hosted compiler now assembles and links its own executables, with no C toolchain. Its objects for all 158 arm64 test programs and for the compiler itself are byte identical to the system assembler's (the compiler's own in 4.92 s against 35.40 s). With no C compiler, assembler, or linker on the <code>PATH</code>, the compiler links itself to a fixed point and passes 158 of 158 tests. Since then also linux/arm64: objects byte identical to clang's, and all 159 test programs linked by it pass on glibc 2.31 and 2.41 with no C toolchain installed. Opt-in with <code>--ld=macho</code> for now."
 
 [[plan]]
 title = "Go code generator in Xo"

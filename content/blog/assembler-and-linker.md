@@ -133,8 +133,8 @@ two steps of the build.
   `--ld=macho`; without it, `cc` still assembles and links. The
   released `xo`, built from the Go implementation, is unchanged and
   still uses `cc`.
-- **It is Mac only.** Linux needs an ELF writer and linker; that work is
-  in progress.
+- **Linux arm64 came later the same day** (below); other targets still
+  use the system tools.
 - **Programs that name time zones** still read the zone data from Go's
   `zoneinfo.zip` at build time. With no Go installed, set `XO_ZONEINFO`
   or build with `--tzdata=system`
@@ -143,3 +143,34 @@ two steps of the build.
 
 For everything else, a native Xo build on an arm64 Mac now goes from
 source to a signed executable without leaving Xo.
+
+## Update, later on 2026-10-12: Linux
+
+The same approach now covers linux/arm64: an ELF assembler and linker,
+also in Xo, in the same package. The self-hosted driver builds a Linux
+executable from a Mac with `--target=linux/arm64 --ld=macho`.
+
+The assembler was again held to byte identical objects, this time
+against clang's ELF output. All 159 arm64 test programs' objects match,
+4,159 of 4,159 functions, and so does the compiler's own object (3,306
+functions), assembled in 5.81 s against clang's 33.49 s. The symbol
+order lesson paid off: LLVM's ELF writer orders local symbols the same
+way its Mach-O writer does, so the first version that compiled already
+matched on every input.
+
+The linker writes dynamically linked executables for glibc. All 159
+test programs, linked by it, pass in two Debian containers with no C
+compiler, assembler, or linker installed: bullseye (glibc 2.31) and
+trixie (glibc 2.41). A small program's binary is 327,312 bytes, against
+367,008 from gcc and GNU ld, which build a position independent
+executable; the Xo linker does not do that yet.
+
+One check is incomplete: building the test programs for Linux with the
+self-hosted driver itself gave 133 binaries byte identical to the ones
+that passed in the containers, and 26 that differ because the driver
+names the package differently from the test harness (in strings and
+symbol names, and in two programs the frame layout), not because of the
+linker. Those 26 were built
+but not run, because Docker had stopped. Like the Mac linker, this one
+is opt-in.
+
