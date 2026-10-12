@@ -75,6 +75,19 @@ a loaded machine, so the CPU and instruction counts are firmer than the
 wall clock. The next step is to make the compiler borrow in those two
 cases itself, so the copies go away everywhere without source changes.
 
+**Update, later on 2026-10-12: that next step, measured.** The compiler
+now borrows loop elements and read-only projections instead of counting
+them (decision 0186). Compiling itself, the self-hosted compiler now
+executes 32.2 percent fewer retains and 40.3 percent fewer releases,
+about two billion fewer of each, with byte identical output. The
+speedup was much smaller than that suggests: 2.2 percent fewer
+instructions and 4.1 percent fewer cycles (one run each), and peak
+memory rose from 18.4 to 19.3 GB, consistent with values living longer. The
+hot loops had already been fixed by hand, and the 4.3 billion
+allocations did not change. So reference counting was not the main
+remaining cost. Where the rest goes is not measured yet; a new profile
+is the next experiment.
+
 One more measurement shaped that plan. An xo1 built by the LLVM backend
 took about a third of the cycles off (3,270 to 2,181 billion) but stayed
 well behind the Go compiler. Better machine code accounts for about a
