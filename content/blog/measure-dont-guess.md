@@ -210,6 +210,14 @@ Duration's text is 1.16x on arm64 and 1.12x on LLVM, so it stays C for
 now; the arm64 backend does not yet turn division by a constant into a
 multiply.
 
+**Update, later still:** the arm64 backends now turn division by a
+constant into a multiply high and shifts (decision 0194). A Duration's
+text still misses the bar: 1.171x on arm64 (1.158x before) and 1.087x
+on LLVM (1.117x before). On arm64 the instruction count went slightly
+up, because the multiply sequence retires more instructions than the
+one divide it replaces, so this is not a win by the bar's measure, and
+the C version stays.
+
 ## What we keep doing
 
 - **Write the guess down before testing it, and keep the answer either
