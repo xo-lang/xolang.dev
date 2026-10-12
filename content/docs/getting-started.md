@@ -22,7 +22,11 @@ To build programs, the Go backend (the default) needs Go 1.24 or newer
 on the `PATH` (or `XO_GO` set to its go command); an older Go is
 reported as [`XO1502`](/docs/diagnostics/xo1502/), and no Go at all as
 [`XO1503`](/docs/diagnostics/xo1503/). The native backends
-(`--backend=arm64`, `--backend=llvm`) need no Go.
+(`--backend=arm64`, `--backend=llvm`) need no Go, with one exception:
+building a program that names time zones reads them from Go's
+`zoneinfo.zip`. With no Go installed, set `XO_ZONEINFO` to a
+`zoneinfo.zip`, or build with `--tzdata=system` to use the system's zone
+files. Shipping the zone data with Xo is planned.
 
 ## A first program
 
