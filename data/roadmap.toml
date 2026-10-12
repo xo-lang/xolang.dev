@@ -113,8 +113,8 @@ text = "In progress. Once every backend it drives exists in Xo and the full test
 
 [[plan]]
 title = "WebAssembly backend"
-status = "next"
-text = "SSA to <code>.wasm</code>, written only in Xo, so it comes after the Go implementation is retired. With it, the playground runs the Xo compiler itself, with no Go compiler or linker to download."
+status = "now"
+text = "In progress, written only in Xo. Stage 1 is done: the backend turns SSA into WebAssembly text, assembles it with an assembler written in Xo, and runs over WASI with its own runtime. Of 133 test programs, 71 give the expected output with no leaks, 62 stop at build time with a clear &quot;the wasm backend does not support ...&quot; error, and none run with wrong output. The median module is 16,149 bytes; on three small CPU programs it runs 2.8 to 10.6 times slower than native arm64, with the faster lowering still to come. Next: the standard library's runtime pieces, faster control flow, then the Xo compiler itself built to WebAssembly, so the playground needs no Go compiler or linker to download, then tasks."
 
 [[plan]]
 title = "Runtime pilot, then the runtime port"
