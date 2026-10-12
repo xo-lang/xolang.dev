@@ -137,6 +137,39 @@ cutting is what made the merge tier fast: three programs out of 646 were
 most of the cost, and no amount of general tuning would have found that
 as quickly as timing each one.
 
+## Update, 2026-10-12: the full tier caught a wrong-code bug
+
+The trade described above was tested within a day. A full-tier run
+after a merge found one failure the merge tier had passed: in 33
+programs, the arm64 emitter written in Xo, when built by the LLVM
+backend, gave functions stack frames 256 bytes smaller than the Go
+emitter did. The same Xo code built by the Go and arm64 backends agreed
+with the Go emitter, so the port was right and a backend was wrong.
+
+The cause was in the SSA builder that both native backends share
+(decision 0159). In a compound assignment such as
+
+```
+g.n += g.bump(s)
+```
+
+where `bump` takes `g` as `var` and changes it, the native backends read
+`g` before the call and stored that old copy back afterwards, so the
+call's changes to `g` were lost. A small program printed `compound 6 5
+k4` on LLVM and arm64 where the Go backend prints `compound 6 6 c0`. On
+LLVM it was worse: the old copy shared memory the call had updated, so
+fields still in use were freed, and a reduced program crashed. The Go
+backend was never affected.
+
+Only the size of the self-hosted compiler exposed it, through one line
+of the emitter's frame computation, which is why only the full tier,
+the one that builds the self-hosted compiler with every backend, could
+find it. It was fixed forward: a compound assignment now reads its
+target after the value, in both SSA builders (the Go one and the one
+written in Xo), with a regression program in the golden tests. The
+recheck compared 320 of 320 runs byte identical, 15,700 of 15,700
+functions.
+
 ## Update, 2026-10-12: the LLVM build, split
 
 The experiment promised here measured the full tier's longest step, the
