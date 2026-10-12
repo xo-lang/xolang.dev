@@ -18,6 +18,10 @@ go build -o .tools/bin/xo ./cmd/xo
 export PATH="$PWD/.tools/bin:$PATH"
 ```
 
+To build programs, the Go backend (the default) needs Go 1.24 or newer
+on the `PATH`; an older Go is reported as `XO1502`. The native backends
+(`--backend=arm64`, `--backend=llvm`) need no Go.
+
 ## A first program
 
 Make a directory and create the module:

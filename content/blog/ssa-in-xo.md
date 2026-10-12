@@ -106,6 +106,16 @@ verifier's mutants take most of its time. The build step alone is the fairer num
 The largest remaining cost is Xo's ordered maps, which record insertion
 order; using integer keys for the hottest map is the next experiment.
 
+**Update, 2026-10-12.** One suspected cost is fixed: updating a list
+inside a list element, as in `g.blocks[g.cur].insts.push(x)`, now
+happens in place on the native backends instead of copying the inner
+list (decision 0169). 20,000 such pushes on arm64 went from 63,580
+microseconds to 104, and from 39,993 allocations to 18. It does not
+explain the gap, though: the self-compiled compiler, built before and
+after the change, compiles itself in the same time (271.8 s and 276.4
+s), still about twice the Go-built compiler's. Profiling that run is the
+next experiment.
+
 ## Meanwhile, on arm64
 
 A related change landed the same day: release builds now ship the arm64
