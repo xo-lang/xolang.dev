@@ -49,7 +49,7 @@ text = "In progress: the front end, the SSA builder, and the arm64 and LLVM emit
 [[milestones]]
 title = "Stability audit"
 status = "next"
-text = "Last pass 2026-10-10: 180 of 191 spec features stable, 1 in preview, and 10 gaps, all marked for later. The next pass is queued; the gaps are closed or cut before 1.0."
+text = "Last pass 2026-10-11: 207 of 219 spec features stable, 1 in preview, and 11 gaps, all marked for later. The project owner decides which gaps close before 1.0."
 
 [[milestones]]
 title = "1.0"
