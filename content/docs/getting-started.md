@@ -28,9 +28,9 @@ building a program that names time zones reads them from Go's
 `zoneinfo.zip`, or build with `--tzdata=system` to use the system's zone
 files. Shipping the zone data with Xo is planned.
 
-The first native build also builds Xo's self-hosted compiler driver
-into your cache, which takes a few minutes (290 s on a busy machine);
-later builds reuse it.
+The first native build after installing or updating `xo` also builds
+Xo's self-hosted compiler driver into your cache, which takes a few
+minutes (290 s on a busy machine); later builds reuse it.
 
 ## A first program
 
