@@ -113,7 +113,14 @@ async function browser() {
       const exited = new Promise((r) => proc.once("exit", r));
       proc.kill();
       await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
-      rmSync(profile, { recursive: true, force: true });
+      // Chrome's helper processes can still be writing the profile after
+      // the main process exits (ENOTEMPTY on CI): retry, and never let
+      // the cleanup fail a run whose tests passed
+      try {
+        rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 });
+      } catch (e) {
+        console.log(`warning: could not remove the Chrome profile ${profile}: ${e.code || e.message}`);
+      }
     },
   };
 }
