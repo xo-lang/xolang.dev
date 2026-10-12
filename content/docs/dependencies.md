@@ -160,12 +160,62 @@ The narrowing methods are `Net.only(hosts)`, `Env.only(names)`,
 `write_only()`. `Net`, `Env`, and `Proc` narrowing is checked at run time
 on the Go backend; the native backends are planned.
 
+## Budgets for compute
+
+A capability limits what a dependency can reach, but not how long it
+runs. `task.with_budget` runs a call under ceilings on running time,
+allocation, and steps (loop iterations and calls), and stops it with
+`Exceeded` when it goes past one. Here `spin` stands in for a dependency
+that never returns:
+
+```xo
+use std/task
+
+fn spin() -> Int {
+  var n = 0
+  while true {
+    n += 1
+  }
+  n
+}
+
+fn main(os: Os) {
+  let b = task.budget(cpu: 2s, steps: 10_000_000)
+  match task.with_budget(os.clock, b, fn() { spin() }) {
+    Ok(n) => os.stdio.println("done: ${n}")
+    Err(Exceeded(resource)) => os.stdio.println("stopped: ${resource}")
+    Err(Failed(e)) => os.stdio.println("failed: ${e}")
+  }
+}
+```
+
+```
+$ xo run .
+stopped: steps
+```
+
+The budget covers every task started inside the call. Only a program
+that calls `with_budget` pays for the checks. It works on the Go backend
+today; the native backends report it as `XO1201` until it lands there.
+
+## Log records name their module
+
+A record a dependency logs carries the module that wrote it, and the
+dependency cannot forge it:
+
+```
+2026-10-11T09:00:00Z WARN [github.com/acme/billing@v1.2.0] retrying
+```
+
+In JSON output it is the key `"module"`. This works on the Go backend;
+native builds do not attribute records yet.
+
 ## xo audit
 
 `xo audit` prints one report of every dependency: its effects and
 lock state, its escape hatches and the vouches that cover them, the
 capabilities you narrowed, and which capabilities you pass into
-dependencies. On a terminal it prints text; with `--json`, or when its
+dependencies, with its log call sites. On a terminal it prints text; with `--json`, or when its
 output is piped, it prints JSON (abridged):
 
 ```
@@ -215,14 +265,14 @@ checked against a signed checksum log.
   in `xo.lock`, and in `xo audit`, but it is not blocked.
 - **Your vouch is trusted.** Xo cannot see inside C or Go code. A vouch
   that says `uses none` for C that does I/O is not caught.
-- **No effect, no check.** A function that returns a wrong answer, or
-  loops forever, performs no effect. Tests, contracts, and timeouts are
-  the defense there.
+- **No effect, no check.** A function that returns a wrong answer
+  performs no effect; tests and contracts are the defense there. One
+  that loops forever is stopped only under a budget.
 - **Not a sandbox.** This is checking at compile time plus capabilities
   at run time, inside one process.
 
-Measured against 15 attack scenarios from the Backstabber's Knife
-Collection taxonomy, these defenses block 10; the [post on supply-chain
+Measured against 17 attack scenarios from the Backstabber's Knife
+Collection taxonomy, these defenses block 12; the [post on supply-chain
 safety](/blog/supply-chain-safety/) has the table. The full rules are in the
 specification: [xo.mod](/docs/spec/core/#42-xomod),
 [xo.lock](/docs/spec/core/#43-xolock), and the diagnostic pages for

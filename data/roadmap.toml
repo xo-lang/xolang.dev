@@ -94,7 +94,7 @@ text = "Xo compiles itself, on arm64 Macs so far. The compiler written entirely 
 [[plan]]
 title = "Standard library for tools"
 status = "done"
-text = "Typed command line flags and subcommands with generated help and shell completions (<code>std/cli</code>), running other programs with pipelines, terminals and colors, file handles, globs, and locks, CSV, TOML, regular expressions, and archives, and <code>xo build --stamp</code> for version stamping. Some parts are Go backend only for now; native builds report them as <code>XO1201</code>."
+text = "Typed command line flags and subcommands with generated help and shell completions (<code>std/cli</code>), running other programs with pipelines, terminals and colors, file handles, globs, and locks, CSV, TOML, regular expressions, and archives, and <code>xo build --stamp</code> for version stamping. All of it now builds on the native backends too, with output identical to the Go backend."
 
 [[plan]]
 title = "LLVM emitter in Xo"
@@ -123,5 +123,5 @@ text = "Port one small file of the C runtime to Xo and compare output and speed,
 
 [[plan]]
 title = "Supply-chain follow-ups"
-status = "next"
-text = "Tag each log record with the dependency that wrote it, and a capability that budgets CPU time and allocation, to bring two of the five attack scenarios Xo does not block today into scope."
+status = "done"
+text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, running time, and allocation, so a dependency that loops forever is stopped (Go backend). Log records from a dependency name the module that wrote them (Go backend), and <code>xo audit</code> lists log call sites. Against 17 attack scenarios: 12 blocked, up from 10 of 15."

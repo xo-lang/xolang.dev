@@ -9,6 +9,15 @@ supposed to do: read your environment, call home, write files, start a
 process. In most languages, nothing in the build knows what a dependency
 is supposed to do, so nothing can notice when it starts doing more.
 
+**Update, later on 2026-10-11:** two follow-ups landed (decision 0173).
+`task.with_budget` caps the running time, allocation, and steps of a
+call, which brings the endless-loop denial of service into scope when
+the app uses it: the measurement is now **12 of 17 scenarios blocked**
+(two new rows, both a looping dependency under a budget; the unbudgeted
+loop stays not blocked). Log records from a dependency now name the
+module that wrote them. Both work on the Go backend today. The table
+below is the first measurement, 10 of 15.
+
 In Xo, what a function may do is part of its type, and authority is a
 value you hand over. Xo 0.x now builds on that with per-dependency
 ceilings, an effect lock, vouches for Go and C code, narrowed

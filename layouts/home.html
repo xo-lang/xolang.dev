@@ -94,10 +94,11 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
         <div class="cell"><div class="from">at run time</div><h3>Less than the whole thing</h3><ul>
           <li><code>os.net.only(["api.example.com"])</code> reaches only those hosts; anything else is <code>Denied</code> before it happens.</li>
           <li><code>Env.only</code>, <code>Proc.only</code>, and <code>Fs.sub</code> narrow variables, commands, and directories.</li>
-          <li><code>xo audit</code> reports every dependency's effects, escape hatches, and the capabilities you pass it.</li>
+          <li><code>task.with_budget</code> caps the steps and running time of a call, so a dependency that loops forever is stopped (Go backend).</li>
+          <li><code>xo audit</code> reports every dependency's effects, escape hatches, log call sites, and the capabilities you pass it.</li>
         </ul></div>
       </div>
-      <p class="limits"><strong>Measured:</strong> of 15 attack scenarios from the Backstabber's Knife Collection taxonomy, rebuilt as malicious Xo dependencies, Xo blocks 10, four of them with no setup. Hardening is opt-in, a vouch is your own review, and a wrong answer or an endless loop performs no effect, so tests remain the defense there. <a href="{{ "docs/dependencies/" | relURL }}">How to use each one</a>, and <a href="{{ "blog/supply-chain-safety/" | relURL }}">the full results</a>.</p>
+      <p class="limits"><strong>Measured:</strong> of 17 attack scenarios from the Backstabber's Knife Collection taxonomy, rebuilt as malicious Xo dependencies, Xo blocks 12, four of them with no setup. Hardening is opt-in, a vouch is your own review, and a wrong answer performs no effect, so tests remain the defense there; an endless loop is stopped only under a budget. <a href="{{ "docs/dependencies/" | relURL }}">How to use each one</a>, and <a href="{{ "blog/supply-chain-safety/" | relURL }}">the full results</a>.</p>
     </div>
   </section>
 
