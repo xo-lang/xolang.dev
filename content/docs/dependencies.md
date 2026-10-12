@@ -207,8 +207,8 @@ dependency cannot forge it:
 2026-10-11T09:00:00Z WARN [github.com/acme/billing@v1.2.0] retrying
 ```
 
-In JSON output it is the key `"module"`. This works on the Go backend;
-native builds do not attribute records yet.
+In JSON output it is the key `"module"`, and in tests `Record.module`.
+This works on every backend: Go, arm64, and LLVM.
 
 ## xo audit
 

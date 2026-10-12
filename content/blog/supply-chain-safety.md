@@ -15,7 +15,8 @@ call, which brings the endless-loop denial of service into scope when
 the app uses it: the measurement is now **12 of 17 scenarios blocked**
 (two new rows, both a looping dependency under a budget; the unbudgeted
 loop stays not blocked). Log records from a dependency now name the
-module that wrote them. Both work on the Go backend today. The table
+module that wrote them, on every backend. Budgets work on the Go
+backend today; the native backends are planned. The table
 below is the first measurement, 10 of 15.
 
 In Xo, what a function may do is part of its type, and authority is a
