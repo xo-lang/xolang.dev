@@ -105,15 +105,15 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
   <section>
     <div class="wrap">
       <div class="eyebrow">// how it builds</div>
-      <h2>One language, three backends.</h2>
-      <p class="sub">Every Xo program compiles to Go. The compiler checks your code, writes Go source that points back to your <code>.xo</code> lines, and the Go toolchain builds it, so Go's garbage collector, scheduler, cross compilation, and debugger come for free, and stack traces name Xo lines. The Go backend builds the whole language and is the reference the others are tested against. The native backends are a second way to build the same program, for when you want no garbage collector. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call any Go package with <code>use go</code> (C stays off the Go backend so its binaries stay static and cross compile anywhere).</p>
+      <h2>One language, three backends, and a fourth on the way.</h2>
+      <p class="sub">By default, an Xo program compiles to Go: the compiler checks your code, writes Go source that points back to your <code>.xo</code> lines, and the Go toolchain builds it, so Go's garbage collector, scheduler, cross compilation, and debugger come for free, and stack traces name Xo lines. The Go backend builds the whole language and is the reference the others are tested against: the test programs must print the same output on every backend. The native backends are a second way to build the same program, for when you want no garbage collector. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call any Go package with <code>use go</code> (C stays off the Go backend so its binaries stay static and cross compile anywhere).</p>
       <div class="grid">
         <div class="cell"><div class="from">reference · default</div><h3>Go backend</h3><p>Builds every program that does not call C, on every target, and can <code>use go</code> any Go package.</p><code class="use">xo build</code></div>
-        <div class="cell"><div class="from">native · preview</div><h3>LLVM backend</h3><p>Lowers Xo's own SSA form to LLVM IR and builds optimized native code with clang.</p><code class="use">xo build --no-gc --backend=llvm</code></div>
-        <div class="cell"><div class="from">native · preview</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from the same SSA form, with no LLVM in the way, for fast builds on arm64 Macs and Linux.</p><code class="use">xo build --no-gc --backend=arm64</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>LLVM backend</h3><p>Lowers Xo's own SSA form to LLVM IR and builds optimized native code with clang. It is the native backend on x86-64 hosts.</p><code class="use">xo build --backend=llvm</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from the same SSA form, with no LLVM in the way, for fast builds on arm64 Macs and Linux.</p><code class="use">xo build --backend=arm64</code></div>
         <div class="cell"><div class="from">native</div><h3>No garbage collector</h3><p>With <code>--no-gc</code>, memory is freed by reference counting the moment its last owner lets go, and a value with one owner is updated in place. What a native build cannot handle yet is a compile error (<code>XO1201</code>) naming it, never a surprise at run time.</p></div>
         <div class="cell"><div class="from">native</div><h3>Real time</h3><p>Mark a function <code>uses realtime</code> and the compiler requires bounded loops, no recursion, and no allocation in it; frees that would land in it wait until it returns. For control loops and audio.</p></div>
-        <div class="cell"><div class="from">all three</div><h3>Same answers</h3><p>The test programs run on all three backends and must print the same output, so a native build behaves like the Go build it is checked against.</p></div>
+        <div class="cell"><div class="from">experimental</div><h3>WebAssembly backend</h3><p>Written in Xo, it turns the same SSA form into WebAssembly that runs over WASI with its own runtime. Most test programs already run; the rest stop at build time with a clear error, never with wrong output.</p><code class="use">xo build --backend=wasm</code></div>
       </div>
     </div>
   </section>
@@ -122,7 +122,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// status</div>
       <h2>The road to 1.0.</h2>
-      <p class="sub">Xo now compiles itself: every part of the compiler exists in Xo, and it reproduces its own build byte for byte. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates.</p>
+      <p class="sub">Xo now compiles itself: <code>xo</code> is the compiler written in Xo, and it reproduces its own build byte for byte. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates.</p>
       {{- $ms := hugo.Data.roadmap.milestones }}
       <div class="status-row">
         <div class="col"><div class="from">done</div><ul class="chips">
@@ -179,9 +179,9 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
         </div>
         <div class="term">
           <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
-<pre><span class="p">$</span> xo check ./...
+<pre><span class="p">$</span> xo check .
 1 module(s), <span class="ok">0 error(s)</span>, 0 warning(s)
-<span class="p">$</span> xo build --targets=all ./main
+<span class="p">$</span> xo build --targets=all .
 <span class="dim"># static binaries for linux, darwin, windows, wasi</span></pre>
         </div>
       </div>

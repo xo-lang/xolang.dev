@@ -27,7 +27,12 @@ Every page below is also served as Markdown: append `index.md` to its URL.
 - [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }} Each code also has a page at /docs/diagnostics/<code in lower case>/index.md, for example /docs/diagnostics/xo0401/index.md.
 {{- end }}
 
-## Release notes
+## Roadmap
+{{ with site.GetPage "/roadmap" }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
+{{- end }}
+
+## Blog
 {{ with site.GetPage "/blog" }}{{ range .Pages.ByDate.Reverse }}
 - [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
 {{- end }}{{ end }}

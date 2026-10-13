@@ -43,8 +43,8 @@ text = "The compiler and the Go toolchain run in WebAssembly, so <a href=\"/play
 
 [[milestones]]
 title = "The rest of the compiler in Xo"
-status = "now"
-text = "Every part of the Xo compiler now exists in Xo: lexer, parser, checker, SSA, and all three code generators, and Xo compiles itself. The self-hosted checker agrees with the Go checker on all 685 repository runs. Next: retiring the Go implementation."
+status = "done"
+text = "Every part of the Xo compiler exists in Xo: lexer, parser, checker, SSA, and all three code generators, and Xo compiles itself. The self-hosted checker agreed with the Go checker on all 685 repository runs, and since 2026-10-12 <code>xo</code> itself is the compiler written in Xo."
 
 [[milestones]]
 title = "Stability audit"
