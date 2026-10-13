@@ -10,13 +10,32 @@ Xo is experimental, and the language may change before 1.0.
 
 {{< source-status >}}
 
-The toolchain is built from source with Go 1.26 or later. From a checkout of
-the repository:
+The toolchain is built from source. `xo` is written in Xo; Go 1.26 or
+later is needed once, to build a seed compiler that builds the first Xo
+`xo`. From a checkout of the repository on an arm64 host (Apple silicon
+or arm64 Linux):
+
+```
+go build -o .tools/bin/xo-seed ./cmd/xo
+XO_SELF_DRIVER=0 .tools/bin/xo-seed build --backend=arm64 -o .tools/bin/xo selfhost/xo
+export XO_STD="$PWD/std"
+export PATH="$PWD/.tools/bin:$PATH"
+```
+
+The second command takes several minutes (under 7 on an M-series Mac).
+`xo` finds the standard library through `XO_STD`. After that, any Xo
+`xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`).
+
+On x86 hosts the self-hosted build is not ready yet. For now, use the
+seed itself as `xo` there:
 
 ```
 go build -o .tools/bin/xo ./cmd/xo
 export PATH="$PWD/.tools/bin:$PATH"
 ```
+
+The native backends need a C toolchain: `--backend=llvm` needs clang,
+and `--backend=arm64` needs a C compiler driver (`cc`: clang or gcc).
 
 To build programs, the Go backend (the default) needs Go 1.24 or newer
 on the `PATH` (or `XO_GO` set to its go command); an older Go is
@@ -28,8 +47,9 @@ building a program that names time zones reads them from Go's
 `zoneinfo.zip`, or build with `--tzdata=system` to use the system's zone
 files. Shipping the zone data with Xo is planned.
 
-The first native build after installing or updating `xo` also builds
-Xo's self-hosted compiler driver into your cache, which takes a few
+With an `xo` built by `go build` (the x86 path above), the first
+native build after installing or updating it also builds Xo's
+self-hosted compiler driver into your cache, which takes a few
 minutes (290 s on a busy machine); later builds reuse it.
 
 ## A first program
@@ -40,6 +60,7 @@ Make a directory and create the module:
 $ mkdir hello && cd hello
 $ xo init example.com/hello
 wrote xo.mod
+added xo.work to .gitignore
 ```
 
 Then add `main.xo`:
