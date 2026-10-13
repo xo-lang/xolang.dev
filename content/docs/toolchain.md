@@ -101,9 +101,18 @@ tools on the machine.
 
 ## Commands
 
-Every command that reports diagnostics or results accepts `--json`,
-and `xo query` answers in JSON by default when its output is not a
-terminal. The examples run in a module directory.
+`xo help` lists every command, and `xo help <command>` or
+`-h`/`--help` prints a command's usage. Every command that reports
+diagnostics or results accepts `--json`, and `xo query` answers in JSON
+by default when its output is not a terminal. The examples run in a
+module directory.
+
+A directory argument covers every directory below it, skipping
+`testdata`, `vendor/`, and names starting with `.` or `_`. So
+`xo check .` checks every module under the current directory, and the
+Go-style pattern `./...` (or `cmd/...`) means the same thing:
+`xo check ./...`, `xo test ./...`. A pattern that matches no `.xo`
+files is an error, and `xo run` takes one directory, not a pattern.
 
 ### Build, run, and test
 

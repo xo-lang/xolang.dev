@@ -1881,7 +1881,9 @@ native runtime:
 - counts allocations; a section that allocated faults when it ends with
   `XO-F007` (``real-time function `f` allocated n times``), which catches
   what the rules cannot see: a shared List copied on write, the box of a
-  recursive enum, a defaulted field.
+  recursive enum, a defaulted field with a non-empty collection (an
+  empty `[]` allocates nothing until its first push on the native
+  backends).
 
 The Go backend checks the rules and the loop bounds; it has no sections.
 
@@ -2221,6 +2223,29 @@ JSON), `doc`, `explain`, `bind`, and `audit`. `run`, `replay`, `dump`, `serve`, 
 `version` print the program's or the tool's own output. When stdout is not a
 terminal, JSON is the default for `query`.
 
+**Help and usage errors.** `xo help` lists every command with a one line
+purpose; `xo help <command>`, and `-h` or `--help` anywhere before `--`
+(for `xo run`, before its directory), print that command's usage on
+stdout with exit status 0. `xo` alone prints the command list on stderr
+and exits 2. An unknown flag, a missing argument, or an unknown command
+is a usage error: the error and the usage on stderr, exit status 2.
+
+**Directories and `DIR/...`.** A directory argument covers the
+directories below it: `check`, `vet`, `doc`, `test`, `build`, and
+`audit` take every directory with `.xo` files at or below it (one module
+each, or one program for `build` and `test`), skipping `testdata`,
+`vendor/` (with `modules.txt`), and names starting with `.` or `_`;
+`fmt` and `fix` take the files below it, skipping names starting with
+`.` or `_` (and `fix` `testdata`); `parse` takes every file. The package
+pattern `DIR/...` (`./...`, `cmd/...`) is accepted by every command that
+takes directories (`check`, `test`, `build`, `vet`, `doc`, `fmt`,
+`fix`, `parse`, `audit`) and means DIR, so `xo check ./...` and
+`xo check .` agree; an `xo.work` workspace applies to it as to DIR. A
+`DIR/...` with no `.xo` file at or below DIR (with the skips above) is
+an error, `xo CMD: DIR/... matched no directory with .xo files`, exit
+status 1. Other forms (`...` alone, `a/.../b`) and `xo run DIR/...` are
+usage errors (decision 0210).
+
 **Check and fix.** `xo check` is read only. `xo check --fix` first
 applies every unambiguous machine fix, the same set `xo fix` applies
 (without `--from`), round after round until none applies, reformats the
@@ -2521,6 +2546,7 @@ tidy`, and `xo vendor`; 4.2, 4.3), and `xo publish` (`publish`).
 | `XO1501` | error | build | `--stamp NAME=VALUE` names no `const NAME: Str = "..."` (a plain string literal) of the main module (decision 0165) |
 | `XO1502` | error | build | the go command the Go backend runs (`$XO_GO`, else `go` on PATH) is older than Go 1.24, the oldest Go that builds generated programs and the runtime (decision 0176) |
 | `XO1503` | error | build | the Go backend finds no go command: `$XO_GO` is not an executable file, or there is no `go` on PATH; the native backends need none (decision 0176) |
+| `XO1504` | error | build | the program uses a std API the LLVM backend's runtime does not support on the build's target yet: none since stage 2 of decision 0197 (2026-10-12; stage 1 left out processes on Windows); the message names them, and the Go backend builds the program |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
