@@ -26,13 +26,20 @@ The second command takes several minutes (under 7 on an M-series Mac).
 `xo` finds the standard library through `XO_STD`. After that, any Xo
 `xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`).
 
-On x86 hosts the self-hosted build is not ready yet. For now, use the
-seed itself as `xo` there:
+On an x86-64 host the seed builds `xo` with the LLVM backend, which
+needs clang:
 
 ```
-go build -o .tools/bin/xo ./cmd/xo
+go build -o .tools/bin/xo-seed ./cmd/xo
+XO_SELF_DRIVER=0 XO_LLVM_SPLIT=12 XO_LLVM_LTO=none \
+  .tools/bin/xo-seed build --backend=llvm -o .tools/bin/xo selfhost/xo
+export XO_STD="$PWD/std"
 export PATH="$PWD/.tools/bin:$PATH"
 ```
+
+This one is much slower: about 36 minutes and 10 GB of memory on a
+16 vCPU x86-64 Linux machine. It is expected to work on an Intel Mac
+too, more slowly, but has not been tested there with this command yet.
 
 The native backends need a C toolchain: `--backend=llvm` needs clang,
 and `--backend=arm64` needs a C compiler driver (`cc`: clang or gcc).
@@ -46,11 +53,6 @@ building a program that names time zones reads them from Go's
 `zoneinfo.zip`. With no Go installed, set `XO_ZONEINFO` to a
 `zoneinfo.zip`, or build with `--tzdata=system` to use the system's zone
 files. Shipping the zone data with Xo is planned.
-
-With an `xo` built by `go build` (the x86 path above), the first
-native build after installing or updating it also builds Xo's
-self-hosted compiler driver into your cache, which takes a few
-minutes (290 s on a busy machine); later builds reuse it.
 
 ## A first program
 
