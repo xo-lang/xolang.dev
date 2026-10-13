@@ -89,7 +89,7 @@ text = "Release builds ship the arm64 backend's C runtime prebuilt for each targ
 [[plan]]
 title = "arm64 emitter in Xo, and the fixed point"
 status = "done"
-text = "Xo compiles itself, on arm64 Macs so far. The compiler written entirely in Xo, built by the Go compiler, compiles itself, and that build compiles it again; the assembly of both builds is byte identical to the Go compiler's (8.9 million lines). The emitter matches the Go emitter on all 10,975 functions of the repository. The self-compiled compiler passes 132 of 138 arm64 tests; the other 6 need TLS, which is being added. The released <code>xo</code> does not use it yet; switching is the owner's decision."
+text = "Xo compiles itself, on arm64 Macs so far. The compiler written entirely in Xo, built by the Go compiler, compiles itself, and that build compiles it again; the assembly of both builds is byte identical to the Go compiler's (8.9 million lines). The emitter matches the Go emitter on all 10,975 functions of the repository. The self-compiled compiler passed 132 of 138 arm64 tests at first (the other 6 needed TLS) and now passes all of them, and <code>xo</code> itself is now this compiler."
 
 [[plan]]
 title = "Standard library for tools"
@@ -114,7 +114,7 @@ text = "467 of 467 compared runs generate byte identical Go (all 27,864 declarat
 [[plan]]
 title = "Retire the Go implementation"
 status = "now"
-text = "In progress. Native builds now go through the compiler written in Xo: <code>xo build</code>, <code>run</code>, and <code>test</code> with <code>--backend=arm64</code> or <code>llvm</code> run the self-hosted driver, which <code>xo</code> builds from its own embedded Xo sources. Its 159 arm64 test binaries are byte identical to the Go driver's, and the fixed point holds; <code>XO_SELF_DRIVER=0</code> switches back. Every other command group now exists in Xo too, checked against the Go version: the core tools (the formatter is byte identical on all 1,121 repository files), the semantic tools (definition hashes identical on 270 of 270 modules), the module commands (41 of 41 steps byte identical), the MCP, LSP, and build servers (every compared response identical), and <code>xo bind --c</code> (17 of 17 cases identical; binding Go packages runs a small Go helper). <code>xo</code> itself becomes the self-hosted binary, approved by the project owner, once the remaining gaps close and the full command line test suite passes against it; that gate is being worked now. After that, each change is made once instead of twice."
+text = "In progress. <code>xo</code> itself is now the compiler written in Xo: the build of <code>xo</code> for darwin/arm64, linux/arm64, and linux/amd64 is the self-hosted compiler, and every command group (the core tools, the semantic tools, the module commands, the MCP, LSP, and build servers, and <code>xo bind --c</code>) was checked against the Go version before the switch. On darwin/arm64 and linux/arm64 it passes the command line test suite run against itself, 69 of 71 tests (two debugging dump commands are exempt), and every native build works with no Go installed. On linux/amd64 it passes everything that host can run, 66 of 71; its 2 failures fail with the Go-built <code>xo</code> too, because they need the arm64 backend. The Go implementation is now frozen: the Xo code and the specification are the source of truth, so each change is made once instead of twice."
 
 [[plan]]
 title = "WebAssembly backend"

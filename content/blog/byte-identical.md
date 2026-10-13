@@ -170,3 +170,11 @@ and `xo` itself becomes the self-hosted binary
 once its gate passes: the rest of the command line tools ported to Xo,
 and the full test suite run against the Xo binary (see the
 [roadmap](/roadmap/)).
+
+**Update, later on 2026-10-12:** that gate has passed. `xo` itself is
+now the self-hosted compiler: built for darwin/arm64 and linux/arm64,
+it passes the command line test suite run against itself (69 of 71,
+with two debugging dump commands exempt), and every native build works
+with no Go installed; on linux/amd64 it passes all 66 tests that host
+can run. The Go implementation is frozen, so from here on a change is
+made once, in Xo.
