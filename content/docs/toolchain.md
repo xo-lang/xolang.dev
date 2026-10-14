@@ -42,18 +42,21 @@ checkout.
 From a checkout of the repository:
 
 ```
-go run ./scripts/xobuild          # builds bin/xo and prints its path
-XO_SEED=/path/to/xo go run ./scripts/xobuild
+XO_SEED=/path/to/xo go run ./scripts/xobuild   # builds bin/xo, prints its path
+go run ./scripts/xobuild                       # with an earlier build or xo on PATH
+go run ./scripts/xobuild --from-source         # with no xo at all (slow)
 ```
 
-The seed is `XO_SEED`, else the checkout's earlier `bin/xo`, an
-earlier build in your cache, or `xo` on your `PATH`. With none of
-those, it needs Go 1.26 or later and git once to build the
-`go-compiler-final` seed, then follows a recorded chain of intermediate
-versions to today's compiler. `bin/xo` finds the standard library at
-`../std`. On an arm64 host the build takes a few minutes; on an x86-64
-host it uses the LLVM backend (clang needed) and took about 36 minutes
-and 10 GB of memory on a 16 vCPU Linux machine. After that, any Xo
+The seed is `XO_SEED`, else the checkout's earlier `bin/xo`, an earlier
+build in your cache, or `xo` on your `PATH`; the project also keeps
+prebuilt seeds for its own machines, which are private, not public
+downloads. With no seed found, `xobuild` stops with an error.
+`--from-source` is the way in with no `xo`: it needs Go 1.26 or later
+and git once, builds the `go-compiler-final` tag, follows a recorded
+chain of intermediate versions, then builds the checkout (25 to 37
+minutes on a 16 vCPU machine when last measured, on 2026-10-13). `bin/xo` finds the standard library at
+`../std`. On an arm64 host `xo` is built with the arm64 backend; on an
+x86-64 host with the LLVM backend (clang needed). After that, any Xo
 `xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`; see
 [the bootstrap post](/blog/bootstrap/) for how that is checked).
 [Getting started](/docs/getting-started/) walks through a first program.

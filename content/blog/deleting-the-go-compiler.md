@@ -110,6 +110,13 @@ It uses an `xo` you already have if there is one. On a machine with no
 seed and follow the chain; after that, every `xo` builds the next
 without Go. [Getting started](/docs/getting-started/) has the details.
 
+**Update, 2026-10-14:** with prebuilt seeds (see
+[the fast builds post](/blog/fast-builds-and-seeds/)), building from
+the `go-compiler-final` tag is no longer automatic. On a machine with
+no `xo`, run `go run ./scripts/xobuild --from-source`; plain
+`go run ./scripts/xobuild` now needs an existing `xo` and stops with an
+error if it finds none.
+
 ## What is not done
 
 - **The playground** still builds its compiler half from the

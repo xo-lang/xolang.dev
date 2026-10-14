@@ -11,30 +11,36 @@ Xo is experimental, and the language may change before 1.0.
 {{< source-status >}}
 
 The toolchain is built from source, and `xo` is written in Xo, so an
-existing `xo` builds the next one. From a checkout of the repository,
-one command does it:
+existing `xo` builds the next one. If you already have an `xo`, from a
+checkout of the repository:
 
 ```
-go run ./scripts/xobuild
+XO_SEED=/path/to/xo go run ./scripts/xobuild
 export PATH="$PWD/bin:$PATH"
 ```
 
 It builds `bin/xo` from the checkout and prints its path; `bin/xo`
-finds the standard library at `../std`. It uses an `xo` you already
-have when there is one (set `XO_SEED` to choose it). On a machine with
-no `xo` at all, it needs Go 1.26 or later and git once: it builds the
-first `xo` from the `go-compiler-final` tag, the last version of Xo's
-original compiler written in Go, and follows a short recorded chain of
-intermediate versions to today's. After that, any `xo` rebuilds the
-next without Go (`scripts/bootstrap-xo.sh`).
+finds the standard library at `../std`. Without `XO_SEED` it looks for
+an earlier build of the checkout, or `xo` on your `PATH`, and stops with
+an error if it finds none.
+
+With no `xo` at all, build from source:
+
+```
+go run ./scripts/xobuild --from-source
+export PATH="$PWD/bin:$PATH"
+```
+
+This needs Go 1.26 or later and git, once. It builds the
+`go-compiler-final` tag, the last version of Xo's original compiler
+written in Go, then a short recorded chain of intermediate versions,
+then the checkout. It is slow: the last measurement, on 2026-10-13, was 25 to 37 minutes on a 16 vCPU machine.
+After that, any `xo` rebuilds the next without Go
+(`scripts/bootstrap-xo.sh`).
 
 On an arm64 host (Apple silicon, arm64 Linux) `xo` is built with the
-arm64 backend and takes several minutes. The very first build on a
-machine with no `xo` also builds the seed and the intermediate
-versions, so it is much longer: over half an hour on a busy Mac. On an x86-64 host it is built
-with the LLVM backend, which needs clang and is much slower: about 36
-minutes and 10 GB of memory on a 16 vCPU Linux machine. The whole path
-from nothing has been tested on macOS and arm64 Linux.
+arm64 backend. On an x86-64 host it is built with the LLVM backend,
+which needs clang.
 
 The native backends need a C toolchain: `--backend=llvm` needs clang,
 and `--backend=arm64` needs a C compiler driver (`cc`: clang or gcc).
