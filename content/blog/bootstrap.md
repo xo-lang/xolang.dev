@@ -26,6 +26,13 @@ implementation is frozen: new language work happens only in the Xo
 code and the specification, and the seed's job is just to get the
 first Xo compiler built. After that, Xo builds Xo.
 
+**Update, 2026-10-13:** the Go implementation has since been deleted
+(see [We deleted the Go compiler](/blog/deleting-the-go-compiler/)).
+The seed on a machine with no `xo` is now the last Go version, tagged
+`go-compiler-final`, followed by a short recorded chain of intermediate
+compilers, and `go run ./scripts/xobuild` does it all. The commands
+above are for history.
+
 ## The proof: a fixed point
 
 How do you know the compiler you just built is right? Build it again

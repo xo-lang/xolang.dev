@@ -178,3 +178,8 @@ with two debugging dump commands exempt), and every native build works
 with no Go installed; on linux/amd64 it passes all 66 tests that host
 can run. The Go implementation is frozen, so from here on a change is
 made once, in Xo.
+
+**Update, 2026-10-13:** the Go implementation is now deleted. The
+byte-for-byte comparisons continue against a recording of its output on
+every repository input, made just before the deletion
+([We deleted the Go compiler](/blog/deleting-the-go-compiler/)).

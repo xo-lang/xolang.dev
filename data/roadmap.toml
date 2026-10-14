@@ -113,8 +113,8 @@ text = "467 of 467 compared runs generate byte identical Go (all 27,864 declarat
 
 [[plan]]
 title = "Retire the Go implementation"
-status = "now"
-text = "In progress. <code>xo</code> itself is now the compiler written in Xo: the build of <code>xo</code> for darwin/arm64, linux/arm64, and linux/amd64 is the self-hosted compiler, and every command group (the core tools, the semantic tools, the module commands, the MCP, LSP, and build servers, and <code>xo bind --c</code>) was checked against the Go version before the switch. On darwin/arm64 and linux/arm64 it passes the command line test suite run against itself, 69 of 71 tests (two debugging dump commands are exempt), and every native build works with no Go installed. On linux/amd64 it passes everything that host can run, 66 of 71; its 2 failures fail with the Go-built <code>xo</code> too, because they need the arm64 backend. The Go implementation is now frozen: the Xo code and the specification are the source of truth, so each change is made once instead of twice."
+status = "done"
+text = "Done on 2026-10-13: the compiler written in Go is deleted, about 95,000 lines of it, and <code>xo</code> is the only compiler. Before the switch every command group was checked against the Go version, and after the deletion the golden programs pass on arm64 (179 of 179), LLVM (179 of 179), and the Go backend (136 of 136), and the compiler rebuilds itself to identical bytes on macOS and arm64 Linux. Go remains only for what touches Go: the Go backend's runtime and <code>use go</code> bindings. A machine with no <code>xo</code> needs Go once, to build the last Go version (tag <code>go-compiler-final</code>) as a seed. See <a href=\"/blog/deleting-the-go-compiler/\">We deleted the Go compiler</a>."
 
 [[plan]]
 title = "WebAssembly backend"

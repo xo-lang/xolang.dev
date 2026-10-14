@@ -10,36 +10,29 @@ Xo is experimental, and the language may change before 1.0.
 
 {{< source-status >}}
 
-The toolchain is built from source. `xo` is written in Xo; Go 1.26 or
-later is needed once, to build a seed compiler that builds the first Xo
-`xo`. From a checkout of the repository on an arm64 host (Apple silicon
-or arm64 Linux):
+The toolchain is built from source, and `xo` is written in Xo, so an
+existing `xo` builds the next one. From a checkout of the repository,
+one command does it:
 
 ```
-go build -o .tools/bin/xo-seed ./cmd/xo
-XO_SELF_DRIVER=0 .tools/bin/xo-seed build --backend=arm64 -o .tools/bin/xo selfhost/xo
-export XO_STD="$PWD/std"
-export PATH="$PWD/.tools/bin:$PATH"
+go run ./scripts/xobuild
+export PATH="$PWD/bin:$PATH"
 ```
 
-The second command takes several minutes (under 7 on an M-series Mac).
-`xo` finds the standard library through `XO_STD`. After that, any Xo
-`xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`).
+It builds `bin/xo` from the checkout and prints its path; `bin/xo`
+finds the standard library at `../std`. It uses an `xo` you already
+have when there is one (set `XO_SEED` to choose it). On a machine with
+no `xo` at all, it needs Go 1.26 or later and git once: it builds the
+first `xo` from the `go-compiler-final` tag, the last version of Xo's
+original compiler written in Go, and follows a short recorded chain of
+intermediate versions to today's. After that, any `xo` rebuilds the
+next without Go (`scripts/bootstrap-xo.sh`).
 
-On an x86-64 host the seed builds `xo` with the LLVM backend, which
-needs clang:
-
-```
-go build -o .tools/bin/xo-seed ./cmd/xo
-XO_SELF_DRIVER=0 XO_LLVM_SPLIT=12 XO_LLVM_LTO=none \
-  .tools/bin/xo-seed build --backend=llvm -o .tools/bin/xo selfhost/xo
-export XO_STD="$PWD/std"
-export PATH="$PWD/.tools/bin:$PATH"
-```
-
-This one is much slower: about 36 minutes and 10 GB of memory on a
-16 vCPU x86-64 Linux machine. It is expected to work on an Intel Mac
-too, more slowly, but has not been tested there with this command yet.
+On an arm64 host (Apple silicon, arm64 Linux) `xo` is built with the
+arm64 backend and takes several minutes. On an x86-64 host it is built
+with the LLVM backend, which needs clang and is much slower: about 36
+minutes and 10 GB of memory on a 16 vCPU Linux machine. The whole path
+from nothing has been tested on macOS and arm64 Linux.
 
 The native backends need a C toolchain: `--backend=llvm` needs clang,
 and `--backend=arm64` needs a C compiler driver (`cc`: clang or gcc).

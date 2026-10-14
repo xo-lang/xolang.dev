@@ -15,8 +15,9 @@ practical guide to it.
 module tools, and the editor and agent servers. It is written in Xo
 (the self-hosted compiler, built from `selfhost/xo` in the repository;
 you may see it called xo1 in the project's notes). The original
-implementation, written in Go, is frozen and serves as the seed that
-builds the first Xo compiler on a machine.
+compiler, written in Go, was deleted on 2026-10-13; its last version is
+tagged `go-compiler-final` and serves only as the seed on a machine
+with no `xo` at all.
 
 ### The layout
 
@@ -38,28 +39,22 @@ checkout.
 
 ### Building it from source
 
-From a checkout of the repository, the Go seed (Go 1.26 or later)
-builds the first Xo `xo`. On an arm64 host (Apple silicon, arm64
-Linux):
+From a checkout of the repository:
 
 ```
-go build -o .tools/bin/xo-seed ./cmd/xo
-XO_SELF_DRIVER=0 .tools/bin/xo-seed build --backend=arm64 -o .tools/bin/xo selfhost/xo
-export XO_STD="$PWD/std"
+go run ./scripts/xobuild          # builds bin/xo and prints its path
+XO_SEED=/path/to/xo go run ./scripts/xobuild
 ```
 
-On an x86-64 host, with clang installed:
-
-```
-go build -o .tools/bin/xo-seed ./cmd/xo
-XO_SELF_DRIVER=0 XO_LLVM_SPLIT=12 XO_LLVM_LTO=none \
-  .tools/bin/xo-seed build --backend=llvm -o .tools/bin/xo selfhost/xo
-export XO_STD="$PWD/std"
-```
-
-The arm64 build takes a few minutes; the x86-64 build took about 36
-minutes and 10 GB of memory on a 16 vCPU Linux machine. After that,
-any Xo `xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`; see
+The seed is `XO_SEED`, else the checkout's earlier `bin/xo`, an
+earlier build in your cache, or `xo` on your `PATH`. With none of
+those, it needs Go 1.26 or later and git once to build the
+`go-compiler-final` seed, then follows a recorded chain of intermediate
+versions to today's compiler. `bin/xo` finds the standard library at
+`../std`. On an arm64 host the build takes a few minutes; on an x86-64
+host it uses the LLVM backend (clang needed) and took about 36 minutes
+and 10 GB of memory on a 16 vCPU Linux machine. After that, any Xo
+`xo` rebuilds itself without Go (`scripts/bootstrap-xo.sh`; see
 [the bootstrap post](/blog/bootstrap/) for how that is checked).
 [Getting started](/docs/getting-started/) walks through a first program.
 
@@ -189,16 +184,12 @@ missing package or header on first use.
 
 | Variable | What it does |
 |---|---|
-| `XO_STD` | Where the standard library is, when `xo` is not in the toolchain layout (a checkout: `$PWD/std`) |
+| `XO_STD` | Where the standard library is, when `xo` is not in the toolchain layout |
+| `XO_SEED` | The `xo` that `go run ./scripts/xobuild` builds the next one with |
 | `XO_GO` | The `go` command the Go backend uses, when it is not `go` on the `PATH` |
 | `XO_ZONEINFO` | A `zoneinfo.zip` for programs that name time zones |
 | `XO_RTPACK` | A directory of prebuilt native runtimes, instead of `lib/xo/rtpack` |
 | `XO_NOLIBC=1` | Linux native builds with no C library (opt-in, in progress) |
-
-Two more apply only to the Go seed when it builds the first Xo `xo`:
-`XO_SELF_DRIVER=0` makes the seed do the build itself (as in the
-commands above), and `XO1` points it at an Xo compiler you already
-built.
 
 ## Coming later
 
