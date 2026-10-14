@@ -29,7 +29,9 @@ intermediate versions to today's. After that, any `xo` rebuilds the
 next without Go (`scripts/bootstrap-xo.sh`).
 
 On an arm64 host (Apple silicon, arm64 Linux) `xo` is built with the
-arm64 backend and takes several minutes. On an x86-64 host it is built
+arm64 backend and takes several minutes. The very first build on a
+machine with no `xo` also builds the seed and the intermediate
+versions, so it is much longer: over half an hour on a busy Mac. On an x86-64 host it is built
 with the LLVM backend, which needs clang and is much slower: about 36
 minutes and 10 GB of memory on a 16 vCPU Linux machine. The whole path
 from nothing has been tested on macOS and arm64 Linux.
