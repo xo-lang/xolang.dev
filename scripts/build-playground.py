@@ -7,7 +7,8 @@ The playground runs entirely in the visitor's browser (decision 0144 in the
 xo repo). This script builds, with the `go` on PATH:
 
   xoplay.wasm   cmd/xoplay of the xo repo (check, fmt, gen), tag
-                xo_playground so it embeds no runtime source
+                xo_playground so it embeds no runtime source; from the
+                repo's go-compiler-final tag once main no longer has it
   compile.wasm  the Go compiler (cmd/compile), for GOOS=wasip1
   link.wasm     the Go linker (cmd/link), for GOOS=wasip1
   pkg.bundle    the archives of package rt (tag xo_nohttp) and every Go
@@ -65,11 +66,45 @@ def bundle(entries):
     return len(header).to_bytes(4, "little") + header + b"".join(d for _, d in entries)
 
 
+# The Go compiler (and cmd/xoplay with it) was deleted from the xo repo on
+# 2026-10-13 (decision 0215); until an Xo xoplay exists, the playground is
+# built from the last commit that has it.
+TAG = "go-compiler-final"
+
+
+def source(tmp):
+    """The tree to build from: REPO when it still has cmd/xoplay, else the
+    TAG of REPO, extracted with git archive (REPO itself is not touched)."""
+    global REPO
+    if os.path.exists(os.path.join(REPO, "cmd", "xoplay")):
+        return
+    if not os.path.isdir(REPO):
+        sys.exit(f"no xo repo at {REPO}; pass its path or set XO_REPO")
+    src = os.path.join(tmp, "src")
+    os.makedirs(src)
+    print(f"+ git archive {TAG} (no cmd/xoplay on {REPO})", flush=True)
+    archive = subprocess.run(["git", "-C", REPO, "archive", TAG], check=True, capture_output=True).stdout
+    subprocess.run(["tar", "-x", "-C", src], input=archive, check=True)
+    # The tag's internal/build takes syscall.ForkLock around a copy into the
+    # binary cache, which wasip1 does not have; xoplay never uses that cache,
+    # so the extracted copy drops the lock (the repo and the tag are untouched).
+    bc = os.path.join(src, "internal", "build", "bincache.go")
+    if os.path.exists(bc):
+        with open(bc) as f:
+            text = f.read()
+        text = text.replace("\tsyscall.ForkLock.RLock()\n", "").replace("\t\tsyscall.ForkLock.RUnlock()\n", "").replace("\tsyscall.ForkLock.RUnlock()\n", "")
+        code = [l for l in text.splitlines() if "syscall." in l and not l.lstrip().startswith("//")]
+        if not code:
+            text = text.replace('\t"syscall"\n', "")
+        with open(bc, "w") as f:
+            f.write(text)
+    REPO = src
+
+
 def main():
-    if not os.path.exists(os.path.join(REPO, "cmd", "xoplay")):
-        sys.exit(f"no cmd/xoplay under {REPO}; pass the xo repo path or set XO_REPO")
     tmp = tempfile.mkdtemp()
     try:
+        source(tmp)
         blobs = {}
         flags = ["-trimpath", "-buildvcs=false", "-ldflags=-s -w"]
         run(["go", "build", "-tags", "xo_playground", *flags, "-o", f"{tmp}/xoplay.wasm", "./cmd/xoplay"], REPO, WASI)
