@@ -369,6 +369,34 @@ async function main() {
     else fail("playground footer", `bottom at ${footerBottom} of ${winHeight}`);
     await b.viewport(1300, 900, false);
 
+    // /play-next/ (decision 0242 in the xo repo): Xo's own compiler and
+    // wasm backend in the tab, no Go toolchain. The tour examples it runs
+    // give their output, the mistakes their codes; the run times (after
+    // the first, which compiles the module) are printed.
+    await b.go(base + "/play-next/");
+    await b.eval(HELPERS);
+    await b.eval(`document.getElementById('play-consent-ok').click(); true`);
+    await b.until(`/No problems/.test(document.getElementById('play-problems').innerText)`, 300000);
+    pass("/play-next/: consent loads Xo's compiler and checks");
+    const nextTimes = [];
+    for (const x of examples("tour")) {
+      if (x.name === "webservice" || !x.output) continue; // a server; output-less pages
+      await b.eval(`t.set(${JSON.stringify(x.source)}); true`);
+      const t0 = Date.now();
+      const r = await b.eval(`t.press('play-run')`);
+      nextTimes.push(Date.now() - t0);
+      if (r.out.startsWith(x.output) && /\[exit 0 in/.test(r.out)) pass("/play-next/: tour/" + x.name);
+      else fail("/play-next/: tour/" + x.name, JSON.stringify(r.out.slice(0, 300)));
+    }
+    for (const x of examples("mistakes")) {
+      await b.eval(`t.set(${JSON.stringify(x.source)}); true`);
+      const r = await b.eval(`t.press('play-run')`);
+      const code = /error (XO\d{4})/.exec(x.check)[1];
+      if (r.problems.includes(code)) pass("/play-next/: mistakes/" + x.name, code);
+      else fail("/play-next/: mistakes/" + x.name, JSON.stringify(r.problems.slice(0, 200)));
+    }
+    pass("/play-next/: run times", nextTimes.map((t) => (t / 1000).toFixed(1) + " s").join(", "));
+
     // the "On this page" index highlights the section being read, by
     // scrolling and by following an index link
     await b.eval(`location.href = ${JSON.stringify(base + "/docs/spec/std/")}; true`);

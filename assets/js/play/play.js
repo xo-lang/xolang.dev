@@ -579,11 +579,17 @@ consentBtn.addEventListener("click", () => {
 // sizes shows the real download sizes from the manifest.
 async function sizes() {
   try {
-    const m = await (await fetch("/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
+    const m = await (await fetch(root.dataset.manifest || "/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
     const mb = (n) => Math.max(1, Math.round(n / 1048576)) + " MB";
     const f = m.files;
-    consentBox.querySelector('[data-size="check"]').textContent = mb(f.xoplay.compressed + f.gobind.compressed);
-    consentBox.querySelector('[data-size="run"]').textContent = mb(f.compile.compressed + f.link.compressed + f.pkg.compressed);
+    const set = (k, v) => { const e = consentBox.querySelector('[data-size="' + k + '"]'); if (e) e.textContent = v; };
+    if (f.xoc) {
+      // /play-next/: the compiler and std, for checking and running alike
+      set("check", mb(f.xoc.compressed + f.std.compressed));
+    } else {
+      set("check", mb(f.xoplay.compressed + f.gobind.compressed));
+      set("run", mb(f.compile.compressed + f.link.compressed + f.pkg.compressed));
+    }
   } catch (e) {
     // keep the sizes written in the page
   }
