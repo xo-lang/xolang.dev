@@ -129,6 +129,11 @@ Docker Desktop fixed most of that:
   container counts instructions per function, which is how we compare
   our two backends function by function.
 
+Docker runs don't take the heavy lock: long container runs once held
+both of its slots, so since 2026-10-15 they start directly at a lower
+priority (`nice -n 10`), and each agent removes only the containers it
+started.
+
 ## What it costs, honestly
 
 Each step traded something:
