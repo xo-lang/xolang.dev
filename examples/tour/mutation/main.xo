@@ -1,6 +1,6 @@
 struct Account { owner: Str, balance: Int }
 
-fn (var a: Account) deposit(amount: Int) requires amount > 0 && amount <= 1_000_000 && a.balance <= 1_000_000_000 {
+fn (var a: Account) deposit(amount: Int) requires amount > 0 {
   a.balance += amount
 }
 
