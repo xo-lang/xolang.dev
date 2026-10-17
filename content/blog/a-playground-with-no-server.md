@@ -4,6 +4,11 @@ date: 2026-10-10T18:00:00-04:00
 description: "The Xo playground checks, compiles, and runs your code inside your browser tab, with the real Go compiler and linker built for WebAssembly."
 ---
 
+*Update (2026-10-16): the playground now runs Xo's own compiler instead of
+Go's, a 2.13 MB download instead of 23.5 MB; see [The playground now runs
+Xo's own compiler](/blog/playground-on-xos-own-compiler/). This post
+describes the first version.*
+
 Xo has a [playground](/play/). Type a program, press run, and it is checked,
 compiled, and run. What is unusual is where: all of it happens inside your
 browser tab. There is no build server, and your code never leaves your

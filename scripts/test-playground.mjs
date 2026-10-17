@@ -6,13 +6,13 @@
 //
 // Without a url it serves public/ on a free localhost port. It runs every
 // example (tour programs must print examples/tour/*/output.txt; mistakes
-// must report the code in examples/mistakes/*/check.txt), the tests of the
-// tour programs that have them, and the safety limits, and checks the
-// download notice, example links, share links, highlighting, squiggles
-// and their tooltips, the generated Go tab, the layout at phone width of
-// the playground and the home page (SHOTS=dir saves screenshots of it), the
-// section highlight of the docs index,
-// and the test seed and explore options. CHROME_FLAGS adds browser flags
+// must report the code in examples/mistakes/*/check.txt; `use go` and a
+// server are refused) with its run times, and the safety limits, and
+// checks the download notice, example links, share links, highlighting,
+// squiggles and their tooltips, the refusal of tests (for now), the layout
+// at phone width of the playground and the home page (SHOTS=dir saves
+// screenshots of it), and the section highlight of the docs index.
+// CHROME_FLAGS adds browser flags
 // (CI passes --no-sandbox: Ubuntu runners forbid Chrome's sandbox). Set
 // CHROME to the browser binary if it is not in the default macOS place.
 import { spawn } from "node:child_process";
@@ -153,7 +153,7 @@ const SAFETY = [
   ["output is capped, HTML stays text", "fn main(os: Os) {\n  while true {\n    os.stdio.println(\"<img src=x onerror=alert(1)>\")\n  }\n}\n", (r) => /truncated at 1 MB/.test(r.out)],
   ["memory is capped", "fn main(os: Os) {\n  var xs: List[Str] = []\n  while true {\n    xs.push(\"abcdefghijabcdefghijabcdefghijabcdefghij${xs.len()}\")\n  }\n}\n", (r) => /out of memory/.test(r.out) && /\[exit 2/.test(r.out)],
   ["no files", "fn main(os: Os) ! {\n  let s = os.fs.read_text(\"/etc/passwd\")?\n  os.stdio.println(s)\n}\n", (r) => /error: Io/.test(r.out) && !/root:/.test(r.out)],
-  ["unbound Go package is refused", "use go \"os/exec\"\n\nfn main(os: Os) {\n}\n", (r) => /cannot use Go package `os\/exec`/.test(r.problems)],
+  ["use go is refused", "use go \"os/exec\"\n\nfn main(os: Os) {\n}\n", (r) => /`use go` is not supported in the playground/.test(r.out)],
   ["sleep works", "fn main(os: Os) {\n  os.stdio.println(\"a\")\n  os.clock.sleep(200ms)\n  os.stdio.println(\"b\")\n}\n", (r) => /a\nb\n/.test(r.out)],
 ];
 
@@ -182,20 +182,26 @@ async function main() {
       else fail("highlighting", "missing " + want);
     }
 
+    // the tour's examples run with their output (times after the first
+    // are printed); a server cannot run here, and `use go` is refused
+    const times = [];
     for (const x of examples("tour")) {
       await b.eval(`t.set(${JSON.stringify(x.source)}); true`);
+      const t0 = Date.now();
       const r = await b.eval(`t.press('play-run')`);
-      if (x.name === "webservice") {
-        if (/can be checked here but not run/.test(r.out)) pass("tour/webservice refused to run");
-        else fail("tour/webservice", r.out.slice(0, 200));
-      } else if (x.output && r.out.startsWith(x.output) && /\[exit 0 in/.test(r.out)) pass("tour/" + x.name);
-      else fail("tour/" + x.name, JSON.stringify(r.out.slice(0, 300)));
-      if (/^test "/m.test(x.source) && x.name !== "webservice") {
-        const t = await b.eval(`t.press('play-test')`);
-        if (/ok: \d+ passed, 0 failed/.test(t.out)) pass("tour/" + x.name + " tests", t.out.match(/ok: .*/)[0]);
-        else fail("tour/" + x.name + " tests", JSON.stringify(t.out.slice(0, 300)));
+      if (/^\s*use\s+go\b/m.test(x.source)) {
+        if (/`use go` is not supported in the playground/.test(r.out)) pass("tour/" + x.name + " refused (use go)");
+        else fail("tour/" + x.name, JSON.stringify(r.out.slice(0, 300)));
+      } else if (x.name === "webservice") {
+        if (/does not support/.test(r.out) && !/\[exit 0 in/.test(r.out)) pass("tour/webservice refused to run");
+        else fail("tour/webservice", JSON.stringify(r.out.slice(0, 300)));
+      } else if (x.output) {
+        times.push(Date.now() - t0);
+        if (r.out.startsWith(x.output) && /\[exit 0 in/.test(r.out)) pass("tour/" + x.name);
+        else fail("tour/" + x.name, JSON.stringify(r.out.slice(0, 300)));
       }
     }
+    pass("run times", times.map((t) => (t / 1000).toFixed(1) + " s").join(", "));
     for (const x of examples("mistakes")) {
       await b.eval(`t.set(${JSON.stringify(x.source)}); true`);
       const r = await b.eval(`t.press('play-run')`);
@@ -210,28 +216,11 @@ async function main() {
       else fail(name, JSON.stringify({ out: r.out.slice(-200), problems: r.problems.slice(0, 200) }));
     }
 
-    // a failing test is reported
-    await b.eval(`t.set(${JSON.stringify('fn add(a: Int, b: Int) -> Int {\n  a + b\n}\n\ntest "add" {\n  expect(add(2, 2)) == 5\n}\n\nfn main(os: Os) {\n}\n')}); true`);
+    // tests are refused for now, with a clear message
+    await b.eval(`t.set(${JSON.stringify('test "t" {\n  expect(1) == 1\n}\n\nfn main(os: Os) {\n}\n')}); true`);
     const ft = await b.eval(`t.press('play-test')`);
-    if (/1 failed/.test(ft.out)) pass("a failing test is reported");
-    else fail("failing test", JSON.stringify(ft.out.slice(0, 300)));
-
-    // seed and explore (core 7.4): this test passes under seed 1 and
-    // fails under seed 2, as `xo test --explore=20` reports natively
-    const RACE = 'fn first(ch: Chan[Int]) -> Int {\n  var got = 0\n  for x in ch {\n    if got == 0 { got = x }\n  }\n  got\n}\n\ntest "the first task sends first" {\n  let ch = Chan[Int].new(cap: 2)\n  scope s {\n    s.spawn(fn() { ch.send(1) })\n    s.spawn(fn() { ch.send(2) })\n  }\n  ch.close()\n  expect(first(ch)) == 1\n}\n\nfn main(os: Os) {\n}\n';
-    await b.eval(`t.set(${JSON.stringify(RACE)}); true`);
-    const plain = await b.eval(`t.press('play-test')`);
-    await b.eval(`document.getElementById('play-explore').value = '20'; true`);
-    const explored = await b.eval(`t.press('play-test')`);
-    await b.eval(`document.getElementById('play-explore').value = ''; document.getElementById('play-seed').value = '2'; true`);
-    const seeded = await b.eval(`t.press('play-test')`);
-    await b.eval(`document.getElementById('play-seed').value = ''; true`);
-    if (/1 passed, 0 failed/.test(plain.out)) pass("test under the default seed");
-    else fail("default seed", JSON.stringify(plain.out.slice(0, 300)));
-    if (/seed 2 fails/.test(explored.out)) pass("explore finds the failing seed");
-    else fail("explore", JSON.stringify(explored.out.slice(0, 300)));
-    if (/1 failed/.test(seeded.out)) pass("seed 2 reproduces the failure");
-    else fail("seed", JSON.stringify(seeded.out.slice(0, 300)));
+    if (/does not run tests yet/.test(ft.out)) pass("tests refused for now");
+    else fail("tests", JSON.stringify(ft.out.slice(0, 300)));
 
     // diagnostics are underlined in the editor
     const ignored = examples("mistakes").find((x) => x.name === "ignored");
@@ -261,24 +250,6 @@ async function main() {
     const caretText = await b.until(`!document.getElementById('play-tip').hidden && document.getElementById('play-tip').textContent`, 5000).catch(() => "");
     if (/XO0201/.test(caretText)) pass("the caret shows the diagnostic");
     else fail("caret tip", JSON.stringify(caretText));
-
-    // the generated Go tab hides //line directives unless asked
-    await b.eval(`t.set('fn main(os: Os) {\\n  os.stdio.println("hi")\\n}\\n'); true`);
-    await b.eval(`t.press('play-run')`);
-    const goText = await b.eval(`document.getElementById('play-go').textContent`);
-    const goLines = await b.eval(`(() => { const g = document.getElementById('play-golines'); g.click(); const t = document.getElementById('play-go').textContent; g.click(); return t; })()`);
-    if (/func F_main/.test(goText) && !/\/\/line /.test(goText) && /\/\/line main\.xo:1:1/.test(goLines) && !/(\/\/line [^\n]*\n)\1/.test(goLines)) pass("generated Go, //line directives on request");
-    else fail("generated Go", JSON.stringify(goText.slice(0, 200)) + " / " + JSON.stringify(goLines.slice(0, 200)));
-    const goLink = await b.eval(`(() => {
-      const kw = [...document.querySelectorAll('#play-go .xk')].some((e) => e.textContent === 'func');
-      const l = [...document.querySelectorAll('#play-go [data-xo]')].find((e) => e.textContent.includes('M_println'));
-      if (!kw || !l) return 'highlighted: ' + kw + ', println line linked: ' + !!l;
-      l.click();
-      const c = document.getElementById('play-code');
-      return c.value.slice(0, c.selectionStart).split('\\n').length;
-    })()`);
-    if (goLink === 2) pass("generated Go is highlighted and links to main.xo");
-    else fail("Go links", JSON.stringify(goLink));
 
     // example links from the tour
     await b.go(base + "/play/#example=tour/matching");
@@ -344,11 +315,6 @@ async function main() {
     await b.until(`!document.getElementById('play-tip').hidden`, 5000).catch(() => {});
     await b.shot("phone-tooltip");
     await wide("tooltip");
-    await b.eval(`t.set('fn main(os: Os) {\\n  os.stdio.println("hi")\\n}\\n'); true`);
-    await b.eval(`t.press('play-run')`);
-    await b.eval(`document.querySelector('[data-tab=go]').click(); document.querySelector('.play-out').scrollIntoView(); true`);
-    await b.shot("phone-go");
-    await wide("generated Go tab");
 
     // the home page at phone width: the cards, terminals, and status
     // stages fit, and the page does not scroll sideways

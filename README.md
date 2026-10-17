@@ -48,22 +48,26 @@ The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it
 ## Playground
 
 `/play/` checks, compiles, and runs Xo entirely in the visitor's browser
-(decision 0144 in the xo repo); there is no server.
+(decisions 0144 and 0242 in the xo repo); there is no server.
 
-- `scripts/build-playground.py` builds the WebAssembly toolchain into
-  `static/play/assets/` and `static/play/manifest.json`: `xoplay` (the Xo
-  compiler, `cmd/xoplay`), the Go compiler and linker, the precompiled rt and
-  Go standard library archives, and `use go` bindings. Rerun it after
-  compiler, std/rt, or Go changes; it needs the xo repo (`$XO_REPO`).
+- `scripts/build-playground.py [xo repo]` builds the page's WebAssembly into
+  `static/play/assets/` and `static/play/manifest.json`: `xoc` (the Xo
+  compiler with its own wasm backend, selfhost/wasm built for wasm by
+  itself, run with `--play check|fmt|build`) and `std` (a bundle of std's
+  sources), brotli compressed and named by hash, about 2 MB in all. Rerun
+  it after compiler or std changes; it needs the repo's `bin/xo`.
 - `assets/js/play/`: `play.js` (page), `highlight.js` (editor coloring),
-  `toolchain.js` (worker running the tools over an in-memory file system),
-  `runner.js` (one worker per run or test run).
+  `toolchain.js` (worker running the compiler over an in-memory file
+  system), `runner.js` (one worker per run).
+- No `use go` (refused with a clear message), no generated Go tab, and no
+  tests yet; the Go-era playground that had them (Go's compiler and linker
+  in the tab, 23.5 MB) is in git history and decision 0242.
 - Tour examples link to `/play/#example=tour/<name>` (shortcodes `example`
   and `mistake`).
 - Test: `.tools/bin/hugo --gc --minify && node scripts/test-playground.mjs`
-  (headless Chrome; every example, the tour's tests, the safety limits, the
-  download notice, links, and highlighting). Run it after rebuilding the
-  playground.
+  (headless Chrome; every example, the mistakes' codes, the safety limits,
+  the download notice, links, highlighting, the phone layout, and the run
+  times). Run it after rebuilding the playground.
 - Safety: a Content Security Policy on the page (scripts from this site
   only, `connect-src 'self'`); programs may import only WASI, see no files,
   network, or environment, and are capped at 1 GiB, 1 MB of output, and

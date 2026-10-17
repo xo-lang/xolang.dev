@@ -459,11 +459,11 @@ function showGo() {
     }
   }
 }
-goPane.addEventListener("click", (e) => {
+if (goPane) goPane.addEventListener("click", (e) => {
   const l = e.target.closest("[data-xo]");
   if (l) goTo(+l.dataset.xo, 1);
 });
-goLines.addEventListener("change", showGo);
+if (goLines) goLines.addEventListener("change", showGo);
 
 function stop(message) {
   if (runner) { runner.terminate(); runner = null; }
@@ -582,8 +582,9 @@ async function sizes() {
     const m = await (await fetch("/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
     const mb = (n) => Math.max(1, Math.round(n / 1048576)) + " MB";
     const f = m.files;
-    consentBox.querySelector('[data-size="check"]').textContent = mb(f.xoplay.compressed + f.gobind.compressed);
-    consentBox.querySelector('[data-size="run"]').textContent = mb(f.compile.compressed + f.link.compressed + f.pkg.compressed);
+    const set = (k, v) => { const e = consentBox.querySelector('[data-size="' + k + '"]'); if (e) e.textContent = v; };
+    // the compiler and std, for checking and running alike
+    set("check", mb(f.xoc.compressed + f.std.compressed));
   } catch (e) {
     // keep the sizes written in the page
   }

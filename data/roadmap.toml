@@ -39,7 +39,7 @@ text = "The lexer, parser, and type checker rewritten in Xo, with output identic
 [[milestones]]
 title = "A playground in the browser"
 status = "done"
-text = "The compiler and the Go toolchain run in WebAssembly, so <a href=\"/play/\">the playground</a> needs no server."
+text = "Xo's own compiler, built by its own WebAssembly backend, runs in the browser, so <a href=\"/play/\">the playground</a> needs no server: about 2 MB to download."
 
 [[milestones]]
 title = "The rest of the compiler in Xo"

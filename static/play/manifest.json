@@ -1,93 +1,15 @@
 {
-  "go": "go1.26.1",
-  "tags": [
-    "xo_nohttp"
-  ],
-  "gobind": [
-    "xo_gobind_bytes.go",
-    "xo_gobind_crypto_md5.go",
-    "xo_gobind_crypto_sha1.go",
-    "xo_gobind_crypto_sha256.go",
-    "xo_gobind_encoding_base64.go",
-    "xo_gobind_encoding_csv.go",
-    "xo_gobind_encoding_hex.go",
-    "xo_gobind_errors.go",
-    "xo_gobind_fmt.go",
-    "xo_gobind_hash_crc32.go",
-    "xo_gobind_hash_fnv.go",
-    "xo_gobind_html.go",
-    "xo_gobind_maps.go",
-    "xo_gobind_math.go",
-    "xo_gobind_math_bits.go",
-    "xo_gobind_net_mail.go",
-    "xo_gobind_net_netip.go",
-    "xo_gobind_net_url.go",
-    "xo_gobind_path.go",
-    "xo_gobind_regexp.go",
-    "xo_gobind_slices.go",
-    "xo_gobind_sort.go",
-    "xo_gobind_strconv.go",
-    "xo_gobind_strings.go",
-    "xo_gobind_text_template.go",
-    "xo_gobind_time.go",
-    "xo_gobind_unicode.go",
-    "xo_gobind_unicode_utf8.go"
-  ],
-  "gobindPackages": [
-    "bytes",
-    "crypto/md5",
-    "crypto/sha1",
-    "crypto/sha256",
-    "encoding/base64",
-    "encoding/csv",
-    "encoding/hex",
-    "errors",
-    "fmt",
-    "hash/crc32",
-    "hash/fnv",
-    "html",
-    "maps",
-    "math",
-    "math/bits",
-    "net/mail",
-    "net/netip",
-    "net/url",
-    "path",
-    "regexp",
-    "slices",
-    "sort",
-    "strconv",
-    "strings",
-    "text/template",
-    "time",
-    "unicode",
-    "unicode/utf8"
-  ],
+  "xo": "71afe248",
   "files": {
-    "xoplay": {
-      "path": "assets/xoplay-d23df6e768da.brotli",
-      "size": 29505139,
-      "compressed": 5025463
+    "xoc": {
+      "path": "assets/xoc-99ed2968c934.brotli",
+      "size": 28833639,
+      "compressed": 1458595
     },
-    "compile": {
-      "path": "assets/compile-58555b0d1192.brotli",
-      "size": 48066563,
-      "compressed": 6201106
-    },
-    "link": {
-      "path": "assets/link-36e4abf76343.brotli",
-      "size": 10987023,
-      "compressed": 2054162
-    },
-    "gobind": {
-      "path": "assets/gobind-330687bad70d.brotli",
-      "size": 493737,
-      "compressed": 42108
-    },
-    "pkg": {
-      "path": "assets/pkg-02496daac01f.brotli",
-      "size": 84994432,
-      "compressed": 10148382
+    "std": {
+      "path": "assets/std-f3c20c296479.brotli",
+      "size": 3165778,
+      "compressed": 672614
     }
   }
 }
