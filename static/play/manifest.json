@@ -1,15 +1,15 @@
 {
-  "xo": "71afe248",
+  "xo": "b3f7e950",
   "files": {
     "xoc": {
-      "path": "assets/xoc-99ed2968c934.brotli",
-      "size": 28833639,
-      "compressed": 1458595
+      "path": "assets/xoc-a64cdc80a3f4.brotli",
+      "size": 29100961,
+      "compressed": 1463794
     },
     "std": {
-      "path": "assets/std-f3c20c296479.brotli",
-      "size": 3165778,
-      "compressed": 672614
+      "path": "assets/std-7f56dc9fb442.brotli",
+      "size": 3213226,
+      "compressed": 682683
     }
   }
 }
