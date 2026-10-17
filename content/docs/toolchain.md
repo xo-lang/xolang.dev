@@ -27,7 +27,7 @@ toolchain relative to itself:
 ```
 bin/xo          the toolchain
 bin/xo-gobind   a helper that binds Go packages for use go
-lib/xo/         std, third_party, the prebuilt native runtime, zoneinfo.zip
+lib/xo/         std (with the IANA time zone database), third_party
 ```
 
 Keep the layout: `bin/xo` looks for the standard library and the
@@ -63,39 +63,45 @@ x86-64 host with the LLVM backend (clang needed). After that, any Xo
 
 ## Backends and targets
 
-`--backend` picks how a program is built. Each backend needs different
+`--backend` picks how a program is built; with none, `xo build`, `xo
+run`, and `xo test` build natively (decision 0248): the arm64 backend on
+arm64 hosts, the LLVM backend elsewhere. Each backend needs different
 tools on the machine.
 
 | Backend | Flag | Builds for | Needs |
 |---|---|---|---|
-| Go (default) | `--backend=go` or none | every target in `--targets`: linux, darwin, windows (amd64 and arm64), and wasip1/wasm | the `go` command, Go 1.24 or newer (or `XO_GO` naming it) |
-| LLVM | `--backend=llvm` | the host, including x86-64 Linux and Intel Macs | clang |
-| arm64 | `--backend=arm64` | darwin/arm64 and linux/arm64 | a C compiler driver (`cc`), or none with `--ld=macho` and a prebuilt runtime |
+| arm64 (default on arm64 hosts) | none, or `--backend=arm64` | darwin/arm64 and linux/arm64 | nothing: Xo's own assembler and linkers |
+| LLVM (default elsewhere) | none, or `--backend=llvm` | the host, including x86-64 Linux and Intel Macs | clang |
+| Go | `--backend=go` | every target in `--targets`: linux, darwin, windows (amd64 and arm64), and wasip1/wasm | the `go` command, Go 1.24 or newer (or `XO_GO` naming it) |
 | WebAssembly (experimental) | `--backend=wasm` | WASI preview 1 | nothing else; the module runs under any WASI runtime |
 
-- `--no-gc` builds on a native backend whose memory is reference
-  counted instead of collected: arm64 on arm64 hosts, LLVM otherwise.
-  `--backend=llvm` and `--backend=arm64` already imply it. A construct
-  a native build does not support yet is error `XO1201` at compile
-  time.
-- `--targets=all` (Go backend) builds linux/amd64, linux/arm64,
-  darwin/amd64, darwin/arm64, windows/amd64, windows/arm64, and
-  wasip1/wasm, one binary per target.
-- `--ld=macho` links an arm64 program with Xo's own assembler and
-  linker, with no `cc`. It needs the prebuilt runtime in `lib/xo` of a
-  packaged toolchain (or `XO_RTPACK`). On a Mac it is the default when
-  that runtime is present. `--ld=cc` uses the system linker.
+- Native builds manage memory by reference counting, with no tracing
+  garbage collector; a construct a native build does not support yet is
+  error `XO1201` at compile time (`xo check --no-gc` reports them
+  without building). The Go backend uses Go's garbage collector.
+- On a Mac, a native build links with Xo's own Mach-O linker and writes
+  a `.dSYM` with the line tables beside the binary; `--ld=cc` uses the
+  system linker instead.
+- `--targets=linux/arm64` builds a static Linux binary from any host,
+  the Mac included, linked by Xo's own ELF linker with no C library
+  (decision 0243). A Linux program with no `use c` links no C library;
+  `XO_NOLIBC=0` links glibc through `cc` instead.
+- `--targets=all` needs `--backend=go`: it builds linux/amd64,
+  linux/arm64, darwin/amd64, darwin/arm64, windows/amd64,
+  windows/arm64, and wasip1/wasm, one binary per target.
 - Windows (x86-64) and Intel Macs build natively through the LLVM
   backend; this work is in progress and tested on a smaller scale than
   the arm64 hosts.
-- Linux programs with no C library at all are an opt-in experiment
-  (`XO_NOLIBC=1` with a native backend), in progress: they refuse
-  `use c` and TLS for now.
-- `use c` works only on the native backends, and `use go` only on the
-  Go backend.
-- A program that names time zones reads them from Go's
-  `zoneinfo.zip`, `lib/xo/zoneinfo.zip`, `XO_ZONEINFO`, or with
-  `--tzdata=system`, from the system's zone files.
+- `use c` works only on the native backends. `use go` needs
+  `--backend=go`: without it, such a program is a usage error naming the
+  Go package.
+- The flags only the Go backend has (`--hybrid`, `--holes`, `xo test
+  --explore`, `xo run --seed` and `--record`) choose it when no backend is
+  given, and `--race` chooses the LLVM backend (ThreadSanitizer).
+- A program that names time zones embeds them from the IANA database
+  that ships with the standard library (no Go needed); with
+  `--tzdata=system` it reads the system's zone files at run time
+  instead.
 
 ## Commands
 
@@ -116,18 +122,44 @@ files is an error, and `xo run` takes one directory, not a pattern.
 
 | Command | What it does | Example |
 |---|---|---|
-| `xo build` | Build binaries | `xo build --targets=all -o out .` |
-| `xo run` | Build for the host and run; arguments after `--` go to the program | `xo run --backend=arm64 . -- --port 8080` |
-| `xo test` | Run the test blocks, property tests, and contract fuzzing, with deterministic scheduling | `xo test --explore=100 .` |
+| `xo build` | Build binaries | `xo build -o hello .` |
+| `xo run` | Build for the host and run; arguments after `--` go to the program | `xo run . -- --port 8080` |
+| `xo test` | Run the test blocks, property tests, and contract fuzzing, with deterministic scheduling | `xo test --cases=500 .` |
 
 Useful flags of all three: `--backend`, `--no-gc`, `-o`, `--json`,
-`--tzdata=embedded|system`. `xo build` and `xo run` take
-`--stamp NAME=VALUE` (sets a string constant for this build).
-`xo build` also takes `--targets`, `--ld`,
-`--ci` (fail on unformatted code or a leftover `dbg`), and `--release`.
-`xo test` takes `--seed=N`, `--explore=N`, `--cases=N`, `--run=NAME`,
-`-v`, and `--real` (tests that declare effects run with real
-capabilities).
+`--tzdata=embedded|system`, `--race` (ThreadSanitizer, on the LLVM
+backend). `xo build` and `xo run` take `--stamp NAME=VALUE` (sets a
+string constant for this build). `xo build` also takes `--targets`,
+`--ld`, `--ci` (fail on unformatted code or a leftover `dbg`),
+`--release`, `-s` (no debug information or local symbols), and
+`--debug-info` (line tables in a release build too). `xo test` takes
+`--seed=N`, `--explore=N`, `--cases=N`, `--run=NAME`, `-v`, and `--real`
+(tests that declare effects run with real capabilities). `xo run` and
+`xo test` take `--profile` and `--trace` (below).
+
+Contract fuzzing runs on every backend (decision 0250); a contract whose
+generated native test does not check yet is skipped and counted per
+module (`MODULE: contract fuzzing needs --backend=go: N contracts not
+fuzzed`, the reason under `-v`).
+
+### Profiles, traces, and tracebacks
+
+These are the native runtime's, so they work on the arm64 and LLVM
+backends (the default); a Go backend program uses Go's own tools.
+
+| What | How | Output |
+|---|---|---|
+| CPU profile | `xo run --profile=cpu .`, or `XO_PROF=cpu` on any native binary | `xo-cpu.pprof` (`go tool pprof` reads it) and `xo-cpu.txt`, a text summary with the top functions and their lines |
+| Heap profile | `--profile=heap` or `XO_PROF=heap` (`cpu,heap` for both) | `xo-heap.pprof` and `xo-heap.txt` |
+| Execution trace | `xo run --trace=t.raw .`, or `XO_TRACE=t.raw`, then `xo trace t.raw` | `t.raw.json` for [ui.perfetto.dev](https://ui.perfetto.dev) (each worker's task runs, the wakes between them) and a summary: time parked by reason, runnable latency, the top wakers |
+| Traceback | `XO_TRACEBACK=1` | an uncaught fault prints the frames, with source lines, down to `main` |
+| Data races | `xo run --race .` (also `xo build`, `xo test`) | ThreadSanitizer reports |
+
+`xo test --profile` and `xo test --trace` write one file per test
+process. A file that exists is never overwritten. `xo build --release`
+leaves the profiler and the trace recorder out unless `--profile-support`
+or `--trace-support`. Native binaries carry DWARF line tables, so
+`lldb` and other debuggers show `.xo` lines.
 
 ### Check and edit
 
@@ -179,7 +211,8 @@ missing package or header on first use.
 | `xo lsp` | Language Server Protocol server over stdio, for editors | configure your editor to run `xo lsp` |
 | `xo mcp` | Model Context Protocol server over stdio, for agents: check, query, edit, explain, fmt, test, build | configure your agent to run `xo mcp` |
 | `xo serve` | A resident checker on a Unix socket; `xo check` and `xo query` use it when it answers | `xo serve` |
-| `xo dump` | The task tree of a running program | `xo dump 4121` |
+| `xo dump` | The task tree of a running program (Go backend builds) | `xo dump 4121` |
+| `xo trace` | The JSON and summary of an execution trace | `xo trace t.raw` |
 | `xo replay` | Replay a run recorded with `xo run --record=trace.xotrace` (Go backend), or a crash bundle (`.xocrash`) | `xo replay trace.xotrace` |
 | `xo version` | The toolchain version and host | `xo version` |
 
@@ -190,9 +223,12 @@ missing package or header on first use.
 | `XO_STD` | Where the standard library is, when `xo` is not in the toolchain layout |
 | `XO_SEED` | The `xo` that `go run ./scripts/xobuild` builds the next one with |
 | `XO_GO` | The `go` command the Go backend uses, when it is not `go` on the `PATH` |
-| `XO_ZONEINFO` | A `zoneinfo.zip` for programs that name time zones |
-| `XO_RTPACK` | A directory of prebuilt native runtimes, instead of `lib/xo/rtpack` |
-| `XO_NOLIBC=1` | Linux native builds with no C library (opt-in, in progress) |
+| `XO_ZONEINFO` | Another time zone database (a `zoneinfo.zip`) instead of the one in the standard library |
+| `XO_NOLIBC=0` | Link a Linux native program with the C library (the default for one with no `use c` is none) |
+| `XO_PROF` | `cpu`, `heap`, or `cpu,heap`: profile a native program (`XO_PROF_HZ`, `XO_PROF_OUT`) |
+| `XO_TRACE` | A file to record a native program's execution trace into |
+| `XO_TRACEBACK` | `1`: an uncaught fault prints its frames |
+| `XO_THREADS` | How many worker threads a native program's scheduler uses |
 
 ## Coming later
 

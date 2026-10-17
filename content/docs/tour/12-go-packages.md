@@ -8,6 +8,9 @@ Until Xo has its own ecosystem, any Go package is one line away:
 
 {{% example "gointerop" %}}
 
+- A program that uses Go packages builds with the Go backend: `xo run
+  --backend=go .` (it needs the Go toolchain). Without the flag, `xo`
+  stops and names the package, since the default backend is native.
 - `xo check`, `build`, `run`, and `test` generate the bindings themselves.
 - Names follow Xo's style: `ToUpper` is `to_upper`.
 - Go's `(T, error)` becomes `T ! go.Error`, so `url.parse(...)?` works like

@@ -380,7 +380,9 @@ Driven by the paper test in `bench/results/paper-2026-10-07.md`. Decisions
 Each section is tagged with the phase in which it is implemented.
 
 - **[P1]** Prototype: `xo` frontend written in Go, emits Go source, uses the Go
-  toolchain for codegen, GC, scheduler, and cross compilation.
+  toolchain for codegen, GC, scheduler, and cross compilation. Since
+  decision 0215 the toolchain is written in Xo (selfhost/); the Go
+  backend (Go source, the Go toolchain) remains one of its backends.
 - **[P2]** Own runtime: deterministic scheduler, full record/replay, task tree.
 - **[P3]** Own backend and content addressed code store.
 
@@ -816,7 +818,7 @@ Every type automatically implements:
 A type is *comparable* when it implements `Eq`: every field, enum payload,
 tuple element, and element or type argument is comparable. Function values
 and handles are not (decision 0112): `Chan`, `Mutex`, `Atomic`, `Scope`,
-`Task`, `Listener`, `Conn`, `task.Group`, `task.Semaphore`, `task.Once`,
+`Task`, `Listener`, `Conn`, `File`, `FileLock`, `Child`, `task.Group`, `task.Semaphore`, `task.Once`,
 `http.Router`, `http.Server`, `http.Client`, `http.BodyWriter`,
 `http.TlsCert`, `sql.Db`, `sql.Tx`, and the std/testing fakes
 (`FakeNet`, `FakeClock`, `MemFs`, `FakeEnv`, `FakeStdio`, `FakeProc`).
@@ -1118,6 +1120,12 @@ use github.com/acme/billing/invoice
   (`example.com`, `.github`, `v1.2`).
 - Imports are explicit. There is no dot import or glob import.
 - Cyclic module imports are an error.
+- `std/internal` holds primitives for std's implementation and the Xo
+  toolchain's own modules (decision 0214) and is not part of std (std.md
+  does not list it): only std modules and modules whose path is
+  `github.com/xo-lang/xo` or below it may import it. For any other module
+  `use std/internal` is `XO0601` (module not found), as the native
+  backends' intrinsics (`native/...`) are.
 
 ### 4.2 xo.mod
 
@@ -2087,6 +2095,14 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   fault into a value. `std/http` isolates every request and returns 500.
 - Every fault message includes the evaluated values:
   `index 7 out of range for List of length 5 at users.xo:41:18`.
+- A fault reaching `main` is reported on standard error as one line,
+  `fault: MESSAGE at FILE:LINE:COL` (and a detail line for a failed
+  contract). With `XO_TRACEBACK` set (not empty or `0`), native builds
+  follow it with `traceback:` and a line per frame, innermost first,
+  `  FUNCTION (FILE:LINE)` down to `main` (the line from the program's
+  DWARF line tables, decision 0239; inlined calls show the caller's
+  line). `xo test` sets it for the tests it runs unless it is already
+  set.
 - The native backends unwind a fault the same way (decision 0085: deferred
   code, scopes, Mutexes, and references are released on the way); they
   print the fault without its frames, write no crash bundle, and
@@ -2102,7 +2118,10 @@ marked `requires(debug)` or `ensures(debug)`.
   other contract, every invariant, and every fault check stays. A release
   build fails while an xo.work workspace overrides a required module
   (`XO1308`, 4.2) and is the only build that accepts
-  `--error-args=false` (11.1). Error frames are recorded in both.
+  `--error-args=false` (11.1). Error frames are recorded in both. It
+  also leaves the native runtime's profiler (XO_PROF) out unless
+  `--profile-support` is given (decision 0238): not a semantic change,
+  only that diagnostic tool.
 - Every other build is a debug build: `xo build` without `--release`,
   `xo run`, `xo test` (whose contract fuzzing checks the debug clauses
   too), and `xo replay`, which rebuilds in the mode recorded in the
@@ -2187,6 +2206,13 @@ test "retries after 503" {
   their seed and input.
 - Real capabilities require `test "name" uses net { ... }` and
   `xo test --real`; `os` then holds real capabilities for the listed effects.
+- Each test, and each case and shrinking step of a property test, may run
+  for `xo test --timeout=D` of real time (default 60s; 0 for no limit).
+  One that does not finish fails with `the test did not finish within D of
+  real time` and its log records, and the next test runs; on the native
+  backends the harness kills the test's process (decision 0235). The
+  virtual clock does not count: only real work (a loop that never yields,
+  a real capability that never answers) reaches the limit.
 
 ---
 
@@ -2196,10 +2222,11 @@ test "retries after 503" {
 
 | Command | Purpose |
 |---|---|
-| `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release [--error-args=false]] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is a release build (8): `requires(debug)` and `ensures(debug)` compiled out; `--release --error-args=false` drops parameter values from error frames (11.1). Builds are debug builds otherwise, and `xo run` and `xo test` always are |
-| `xo run` | Build and run for the host |
+| `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release [--error-args=false]] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is a release build (8): `requires(debug)` and `ensures(debug)` compiled out, and the native runtime's profiler and execution trace recorder left out unless `--profile-support` or `--trace-support` (decisions 0238, 0240); `--release --error-args=false` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
+| `xo run` | Build and run for the host; `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend |
+| `xo trace FILE [--json OUT] [--text]` | The execution trace a native program wrote under XO_TRACE as Chrome trace event JSON (Perfetto) and a summary (decision 0240) |
 | `xo check [--no-gc] [--fix]` | Parse and type check all targets, no codegen; `--no-gc` adds the native build check (XO1201); `--fix` first applies the machine fixes (below) |
-| `xo test [--seed=N] [--explore=N] [--cases=N] [--real]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100); deterministic scheduling. Doc comment examples are [P2] (1.2) |
+| `xo test [--seed=N] [--explore=N] [--cases=N] [--timeout=D] [--real]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100; `--timeout` the real time each test may take, default 60s, 0 for none, 9.2); deterministic scheduling. Doc comment examples are [P2] (1.2) |
 | `xo dump <pid>` | Task tree of a running program (11.4) |
 | `xo mcp` | Model Context Protocol server over stdio: `check` (with an optional `fix`), `query`, `edit`, `explain`, `fmt`, `test`, `build` tools returning compact JSON |
 | `xo lsp` | Language Server Protocol server over stdio for editors: diagnostics with quick fixes, hover, definition, references, rename, document symbols, semantic tokens, formatting |
@@ -2256,6 +2283,22 @@ code); plain `xo check --json` has no `applied` field. This is the agent
 loop's check: an agent runs `xo check --fix` and then `xo test`, so a
 diagnostic with an exact fix never costs a run (decision 0096). The MCP
 `check` tool takes `fix: true` for the same.
+
+**Backends.** `xo build`, `run`, and `test` compile natively by default
+(decision 0248): the arm64 backend on arm64 hosts, the LLVM backend (which
+needs clang) otherwise. `--backend=go` compiles through the Go toolchain
+and is required by a program with a `use go` package; with no `--backend`
+such a program is a usage error naming it. The flags only the Go backend
+has (`--hybrid`, `--holes`, `xo test --explore`, `xo run --seed` and
+`--record`) choose it when no backend is given, and `--race` the LLVM
+backend's ThreadSanitizer. Contract fuzzing (9.2) runs on every backend
+(decision 0250): the same targets, cases, and seeds, the same tests named
+`contract fuzz: MODULE.F` (which `--run` matches like any test name), and
+the same regression tests; a target whose generated native test does not
+check is skipped and counted per module (`MODULE: contract fuzzing needs
+--backend=go: N contracts not fuzzed`, the reason under `-v`). `xo dump`
+(11.4) is the Go backend's for now: of a native program it says it needs a
+Go backend build.
 
 **Builds without a garbage collector.** `xo build --no-gc` (also `xo run`,
 `xo test`, and `xo check`) builds on a native backend whose memory is
@@ -2435,7 +2478,8 @@ resolution (`modules`: every command that loads a program reports these
 on the xo.mod, xo.lock, or xo.work line, and so do `xo get`, `xo mod
 tidy`, and `xo vendor`; 4.2, 4.3), and `xo publish` (`publish`).
 `xo explain <code>` prints the long form of each. The registry is
-`internal/diag/codes.go`; a test keeps this table equal to it.
+`selfhost/cli/core/explain_data.xo` (internal/diag/codes.go until
+decision 0215); a test (internal/repotest) keeps this table equal to it.
 
 | Code | Severity | Reported by | Meaning |
 |---|---|---|---|
@@ -2505,6 +2549,7 @@ tidy`, and `xo vendor`; 4.2, 4.3), and `xo publish` (`publish`).
 | `XO0605` | error | checker | name is not `pub` in its module, or the std type is an opaque handle (core 1.5) |
 | `XO0606` | error | checker | method declared outside the module of its type (core 3.4) |
 | `XO0607` | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
+| `XO0608` | error | checker | two C ABI export modules of the native std (std/native/llrt/cabi*.xo) define the same function name, one symbol `xo_x_<name>` (decision 0207) |
 | `XO0701` | error | checker | effect performed outside the declared set (core 6.2) |
 | `XO0702` | error | checker | unknown effect label (core 6.1) |
 | `XO0703` | warning | vet | effect declared in `uses` is never performed (core 6.2) |
@@ -2795,7 +2840,8 @@ specified in `spec/std.md`. Modules:
 ## 15. Grammar summary (informal EBNF)
 
 Every comma separated list allows a trailing comma and may span lines. The
-P1 parser (`internal/parser`) is the reference implementation of this grammar.
+parser of `xo` (`selfhost/parser`; `internal/parser` until decision 0215)
+is the reference implementation of this grammar.
 
 ```
 File        = { UseDecl } { TopDecl } .

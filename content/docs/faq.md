@@ -19,8 +19,8 @@ project or company with a similar name.
 ## What is Xo for?
 
 Backends and web services: HTTP APIs, workers, command line tools. It is a
-small, statically typed, garbage collected language that compiles to static
-binaries for Linux, macOS, Windows, and WASI.
+small, statically typed language that compiles to static binaries for
+Linux, macOS, Windows, and WASI.
 
 ## Why design a language for AI agents?
 
@@ -59,9 +59,12 @@ try about as often in Xo as in Go, with programs about half the size.
 
 Closely. Xo keeps what makes Go productive: few keywords, one obvious way to
 write things, one formatter, fast builds, static binaries, a strong standard
-library, and a compatibility promise. The first toolchain compiles Xo to Go,
-so it inherits Go's garbage collector, scheduler, and cross compilation, and
-[any Go package can be used directly](../tour/12-go-packages/).
+library, and a compatibility promise. By default Xo compiles to native code
+with its own runtime and scheduler (Xo's own compiler, assembler, and
+linkers on arm64, LLVM elsewhere). A Go backend (`--backend=go`) compiles
+through Go instead, with Go's garbage collector and cross compilation to
+every Go target, and lets a program
+[use any Go package directly](../tour/12-go-packages/).
 
 The differences are where Go lets a bug compile: Xo has `Result` errors you
 must handle, optionals instead of nil, sum types with exhaustive `match`,
@@ -77,9 +80,12 @@ languages; Xo makes them part of everyday code.
 
 ## Is there a garbage collector?
 
-Yes, a tracing GC, plus request scoped arenas for HTTP handlers that are on
-by default and invisible to programs. Native backends (LLVM and arm64) are
-in development and can also build programs without a garbage collector.
+Not by default. Native builds, the default, manage memory by reference
+counting: values are freed when the last reference goes, with no
+collector pauses, and Xo's value semantics leave no cycles to collect.
+Request scoped arenas for HTTP handlers are on by default and invisible to
+programs. The Go backend (`--backend=go`) uses Go's tracing garbage
+collector.
 
 ## What does "experimental" mean right now?
 

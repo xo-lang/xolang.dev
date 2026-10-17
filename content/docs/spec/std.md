@@ -425,6 +425,19 @@ only: `FileInfo.path`, `create_temp`, `read_link`, `glob`, and
 `Env.program`, `home`, `config_dir`, and `cache_dir` (3.5). On other OSes
 `\` is an ordinary character of a name, as before.
 
+`cwd_path` (decision 0218) is the working directory as an absolute path
+with `/` separators, the directory `cwd()` is rooted at, asked of the OS
+(getcwd; `GetCurrentDirectoryW` on Windows) and never taken from `$PWD`
+alone: `$PWD` is used only when it names the same directory (it keeps
+the links the shell's path has, as Go's `os.Getwd` does), so a stale
+`$PWD` from a parent that started the program without a shell (`PWD=/`
+from the macOS Dock) is ignored. It is the same on every capability
+derived from `os.fs`. It fails with `Io` when the OS cannot give it
+(a removed directory). WASI has no working directory: there it fails
+with `Io` (planned: the wasm backend reports the call as unsupported
+today, as it does `cwd()`).
+A test's `MemFs` gives `/`, its root, where its `cwd()` is rooted.
+
 ```
 enum FsErr {
   NotFound(path: Str)
@@ -447,6 +460,7 @@ struct FileInfo {
 
 fn (f: Fs) sub(dir: Str) -> Fs                               // lazy: dir need not exist yet
 fn (f: Fs) cwd() -> Fs                                       // sub capability at the working directory
+fn (f: Fs) cwd_path() -> Str ! FsErr                         // the working directory's absolute path, from the OS
 fn (f: Fs) read_only() -> Fs
 fn (f: Fs) write_only() -> Fs                // reads fail with Denied
 fn (f: Fs) case_sensitive() -> Bool                          // of the underlying filesystem
@@ -471,7 +485,8 @@ fn (f: Fs) set_modified(path: Str, t: Time) -> () ! FsErr uses fs.write
 
 Handles, links, globs, and locks (decision 0163; the Go backend and
 MemFs, and native builds on the real filesystem, decision 0172; a native
-test binary's MemFs reports them as XO1201, planned):
+test binary's MemFs has all of them, as on the Go backend, since
+2026-10-15):
 
 ```
 fn (f: Fs) open(path: Str) -> File ! FsErr        uses fs.read   // read as a stream
@@ -688,7 +703,9 @@ native ones read `HOME` for the home directory).
 variables: `get` of another name is `None`, `vars` holds only listed
 names, and `home` is `Err(Missing("HOME"))` unless `HOME` is listed;
 `args` and `program` are unchanged. Attenuating again keeps both lists.
-Native builds have it too (decision 0172).
+On Windows names match without ASCII case, as its environment compares
+them (`only(["PATH"])` admits `Path`). Native builds have it too
+(decision 0172).
 
 ### 3.6 Stdio (`uses stdio`)
 
@@ -960,7 +977,13 @@ When a handler returns `Err(e)`:
 - otherwise the response is 500 with `{"error": "internal error"}` and the
   error is logged with its frames.
 
-A fault in a handler is isolated: 500, logged, crash bundle written. On the
+A fault in a handler or a middleware is isolated: 500, logged, crash
+bundle written (the middleware registered before a faulting one sees no
+response: the 500 replaces the whole chain's). A fault in the server's
+own code for a connection ends that connection alone (HTTP/2: a fault
+in a stream's handling resets the stream), logged as `http: panic
+serving` with the fault's message, as net/http recovers per connection;
+the server serves on. On the
 native backends (`--no-gc`, decisions 0074, 0083, and 0085) it is isolated
 the same way (the handler unwinds, the server keeps serving) but no crash
 bundle is written, and the error of a 500 is logged without frames.
@@ -1093,6 +1116,15 @@ Any HTTP status is a successful `Response`; only transport failures are
 `http` or `https` scheme and a host; anything else is a `UrlErr`. An
 `https` URL is requested over TLS (4.6).
 
+Compression is net/http's Transport's: a request without its own
+`Accept-Encoding` or `Range` field (and not `HEAD`) is sent with
+`Accept-Encoding: gzip`, and a non-empty response body whose
+`Content-Encoding` is `gzip` (any case) is decoded, with
+`Content-Encoding` and `Content-Length` removed from its headers; a
+body that does not decode is `Protocol` with gzip's text (`gzip: invalid
+header`, `unexpected EOF`). A request that sets `Accept-Encoding` or
+`Range` itself gets the body and headers as the server sent them.
+
 ### 4.6 TLS (HTTPS)
 
 ```
@@ -1161,13 +1193,26 @@ fn serve_https(os: Os, r: http.Router) -> () ! Error uses (fs.read, net.listen) 
   `Connect("remote error: tls: handshake failure")`.
 - Tests: `FakeNet` (8.1) and in memory listeners serve `https` URLs and
   `with_tls` servers in process, without TLS.
-- The native backends (`--no-gc`, decision 0105) implement this with
-  Mbed TLS: the same behavior and texts, except that Ed25519 certificate
-  keys are not accepted (`tls_cert` fails, a server presenting one fails
-  verification), the key exchange never uses the post quantum
-  `X25519MLKEM768` group, and on macOS the system's roots are checked by
-  the Security framework through the same calls Go makes, so its texts
-  match there too.
+- The native backends (`--no-gc`) implement this in Xo (decision 0202):
+  TLS 1.3 and 1.2, client and server, Go 1.26's defaults and texts.
+  The client offers Go 1.26's groups in its order (the post quantum
+  hybrids `X25519MLKEM768`, `SecP256r1MLKEM768` and
+  `SecP384r1MLKEM1024`, then X25519, P-256, P-384 and P-521) and takes
+  ECDSA certificates on P-256, P-384 and P-521 (P-224 too in chains and
+  on TLS 1.2, as Go); the server takes `X25519MLKEM768`, X25519, P-256
+  and P-384, and P-256 and P-384 ECDSA certificate keys. On macOS the
+  system's roots are checked by the Security framework through the same
+  calls Go makes. (Mbed TLS, decision 0105, was removed on 2026-10-15;
+  `XO_LLRT_C=tlsio` and `tlssrv` are gone with it.)
+- Environment switches, for compatibility and debugging (read by the
+  runtime, every backend unless noted):
+  - `XO_TLS_MLKEM=0`: the client offers none of the ML-KEM hybrids, so
+    X25519 is its first and only key share (groups X25519, P-256, P-384,
+    P-521), as Go's `GODEBUG=tlsmlkem=0`; for a server that mishandles a large
+    ClientHello, and for handshake measurements without ML-KEM.
+  - `XO_HTTP_MAX_BODY=<bytes>` (native backends): the largest request
+    body the server reads (default 64 MiB; a longer one is cut short as
+    a body whose client went away). Go has no such limit.
 
 ---
 
@@ -1359,7 +1404,11 @@ unwinds main back to it. `testing.gen` and property tests make the Go
 backend's values for a seed, and a failing property test reports the
 same case and shrunk input (decision 0120). With `xo test --real` a test
 gets real capabilities for the effects it declares (with `clock`, `net`,
-or `proc` its clock is the real one).
+or `proc` its clock is the real one). Many tests share a process, the
+fakes starting over for each, and a test the process does not survive
+runs again alone (decision 0235). `xo test --timeout=D` limits each
+test's real time on every backend (default 60s, 0 for none, core 9.2);
+natively the harness kills the process of a test past it.
 
 ```
 struct TestOs {
@@ -1710,9 +1759,9 @@ Results of a `Db` are not recorded by record and replay (core 11.3) yet.
 Status: draft (2026-10-08, decisions 0056 and 0059). Go standard library
 underneath, plus Argon2id and BLAKE2b vendored from `golang.org/x/crypto`
 into the runtime (no module dependency). Native builds (`--no-gc`,
-decision 0083) compute the same results in C (SHA-256, HMAC, PBKDF2,
-BLAKE2b, Argon2, SHA-512 and Ed25519), with random bytes from the operating system
-(`getentropy` on macOS, `getrandom` on Linux).
+decision 0083) compute the same results in Xo (std/native/llrt: SHA-256,
+HMAC, PBKDF2, BLAKE2b, Argon2, SHA-512 and Ed25519), with random bytes
+from the operating system (`getentropy` on macOS, `getrandom` on Linux).
 
 ```
 pub fn sha256(data: Bytes) -> Bytes                     // 32 bytes
@@ -1730,6 +1779,13 @@ pub fn ed25519_verify(public_key: Bytes, msg: Bytes, sig: Bytes) -> Bool
 ```
 
 - Hashing, signing, and comparison are pure: no capability, no effect.
+- Native builds compute SHA-256 (`sha256`, `hmac_sha256`, `hash_password`'s
+  PBKDF2, and the TLS stack's SHA-256) with the CPU's SHA-256
+  instructions where it has them (arm64's SHA2 extension: always on
+  macOS, by `AT_HWCAP` on Linux) and in portable Xo elsewhere; the
+  results are the same bytes either way (decision 0231, owner
+  2026-10-16). Not observable from programs: it is an internal
+  intrinsic (std/native/llrt/cpu.xo `sha256_block`), not API.
 - Randomness comes only from the `Rand` capability (section 3.4), as
   everywhere else: cryptographically secure in programs, seeded from the
   test seed in tests, so a test that creates tokens or salts is
@@ -1820,7 +1876,7 @@ Status: **Accepted** (decision 0094, 2026-10-09; drafted by the spec
 audit, `bench/results/spec-audit-2026-10-09.md`). Implemented on the Go
 backend (2026-10-09): `std/time.xo`, `std/rt/timezone.go`,
 `timecivil.go`, `timefmt.go`; the compile time layout check is
-`internal/check/timelayout.go`. The native backends build all of it
+selfhost/check's (`internal/check/timelayout.go` until decision 0215). The native backends build all of it
 (2026-10-09: `std/native/time.xo` over `std/llrt/xo_time.c`, the same
 zone data per use, output identical to the Go backend's; decision 0094
 "Native implementation"; decision 0089 makes native a preview at 1.0;
@@ -1955,8 +2011,11 @@ Settled while implementing; examples are in the goldens
 `internal/gen/testdata/golden/time_*` and
 `internal/check/testdata/golden/time_layout`.
 
-- **Zone data.** The zone data is the `lib/time/zoneinfo.zip` of the Go
-  toolchain that builds the program (`XO_ZONEINFO` names another file).
+- **Zone data.** The zone data is the IANA time zone database that ships
+  with std (`std/tzdata/zoneinfo.zip`, its IANA version in
+  `std/tzdata/VERSION`), on every backend; no Go toolchain is needed.
+  `XO_ZONEINFO` names another file, and `--tzdata=system` reads the
+  operating system's database at run time instead.
   `time.zone("UTC")` needs no data. A constant name is a string literal,
   a `const`, or a `+` of them; a constant name the database does not have
   gets a build note and returns `ZoneErr.Unknown` at run time. `time.zone`
@@ -2346,7 +2405,7 @@ the Unicode classes `\pL` (`\p{Letter}`), `\p{Nd}`, `\p{Any}`, and
 not supported by native builds yet.
 
 ```
-struct Regex {}                          // handle
+struct Regex {}                          // an immutable compiled value (not a handle, core 2.9)
 struct RegexErr { pattern: Str, msg: Str }   // `invalid regexp "(a": missing closing ): ...`
 
 pub fn compile(pattern: Str) -> Regex ! RegexErr

@@ -94,13 +94,14 @@ def md_text(s):
 
 
 def xo_binary():
-    """$XO, else build cmd/xo from the repo into a temp dir."""
+    """$XO, else the repo's bin/xo, which `go run ./scripts/xobuild` builds
+    (the Go compiler in cmd/xo was deleted, decision 0215)."""
     if os.environ.get("XO"):
         return os.environ["XO"], None
-    tmp = tempfile.mkdtemp()
-    out = os.path.join(tmp, "xo")
-    subprocess.run(["go", "build", "-o", out, "./cmd/xo"], cwd=REPO, check=True)
-    return out, tmp
+    out = os.path.join(REPO, "bin", "xo")
+    if not os.path.exists(out):
+        subprocess.run(["go", "run", "./scripts/xobuild"], cwd=REPO, check=True)
+    return out, None
 
 
 def diagnostics():
