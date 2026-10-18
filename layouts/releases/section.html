@@ -6,7 +6,7 @@
     <ul class="posts">
       {{- range .Pages.ByDate.Reverse }}
       <li>
-        <div class="meta">released {{ .Date.Format "2006-01-02" }}{{ if site.Params.sourcePublic }}{{ with .Params.tag }} · <a href="https://github.com/xo-lang/xo/tree/{{ . }}">{{ . }}</a>{{ end }}{{ end }}</div>
+        <div class="meta">released {{ .Date.Format "2006-01-02" }}{{ if site.Params.sourcePublic }}{{ with .Params.tag }} · <a href="https://github.com/xo-lang/xo/releases/tag/{{ . }}">{{ . }}</a>{{ end }}{{ end }}</div>
         <h3><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></h3>
         <p>{{ .Description }}</p>
       </li>
