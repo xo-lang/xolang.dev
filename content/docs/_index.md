@@ -3,7 +3,7 @@ title: "Documentation"
 description: "Start here: install Xo, write a first program, and find the specification."
 ---
 
-Xo (pronounced *ex-oh*) is a fast, statically typed language for backends, tools, and
+Xo (pronounced *ex-oh*) is a small, statically typed language for backends, tools, and
 web services, designed so AI agents can write, check, cross compile, and debug
 programs with fast, structured feedback.
 

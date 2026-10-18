@@ -47,6 +47,21 @@ status = "done"
 text = "Every part of the Xo compiler exists in Xo: lexer, parser, checker, SSA, and all three code generators, and Xo compiles itself. The self-hosted checker agreed with the Go checker on all 685 repository runs, and since 2026-10-12 <code>xo</code> itself is the compiler written in Xo."
 
 [[milestones]]
+title = "A runtime with no C"
+status = "done"
+text = "Since 0.16.0 the native runtime is written entirely in Xo, and since 0.19.0 Linux programs without <code>use c</code> link no C library: Xo's own assembler and linkers build them as static binaries, from a Mac too. See <a href=\"/blog/zero-c-runtime/\">No C left in the runtime</a>."
+
+[[milestones]]
+title = "Profiling and debugging"
+status = "done"
+text = "A sampling profiler with pprof output (<code>XO_PROF=cpu,heap</code>), an execution trace (<code>xo trace</code>), <code>xo dump</code> of a running program's tasks, and DWARF line tables, variables, and types, so lldb and gdb show strings, lists, maps, and enums on arm64 and LLVM builds."
+
+[[milestones]]
+title = "Public source"
+status = "done"
+text = "Since 2026-10-18 the source is at <a href=\"https://github.com/xo-lang/xo\">github.com/xo-lang/xo</a>, with its full history, as a mirror of the development repository: issues welcome, code as proposals."
+
+[[milestones]]
 title = "Stability audit"
 status = "next"
 text = "Last pass 2026-10-11: 207 of 219 spec features stable, 1 in preview, and 11 gaps, all marked for later. The project owner decides which gaps close before 1.0."
