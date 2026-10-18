@@ -7,6 +7,9 @@
       <div class="ctas">
         <a class="btn primary" href="{{ "play/#example=tour/hello" | relURL }}">try online</a>
         <a class="btn ghost" href="{{ "docs/tour/" | relURL }}">take the tour</a>
+        {{- if site.Params.sourcePublic }}
+        <a class="btn ghost" href="{{ site.Params.sourceRepo }}">source on GitHub</a>
+        {{- end }}
       </div>
     </div>
     <div class="stage">
@@ -140,6 +143,27 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     </div>
   </section>
 
+  {{- if site.Params.sourcePublic }}
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// get xo</div>
+      <h2>Build it from source.</h2>
+      <p class="sub">There are no prebuilt downloads yet. The compiler is written in Xo, so the first build starts from Xo's last Go version and walks forward to today's; it needs git and Go 1.26 or later, once (and clang on x86-64), and took 25 to 37 minutes on a 16-core machine. After that, every <code>xo</code> builds the next one without Go, and native programs build with no C toolchain on Apple silicon Macs and arm64 Linux.</p>
+      <div class="term">
+        <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> git clone {{ site.Params.sourceRepo }} && cd xo
+<span class="p">$</span> go run ./scripts/xobuild --from-source
+<span class="p">$</span> export PATH="$PWD/bin:$PATH"
+<span class="p">$</span> xo init example.com/hello</pre>
+      </div>
+      <div class="ctas">
+        <a class="btn primary" href="{{ "docs/getting-started/" | relURL }}">getting started</a>
+        <a class="btn ghost" href="{{ "releases/" | relURL }}">release history</a>
+      </div>
+    </div>
+  </section>
+  {{- end }}
+
   <section>
     <div class="wrap">
       <div class="eyebrow">// learn</div>
@@ -168,13 +192,15 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
       <div>
         <div class="eyebrow">// one binary</div>
         <h2>A toolchain built for agents to drive.</h2>
-        <p class="sub">Checks, builds, and queries answer in JSON. Queries and edits work on resolved symbols, so an agent never guesses from text, and every edit is rechecked before it is written. And when the check is clean, Finan sleeps soundly.</p>
+        <p class="sub">Checks, builds, and queries answer in JSON. Lookups and edits work on resolved symbols, so an agent never guesses from text, and every edit is rechecked before it is written. <code>dbg(x)</code> prints a value from any function, pure ones included, on every backend, and a release build strips it. And when the check is clean, Finan sleeps soundly.</p>
         <div class="cmds">
           <div class="cmd"><code>xo check --json</code><span>Type, effect, and concurrency checks</span></div>
-          <div class="cmd"><code>xo build --targets=all</code><span>Static binaries for four OSes</span></div>
-          <div class="cmd"><code>xo test --explore=N</code><span>Searches task interleavings</span></div>
-          <div class="cmd"><code>xo query callers</code><span>Semantic queries for agents</span></div>
+          <div class="cmd"><code>xo def NAME</code><span>Where a symbol is defined</span></div>
+          <div class="cmd"><code>xo refs NAME</code><span>Every use of a symbol</span></div>
+          <div class="cmd"><code>xo doc NAME</code><span>Signature, docs, and methods</span></div>
           <div class="cmd"><code>xo edit rename</code><span>Edits rechecked before writing</span></div>
+          <div class="cmd"><code>xo test --explore=N</code><span>Searches task interleavings</span></div>
+          <div class="cmd"><code>xo dev bisect-pass</code><span>Names the pass behind a miscompile</span></div>
           <div class="cmd"><code>xo explain XO0401</code><span><a href="{{ "docs/diagnostics/" | relURL }}">Every code, explained</a></span></div>
         </div>
         <div class="term">

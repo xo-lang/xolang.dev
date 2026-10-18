@@ -42,6 +42,10 @@ name = "blog"
 pageRef = "/blog"
 weight = 30
 [[menus.main]]
+name = "releases"
+pageRef = "/releases"
+weight = 35
+[[menus.main]]
 name = "github"
 url = "https://github.com/xo-lang"
 weight = 40

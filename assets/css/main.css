@@ -152,6 +152,17 @@ footer .wrap { display: flex; justify-content: space-between; align-items: cente
 .toc a:hover { color: var(--ink); text-decoration: none; }
 .toc li.open > a { color: var(--ink); }
 .toc a.active { color: var(--accent-2); border-left-color: var(--accent); background: var(--bg-2); font-weight: 500; }
+.page-index { margin: 0 0 28px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; background: var(--bg-2); font-size: 14px; }
+.page-index summary { cursor: pointer; padding: 12px 0; font: 500 14px "JetBrains Mono", monospace; color: var(--ink); }
+.page-index[open] { padding-bottom: 12px; }
+.page-index ul { list-style: none; margin: 0; padding: 0; }
+.page-index ul ul { padding-left: 14px; }
+.prose .page-index a { display: block; padding: 5px 0; color: var(--ink-2); text-decoration: none; }
+.prose .page-index a:hover { color: var(--ink); }
+.prose .to-index { position: fixed; right: 16px; bottom: 16px; z-index: 5; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-2); font: 500 13px "JetBrains Mono", monospace; color: var(--ink); text-decoration: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); }
+@media (min-width: 1101px) {
+  .page-index.has-aside, .to-index.has-aside { display: none; }
+}
 .raw-link { display: inline-block; margin-top: 16px; font: 12px "JetBrains Mono", monospace; color: var(--ink-2); }
 
 .prose { min-width: 0; font-size: 16.5px; line-height: 1.7; }

@@ -42,18 +42,22 @@ On an arm64 host (Apple silicon, arm64 Linux) `xo` is built with the
 arm64 backend. On an x86-64 host it is built with the LLVM backend,
 which needs clang.
 
-The native backends need a C toolchain: `--backend=llvm` needs clang,
-and `--backend=arm64` needs a C compiler driver (`cc`: clang or gcc).
+Programs build to native code by default, and what that needs depends
+on the backend:
 
-To build programs, the Go backend (the default) needs Go 1.24 or newer
-on the `PATH` (or `XO_GO` set to its go command); an older Go is
-reported as [`XO1502`](/docs/diagnostics/xo1502/), and no Go at all as
-[`XO1503`](/docs/diagnostics/xo1503/). The native backends
-(`--backend=arm64`, `--backend=llvm`) need no Go, with one exception:
-building a program that names time zones reads them from Go's
-`zoneinfo.zip`. With no Go installed, set `XO_ZONEINFO` to a
-`zoneinfo.zip`, or build with `--tzdata=system` to use the system's zone
-files. Shipping the zone data with Xo is planned.
+- `--backend=arm64`, the default on arm64 hosts: nothing. Xo's own
+  assembler and linkers build the binary, with no C toolchain, unless
+  the program calls C with `use c`.
+- `--backend=amd64`, Xo's own x86-64 backend (in preview): nothing, for
+  Linux and Intel Macs.
+- `--backend=llvm`, the default on x86-64 hosts: clang.
+- `--backend=go`, needed for `use go`: Go 1.24 or newer on the `PATH`
+  (or `XO_GO` set to its go command); an older Go is reported as
+  [`XO1502`](/docs/diagnostics/xo1502/), and no Go at all as
+  [`XO1503`](/docs/diagnostics/xo1503/).
+
+Time zone data ships with Xo's standard library, so no backend needs Go
+for it.
 
 ## A first program
 

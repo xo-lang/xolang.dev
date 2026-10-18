@@ -1,0 +1,21 @@
+{{ define "main" }}
+<div class="wrap page plain">
+  <article class="prose">
+    <h1>{{ .Title }}</h1>
+    {{ .Content }}
+    <ul class="posts">
+      {{- range .Pages.ByDate.Reverse }}
+      <li>
+        <div class="meta">released {{ .Date.Format "2006-01-02" }}{{ if site.Params.sourcePublic }}{{ with .Params.tag }} · <a href="https://github.com/xo-lang/xo/tree/{{ . }}">{{ . }}</a>{{ end }}{{ end }}</div>
+        <h3><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></h3>
+        <p>{{ .Description }} <a href="{{ .RelPermalink }}">Release notes</a></p>
+      </li>
+      {{- end }}
+    </ul>
+    {{- with .Params.earlier }}
+    <h2>Earlier versions</h2>
+    <p>{{ . | markdownify }}</p>
+    {{- end }}
+  </article>
+</div>
+{{ end }}

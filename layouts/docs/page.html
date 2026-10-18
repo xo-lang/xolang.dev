@@ -4,7 +4,21 @@
   <article class="prose">
     {{ if not .Params.hideTitle }}<h1>{{ .Title }}</h1>{{ end }}
     {{- with .Params.severity }}<div class="meta">{{ . }} · reported by the {{ $.Params.phase }}</div>{{ end }}
+    {{- /* The page's index at the top: on every page with three or more
+       headings, and on narrow screens for the pages whose index is also
+       the "On this page" column (hidden there). */}}
+    {{- $toc := .TableOfContents }}
+    {{- $index := gt (len (findRE `<li>` $toc)) 2 }}
+    {{- if $index }}
+    <details class="page-index{{ if .Params.toc }} has-aside{{ end }}" id="page-index">
+      <summary>On this page</summary>
+      {{ $toc }}
+    </details>
+    {{- end }}
     {{ .Content }}
+    {{- if $index }}
+    <a class="to-index{{ if .Params.toc }} has-aside{{ end }}" href="#page-index" onclick="document.getElementById('page-index').open = true">&uarr; index</a>
+    {{- end }}
     {{- if eq .Parent.Path "/docs/tour" }}
     <nav class="pager">
       {{- /* Hugo's NextInSection is the page before this one in weight order. */}}

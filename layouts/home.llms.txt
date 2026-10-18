@@ -32,6 +32,12 @@ Every page below is also served as Markdown: append `index.md` to its URL.
 - [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
 {{- end }}
 
+## Releases
+{{ with site.GetPage "/releases" }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}{{ range .Pages.ByDate.Reverse }}
+- [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
+{{- end }}{{ end }}
+
 ## Blog
 {{ with site.GetPage "/blog" }}{{ range .Pages.ByDate.Reverse }}
 - [{{ .Title }}]({{ (.OutputFormats.Get "markdown").Permalink }}): {{ .Description }}
