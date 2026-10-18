@@ -28,10 +28,6 @@ name = "tour"
 pageRef = "/docs/tour"
 weight = 15
 [[menus.main]]
-name = "play"
-pageRef = "/play"
-weight = 17
-[[menus.main]]
 name = "spec"
 pageRef = "/docs/spec"
 weight = 20
@@ -45,10 +41,6 @@ weight = 30
 name = "releases"
 pageRef = "/releases"
 weight = 35
-[[menus.main]]
-name = "github"
-url = "https://github.com/xo-lang"
-weight = 40
 
 # llms.txt on the home page, and the raw Markdown of every page next to its
 # HTML (/docs/spec/core/index.md), for agents.
