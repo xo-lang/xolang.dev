@@ -1,7 +1,7 @@
 {{ define "main" }}
   <div class="wrap hero">
     <div>
-      <div class="tag">{{ site.Params.version }} · experimental · builds for linux, darwin, windows, wasi</div>
+      <div class="tag">{{ site.Params.version }} · experimental · builds for Linux, Mac, Windows, WASI</div>
       <h1>Agents write the code. <span>Xo catches what they miss.</span></h1>
       <p class="lede">Xo (pronounced <span class="say">ex-oh</span>) is a small, statically typed language for backends, tools, and web services. Ignored errors, nil, missed cases, and hidden side effects are compile errors, not code review comments. Each one comes back as JSON with a stable code and a fix the agent can apply itself, so the first review happens before anyone reads the code.</p>
       <div class="ctas">
@@ -32,7 +32,7 @@
       <h2>Ideas from great languages, in one small one.</h2>
       <p class="sub">Xo borrows what has proven itself in Go, Rust, Swift, and Kotlin, and turns the bugs tests usually miss into compile errors. In a study of 30 planted safety bugs, Xo caught or prevented 23 to 29, against 13 for Go with strict analyzers and 9 for plain Go.</p>
       <div class="grid">
-        <div class="cell"><div class="from">from Go</div><h3>Small and fast</h3><p>Few keywords, one obvious way, one formatter, fast builds, and static binaries for linux, darwin, windows, and wasi.</p></div>
+        <div class="cell"><div class="from">from Go</div><h3>Small and fast</h3><p>Few keywords, one obvious way, one formatter, fast builds, and static binaries for Linux, Mac, Windows, and WASI.</p></div>
         <div class="cell"><div class="from">from Rust</div><h3>Errors you can't ignore</h3><p><code>Result</code> and <code>?</code>; an unhandled error is a compile error.</p></div>
         <div class="cell"><div class="from">from Rust and ML</div><h3>Sum types, exhaustive match</h3><p>Every case handled, and every <code>match target.os</code> arm type checked for every target.</p></div>
         <div class="cell"><div class="from">from Swift and Kotlin</div><h3>No nil</h3><p>Optionals are <code>T?</code> and checked at every use.</p></div>
@@ -106,14 +106,14 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// how it builds</div>
       <h2>One language, native by default.</h2>
-      <p class="sub">By default an Xo program compiles to native code: on arm64 Macs and Linux, Xo's own SSA form becomes AArch64 assembly that Xo's own assembler and linkers turn into a binary, with no C toolchain; elsewhere it becomes LLVM IR that clang builds, and Xo's own x86-64 backend, in preview, builds linux/amd64 binaries with no C toolchain too. The native runtime is written in Xo, with no C. Memory is freed by reference counting, debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. A Mac builds static Linux binaries too. The Go backend is the other way to build the same program: it writes Go source that points back to your <code>.xo</code> lines, so Go's garbage collector, every Go target, and any Go package (<code>use go</code>) come with it. Every backend is tested against the others: the test programs must print the same output on each. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go.</p>
+      <p class="sub">Xo has five backends, and all of them start from the same SSA form. By default a program compiles to native code: on Apple silicon Macs and arm64 Linux, Xo's own arm64 backend, assembler, and linkers build the binary with no C toolchain; on x86-64 the default is LLVM for now, and Xo's own x86-64 backend, in preview, already builds Linux and Intel Mac binaries with no C toolchain. The native runtime is written in Xo, with no C, and frees memory by reference counting, with no garbage collector; a function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation. Debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. The Go backend is the other way to build the same program, and the WebAssembly backend runs it over WASI. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go.</p>
       <div class="grid">
-        <div class="cell"><div class="from">native · default on arm64</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from Xo's SSA form, assembled and linked by Xo's own tools, for fast builds on arm64 Macs and Linux, and static Linux binaries from a Mac.</p><code class="use">xo build</code></div>
-        <div class="cell"><div class="from">native · preview</div><h3>x86-64 backend</h3><p>Xo's own code generator, assembler, and linker for linux/amd64, built the same way as arm64's, with no C toolchain. Within about 14 percent of LLVM's instructions on our benchmarks, and closing (<a href="{{ "blog/correct-first-fast-later/" | relURL }}">how</a>).</p><code class="use">xo build --backend=amd64</code></div>
-        <div class="cell"><div class="from">native · default elsewhere</div><h3>LLVM backend</h3><p>Lowers the same SSA form to LLVM IR and builds optimized native code with clang. It is the default native backend on x86-64 hosts.</p><code class="use">xo build --backend=llvm</code></div>
-        <div class="cell"><div class="from">reference</div><h3>Go backend</h3><p>Builds every program that does not call C, on every Go target, and can <code>use go</code> any Go package.</p><code class="use">xo build --backend=go</code></div>
-        <div class="cell"><div class="from">native</div><h3>No garbage collector</h3><p>Memory is freed by reference counting the moment its last owner lets go, and a value with one owner is updated in place. A function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation, for control loops and audio.</p></div>
+        <div class="cell"><div class="from">native · default on arm64</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from Xo's SSA form, assembled and linked by Xo's own tools: fast builds on Apple silicon Macs and arm64 Linux, static Linux binaries from a Mac, and binaries smaller than LLVM's. The compiler builds itself with it.</p><code class="use">xo build</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>x86-64 backend</h3><p>Xo's own code generator, assemblers, and linkers for x86-64 Linux and Intel Macs, built the same way as arm64's, with no C toolchain; Windows is next. Within about 14 percent of LLVM's instructions on our benchmarks, and closing (<a href="{{ "blog/correct-first-fast-later/" | relURL }}">how</a>).</p><code class="use">xo build --backend=amd64</code></div>
+        <div class="cell"><div class="from">native · default elsewhere</div><h3>LLVM backend</h3><p>Lowers the same SSA form to LLVM IR and builds optimized native code with clang, for every native target, Windows included. The default on x86-64 hosts until Xo's own backend takes over.</p><code class="use">xo build --backend=llvm</code></div>
+        <div class="cell"><div class="from">reference</div><h3>Go backend</h3><p>Writes Go source that points back to your <code>.xo</code> lines, for every Go target, with Go's garbage collector, and can <code>use go</code> any Go package.</p><code class="use">xo build --backend=go</code></div>
         <div class="cell"><div class="from">experimental</div><h3>WebAssembly backend</h3><p>Turns the same SSA form into WebAssembly that runs over WASI with its own runtime. It builds the compiler that runs <a href="{{ "play/" | relURL }}">the playground</a>; a program it cannot build yet stops with a clear error, never with wrong output.</p><code class="use">xo build --backend=wasm</code></div>
+        <div class="cell"><div class="from">all five</div><h3>Same program, same output</h3><p>Every backend is tested against the others: the test programs and randomly generated ones must print the same output on each, and every change to the compiler must rebuild it byte for byte.</p></div>
       </div>
     </div>
   </section>
@@ -122,7 +122,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// status</div>
       <h2>The road to 1.0.</h2>
-      <p class="sub">Xo now compiles itself: <code>xo</code> is the compiler written in Xo, and it reproduces its own build byte for byte. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates. The <a href="{{ site.Params.sourceRepo }}">source</a> is public, with its full history.</p>
+      <p class="sub">Xo compiles itself: <code>xo</code> is the compiler written in Xo, it reproduces its own build byte for byte, and its native runtime has no C. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates. The <a href="{{ site.Params.sourceRepo }}">source</a> is public, with its full history.</p>
       {{- $ms := hugo.Data.roadmap.milestones }}
       <div class="status-row">
         <div class="col"><div class="from">done</div><ul class="chips">
@@ -182,7 +182,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
 <pre><span class="p">$</span> xo check ./...
 1 module(s), <span class="ok">0 error(s)</span>, 0 warning(s)
 <span class="p">$</span> xo build --targets=all .
-<span class="dim"># static binaries for linux, darwin, windows, wasi</span></pre>
+<span class="dim"># static binaries for Linux, Mac, Windows, WASI</span></pre>
         </div>
       </div>
       <figure class="sleeper-fig">

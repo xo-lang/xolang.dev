@@ -11,7 +11,7 @@ github = "https://github.com/xo-lang"
 # false, pages say it is coming and hide links into it.
 sourceRepo = "https://github.com/xo-lang/xo"
 sourcePublic = true
-version = "v0.20"
+version = "v0.21"
 
 # The orange bar at the top of every page. Set enabled = false to hide it.
 [params.announcement]

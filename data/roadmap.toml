@@ -9,7 +9,7 @@ text = "Syntax, types, effects, and diagnostics written down as a spec, with eve
 [[milestones]]
 title = "A compiler that emits Go"
 status = "done"
-text = "The type, effect, and concurrency checker, and the Go backend: every program builds into static binaries for linux, darwin, windows, and wasi."
+text = "The type, effect, and concurrency checker, and the Go backend: every program builds into static binaries for Linux, Mac, Windows, and WASI."
 
 [[milestones]]
 title = "Tools for agents"
@@ -62,6 +62,11 @@ status = "done"
 text = "Since 2026-10-18 the source is at <a href=\"https://github.com/xo-lang/xo\">github.com/xo-lang/xo</a>, with its full history, as a mirror of the development repository: issues welcome, code as proposals."
 
 [[milestones]]
+title = "A bigger standard library"
+status = "next"
+text = "More of what real programs need. Command line tools came first and are done (see the plan below)."
+
+[[milestones]]
 title = "Stability audit"
 status = "next"
 text = "Last pass 2026-10-11: 207 of 219 spec features stable, 1 in preview, and 11 gaps, all marked for later. The project owner decides which gaps close before 1.0."
@@ -74,12 +79,7 @@ text = "Code that builds keeps building."
 [[milestones]]
 title = "Native backends out of preview"
 status = "now"
-text = "Native is the default backend since 0.19.0 (decision 0248): arm64 on arm64 hosts, LLVM elsewhere, with the Go backend for <code>use go</code>. The runtime has no C since 0.16.0, Linux programs without <code>use c</code> link no C library, and debuggers see variables and types. Next: Xo's own x86-64 backend as the default on x86-64 hosts."
-
-[[milestones]]
-title = "A bigger standard library"
-status = "next"
-text = "More of what real programs need. Command line tools came first and are done (see the plan below)."
+text = "Native is the default backend since 0.19.0 (decision 0248): arm64 on arm64 hosts, LLVM elsewhere, with the Go backend for <code>use go</code>. The runtime has no C since 0.16.0, Linux programs without <code>use c</code> link no C library, debuggers see variables and types, and since 0.21.0 native binaries drop every function nothing calls (<code>xo</code> itself went from 57 MB to 42 MB). Next: Xo's own x86-64 backend as the default on x86-64 hosts."
 
 [[plan]]
 title = "Front end in Xo"
@@ -99,7 +99,7 @@ text = "Only your own module vouches for a dependency's C bindings, <code>xo.loc
 [[plan]]
 title = "Prebuilt runtime"
 status = "done"
-text = "Release builds ship the arm64 backend's C runtime prebuilt for each target, so arm64 builds no longer compile C: no clang needed. The system C toolchain (<code>cc</code>) still assembles and links the output; the LLVM backend still compiles its IR with clang. A first build on a cold cache went from 1.94 s to 0.13 s for a small program and from 4.27 s to 0.28 s for an HTTPS server (darwin/arm64). The linux/arm64 runtime is cross compiled on a Mac and reproducible byte for byte."
+text = "Release builds ship the arm64 backend's C runtime prebuilt for each target, so arm64 builds no longer compile C: no clang needed. The system C toolchain (<code>cc</code>) still assembles and links the output; the LLVM backend still compiles its IR with clang. A first build on a cold cache went from 1.94 s to 0.13 s for a small program and from 4.27 s to 0.28 s for an HTTPS server (on an Apple silicon Mac). The linux/arm64 runtime is cross compiled on a Mac and reproducible byte for byte."
 
 [[plan]]
 title = "arm64 emitter in Xo, and the fixed point"
@@ -149,9 +149,9 @@ text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, run
 [[plan]]
 title = "x86-64 backend in Xo"
 status = "now"
-text = "Xo's own code generator, assembler, and linker for x86-64 (decision 0254), the arm64 backend's front half with x86 instruction templates: <code>xo build --backend=amd64</code> builds linux/amd64 binaries with no C toolchain, with AES-NI, PCLMULQDQ, and SHA-NI. Within about 14 percent of LLVM's instructions on our benchmarks (see <a href=\"/blog/correct-first-fast-later/\">Correct first, fast later</a>). Next: macOS and Windows, then the default on x86-64 hosts once the compiler builds itself with it."
+text = "Xo's own code generator, assembler, and linker for x86-64 (decision 0254), the arm64 backend's front half with x86 instruction templates: <code>xo build --backend=amd64</code> builds Linux binaries with no C toolchain, with AES-NI, PCLMULQDQ, and SHA-NI, and since 0.21.0 Intel Mac binaries too, with Xo's own Mach-O assembler and linker: all 193 test programs pass on an Intel Mac with no C toolchain. Within about 14 percent of LLVM's instructions on our benchmarks (see <a href=\"/blog/correct-first-fast-later/\">Correct first, fast later</a>). Next: Windows, then the default on x86-64 hosts once the compiler builds itself with it."
 
 [[plan]]
 title = "A debugger written in Xo"
 status = "now"
-text = "DWARF variables and types (strings, lists, maps, enums) on arm64 and LLVM, so lldb and gdb show your values today, and fault reports can list each frame's variables. <code>xo debug</code> (decision 0253) is in progress: its reader, unwinder, batch session, and JSON protocol work on recorded threads."
+text = "DWARF variables and types (strings, lists, maps, enums) on arm64 and LLVM, so lldb and gdb show your values today, and a crash report lists each frame's variables. <code>xo debug</code> (decision 0253) is in progress: its reader, unwinder, batch session, and JSON protocol work on recorded threads."
