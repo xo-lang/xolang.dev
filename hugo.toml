@@ -7,16 +7,16 @@ disableKinds = ["taxonomy", "term"]
 [params]
 description = "Xo is a fast, statically typed language for backends, tools, and web services, built for AI agents to write, check, and debug."
 github = "https://github.com/xo-lang"
-# The compiler's source repo. Set sourcePublic = true when it opens; until
-# then pages say it is coming and hide links into it.
+# The compiler's source repo (public since 2026-10-18). With sourcePublic
+# false, pages say it is coming and hide links into it.
 sourceRepo = "https://github.com/xo-lang/xo"
-sourcePublic = false
-version = "v0.9"
+sourcePublic = true
+version = "v0.20"
 
 # The orange bar at the top of every page. Set enabled = false to hide it.
 [params.announcement]
 enabled = true
-html = "<b>Xo is experimental.</b> The source code is not public yet; until then, <a href=\"/play/\">try Xo in your browser</a>."
+html = "<b>Xo is experimental.</b> The source is now public on <a href=\"https://github.com/xo-lang/xo\">GitHub</a>, or <a href=\"/play/\">try Xo in your browser</a>."
 
 [menus]
 [[menus.main]]

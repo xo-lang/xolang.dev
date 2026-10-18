@@ -98,10 +98,10 @@ module uses the preview edition (`edition preview` in xo.mod).
 
 ## Where is the source code?
 
-It is not public yet; it will be soon, at
-[github.com/xo-lang](https://github.com/xo-lang). Until then, the
-[specification](../spec/) describes the whole language, and the
-[tour](../tour/) shows it working.
+At [github.com/xo-lang/xo](https://github.com/xo-lang/xo), public since
+2026-10-18, with its full history. It is a mirror of the development
+repository: issues are welcome, and code arrives as proposals (see its
+CONTRIBUTING.md).
 
 ## Who is the fox?
 

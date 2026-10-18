@@ -24,7 +24,7 @@ text = "Lock files, module proxies, a checksum log, and per definition hashes th
 [[milestones]]
 title = "Native backends, in preview"
 status = "done"
-text = "LLVM and a direct arm64 backend build programs to native code with no garbage collector (<code>--no-gc</code>)."
+text = "LLVM and a direct arm64 backend build programs to native code with no garbage collector."
 
 [[milestones]]
 title = "Real-time functions"
@@ -54,12 +54,12 @@ text = "Last pass 2026-10-11: 207 of 219 spec features stable, 1 in preview, and
 [[milestones]]
 title = "1.0"
 status = "next"
-text = "Code that builds keeps building. The Go backend is the supported path at 1.0; the native backends ship as preview."
+text = "Code that builds keeps building."
 
 [[milestones]]
 title = "Native backends out of preview"
-status = "next"
-text = "After 1.0: LLVM and arm64 build the whole language without a garbage collector, with the same guarantees as the Go backend."
+status = "now"
+text = "Native is the default backend since 0.19.0 (decision 0248): arm64 on arm64 hosts, LLVM elsewhere, with the Go backend for <code>use go</code>. The runtime has no C since 0.16.0, Linux programs without <code>use c</code> link no C library, and debuggers see variables and types. Next: Xo's own x86-64 backend as the default on x86-64 hosts."
 
 [[milestones]]
 title = "A bigger standard library"
@@ -119,14 +119,24 @@ text = "Done on 2026-10-13: the compiler written in Go is deleted, about 95,000 
 [[plan]]
 title = "WebAssembly backend"
 status = "now"
-text = "In progress, written only in Xo. The backend turns SSA into WebAssembly text, assembles it with an assembler written in Xo, and runs over WASI with its own runtime. Of 143 test programs, 121 give the expected output with no leaks, 22 stop at build time with a clear &quot;the wasm backend does not support ...&quot; error, and none run with wrong output. Tasks and channels run on a cooperative scheduler on one thread. Toward the compiler in the browser: the self-hosted checker, compiled to WebAssembly, prints exactly what the Go backend build of it prints (3,398 lines on seven programs). Passing large values by reference and tighter liveness shrank its module from 43 MB to 8.9 MB, and its run under Node from 10.73 s and 5.94 GB to 1.93 s and 2.50 GB (the native build: 0.06 s). In headless Chrome it checks a small program in 446 ms, but deeply nested expressions still overflow the browser's worker stack, so smaller frames are next, then the rest of the compiler, so the playground needs no Go compiler or linker to download."
+text = "Written only in Xo, over WASI with its own runtime, files and time zones included. 169 test programs pass on it; a program it cannot build yet stops with a clear &quot;the wasm backend does not support ...&quot; error, never with wrong output. It builds Xo's own compiler for <a href=\"/play/\">the playground</a>, about 2 MB to download (see <a href=\"/blog/playground-on-xos-own-compiler/\">The playground now runs Xo's own compiler</a>)."
 
 [[plan]]
 title = "Runtime pilot, then the runtime port"
-status = "now"
-text = "In progress. The pilot is done: the native runtime's Unicode operations are written in Xo, with output identical on every backend and runtime objects 4.7 percent smaller. The bar for porting more of the runtime is every workload within 5 percent of the C version, in instructions, on both native backends; arm64 and LLVM both meet it on the Unicode workloads, so the port continues, one step at a time, each behind a selectable C version. Steps 1 to 4 are done. Number and time text, Debug quoting, Str.replace and the trims (steps 1 and 2); Int and Float text, Float.parse, hex decoding, and base64 (step 3, see <a href=\"/blog/number-text-in-xo/\">Number text in Xo</a>); and std/json's parser, readers, and text (step 4: every JSON workload within the bar, the closest at 0.956 times the C on arm64, Float encoding about 0.02 times since it now uses Dragonbox). On these workloads the ported code matches or beats the C it replaced. Two pieces missed the bar and stay C: a Duration's text (1.17 times on arm64, 1.09 times on LLVM) and hex encoding (1.09 times on arm64). Bulk byte scans (split, lines, rune counts) stay C by design."
+status = "done"
+text = "Done in 0.16.0: the native runtime has no C left; see <a href=\"/blog/zero-c-runtime/\">No C left in the runtime</a>. The pilot is done: the native runtime's Unicode operations are written in Xo, with output identical on every backend and runtime objects 4.7 percent smaller. The bar for porting more of the runtime is every workload within 5 percent of the C version, in instructions, on both native backends; arm64 and LLVM both meet it on the Unicode workloads, so the port continues, one step at a time, each behind a selectable C version. Steps 1 to 4 are done. Number and time text, Debug quoting, Str.replace and the trims (steps 1 and 2); Int and Float text, Float.parse, hex decoding, and base64 (step 3, see <a href=\"/blog/number-text-in-xo/\">Number text in Xo</a>); and std/json's parser, readers, and text (step 4: every JSON workload within the bar, the closest at 0.956 times the C on arm64, Float encoding about 0.02 times since it now uses Dragonbox). On these workloads the ported code matches or beats the C it replaced. Two pieces missed the bar and stay C: a Duration's text (1.17 times on arm64, 1.09 times on LLVM) and hex encoding (1.09 times on arm64). Bulk byte scans (split, lines, rune counts) stay C by design."
 
 [[plan]]
 title = "Supply-chain follow-ups"
 status = "done"
 text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, running time, and allocation, so a dependency that loops forever is stopped. Log records from a dependency name the module that wrote them, and <code>xo audit</code> lists log call sites. Against 17 attack scenarios: 12 blocked, up from 10 of 15. Budgets, narrowed capabilities, and log attribution work on all three backends."
+
+[[plan]]
+title = "x86-64 backend in Xo"
+status = "now"
+text = "Xo's own code generator, assembler, and linker for x86-64 (decision 0254), the arm64 backend's front half with x86 instruction templates: <code>xo build --backend=amd64</code> builds linux/amd64 binaries with no C toolchain, with AES-NI, PCLMULQDQ, and SHA-NI. Within about 14 percent of LLVM's instructions on our benchmarks (see <a href=\"/blog/correct-first-fast-later/\">Correct first, fast later</a>). Next: macOS and Windows, then the default on x86-64 hosts once the compiler builds itself with it."
+
+[[plan]]
+title = "A debugger written in Xo"
+status = "now"
+text = "DWARF variables and types (strings, lists, maps, enums) on arm64 and LLVM, so lldb and gdb show your values today, and fault reports can list each frame's variables. <code>xo debug</code> (decision 0253) is in progress: its reader, unwinder, batch session, and JSON protocol work on recorded threads."
