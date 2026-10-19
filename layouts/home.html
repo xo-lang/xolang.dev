@@ -62,6 +62,30 @@
     </div>
   </section>
 
+  <section>
+    <div class="wrap">
+      <div class="eyebrow">// learn</div>
+      <h2>Learn Xo in twelve short steps.</h2>
+      <p class="sub">Every program in the tour checks, runs, and passes its tests with the current toolchain, and every error shown is the compiler's real output.</p>
+      {{- with site.GetPage "/docs/tour" }}
+      <ol class="tour-steps">
+        {{- range $i, $p := .RegularPages }}
+        <li><a href="{{ $p.RelPermalink }}"><span class="n">{{ printf "%02d" (add $i 1) }}</span><span class="t">{{ $p.LinkTitle }}</span><span class="d">{{ $p.Description }}</span></a></li>
+        {{- end }}
+      </ol>
+      <div class="ctas"><a class="btn primary" href="{{ .RelPermalink }}">start the tour</a></div>
+      {{- end }}
+
+      <h3 class="build-title latest-title">From the blog</h3>
+      <ul class="latest">
+        {{- range first 3 (where site.RegularPages.ByDate.Reverse "Section" "blog") }}
+        <li><a href="{{ .RelPermalink }}"><span class="date">{{ .Date.Format "2006-01-02" }}</span><span class="t">{{ .Title }}</span><span class="d">{{ .Description }}</span></a></li>
+        {{- end }}
+      </ul>
+      <div class="ctas"><a class="btn ghost" href="{{ "roadmap/" | relURL }}">the full roadmap</a></div>
+    </div>
+  </section>
+
   <section class="supply">
     <div class="wrap">
       <div class="eyebrow">// supply chain</div>
@@ -121,28 +145,6 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     </div>
   </section>
 
-  <section class="status">
-    <div class="wrap">
-      <div class="eyebrow">// status</div>
-      <h2>The road to 1.0.</h2>
-      <p class="sub">Xo compiles itself: <code>xo</code> is the compiler written in Xo, it reproduces its own build byte for byte, and its native runtime has no C. Xo is at {{ site.Params.version }} and still experimental; 1.0 will be a compatibility promise, and the project owner decides when Xo makes it. There are no dates. The <a href="{{ site.Params.sourceRepo }}">source</a> is public, with its full history.</p>
-      {{- $ms := hugo.Data.roadmap.milestones }}
-      <div class="status-row">
-        <div class="col"><div class="from">done</div><ul class="chips">
-          {{- range where $ms "status" "done" }}<li>{{ .title | safeHTML }}</li>{{ end }}
-        </ul></div>
-        <div class="col"><div class="from">in progress</div>
-          {{- $now := (where $ms "status" "now") | append (where hugo.Data.roadmap.plan "status" "now") }}
-          {{ partial "stages.html" $now }}
-        </div>
-        <div class="col"><div class="from">next</div><ul class="chips next">
-          {{- range first 3 (where $ms "status" "next") }}<li>{{ .title | safeHTML }}</li>{{ end }}
-        </ul></div>
-      </div>
-      <div class="ctas"><a class="btn ghost" href="{{ "roadmap/" | relURL }}">the full roadmap</a></div>
-    </div>
-  </section>
-
   {{- if site.Params.sourcePublic }}
   <section>
     <div class="wrap">
@@ -163,29 +165,6 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     </div>
   </section>
   {{- end }}
-
-  <section>
-    <div class="wrap">
-      <div class="eyebrow">// learn</div>
-      <h2>Learn Xo in twelve short steps.</h2>
-      <p class="sub">Every program in the tour checks, runs, and passes its tests with the current toolchain, and every error shown is the compiler's real output.</p>
-      {{- with site.GetPage "/docs/tour" }}
-      <ol class="tour-steps">
-        {{- range $i, $p := .RegularPages }}
-        <li><a href="{{ $p.RelPermalink }}"><span class="n">{{ printf "%02d" (add $i 1) }}</span><span class="t">{{ $p.LinkTitle }}</span><span class="d">{{ $p.Description }}</span></a></li>
-        {{- end }}
-      </ol>
-      <div class="ctas"><a class="btn primary" href="{{ .RelPermalink }}">start the tour</a></div>
-      {{- end }}
-
-      <h3 class="build-title latest-title">From the blog</h3>
-      <ul class="latest">
-        {{- range first 3 (where site.RegularPages.ByDate.Reverse "Section" "blog") }}
-        <li><a href="{{ .RelPermalink }}"><span class="date">{{ .Date.Format "2006-01-02" }}</span><span class="t">{{ .Title }}</span><span class="d">{{ .Description }}</span></a></li>
-        {{- end }}
-      </ul>
-    </div>
-  </section>
 
   <section>
     <div class="wrap rest">
