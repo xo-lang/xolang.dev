@@ -82,7 +82,6 @@
         <li><a href="{{ .RelPermalink }}"><span class="date">{{ .Date.Format "2006-01-02" }}</span><span class="t">{{ .Title }}</span><span class="d">{{ .Description }}</span></a></li>
         {{- end }}
       </ul>
-      <div class="ctas"><a class="btn ghost" href="{{ "roadmap/" | relURL }}">the full roadmap</a></div>
     </div>
   </section>
 
@@ -142,6 +141,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
         <div class="cell"><div class="from">experimental</div><h3>WebAssembly backend</h3><p>WebAssembly that runs over WASI with its own runtime. It builds the compiler that runs <a href="{{ "play/" | relURL }}">the playground</a>; a program it cannot build yet stops with a clear error, never with wrong output.</p><code class="use">xo build --backend=wasm</code></div>
         <div class="cell"><div class="from">all five</div><h3>Same program, same output</h3><p>Every backend is tested against the others: the test programs and randomly generated ones must print the same output on each, and every change to the compiler must rebuild it byte for byte.</p></div>
       </div>
+      <div class="ctas"><a class="btn ghost" href="{{ "roadmap/" | relURL }}">the full roadmap</a></div>
     </div>
   </section>
 
