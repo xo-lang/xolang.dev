@@ -316,11 +316,11 @@ async function main() {
     await b.shot("phone-tooltip");
     await wide("tooltip");
 
-    // the home page at phone width: the cards, terminals, and status
-    // stages fit, and the page does not scroll sideways
+    // the home page at phone width: the cards, terminals, and tour
+    // steps fit, and the page does not scroll sideways
     await b.eval(`location.href = ${JSON.stringify(base + "/")}; true`);
-    await b.until(`location.pathname === '/' && document.readyState === 'complete' && document.querySelector('.supply .term') && document.querySelector('.stages li')`, 15000);
-    const homeOver = await b.eval(`[...${fits(".wrap > *, .cell, .term, .stages li, .limits, .ix")}, ...(document.documentElement.scrollWidth > innerWidth ? ['page ' + document.documentElement.scrollWidth] : [])]`);
+    await b.until(`location.pathname === '/' && document.readyState === 'complete' && document.querySelector('.supply .term') && document.querySelector('.tour-steps li')`, 15000);
+    const homeOver = await b.eval(`[...${fits(".wrap > *, .cell, .term, .tour-steps li, .limits, .ix")}, ...(document.documentElement.scrollWidth > innerWidth ? ['page ' + document.documentElement.scrollWidth] : [])]`);
     await b.eval(`document.querySelector('.supply').scrollIntoView(); true`);
     await b.shot("phone-home-supply");
     if (homeOver.length) fail("phone: home page", homeOver.join(", "));
