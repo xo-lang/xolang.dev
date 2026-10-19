@@ -47,14 +47,14 @@
         <div class="ix">
           <div class="from">interop · Go</div>
           <h3>Use any Go package</h3>
-          <p>Bindings are generated on the fly. <code>(T, error)</code> becomes <code>T ! go.Error</code>, and a nil pointer becomes <code>T?</code>.</p>
+          <p>To help with adoption, Go libraries can be used with Xo until its own library support grows. Bindings are generated on the fly. <code>(T, error)</code> becomes <code>T ! go.Error</code>, and a nil pointer becomes <code>T?</code>.</p>
 <pre class="snip"><span class="p">use</span> go <span class="str">"regexp"</span>
 <span class="p">use</span> go <span class="str">"github.com/google/uuid"</span> <span class="p">as</span> uuid</pre>
         </div>
         <div class="ix">
           <div class="from">interop · C</div>
           <h3>Call C from native builds</h3>
-          <p>The LLVM and arm64 backends bind C headers directly, with effects declared at the boundary.</p>
+          <p>Use C libraries the way Go programs do with cgo: the LLVM and arm64 backends bind C headers directly, with effects declared at the boundary.</p>
 <pre class="snip"><span class="p">use</span> c <span class="str">"zlib.h"</span> <span class="p">link</span> <span class="str">"z"</span> <span class="p">uses</span> none
 <span class="dim">// zlib.crc32(0, b"hello")</span></pre>
         </div>
@@ -66,7 +66,7 @@
     <div class="wrap">
       <div class="eyebrow">// supply chain</div>
       <h2>A dependency can only do what you let it.</h2>
-      <p class="sub">Put a ceiling on a dependency in <code>xo.mod</code>. If an upgrade starts doing more, the build fails at your call, before the new code ever runs. No mainstream language checks limits per dependency in the compiler: Go and Rust rely on audits and analysis tools, Deno and Node grant permissions per process, and Java's SecurityManager is disabled as of JDK 24.</p>
+      <p class="sub">Supply chain attacks are on the rise, so Xo's effects give you control over what each dependency can do. Put a ceiling on a dependency in <code>xo.mod</code>. If an upgrade starts doing more, the build fails at your call, before the new code ever runs. No mainstream language checks limits per dependency in the compiler: Go and Rust rely on audits and analysis tools, Deno and Node grant permissions per process, and Java's SecurityManager is disabled as of JDK 24.</p>
       <div class="term">
         <div class="top"><i></i><i></i><i></i><span>an upgrade that reaches into Go</span></div>
 <pre><span class="p">$</span> cat xo.mod
@@ -109,13 +109,13 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// how it builds</div>
       <h2>One language, native by default.</h2>
-      <p class="sub">Xo has five backends, and all of them start from the same SSA form. By default a program compiles to native code: on Apple silicon Macs and arm64 Linux, Xo's own arm64 backend, assembler, and linkers build the binary with no C toolchain; on x86-64 the default is LLVM for now, and Xo's own x86-64 backend, in preview, already builds Linux and Intel Mac binaries with no C toolchain. The native runtime is written in Xo, with no C, and frees memory by reference counting, with no garbage collector; a function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation. Debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. The Go backend is the other way to build the same program, and the WebAssembly backend runs it over WASI. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go.</p>
+      <p class="sub">Xo has five backends. Its own arm64 and x86-64 backends, assemblers, and linkers are written in Xo and need no C toolchain. The native runtime is written in Xo, with no C, and frees memory by reference counting, with no garbage collector; a function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation. Debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. The Go backend is the other way to build the same program, and the WebAssembly backend runs it over WASI. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go.</p>
       <div class="grid">
-        <div class="cell"><div class="from">native · default on arm64</div><h3>arm64 backend</h3><p>Writes AArch64 assembly straight from Xo's SSA form, assembled and linked by Xo's own tools: fast builds on Apple silicon Macs and arm64 Linux, static Linux binaries from a Mac, and binaries smaller than LLVM's. The compiler builds itself with it.</p><code class="use">xo build</code></div>
-        <div class="cell"><div class="from">native · preview</div><h3>x86-64 backend</h3><p>Xo's own code generator, assemblers, and linkers for x86-64 Linux and Intel Macs, built the same way as arm64's, with no C toolchain; Windows is next. Within about 14 percent of LLVM's instructions on our benchmarks, and closing (<a href="{{ "blog/correct-first-fast-later/" | relURL }}">how</a>).</p><code class="use">xo build --backend=amd64</code></div>
-        <div class="cell"><div class="from">native · default elsewhere</div><h3>LLVM backend</h3><p>Lowers the same SSA form to LLVM IR and builds optimized native code with clang, for every native target, Windows included. The default on x86-64 hosts until Xo's own backend takes over.</p><code class="use">xo build --backend=llvm</code></div>
+        <div class="cell"><div class="from">native · default on arm64</div><h3>arm64 backend</h3><p>Fast builds on Apple silicon Macs and arm64 Linux, static Linux binaries from a Mac, and binaries smaller than LLVM's.</p><code class="use">xo build</code></div>
+        <div class="cell"><div class="from">native · preview</div><h3>x86-64 backend</h3><p>Fast builds on x86-64 Linux and Intel Macs, built the same way as arm64's, with no C toolchain; Windows is next. Within about 14 percent of LLVM's instructions on our benchmarks, and closing (<a href="{{ "blog/correct-first-fast-later/" | relURL }}">how</a>).</p><code class="use">xo build --backend=amd64</code></div>
+        <div class="cell"><div class="from">native · default elsewhere</div><h3>LLVM backend</h3><p>Builds optimized native code with clang, for every native target, Windows included. The default on x86-64 hosts until Xo's own backend takes over.</p><code class="use">xo build --backend=llvm</code></div>
         <div class="cell"><div class="from">reference</div><h3>Go backend</h3><p>Writes Go source that points back to your <code>.xo</code> lines, for every Go target, with Go's garbage collector, and can <code>use go</code> any Go package.</p><code class="use">xo build --backend=go</code></div>
-        <div class="cell"><div class="from">experimental</div><h3>WebAssembly backend</h3><p>Turns the same SSA form into WebAssembly that runs over WASI with its own runtime. It builds the compiler that runs <a href="{{ "play/" | relURL }}">the playground</a>; a program it cannot build yet stops with a clear error, never with wrong output.</p><code class="use">xo build --backend=wasm</code></div>
+        <div class="cell"><div class="from">experimental</div><h3>WebAssembly backend</h3><p>WebAssembly that runs over WASI with its own runtime. It builds the compiler that runs <a href="{{ "play/" | relURL }}">the playground</a>; a program it cannot build yet stops with a clear error, never with wrong output.</p><code class="use">xo build --backend=wasm</code></div>
         <div class="cell"><div class="from">all five</div><h3>Same program, same output</h3><p>Every backend is tested against the others: the test programs and randomly generated ones must print the same output on each, and every change to the compiler must rebuild it byte for byte.</p></div>
       </div>
     </div>
