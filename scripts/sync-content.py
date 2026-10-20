@@ -3,7 +3,7 @@
 
 Usage: scripts/sync-content.py [path to the xo repo]
 
-The repo defaults to $XO_REPO, then ../../codelang (the local checkout next to
+The repo defaults to $XO_REPO, then ../xo (the local checkout next to
 this site). Generated files are committed so the site builds without the
 repo; rerun this after the spec or CHANGELOG.md changes.
 """
@@ -17,7 +17,7 @@ import tempfile
 
 SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = (sys.argv[1] if len(sys.argv) > 1 else
-        os.environ.get("XO_REPO", os.path.join(SITE, "..", "..", "codelang")))
+        os.environ.get("XO_REPO", os.path.join(SITE, "..", "xo")))
 SOURCE = "https://github.com/xo-lang/xo/blob/main/"
 
 
