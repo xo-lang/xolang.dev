@@ -79,7 +79,7 @@ text = "Code that builds keeps building."
 [[milestones]]
 title = "Native backends out of preview"
 status = "now"
-text = "Native is the default backend since 0.19.0 (decision 0248): arm64 on arm64 hosts, LLVM elsewhere, with the Go backend for <code>use go</code>. The runtime has no C since 0.16.0, Linux programs without <code>use c</code> link no C library, debuggers see variables and types, and since 0.21.0 native binaries drop every function nothing calls (<code>xo</code> itself went from 57 MB to 42 MB). Next: Xo's own x86-64 backend as the default on x86-64 hosts."
+text = "Native is the default backend on arm64 hosts since 0.19.0 (decision 0248) and on x86-64 hosts since 0.23.0 (decision 0270), with LLVM by choice and the Go backend for <code>use go</code>. The runtime has no C since 0.16.0, Linux programs without <code>use c</code> link no C library, debuggers see variables and types, and since 0.21.0 native binaries drop every function nothing calls (<code>xo</code> itself went from 57 MB to 42 MB). Next: closing the x86-64 backend's remaining gap to LLVM's instructions."
 
 [[plan]]
 title = "Front end in Xo"
@@ -149,7 +149,7 @@ text = "Resource budgets: <code>task.with_budget</code> caps a call's steps, run
 [[plan]]
 title = "x86-64 backend in Xo"
 status = "now"
-text = "Xo's own code generator, assembler, and linker for x86-64 (decision 0254), the arm64 backend's front half with x86 instruction templates: <code>xo build --backend=amd64</code> builds Linux binaries with no C toolchain, with AES-NI, PCLMULQDQ, and SHA-NI, and since 0.21.0 Intel Mac binaries too, with Xo's own Mach-O assembler and linker: all 193 test programs pass on an Intel Mac with no C toolchain. Within about 14 percent of LLVM's instructions on our benchmarks (see <a href=\"/blog/correct-first-fast-later/\">Correct first, fast later</a>). Next: Windows, then the default on x86-64 hosts once the compiler builds itself with it."
+text = "Xo's own code generator, assembler, and linker for x86-64 (decision 0254), the arm64 backend's front half with x86 instruction templates: <code>xo build --backend=amd64</code> builds Linux binaries with no C toolchain, with AES-NI, PCLMULQDQ, and SHA-NI, and since 0.21.0 Intel Mac binaries too, with Xo's own Mach-O assembler and linker: all 193 test programs pass on an Intel Mac with no C toolchain, and since 0.22.0 Windows binaries, with its own PE linker and no C runtime: 196 of 200 test programs pass on Windows Server 2025, as with LLVM. Within about 14 percent of LLVM's instructions on our benchmarks (see <a href=\"/blog/correct-first-fast-later/\">Correct first, fast later</a>). The default on x86-64 hosts since 0.23.0 (decision 0270). Next: closing the remaining gap to LLVM."
 
 [[plan]]
 title = "A debugger written in Xo"

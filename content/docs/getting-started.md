@@ -48,9 +48,9 @@ on the backend:
 - `--backend=arm64`, the default on arm64 hosts: nothing. Xo's own
   assembler and linkers build the binary, with no C toolchain, unless
   the program calls C with `use c`.
-- `--backend=amd64`, Xo's own x86-64 backend (in preview): nothing, for
-  Linux and Intel Macs.
-- `--backend=llvm`, the default on x86-64 hosts: clang.
+- `--backend=amd64`, the default on x86-64 hosts: nothing, for Linux,
+  Intel Macs, and Windows.
+- `--backend=llvm`: clang.
 - `--backend=go`, needed for `use go`: Go 1.24 or newer on the `PATH`
   (or `XO_GO` set to its go command); an older Go is reported as
   [`XO1502`](/docs/diagnostics/xo1502/), and no Go at all as

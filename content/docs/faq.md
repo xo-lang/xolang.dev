@@ -61,7 +61,7 @@ Closely. Xo keeps what makes Go productive: few keywords, one obvious way to
 write things, one formatter, fast builds, static binaries, a strong standard
 library, and a compatibility promise. By default Xo compiles to native code
 with its own runtime and scheduler (Xo's own compiler, assembler, and
-linkers on arm64, LLVM elsewhere). A Go backend (`--backend=go`) compiles
+linkers on arm64 and x86-64, or LLVM with `--backend=llvm`). A Go backend (`--backend=go`) compiles
 through Go instead, with Go's garbage collector and cross compilation to
 every Go target, and lets a program
 [use any Go package directly](../tour/12-go-packages/).
