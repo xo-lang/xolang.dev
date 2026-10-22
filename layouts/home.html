@@ -6,6 +6,7 @@
       <p class="lede">Xo (pronounced <span class="say">ex-oh</span>) is a small, statically typed language for backends, tools, and web services. A human project owner oversees AI that builds and maintains the language. Things like ignored errors, nil, missed cases, and hidden side effects are compile errors in Xo. The compiler is optimized to return helpful information back to the agent (or human).</p>
       <div class="ctas">
         <a class="btn primary" href="{{ "play/#example=tour/hello" | relURL }}">try online</a>
+        <a class="btn ghost" href="{{ "docs/getting-started/#install" | relURL }}">install</a>
         <a class="btn ghost" href="{{ "docs/tour/" | relURL }}">take the tour</a>
         {{- if site.Params.sourcePublic }}
         <a class="btn ghost" href="{{ site.Params.sourceRepo }}">source on GitHub</a>
@@ -149,17 +150,18 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
   <section>
     <div class="wrap">
       <div class="eyebrow">// get xo</div>
-      <h2>Build it from source.</h2>
-      <p class="sub">There are no prebuilt downloads yet. The compiler is written in Xo, so the first build starts from Xo's last Go version and walks forward to today's; it needs git and Go 1.26 or later, once (and clang on x86-64), and took 25 to 37 minutes on a 16-core machine. After that, every <code>xo</code> builds the next one without Go, and native programs build with no C toolchain on arm64 and x86-64 hosts: macOS, Linux, and Windows.</p>
+      <h2>Download it, or build it from source.</h2>
+      <p class="sub">The <a href="https://github.com/xo-lang/xo/releases/latest">latest release</a> has archives for macOS and Linux (arm64 and x86-64) and Windows (x86-64): unpack one and put its <code>bin</code> on your <code>PATH</code>. Native programs build with no C toolchain on arm64 and x86-64 hosts. To build from source instead: the compiler is written in Xo, so any <code>xo</code> builds the next one, and with none at all the first build starts from Xo's last Go version and walks forward to today's; that needs git and Go 1.26 or later, once (and clang on x86-64), and took 25 to 37 minutes on a 16-core machine.</p>
       <div class="term">
         <div class="top"><i></i><i></i><i></i><span>zsh</span></div>
-<pre><span class="p">$</span> git clone {{ site.Params.sourceRepo }} && cd xo
-<span class="p">$</span> go run ./scripts/xobuild --from-source
-<span class="p">$</span> export PATH="$PWD/bin:$PATH"
+<pre><span class="p">$</span> curl -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/xo-v0.25.2-darwin-arm64.tar.gz
+<span class="p">$</span> tar -xzf xo-v0.25.2-darwin-arm64.tar.gz
+<span class="p">$</span> export PATH="$PWD/xo-v0.25.2-darwin-arm64/bin:$PATH"
 <span class="p">$</span> xo init example.com/hello</pre>
       </div>
       <div class="ctas">
-        <a class="btn primary" href="{{ "docs/getting-started/" | relURL }}">getting started</a>
+        <a class="btn primary" href="{{ "docs/getting-started/#install" | relURL }}">install</a>
+        <a class="btn ghost" href="{{ "docs/getting-started/" | relURL }}">getting started</a>
         <a class="btn ghost" href="{{ "releases/" | relURL }}">release history</a>
       </div>
     </div>

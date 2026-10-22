@@ -1,18 +1,89 @@
 ---
 title: "Getting started"
-description: "Install the xo toolchain, then check, run, and test a first program."
+description: "Install xo from a release archive (or build it from source), then check, run, and test a first program."
 weight: 10
 ---
 
 Xo is experimental, and the language may change before 1.0.
 
-## Build the toolchain
+## Install
+
+Download the archive for your platform from the
+[latest release](https://github.com/xo-lang/xo/releases/latest) on
+GitHub. The current one is
+[0.25.2](https://github.com/xo-lang/xo/releases/tag/v0.25.2):
+
+| Platform | Archive |
+|---|---|
+| macOS, Apple silicon | `xo-v0.25.2-darwin-arm64.tar.gz` |
+| macOS, Intel | `xo-v0.25.2-darwin-amd64.tar.gz` |
+| Linux, arm64 | `xo-v0.25.2-linux-arm64.tar.gz` |
+| Linux, x86-64 | `xo-v0.25.2-linux-amd64.tar.gz` |
+| Windows, x86-64 | `xo-v0.25.2-windows-amd64.tar.gz` |
+
+Each archive unpacks into one directory, `xo-v0.25.2-<os>-<arch>`, that
+holds `bin/xo` (`bin\xo.exe` on Windows), the toolchain, and `lib/xo/std`,
+the standard library. Keep `bin` and `lib` together: `xo` finds its
+standard library at `../lib/xo`. Check the download against the
+release's `SHA256SUMS`, unpack it, and put `bin` on your `PATH`.
+
+macOS (on Intel, use `darwin-amd64`):
+
+```
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/xo-v0.25.2-darwin-arm64.tar.gz
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/SHA256SUMS
+shasum -a 256 -c --ignore-missing SHA256SUMS
+tar -xzf xo-v0.25.2-darwin-arm64.tar.gz
+export PATH="$PWD/xo-v0.25.2-darwin-arm64/bin:$PATH"
+xo version
+```
+
+Linux (on x86-64, use `linux-amd64`):
+
+```
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/xo-v0.25.2-linux-arm64.tar.gz
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/SHA256SUMS
+sha256sum -c --ignore-missing SHA256SUMS
+tar -xzf xo-v0.25.2-linux-arm64.tar.gz
+export PATH="$PWD/xo-v0.25.2-linux-arm64/bin:$PATH"
+xo version
+```
+
+Windows, in PowerShell (`tar` ships with Windows 10 and later):
+
+```
+curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/xo-v0.25.2-windows-amd64.tar.gz
+curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.25.2/SHA256SUMS
+(Get-FileHash xo-v0.25.2-windows-amd64.tar.gz -Algorithm SHA256).Hash
+Select-String windows-amd64 SHA256SUMS
+tar -xzf xo-v0.25.2-windows-amd64.tar.gz
+$env:Path = "$PWD\xo-v0.25.2-windows-amd64\bin;$env:Path"
+xo version
+```
+
+On Windows, compare the two hashes by eye: `Get-FileHash` prints
+upper case and `SHA256SUMS` lower case. `xo version` prints
+`xo 0.25.2` and the platform; `xo version -v` also names the commit
+the release was built from. Add the `PATH` line to your shell profile
+to keep it.
+
+- **macOS:** the binaries are signed with a Developer ID and notarized.
+  Gatekeeper checks the notarization online the first time a binary
+  runs. If macOS still refuses a binary from a browser download, clear
+  the download's quarantine flag:
+  `xattr -dr com.apple.quarantine xo-v0.25.2-darwin-arm64`.
+- **Windows:** the binaries are not code signed yet, so SmartScreen may
+  warn the first time `xo.exe` runs.
+- Go is needed only for the Go backend (`--backend=go`) and `use go`;
+  the native backends need no Go.
+
+## Build from source
 
 {{< source-status >}}
 
-The toolchain is built from source, and `xo` is written in Xo, so an
-existing `xo` builds the next one. If you already have an `xo`, from a
-checkout of the repository:
+The release archives are the quick way in. To build `xo` yourself: it
+is written in Xo, so an existing `xo` builds the next one. If you
+already have an `xo`, from a checkout of the repository:
 
 ```
 XO_SEED=/path/to/xo go run ./scripts/xobuild

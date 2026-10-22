@@ -13,7 +13,7 @@ practical guide to it.
 
 `xo` is one binary: the compiler, the formatter, the test runner, the
 module tools, and the editor and agent servers. It is written in Xo
-(the self-hosted compiler, built from `selfhost/xo` in the repository;
+(the self-hosted compiler, built from `compiler/xo` in the repository;
 you may see it called xo1 in the project's notes). The original
 compiler, written in Go, was deleted on 2026-10-13; its last version is
 tagged `go-compiler-final` and serves only as the seed on a machine
@@ -27,8 +27,13 @@ toolchain relative to itself:
 ```
 bin/xo          the toolchain
 bin/xo-gobind   a helper that binds Go packages for use go
-lib/xo/         std (with the IANA time zone database), third_party
+lib/xo/         std (with the IANA time zone database), third_party,
+                race (the ThreadSanitizer runtime for --race, where the
+                platform has one)
 ```
+
+The [release archives](https://github.com/xo-lang/xo/releases/latest)
+unpack into this layout ([Getting started](/docs/getting-started/#install)).
 
 Keep the layout: `bin/xo` looks for the standard library and the
 runtime in `../lib/xo`, so a copy of `bin/xo` on its own does not work.
