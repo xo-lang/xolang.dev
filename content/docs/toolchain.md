@@ -153,7 +153,8 @@ backends (the default); a Go backend program uses Go's own tools.
 | Heap profile | `--profile=heap` or `XO_PROF=heap` (`cpu,heap` for both) | `xo-heap.pprof` and `xo-heap.txt` |
 | Execution trace | `xo run --trace=t.raw .`, or `XO_TRACE=t.raw`, then `xo trace t.raw` | `t.raw.json` for [ui.perfetto.dev](https://ui.perfetto.dev) (each worker's task runs, the wakes between them) and a summary: time parked by reason, runnable latency, the top wakers |
 | Traceback | `XO_TRACEBACK=1` | an uncaught fault prints the frames, with source lines, down to `main` |
-| Data races | `xo run --race .` (also `xo build`, `xo test`) | ThreadSanitizer reports |
+| Data races | `xo run --race .` (also `xo build`, `xo test`) | ThreadSanitizer reports, with the call stack |
+| A running server's profile | `xo prof URL`, the server serving `std/debug`'s routes (`/debug/profile?seconds=N`, `/debug/heap`) | the same summary as for a profile file |
 
 `xo test --profile` and `xo test --trace` write one file per test
 process. A file that exists is never overwritten. `xo build --release`
@@ -169,6 +170,7 @@ or `--trace-support`. Native binaries carry DWARF line tables, so
 | `xo fmt` | Format to the one canonical layout | `xo fmt --check .` |
 | `xo fix` | Apply every machine fix until none applies | `xo fix --dry-run .` |
 | `xo vet` | Advisory checks that never fail the build | `xo vet .` |
+| `xo vet --cost` | Builds the program and notes costs the source does not show (XO0907 to XO0911: a copied map, an element counted up and down each iteration, a large copy in a loop, a view that keeps a large input alive) | `xo vet --cost .` |
 | `xo query` | Semantic queries: `type`, `def`, `callers`, `effects`, `holes`, `api`, `imports`, `deps`, `hash` | `xo query callers greet` |
 | `xo edit` | Semantic edits: `rename`, `add-field`, `change-sig`, rechecked before writing | `xo edit rename --dry-run greet salute` |
 | `xo doc` | Documentation from doc comments | `xo doc .` |

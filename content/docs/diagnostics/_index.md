@@ -49,6 +49,7 @@ prints the explanation below in a terminal.
 | [`XO0206`](xo0206/) | error | checker | `let _ =` discards a Result; use `.ignore_err("reason")` (core 2.6) |
 | [`XO0207`](xo0207/) | warning | vet | method chain on the right of `??` starts at a literal, so it applies only to the default (core 15 precedence) |
 | [`XO0208`](xo0208/) | note | vet | `.ignore_err("reason")` discards an error; listed with its reason for review (core 2.6) |
+| [`XO0209`](xo0209/) | error | checker | an expression statement discards the result of a call that only computes it, such as `xs.reverse()` (core 2.6) |
 | [`XO0301`](xo0301/) | error | checker | match does not cover every case (core 2.3) |
 | [`XO0302`](xo0302/) | error | checker | pattern does not fit the type of the matched value (core 3.5) |
 | [`XO0303`](xo0303/) | error | checker | refutable pattern where an irrefutable one is required (core 3.5) |
@@ -61,15 +62,37 @@ prints the explanation below in a terminal.
 | [`XO0405`](xo0405/) | error | checker | type cannot be inferred here; annotate it |
 | [`XO0406`](xo0406/) | error | checker | operator, index, slice, or iteration not defined for the type |
 | [`XO0407`](xo0407/) | error | checker | name used as the wrong kind of thing (a type as a value, a value that is not callable) |
-| [`XO0408`](xo0408/) | error | checker | const initializer is not a compile time value (core 3.1) |
+| [`XO0408`](xo0408/) | error | checker | a block const initializer is not a compile time value (core 3.1) |
 | [`XO0409`](xo0409/) | error | checker | invalid explicit conversion (core 2.1) |
 | [`XO0410`](xo0410/) | error | checker | reading a Map by index; use `get` or `get_or_fault` (core 3.6) |
+| [`XO0411`](xo0411/) | error | checker | two fields have one wire key under a derive the struct has (core 2.2, decision 0277) |
+| [`XO0412`](xo0412/) | error | checker | empty wire name, `as ""` (core 2.2) |
+| [`XO0413`](xo0413/) | error | checker | unknown derive argument or `case:` value, or an argument on a derive that takes none (core 2.2) |
+| [`XO0414`](xo0414/) | warning | checker | a wire name on a struct with no derive that maps fields to keys (core 2.2) |
+| [`XO0415`](xo0415/) | error | checker | a top-level constant's initializer performs an effect (core 3.1, decision 0332) |
+| [`XO0416`](xo0416/) | error | checker | a constant's value holds a handle (`Mutex`, `Chan`, `Atomic`, `Task`, a file) (core 3.1, decision 0332) |
 | [`XO0420`](xo0420/) | error | checker | constant std/time layout is invalid: unknown field, bad field form, or stray brace (std.md 13.3) |
+| [`XO0421`](xo0421/) | error | checker | integer literal does not fit the integer type it takes in context (1.6) |
+| [`XO0422`](xo0422/) | error | checker | unknown wire name option; the only one is `omitempty` (core 2.2, decision 0309) |
+| [`XO0423`](xo0423/) | error | checker | a field has two wire strings for one format (`json "a" json "b"`) (core 2.2, decision 0315) |
+| [`XO0424`](xo0424/) | error | checker | a format's wire string (`json`, `sql`, `xml`) on a struct that does not derive that format (core 2.2, decision 0315) |
+| [`XO0425`](xo0425/) | error | checker | a field type, a type parameter list, or a nested struct that `derive Xml` cannot map (core 2.9, decision 0315) |
+| [`XO0426`](xo0426/) | error | checker | a bad `xml` wire string: an unknown or unsupported option, `attr` with a path, `chardata` or `attr` on a type that cannot hold it (core 2.9, decision 0315) |
+| [`XO0427`](xo0427/) | error | checker | `xml.encode_value` or `xml.decode` of a type parameter instead of a concrete struct (core 2.9, decision 0315) |
 | [`XO0501`](xo0501/) | error | checker | var method called on a non var binding (core 3.4) |
 | [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | [`XO0503`](xo0503/) | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
-| [`XO0510`](xo0510/) | error | checker | use of a moved Buf, StrBuilder, or BytesBuilder (core 5.3) |
+| [`XO0510`](xo0510/) | error | checker | use of a moved Buf, StrBuilder, BytesBuilder, or std move only handle (core 5.3) |
 | [`XO0520`](xo0520/) | error | checker | mutation of a copied or stored collection element is never written back (core 5.2) |
+| [`XO0530`](xo0530/) | warning | vet | binding the payload of a field shares every heap field of a large value (decision 0263) |
+| [`XO0531`](xo0531/) | warning | vet | a large parameter is only stored while each caller passes its last use, so its heap fields are shared and dropped again (decision 0263) |
+| [`XO0532`](xo0532/) | note | vet | a Map value read into a `var`, changed, and stored back; `Map.update` does it in one lookup (decision 0266) |
+| [`XO0534`](xo0534/) | note | vet | a task captures a value with many heap fields (32 or more), sharing each at the spawn (core 5.1, decision 0294) |
+| [`XO0535`](xo0535/) | note | vet | `${x.debug()}` in a string, which `${x:?}` writes shorter; its fix rewrites it (core 1.6, decision 0296) |
+| [`XO0536`](xo0536/) | note | vet | a collection copied out of a list element, changed, and stored back, so its first change copies all of it; change the element in place (core 5.1, decision 0294) |
+| [`XO0537`](xo0537/) | warning | vet | retired, never reported; was: a by value receiver read before an argument that changes it; decision 0326 defines that order, so the check is gone (the code stays reserved) |
+| [`XO0538`](xo0538/) | warning | vet | a `var` local written after a closure that reads it was created and before the closure is used: the closure keeps the value from its creation (core 5.1) |
+| [`XO0540`](xo0540/) | warning | checker | a `Mutex.with` closure writes its `var` value, then a path returns `Err`, which undoes the write (core 5.4) |
 | [`XO0601`](xo0601/) | error | checker | name does not resolve (core 4.3) |
 | [`XO0602`](xo0602/) | error | checker | import path does not yield a valid local name (core 4.1) |
 | [`XO0603`](xo0603/) | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
@@ -87,6 +110,15 @@ prints the explanation below in a terminal.
 | [`XO0804`](xo0804/) | warning | checker | value read in one `Mutex.with` is written back in a later one (core 5.4) |
 | [`XO0900`](xo0900/) | warning | checker | typed hole report (core 3.7) |
 | [`XO0901`](xo0901/) | warning | vet | `dbg(...)` left in code (core 11.4) |
+| [`XO0902`](xo0902/) | warning | vet | `tls.Verify.None`: a TLS client that checks no certificate (std.md 27, decision 0281) |
+| [`XO0903`](xo0903/) | warning | vet | the error of a filesystem, network, or process call turned into a default (`.ok() ?? d`, or `Err(_) => <empty>` with no NotFound arm), so a transient error gives a smaller answer instead of an error; `// xo:allow XO0903 <reason>` on the line or above it allows one |
+| [`XO0906`](xo0906/) | note | vet | a `match` that only unwraps an Option or a Result or leaves, which `x ?? return v` (`r ?? e => return v`) writes in one line (core 2.5, 2.6, decision 0321) |
+| [`XO0907`](xo0907/) | note | vet --cost | a loop that copies every entry of a map before it starts (a log-mode map through a forked view, or a body the in-place walk does not take; decision 0327) |
+| [`XO0908`](xo0908/) | note | vet --cost | in a loop, an element of a collection made outside it is counted up and down each iteration (passed to a function value whose result has its type, which takes it), or a prelude method hands each element holding heap memory to such a function value (`map`, `filter`, `find`, `any`, `all`, `fold` of a List, Map, or Set; decisions 0327, 0337) |
+| [`XO0909`](xo0909/) | note | vet --cost | a list update in a loop that copies the whole list every iteration: the list is also kept in the same iteration (stored, captured, or a name used after the update), so it is shared when the update runs (decision 0327) |
+| [`XO0910`](xo0910/) | note | vet --cost | a value over 8 words copied where the source shows no copy: captured by a closure, or, in a loop, an element of a collection wrapped whole in an Option or enum value (decision 0327) |
+| [`XO0911`](xo0911/) | note | vet --cost | a view of a parameter's text (a slice or trim made in a loop, or an element of its split or lines) stored in a field or a returned collection keeps the whole input alive; `clone()` it (decision 0330) |
+| [`XO0904`](xo0904/) | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | [`XO1001`](xo1001/) | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | [`XO1101`](xo1101/) | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
 | [`XO1102`](xo1102/) | error | checker | Go name exists but its signature does not map to Xo, so the binding skipped it |
@@ -111,6 +143,7 @@ prints the explanation below in a terminal.
 | [`XO1315`](xo1315/) | note | checker | `edition 2026` in xo.mod (or `xo 2026` in xo.work) is the old name of `edition preview`; the fix rewrites it (13, decision 0155) |
 | [`XO1316`](xo1316/) | error | checker, xo get | `use c` or `use go` of an impure Go package in a required module without the consumer's `vouch` for that version (4.2, decision 0156) |
 | [`XO1317`](xo1317/) | error | modules | a dependency's effects are wider than its `effects` line in xo.lock (4.3, decision 0156) |
+| [`XO1318`](xo1318/) | error | modules | a module's tree cannot be read (an I/O error) for its content hash, the effect or escape hatch audit, or `xo mod tidy`'s import scan, so none of them answers from a partial tree (4.3, decision 0156) |
 | [`XO1401`](xo1401/) | error | checker | allocation in a real-time function (literal, interpolation, `+` on Str or List, closure, growth method) |
 | [`XO1402`](xo1402/) | error | checker | loop without a provable bound in a real-time function, or a `bound N` that is not a constant or is exceeded by a constant range |
 | [`XO1403`](xo1403/) | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
@@ -120,4 +153,9 @@ prints the explanation below in a terminal.
 | [`XO1502`](xo1502/) | error | build | the go command the Go backend runs (`$XO_GO`, else `go` on PATH) is older than Go 1.24, the oldest Go that builds generated programs and the runtime (decision 0176) |
 | [`XO1503`](xo1503/) | error | build | the Go backend finds no go command: `$XO_GO` is not an executable file, or there is no `go` on PATH; the native backends need none (decision 0176) |
 | [`XO1504`](xo1504/) | error | build | the program uses a std API the LLVM backend's runtime does not support on the build's target yet: none since stage 2 of decision 0197 (2026-10-12; stage 1 left out processes on Windows); the message names them, and the Go backend builds the program |
+| [`XO1505`](xo1505/) | error | build | the LLVM backend's clang (`$XO_CLANG`, else `clang`, or `--cc`) is an LLVM clang older than 16, whose LLVM lacks llvm.threadlocal.address; Apple's clang (numbered apart) is not checked (gotchas/llvm-thread-local-constant.md) |
+| [`XO1506`](xo1506/) | error | checker | `embed("...")` names no file, more than one for a `Str` or `Bytes` constant, a file that cannot be read, or more than an embed may hold (64 MiB each, 256 MiB a program; decision 0304) |
+| [`XO1507`](xo1507/) | error | checker | an `embed` path leaves the module: absolute, `..`, `.`, an empty segment, or a symbolic link (decision 0304) |
+| [`XO1508`](xo1508/) | error | checker | a `Str` embed constant's file is not valid UTF-8; declare it `Bytes` (decision 0304) |
+| [`XO1509`](xo1509/) | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
 {.codes}

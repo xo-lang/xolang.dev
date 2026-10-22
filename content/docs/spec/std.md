@@ -34,6 +34,19 @@ edition, named at 1.0 (core 13); until then the only edition is `preview`
   patterns are ordinary strings: `"GET /users/{id}"`.
 - Fields of std structs are `pub`: they can be read and the structs can be
   constructed (useful for testing pure functions).
+- **Outside text is valid UTF-8** (decision 0259). Every std API that makes a
+  `Str` from bytes it read keeps `Str` valid UTF-8: each byte of an invalid
+  sequence becomes U+FFFD (as a decoder counts it, one per byte). That covers
+  `Fs.read_text`, `File.read_line`, file names (`read_dir`, `glob`,
+  `read_link`, `cwd_path`), `Stdio.read_line`, `read_all`, `lines`,
+  `Child.read_line`, `Env.get`, `vars`, `args`, `program`, `home`, CLI values,
+  archive entry names, HTTP header names and values (requests and responses),
+  and JSON strings. URL parts keep the byte instead, as a percent escape:
+  `Request.path`, `url.path`, `url.host`, and query keys and values (a request
+  for `/a/\x82` has the path `/a/%82`, and a query escape that decodes to an
+  invalid byte stays escaped). `Bytes.to_str()` and `Response.text()` return
+  None instead; the exact bytes stay available where an API returns `Bytes`
+  (`Fs.read`, `Response.body`, `Request.body`).
 
 ---
 
@@ -87,7 +100,9 @@ When a value is passed where an interface type is expected (for example a
 
 ```
 Int.parse(s: Str) -> Int?
+Int.parse_base(s: Str, base: Int) -> Int?   // base 2 to 36, or 0 for 0b, 0o, 0x, 0 prefixes and _ separators
 Float.parse(s: Str) -> Float?
+Bool.parse(s: Str) -> Bool?                 // 1 t T TRUE true True, 0 f F FALSE false False
 Int(x: Float) -> Int                 // truncates toward zero; faults on NaN or out of range
 Float(x: Int) -> Float
 Int32(x: Int) -> Int32               // faults out of range; same for every sized type
@@ -99,12 +114,32 @@ Rune.try(n: Int) -> Rune?
 fn (n: Int) abs() -> Int
 fn (n: Int) pow(e: Int) -> Int
 fn (n: Int) wrapping_add(m: Int) -> Int      // also wrapping_sub, wrapping_mul
+fn (n: Int) wrapping_shl(k: Int) -> Int      // k mod 64, the bits shifted out dropped
+fn (n: Int) shr_logical(k: Int) -> Int       // the 64 bits shifted right by k mod 64, zeros in (`>>` keeps the sign)
+fn (n: Int) rotate_right(k: Int) -> Int      // also rotate_right32: the low 32 bits by k mod 32, zero extended
+fn (n: Int) swap_bytes() -> Int              // the 8 bytes reversed
+fn (n: Int) mul_hi_unsigned(m: Int) -> Int   // the high word of the 128 bit product as unsigned words
+fn (n: Int) lt_unsigned(m: Int) -> Bool      // also le_unsigned: compared as unsigned 64 bit words
 fn (n: Int) saturating_add(m: Int) -> Int    // also saturating_sub, saturating_mul
 fn (n: Int) checked_add(m: Int) -> Int?      // also checked_sub, checked_mul, checked_div
+fn (n: Int) to_str_base(base: Int) -> Str    // base 2 to 36, lower case digits
+fn (n: Int) leading_zeros() -> Int           // also trailing_zeros, ones_count: math/bits on the word
 
 fn (f: Float) floor() -> Float               // also ceil, round, trunc, abs, sqrt
-fn (f: Float) is_nan() -> Bool
+fn (f: Float) is_nan() -> Bool               // also is_inf
+fn (f: Float) exp() -> Float                 // also exp2, expm1, log, log2, log10, log1p, sin, cos, tan,
+                                             // asin, acos, atan, sinh, cosh, tanh, cbrt
+fn (f: Float) pow(y: Float) -> Float
+fn (f: Float) atan2(x: Float) -> Float       // Go's Atan2(f, x)
+fn (f: Float) hypot(y: Float) -> Float
+fn (f: Float) mod(y: Float) -> Float         // Go's Mod: the remainder with the sign of f
+fn (f: Float) to_bits() -> Int               // the IEEE 754 bits; Float.from_bits(b) back
 ```
+
+Int's word methods (decision 0260) treat an `Int` as a 64 bit word for
+hashes, checksums, and protocol and crypto code: none faults, and the
+native backends compile each to its instruction (a shift, `ror`, `rev`,
+`umulh`, an unsigned compare), not a call.
 
 `Int.parse(s)` is Go's `strconv.ParseInt(s, 10, 64)` and `Float.parse(s)`
 is `strconv.ParseFloat(s, 64)`, None where they return an error: decimal
@@ -114,6 +149,21 @@ value is out of range. The text of a Float (interpolation, Display,
 Debug) is the shortest that reads back the same value
 (`strconv.FormatFloat(f, 'g', -1, 64)`) with `.0` added to whole
 numbers: `1.0`, `0.1`, `1e+21`, `-0.0`, `+Inf`, `NaN`.
+
+`Int.parse_base`, `to_str_base`, and `Bool.parse` are Go's `ParseInt(s,
+base, 64)`, `FormatInt`, and `ParseBool` (decision 0287), None where Go
+returns an error; a base outside 0 and 2 to 36 faults (Go panics for
+FormatInt). Float's math functions (decision 0287) are Go's math package
+on every backend, bit for bit and on every architecture: Go's portable
+algorithms (exp.go, log.go, sin.go, ...) with every operation rounded,
+the same in a native build and on the Go backend (which runs a copy of
+them with each product rounded, not Go's package: Go fuses
+multiply-adds on arm64 and runs other assembly algorithms on amd64).
+Every Float operation in Xo rounds, on every backend: no backend fuses a
+multiply and an add (golden float_no_fma). Special values are Go's:
+`(-1.0).log()` is NaN, `(0.0).log()` is -Inf, `x.pow(0.0)` is 1.0. Float
+constants (`Float.PI`, `Float.INF`) are a later step; `Float.parse("inf")`
+gives infinity.
 
 A conversion is a call on the type name, `Float(n)`, not an associated
 function: there is no `Float.from(n)`. XO0601 for an unknown associated
@@ -135,13 +185,17 @@ fn (s: Str) contains(sub: Str) -> Bool
 fn (s: Str) starts_with(p: Str) -> Bool
 fn (s: Str) ends_with(p: Str) -> Bool
 fn (s: Str) find(sub: Str) -> Int?           // byte offset
+fn (s: Str) rfind(sub: Str) -> Int?          // the last sub's byte offset (strings.LastIndex); Some(s.len()) for ""
 fn (s: Str) split(sep: Str) -> List[Str]
 fn (s: Str) lines() -> List[Str]             // splits on \n, strips \r
 fn (s: Str) trim() -> Str                    // also trim_start, trim_end
 fn (s: Str) trim_prefix(p: Str) -> Str       // also trim_suffix
+// split, lines, trim*, trim_prefix and trim_suffix return views of s on native
+// targets (O(1) per piece, no copy; a piece keeps s alive), as slices do (core 3.6)
 fn (s: Str) to_lower() -> Str                // also to_upper (Unicode aware)
 fn (s: Str) replace(old: Str, new: Str) -> Str
 fn (s: Str) repeat(n: Int) -> Str
+fn (s: Str) clone() -> Str                   // an explicit copy in a buffer of its own (a slice or split piece shares its source on native targets)
 fn (s: Str) runes() -> List[Rune]
 fn (s: Str) bytes() -> Bytes
 
@@ -155,6 +209,12 @@ Bytes.from_base64(s: Str) -> Bytes?
 fn (b: Bytes) rune_count() -> Int            // an invalid byte counts as one rune
 fn (b: Bytes) decode_rune(i: Int) -> (Rune, Int)  // the rune at byte i and its size
 fn (b: Bytes) quote() -> Str                 // also on Str: a quoted literal
+fn (b: Bytes) find(sub: Bytes) -> Int?       // bytes.Index; Some(0) for an empty sub
+fn (b: Bytes) rfind(sub: Bytes) -> Int?      // bytes.LastIndex; Some(b.len()) for an empty sub
+fn (b: Bytes) clone() -> Bytes               // an explicit copy in a buffer of its own
+fn (b: Bytes) indexed() -> List[(Int, UInt8)]  // each byte with its offset, as List.indexed
+fn (static: Bytes) zeroed(n: Int) -> Bytes   // n zero bytes (make([]byte, n)); a fault for n < 0
+fn (s: Str) unquote() -> Str?                // Go's Unquote (decision 0287); None when s is not a literal or the text is not UTF-8
 
 fn (r: Rune) is_digit() -> Bool              // also is_letter, is_space, to_lower, to_upper
 fn (r: Rune) is_print() -> Bool
@@ -199,6 +259,7 @@ fn (xs: List[T]) find(f: fn(T) -> Bool) -> T?
 fn (xs: List[T]) any(f: fn(T) -> Bool) -> Bool   // also all
 fn (xs: List[T]) sort() -> List[T]           // T: Ord, stable
 fn (xs: List[T]) sort_by[K: Ord](key: fn(T) -> K) -> List[T]
+fn (xs: List[T]) group_by[K: Hash](key: fn(T) -> K) -> List[(K, List[T])]   // keys in first appearance order, each group in input order
 fn (xs: List[T]) reverse() -> List[T]
 fn (xs: List[T]) to_set() -> Set[T]
 (0..n).to_list()                             // Range[Int] to List[Int]
@@ -235,11 +296,16 @@ fn (m: Map[K, V]) keys() -> List[K]
 fn (m: Map[K, V]) values() -> List[V]
 fn (m: Map[K, V]) entries() -> List[(K, V)]
 fn (m: Map[K, V]) filter(f: fn(K, V) -> Bool) -> Map[K, V]
+fn (m: Map[K, V]) map[U](f: fn(K, V) -> U) -> Map[K, U]   // every key, in insertion order
+fn (m: Map[K, V]) any(f: fn(K, V) -> Bool) -> Bool        // insertion order; stops at the first true
+fn (m: Map[K, V]) all(f: fn(K, V) -> Bool) -> Bool        // insertion order; stops at the first false
 
 fn ([var] m: Map[K, V]) put(k: K, v: V)
 fn ([var] m: Map[K, V]) remove(k: K) -> V?
 fn ([var] m: Map[K, V]) update[R](k: K, init: V, f: fn(var V) -> R) -> R
     // reads k (or init if missing), runs f, stores the result, returns f's value
+    // in place of copy-modify-store (`var ids = by.get(n) ?? []; ids.push(i); by[n] = ids`):
+    //   by.update(n, [], fn(var ids) { ids.push(i) })   (xo vet XO0532, decision 0266)
 
 fn (s: Set[T]) len() -> Int
 fn (s: Set[T]) contains(x: T) -> Bool
@@ -407,6 +473,13 @@ fn report(m: Mutex[Stats]) -> Str {
 Predeclared interfaces. `main(os: Os)` receives the real ones; tests receive
 fakes (section 8).
 
+A program's own type that implements one (a wrapper that prefixes every
+line, a clock that runs ahead, a read-only view) is used wherever the
+capability is expected (core 2.10, rule 2), and a program may
+build an `Os` with a literal, `Os{net: ..., fs: ..., stdio: ...}`, to
+hand code written against `Os` attenuated or wrapped capabilities. Both
+work the same on every backend (decision 0307).
+
 ### 3.1 Fs (`uses fs.read` / `fs.write`)
 
 Paths use `/` on every OS. `os.fs` is rooted at the filesystem root, accepts
@@ -468,6 +541,8 @@ fn (f: Fs) stat(path: Str) -> FileInfo? ! FsErr  uses fs.read // None when missi
 fn (f: Fs) exists(path: Str) -> Bool ! FsErr     uses fs.read
 fn (f: Fs) read(path: Str) -> Bytes ! FsErr      uses fs.read
 fn (f: Fs) read_text(path: Str) -> Str ! FsErr   uses fs.read
+fn read_text_or(fs: Fs, path: Str, default: Str) -> Str ! FsErr uses fs.read   // default when missing
+fn read_or(fs: Fs, path: Str, default: Bytes) -> Bytes ! FsErr uses fs.read     // the same for bytes
 fn (f: Fs) read_dir(dir: Str) -> List[FileInfo] ! FsErr uses fs.read   // sorted by name
 fn (f: Fs) walk(dir: Str) -> List[FileInfo] ! FsErr     uses fs.read
     // recursive, parents before children, siblings by name; excludes `dir` itself;
@@ -483,6 +558,16 @@ fn (f: Fs) create_dir_all(dir: Str) -> () ! FsErr       uses fs.write
 fn (f: Fs) set_modified(path: Str, t: Time) -> () ! FsErr uses fs.write
 ```
 
+`read_text_or` and `read_or` (approved by the owner, 2026-10-21) give
+the file, or `default` when it does not exist (`FsErr.NotFound`, Go's
+`errors.Is(err, fs.ErrNotExist)`). Any other error is still the result
+(`IsDir`, `Denied` under `sub` or `only`), so a typo in a path to an
+unreadable file is not silently a default. They are free functions, not
+methods of `Fs`: an `Fs` is any type with its methods (core 2.4), and a
+new interface method would stop every such type from satisfying it. They
+call `read_text` and `read`, so MemFs, FakeFs and attenuated capabilities
+answer as they do for those.
+
 Handles, links, globs, and locks (decision 0163; the Go backend and
 MemFs, and native builds on the real filesystem, decision 0172; a native
 test binary's MemFs has all of them, as on the Go backend, since
@@ -492,6 +577,7 @@ test binary's MemFs has all of them, as on the Go backend, since
 fn (f: Fs) open(path: Str) -> File ! FsErr        uses fs.read   // read as a stream
 fn (f: Fs) create(path: Str) -> File ! FsErr      uses fs.write  // write; created or truncated
 fn (f: Fs) open_append(path: Str) -> File ! FsErr uses fs.write  // write at the end; created if missing
+fn (f: Fs) create_new(path: Str) -> File ! FsErr  uses fs.write  // write a new file: Exists(path) if anything is there (O_EXCL; a symbolic link counts)
 fn (f: Fs) append(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 fn (f: Fs) copy(from: Str, to: Str) -> () ! FsErr uses fs        // contents and permission bits
 fn (f: Fs) mode(path: Str) -> Int ! FsErr         uses fs.read   // permission bits: 0o644
@@ -534,10 +620,26 @@ fn count_errors(fs: Fs, path: Str) -> Int ! FsErr uses fs.read {
 - `open` of a directory is `IsDir`. `create` and `open_append` do not
   create missing parent directories on the real filesystem (MemFs does,
   as its `write` does).
+- `read_dir` and `walk` fail with the error of a failed directory read
+  (never a list cut short) and of an entry whose stat fails (`Denied`
+  for an entry of a directory without search permission), naming that
+  entry, as Go's os.File.Readdir and filepath.WalkDir; an entry removed
+  between the listing and its stat is left out. `walk` lists each
+  directory in name order and stops at the first error.
 - `copy` reads `from` and writes `to` (created or truncated) with
   `from`'s permission bits; a directory is `IsDir(from)`.
 - `mode` and `set_mode` are the permission bits (`0o777` mask). Windows
   reports and sets what it can (read only or not).
+- On WebAssembly (WASI preview1), which has no permission bits or
+  advisory locks, `mode`, `set_mode`, and `lock` are `Io(path,
+  "operation not supported (WASI has no file modes or locks)")` (after
+  `NotFound` and the other errors of the path itself), and
+  `set_modified` before 1970 is `Io(path, "WASI has no times before
+  1970")`. `case_sensitive` is probed once in the working directory: an
+  entry whose name has a letter, looked up with its letters' case
+  flipped (found as the same file: not case sensitive; not found: case
+  sensitive), else a probe file created and removed; `true` when neither
+  is possible.
 - `symlink(target, link)` stores `target` as written; a relative target
   is relative to the link's directory. In a sub capability a target that
   is absolute or leaves the root (`..` past it) is `Denied(link)`: a sub
@@ -558,6 +660,14 @@ fn count_errors(fs: Fs, path: Str) -> Int ! FsErr uses fs.read {
   on Windows), so it excludes other processes that lock the same file,
   and other `lock` calls in the same program. It is advisory: reads and
   writes are not blocked. A program that exits releases its locks.
+- A `FileLock` dropped while held is released: natively at the drop, on
+  the Go backend when a `lock` or `try_lock` of a lock that is held runs
+  the collector, which finds the dropped handle (within a poll, 10 ms).
+  So locking a path again after dropping its lock works on every backend
+  (golden lock_drop_relock). A `File` dropped open is closed at the drop
+  natively and at a collection on the Go backend. `unlock()` and
+  `close()` (or `defer`) release at once everywhere and say what is
+  meant (gotchas/go-backend-dropped-lock-held.md).
 
 ### 3.2 Net (`uses net.dial` / `net.listen`)
 
@@ -568,12 +678,28 @@ fn (n: Net) listen(addr: Str) -> Listener ! NetErr uses net.listen
 fn (n: Net) dial(addr: Str) -> Conn ! NetErr       uses net.dial
 fn (n: Net) only(hosts: List[Str]) -> Net          // attenuation (below)
 fn (l: Listener) addr() -> Str                     // "host:port" actually bound
-fn (l: Listener) accept() -> Conn ! NetErr         uses net.listen
+fn (l: Listener) accept() -> ServerConn ! NetErr   uses net.listen
 fn (l: Listener) close()
-fn (c: Conn) read(max: Int) -> Bytes? ! NetErr     uses net   // None at the end of the stream
-fn (c: Conn) write(data: Bytes) -> () ! NetErr     uses net   // writes every byte
+fn (c: Conn) read(max: Int) -> Bytes? ! NetErr     uses net.dial    // None at the end of the stream
+fn (c: Conn) write(data: Bytes) -> () ! NetErr     uses net.dial    // writes every byte
 fn (c: Conn) close()
+fn (c: ServerConn) read(max: Int) -> Bytes? ! NetErr uses net.listen   // the same, on an accepted connection
+fn (c: ServerConn) write(data: Bytes) -> () ! NetErr uses net.listen
+fn (c: ServerConn) close()
+
+interface Stream {                                 // either kind of connection
+  fn read(self, max: Int) -> Bytes? ! NetErr uses net
+  fn write(self, data: Bytes) -> () ! NetErr uses net
+  fn close(self)
+}
 ```
+
+A connection's reads and writes perform the effect of how it was made
+(decision 0280): a `Conn` from `dial` is `net.dial`, a `ServerConn` from
+`accept` is `net.listen`. So a client library declares `uses net.dial`
+alone though it reads and writes, and a function given only a
+`ServerConn` cannot dial. Both are handles with the same behavior;
+`Stream` takes either, under `net`.
 
 TCP connections (decision 0071): `accept` waits for the next connection;
 `read` returns at most `max` bytes (at most 1 MiB; fewer when fewer are
@@ -666,7 +792,10 @@ fn (r: Rand) shuffle[T](xs: List[T]) -> List[T]
 Native builds (`--no-gc`, decision 0083) draw from the operating system's
 generator (`getentropy`, `getrandom`); `shuffle` draws one `int` per
 step as on the Go backend, so a test's seeded shuffle is the same
-(decision 0107).
+(decision 0107). `shuffle` is derived from `int` on every backend, for a
+program's own Rand too: Fisher-Yates from the end with that value's
+`int`; a `shuffle` method the type declares is not called (decision
+0307).
 
 ### 3.5 Env (`uses env`)
 
@@ -912,6 +1041,8 @@ fn follow(p: Proc, out: Stdio) -> () ! ProcErr uses (proc, stdio) {
 ```
 pub fn router() -> Router
 fn ([var] r: Router) handle[E: Error, fx: Effects](pattern: Str, h: fn(Request) -> Response ! E uses fx) uses fx
+fn ([var] r: Router) handle_stream[E: Error, fx: Effects](pattern: Str, h: fn(Request, BodyReader) -> Response ! E uses fx) uses fx
+    // the body read as h asks (decision 0310); req.body is empty
 fn ([var] r: Router) wrap[E: Error, fx: Effects](m: fn(Request, Next) -> Response ! E uses fx) uses fx
 fn ([var] r: Router) mount(prefix: Str, sub: Router)   // sub's routes under prefix, behind sub's middleware
 fn (r: Router) call(req: Request) -> Response      // in process dispatch, for tests
@@ -926,6 +1057,29 @@ type Next = fn(Request) -> Response
   `{name...}` (rest of the path). Without a method, any method matches.
   plain strings: `"GET /users/{id:Int}"`.
 - Unmatched path: 404. Path matched with another method: 405.
+- Streamed request bodies (decision 0310): for a `handle_stream` route the
+  server calls the handler before reading the body (Go's `r.Body`):
+  `req.body` is empty and `BodyReader.read(max)` gives the next bytes (at
+  most `max`, default 32 KiB; `None` at the end) of a Content-Length or
+  chunked body as they arrive, `read_all()` the rest. `Expect:
+  100-continue` is answered on the first read. A body cut short is
+  `IoErr.Io("unexpected EOF")`; a malformed chunked body's error is
+  net/http's (`invalid byte in chunk length`, `malformed chunked
+  encoding`) and sticks. What the handler leaves unread is discarded
+  when less than 256 KiB (the connection stays open), else the response
+  says `Connection: close` (net/http's `maxPostHandlerReadBytes`); an
+  `Expect: 100-continue` body not read to its end closes the connection.
+  `XO_HTTP_MAX_BODY` does not apply. `Router.call` streams `req.body`.
+  Middleware see the request without its body. Over HTTP/2 the body
+  comes as DATA frames bring it, and the stream's flow control window
+  is given back as the handler reads (the connection's at once); a body
+  the client is still sending when the handler returns ends with
+  RST_STREAM NO_ERROR after the response, as net/http's.
+  `BodyReader.multipart(req)` reads a multipart/form-data body part by
+  part as it arrives (4.4). Not yet: a recording server (decision 0219)
+  reads the body first and streams it from memory. A body is discarded when the
+  handler returns, so a streamed response's function (`http.stream`)
+  cannot read it on the native backends.
 - Middleware run in registration order, outermost first, and see the final
   response after error mapping.
 - Middleware may fail: `Err(e)` from a middleware is mapped to a response
@@ -1003,9 +1157,36 @@ struct Request {
 fn (r: Request) param(name: Str) -> Str             // faults if the pattern has no such segment
 fn (r: Request) param_int(name: Str) -> Int         // segment must be declared {name:Int}
 fn (r: Request) query(name: Str) -> Str?
+fn (r: Request) query_all(name: Str) -> List[Str]   // every value of a repeated key, in order
+fn (r: Request) form() -> url.Values ! url.EscapeErr   // an urlencoded POST, PUT, or PATCH body (20)
+fn (r: Request) multipart_form() -> multipart.Form ! multipart.MultipartErr   // decision 0282
 fn (r: Request) header(name: Str) -> Str?           // case insensitive
 fn (r: Request) json[T: Json]() -> T ! json.DecodeErr
 fn (r: Request) with_header(name: Str, value: Str) -> Request
+fn (r: Request) header_values(name: Str) -> List[Str]   // every field of name, in order (decision 0288)
+fn (r: Request) add_header(name: Str, value: Str) -> Request   // one more field of name
+fn (r: Request) cookie(name: Str) -> Cookie?        // the first Cookie pair of that name (Go's Request.Cookie)
+fn (r: Request) cookies() -> List[Cookie]           // every Cookie pair that parses
+fn (r: Request) with_cookie(c: Cookie) -> Request   // name=value appended to Cookie (Go's AddCookie)
+
+struct Cookie {
+  name: Str
+  value: Str
+  quoted: Bool = false      // the value is (or was) in double quotes
+  path: Str = ""
+  domain: Str = ""
+  expires: Time? = None
+  max_age: Int = 0          // seconds; 0 unset, < 0 delete now (Max-Age=0)
+  secure: Bool = false
+  http_only: Bool = false
+  same_site: SameSite = SameSite.Default
+  partitioned: Bool = false
+}
+enum SameSite { Default, Lax, Strict, None }
+struct CookieErr { msg: Str }
+fn (c: Cookie) display() -> Str                     // the Set-Cookie value (Go's Cookie.String)
+pub fn parse_cookie(line: Str) -> List[Cookie] ! CookieErr      // Go's ParseCookie
+pub fn parse_set_cookie(line: Str) -> Cookie ! CookieErr        // Go's ParseSetCookie
 
 struct Key[T] {}                                   // handle
 pub fn key[T](name: Str) -> Key[T]
@@ -1026,10 +1207,26 @@ pub fn text(status: Int, s: Str) -> Response
 pub fn empty(status: Int) -> Response
 pub fn stream[fx: Effects](status: Int, f: fn(BodyWriter) -> () ! IoErr uses fx) -> Response uses fx
     // the body is produced by `f` while the response is sent (for large exports)
+pub fn serve_content(req: Request, name: Str, modtime: Time?, content: Bytes, headers: Map[Str, Str] = {}) -> Response
+    // Go's ServeContent (decision 0306): Range (206, multipart/byteranges), the
+    // conditional requests against modtime and the ETag in headers (304, 412),
+    // 416, Content-Type from headers, name's extension, or the content
 fn (w: BodyWriter) write(data: Bytes) -> () ! IoErr
 fn (w: BodyWriter) flush() -> () ! IoErr
+    // a response with status 101 made by std/websocket's upgrade hands its
+    // connection over: the server writes nothing itself (decision 0313)
+fn (b: BodyReader) read(max: Int = 32768) -> Bytes? ! IoErr   // a handle_stream body's next bytes, None at its end
+fn (b: BodyReader) read_all() -> Bytes ! IoErr                // the rest of it
+fn (b: BodyReader) multipart(req: Request) -> PartReader ! multipart.MultipartErr   // the body's multipart/form-data parts as they arrive (decision 0310)
+fn (p: PartReader) next() -> StreamPart? ! multipart.MultipartErr   // the next part (the open one's unread rest dropped), None after the last
+fn (p: PartReader) read(max: Int = 32768) -> Bytes? ! multipart.MultipartErr   // the open part's next bytes, None at its end
+fn (p: StreamPart) header_values(name: Str) -> List[Str]   // every value of a part's header, in order
 fn (r: Response) with_header(name: Str, value: Str) -> Response
 fn (r: Response) header(name: Str) -> Str?          // case insensitive
+fn (r: Response) header_values(name: Str) -> List[Str]   // every field of name, in order (decision 0288)
+fn (r: Response) add_header(name: Str, value: Str) -> Response   // one more field of name
+fn (r: Response) with_cookie(c: Cookie) -> Response     // one more Set-Cookie field (Go's SetCookie); none for an invalid name
+fn (r: Response) cookies() -> List[Cookie]              // every Set-Cookie field that parses (Go's Response.Cookies)
 fn (r: Response) text() -> Str?                     // the body as text; None if not valid UTF-8
 fn (r: Response) decode_json[T: Json]() -> T ! json.DecodeErr
 ```
@@ -1059,8 +1256,102 @@ fn me(req: http.Request) -> http.Response ! ApiErr {
 }
 ```
 
+Cookies (decision 0288) are net/http's cookie.go: `display()` is
+`""` for a name that is not a token, quotes a value with a space or a
+comma (or `quoted`), drops the bytes a value or path may not hold, drops
+a domain that is not a domain name or IPv4 address (a leading dot is not
+sent), writes `Expires` in GMT (`Wed, 10 Nov 2010 23:00:00 GMT`) for a
+year from 1601, `Max-Age=0` for a negative `max_age`, and `SameSite`
+only when not `Default`. Go logs each dropped byte or domain; Xo drops
+them silently. `parse_set_cookie` reads every attribute Go does
+(`Expires` in RFC 1123 or `Mon, 02-Jan-2006 15:04:05 MST` form, the
+weekday and zone name not checked, as UTC), ignoring unknown ones; its
+errors are Go's (`http: blank cookie`, `http: '=' not found in cookie`,
+`http: invalid cookie name`, `http: invalid cookie value`); Go's `Raw`,
+`RawExpires` and `Unparsed` are not kept. `Request.cookies()` reads the
+`Cookie` field as Go's readCookies (invalid pairs skipped, at most 3000).
+**Fields with repeated names** (decision 0288): a Request or Response
+keeps its header fields in order behind `headers`, which is their view:
+a name's values joined with ", ", except `Set-Cookie`, whose view is its
+first field (cookies are never joined). `header_values(name)` returns
+each field of the name (case insensitive), as received or as added;
+`add_header` appends one; `with_header` replaces every field of the name
+with one. A struct literal or a direct change of `headers` sets that
+name to the one value written (a Map entry that is not the view of the
+name's fields wins), so code that only uses the Map works as before. A
+response or a client request sends one field per value (HTTP/1.1 and
+HTTP/2), so two `with_cookie` calls send two `Set-Cookie` fields. The
+server and the client keep each received field (an HTTP/2 request's
+`Cookie` fields arrive as one, joined with `; `, as net/http's).
+
 `with_header` returns a copy with the header set (canonical key), like
 `Response.with_header`.
+
+`query(name)` is the first value of a key and `query_all(name)` every
+value, in order (Go's `URL.Query()`; a pair with a `;` or a bad escape
+is skipped). `form()` (decision 0279) is Go's `PostForm`: the body of a
+POST, PUT, or PATCH whose `Content-Type` media type
+(`mime.parse_media_type`, 23; no header is `application/octet-stream`)
+is `application/x-www-form-urlencoded`, parsed with `url.parse_query`;
+any other request gives empty `Values`. A Content-Type that does not
+parse is `EscapeErr` with mime's text (`mime: invalid media parameter`
+for `text/plain; boundary=`, whatever the type, as Go's `ParseForm`),
+and a bad escape or `;` is `EscapeErr` with no values (Go's `ParseForm`
+keeps the pairs parsed around the error; Xo returns the error alone).
+Its size is the body's, which the server already limits
+(`XO_HTTP_MAX_BODY`, 4.6). A request built as a struct literal has no raw query:
+`query_all` gives its `url.query` value.
+
+`multipart_form()` (decision 0282) is Go's `ParseMultipartForm`: the
+`Content-Type` must parse (`mime.parse_media_type`) as
+`multipart/form-data` (else `request Content-Type isn't
+multipart/form-data`, any method; `multipart/mixed`, which Go accepts only
+in `MultipartReader`, is refused too) with a `boundary` (else `no multipart
+boundary param in Content-Type`); the body is read with
+`multipart.parse_form` (26), whose files stay in memory: the body is
+already limited by the server.
+
+`BodyReader.multipart(req)` (decision 0310 phase 3) is Go's
+`Request.MultipartReader` for a `handle_stream` route: the same
+Content-Type checks and errors as `multipart_form()`, then the parts as
+the body arrives, none of it held in memory beyond the part being read.
+`next()` is `NextPart`: a `StreamPart{name, filename: Str?, headers}`
+read as `multipart.Part` reads (form name, file name's last element,
+each header's first value; `header_values(name)` gives every value, as
+textproto's `MIMEHeader`), the previous part's unread data dropped, a
+quoted-printable part decoded and its Content-Transfer-Encoding header
+removed; `None` after the closing boundary. `read(max)` is `Part.Read`
+(at most `max` bytes, at least 1; `None` at the part's end and before
+the first `next()`). Errors are Go's texts (`multipart: NextPart: EOF`,
+`unexpected EOF` for a body cut inside a part, quoted-printable errors)
+and stick.
+
+#### The client's address behind proxies
+
+```
+fn (r: Request) client_ip(trusted: List[netip.Prefix] = [], header: ProxyHeader = ProxyHeader.XForwardedFor) -> netip.Addr?
+enum ProxyHeader { XForwardedFor, Forwarded }
+```
+
+- No trusted prefixes: the peer (`remote_ip`). A peer outside every
+  trusted prefix: the peer, whatever the headers say (a client can write
+  them).
+- Otherwise the chain of the one header named (`header`: the header the
+  server's own proxies write; the other is never read, since a proxy that
+  writes one passes a client's copy of the other through): every field of
+  it in order, split on commas (`X-Forwarded-For`), or RFC 7239 elements
+  (`Forwarded`: commas and semicolons outside quoted strings, the `for=`
+  parameter, quoted values unquoted). Walked from the right, the first
+  hop that is not a trusted address ends the walk: the client when it
+  parses, else None: a hidden (`for=_hidden`), unknown, or missing hop
+  means the client is unknown and every hop on its left came from that
+  client, and garbage would let a client shift the walk. When every hop
+  is trusted the leftmost is the client (a trusted proxy appended it);
+  with no hops, the peer.
+- Addresses parse bare, as `[v6]`, `[v6%zone]:port`, or `v4:port`, and
+  are unmapped before matching: `::ffff:10.0.0.1` is inside
+  `10.0.0.0/8` and is returned as `10.0.0.1`.
+- Golden `http_client_ip` (every backend).
 
 ### 4.4 Server
 
@@ -1111,7 +1402,9 @@ struct UrlErr { msg: Str }
 ```
 
 Any HTTP status is a successful `Response`; only transport failures are
-`ClientErr`. The client does not retry. It follows up to 10 redirects for
+`ClientErr`. A request's query is sent as it was given (Go's `URL.RawQuery`:
+repeated keys and their order kept) unless its `url.query` was changed,
+then as `url.query` builds it. The client does not retry. It follows up to 10 redirects for
 `GET` and `HEAD`. `parse_url` accepts absolute RFC 3986 URLs with an
 `http` or `https` scheme and a host; anything else is a `UrlErr`. An
 `https` URL is requested over TLS (4.6).
@@ -1212,7 +1505,42 @@ fn serve_https(os: Os, r: http.Router) -> () ! Error uses (fs.read, net.listen) 
     ClientHello, and for handshake measurements without ML-KEM.
   - `XO_HTTP_MAX_BODY=<bytes>` (native backends): the largest request
     body the server reads (default 64 MiB; a longer one is cut short as
-    a body whose client went away). Go has no such limit.
+    a body whose client went away). Go has no such limit. A
+    `handle_stream` route's body has none either (decision 0310).
+
+### 4.7 Response compression
+
+```
+fn gzip_responses(min_size: Int = 1024, level: compress.Level = compress.Level.Default) -> fn(Request, Next) -> Response
+// r.wrap(http.gzip_responses())
+```
+
+A middleware that compresses responses with gzip (decision 0305, an Xo
+addition: Go's standard library has none). It follows the rules of
+klauspost/compress's gzhttp:
+
+- **Passed through unchanged:**
+  - a status below 200, 204, 304, or 206;
+  - a response with its own Content-Encoding or a Content-Range;
+  - a Content-Type that is compressed already: `image/*`, `video/*`,
+    `application/zip`, `application/gzip`, `font/woff2`.
+- **Vary.** Every other response gets `Vary: Accept-Encoding`, because
+  its body could depend on that header.
+- **When it compresses.** The request's Accept-Encoding must allow it: a
+  `gzip` or `*` element whose q is not 0. A body must be `min_size`
+  bytes or more; a streamed body needs a Content-Type of its own (its
+  bytes are not sniffed). It then:
+  - compresses the body with `compress.gzip` at `level`;
+  - sets `Content-Encoding: gzip`;
+  - drops Content-Length;
+  - makes a strong ETag weak (`W/"..."`);
+  - sets the Content-Type sniffed from the uncompressed body
+    (`mime.detect_content_type`) when the response had none, so the
+    server does not sniff the gzip bytes.
+- **Streamed responses** run through a `compress.Compressor`. Each
+  `BodyWriter.flush` flushes it (Go's `Writer.Flush`), so the client can
+  decode what has been sent.
+- Tests: golden http_gzip_responses (go, arm64, LLVM).
 
 ---
 
@@ -1235,7 +1563,8 @@ fn (p: Patch[T]) apply_opt(current: T?) -> T? // Absent keeps, Null clears, Valu
 
 | Xo | JSON |
 |---|---|
-| struct | object, keys are field names |
+| struct | object, keys are field names, or a field's wire name (`kind as "type": Str`), or the `derive Json(case: camel \| pascal \| kebab \| snake)` rule (core 2.2, decision 0277) |
+| newtype (`type Email struct(Str)`) | its underlying value's JSON (core 2.8) |
 | `T?` field | missing key or `null` decodes to `None`; `None` encodes as `null` |
 | field with a default | missing key decodes to the default |
 | other missing field | `DecodeErr` |
@@ -1256,6 +1585,62 @@ Builtin types listed above implement `Json`, so `http.json(200, {"msg": "hi"})`
 works without a struct.
 
 ---
+
+### 5.1 Values of any shape (decision 0299)
+
+```
+enum Value { Null, Bool(b: Bool), Int(n: Int), Num(n: Float), Str(s: Str), List(items: List[Value]), Object(fields: List[(Str, Value)]) }
+pub fn to_value[T: Json](v: T) -> Value      // v's encoding as a Value
+pub fn parse_value(text: Str) -> Value ! DecodeErr
+fn (v: Value) encode() -> Str
+fn (v: Value) get(key: Str) -> Value?        // an object's field
+```
+
+- Go's decoding into `any`, with two differences: a number without a
+  fraction or exponent that fits an Int is `Int` (Go gives float64, which
+  loses ids above 2^53), any other `Num`; an object keeps its keys in the
+  order of the text, each key once at its first position with its last
+  value (as `decode` reads objects; Go's map has no order).
+- Errors are `decode`'s (`at $: invalid JSON: ...`, Go's texts).
+- `encode` writes the parts as `encode` does (strings escaped, numbers,
+  objects in their order); `parse_value(v.encode())` gives `v` back.
+- Uses: JSON whose shape varies (webhook bodies), and std/template's data
+  (decision 0299).
+- Golden `json_value` (every backend).
+
+### 5.2 Streams of values (decision 0309)
+
+```
+struct Decoder {}                                   // move only
+pub fn decoder(max_value: Int = 67108864) -> Decoder
+fn (var d: Decoder) write(data: Bytes) -> List[Value] ! DecodeErr   // the values completed so far
+fn (var d: Decoder) finish() -> List[Value] ! DecodeErr            // the rest
+pub fn from_value[T: Json](v: Value) -> T ! DecodeErr
+```
+
+- Go's json.Decoder reading `any`, push style (as std/compress's
+  Decompressor, decision 0305): bytes go in, finished values come out.
+  The input is JSON values one after another with optional whitespace
+  between them: NDJSON, concatenated objects, numbers separated by
+  spaces.
+- Values end where Go's scanner ends them: `01` is the values 0 and 1,
+  `truex` is `true` and then an error. A value that the bytes so far do
+  not finish (a number at the very end may still go on) waits for more,
+  or for `finish`, where it is `invalid JSON: unexpected EOF`.
+- Each value is read as `parse_value` reads it, with its errors; invalid
+  UTF-8 in a string is U+FFFD, as in Go. As Go's Decoder returns the
+  values before an error first, a `write` that finds an error after some
+  values returns them, and the next call returns the error.
+- A value longer than `max_value` bytes is `invalid JSON: value exceeds
+  max_value (N bytes)`, so a stream that never closes a value is bounded
+  (Go has no bound).
+- Tested against Go's json.Decoder on 1,200 generated streams, some cut
+  short or with a byte changed, written in random pieces
+  (internal/stdtest/testdata/corpus/json, scripts/stdcorpus).
+- `from_value` decodes a Value into T as `decode` decodes its text.
+- `derive Json` fields marked `as "key,omitempty"` (core 2.2) are left
+  out of `encode`'s output when empty.
+- Goldens `json_stream` and `json_omitempty` (every backend).
 
 ## 6. std/log
 
@@ -1448,6 +1833,22 @@ fn (n: FakeNet) requests() -> List[http.Request]     // every request seen, incl
   a real socket's backlog (a test that never serves it reports a deadlock
   naming the wait); after `serve` returns, requests fail with
   `ClientErr.Connect`.
+- Raw connections (decision 0292): `os.net.dial(addr)` connects to the
+  open in memory listener at `addr` and returns at once, the connection
+  waiting in the listener's backlog until `accept()` returns its other
+  end; without one it fails with `Refused`. `listen` takes a host name
+  too (`listen("db.test:5432")` listens at exactly that address, so a
+  program dialing its configured host reaches the fake), and fails with
+  `Io("address already in use")` while another listener has the
+  address. What one end writes the other reads, in order; a read returns
+  what is buffered (at most the size asked) and waits while nothing is;
+  each direction buffers 64 KiB and a write waits for room. Closing one
+  end ends the other's reads (`None` after the bytes it holds) and fails
+  its writes (`Io("write tcp: connection reset by peer")`); closing the
+  listener resets the connections still in its backlog. Reads, writes,
+  and accept are task waits (cancellation, the virtual clock, the
+  deadlock report), and `tls.client` passes the bytes through as on
+  every FakeNet connection (27).
 
 ### 8.2 FakeClock
 
@@ -1563,18 +1964,23 @@ pub fn ext(p: Str) -> Str            // extension with the dot, or ""
 pub fn clean(p: Str) -> Str          // removes `.`, `..`, repeated `/`
 ```
 
+Go's path package's results on every backend. Every backend runs one
+implementation, std/native/path.xo: the Go backend compiles it too
+(std/go_compiled.txt, decision 0312), and `clean` is Go's algorithm.
+
 ---
 
 ## 10. std/sql
 
-Status: draft, implemented with an in memory driver only (2026-10-08). Real
-drivers (Postgres, SQLite, ...) are Go packages bound with `use go` and
-registered with `rt.RegisterSqlDriver`; none ships yet. Native builds
-(`--no-gc`, decision 0083) run the same in memory driver, ported to Xo,
-with the same results and error texts; there `sql.open` always reports an
-unknown driver (no Go drivers), `max_open` does not bound the in memory
-driver (it runs one statement at a time), and a `Row`'s Debug text is its
-fields.
+Status: draft (2026-10-08), implemented on every backend: the in memory
+driver (`sql.memory`, ported to Xo for native builds, decision 0083, with
+the same results and error texts; `max_open` does not bound it, as it
+runs one statement at a time) and drivers written in Xo (decision 0278,
+10.7). `sql.open(net, "postgres", dsn)` opens Postgres natively (10.8);
+on the Go backend, and for any other driver name on every backend,
+`sql.open` reports an unknown driver. A `Row`'s Debug text is its
+columns and values on every backend, `Row(a: 1, b: "x", c: null)`;
+`value` gives each column's value.
 
 ### 10.1 Opening
 
@@ -1605,9 +2011,17 @@ allowed (core 6.2), so the same code runs against both.
 ### 10.2 Parameters and values
 
 ```
-enum SqlValue { Null, Integer(n: Int), Text(s: Str), Real(f: Float), Flag(b: Bool), At(t: Time) }
+enum SqlValue {
+  Null, Integer(n: Int), Text(s: Str), Real(f: Float), Flag(b: Bool), At(t: Time),
+  Blob(b: Bytes),                    // bytea, BLOB (decision 0278)
+  JsonText(s: Str),                  // json, jsonb: the JSON text
+  Array(items: List[SqlValue]),      // a one dimensional array
+}
 pub fn null() -> SqlValue
 pub fn int(n: Int) -> SqlValue       // also str, float, bool, time
+pub fn bytes(b: Bytes) -> SqlValue
+pub fn json[T: Json](v: T) -> SqlValue             // JsonText of json.encode_str(v)
+pub fn array(items: List[SqlValue]) -> SqlValue
 ```
 
 Parameters are written `$1`, `$2`, ... and passed as a `List[SqlValue]`
@@ -1639,9 +2053,14 @@ write with a `RETURNING` clause returns rows, so it goes through `query`
 ```
 struct Row {}
 fn (r: Row) columns() -> List[Str]
+fn (r: Row) value(name: Str) -> SqlValue ! SqlErr  // the column's value as read (pgx's Rows.Values)
 fn (r: Row) is_null(name: Str) -> Bool ! SqlErr
 fn (r: Row) int(name: Str) -> Int ! SqlErr       // also str, float, bool, time
 fn (r: Row) int_opt(name: Str) -> Int? ! SqlErr  // also str_opt, float_opt, bool_opt, time_opt
+fn (r: Row) bytes(name: Str) -> Bytes ! SqlErr   // also bytes_opt
+fn (r: Row) json[T: Json](name: Str) -> T ! SqlErr   // a json column (or text) decoded; a decode error is Mismatch
+fn (r: Row) ints(name: Str) -> List[Int] ! SqlErr    // an array of integers; also strs; a NULL element is Mismatch
+fn (r: Row) items(name: Str) -> List[SqlValue] ! SqlErr  // an array's elements
 ```
 
 Accessors read by column name (the first column of that name). A missing
@@ -1661,9 +2080,13 @@ fn (t: Tx) query_one_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> T ! Sql
 ```
 
 `derive SqlRow` is allowed on a struct without type parameters whose fields
-are `Int`, `Float`, `Str`, `Bool`, `Time`, or an `Option` of one of them
-(else XO0404 at the derive). `decode` reads each field from the column of
-the same name with the rules of the accessors above: a missing column is
+are `Int`, `Float`, `Str`, `Bool`, `Time`, `Bytes`, or an `Option` of one
+of them, or `List[Int]` or `List[Str]` (array columns, read with `ints`
+and `strs`; decision 0278), else XO0404 at the derive. `decode` reads
+each field from the column of the same name, or of its wire name
+(`created as "created_at": Time`), or under `derive SqlRow(case: ...)`
+(core 2.2, decision 0277), with the rules of the accessors above: a
+missing column is
 `NoColumn(name)`, a value of another type is `Mismatch(column, msg)`, NULL is
 `None` for an `Option` field and `Mismatch` for any other. Fields are read in
 declaration order and the first failure is returned. Columns without a field
@@ -1724,19 +2147,25 @@ A `Tx` is a handle: copies share the transaction.
 
 ```
 enum SqlErr {
-  Syntax(msg: Str), Constraint(msg: Str), Param(msg: Str), NoTable(name: Str),
+  Syntax(msg: Str), Constraint(msg: Str, code: Str, name: Str), Param(msg: Str), NoTable(name: Str),
   NoRows, NoColumn(name: Str), Mismatch(column: Str, msg: Str),
-  Conn(msg: Str), Driver(msg: Str), TxDone, Closed, Canceled
+  Conn(msg: Str), Driver(msg: Str), Server(code: Str, msg: Str), TxDone, Closed, Canceled
 } derive Display
 ```
 
 `Conn` is a lost or refused connection, `Driver` any other driver failure
 (including an unknown driver name), `Constraint` a key, uniqueness, NOT NULL,
-or type violation.
+check, or type violation, and `Server` any other error a server reports
+with an SQLSTATE code. `Constraint`'s `code` is the SQLSTATE (decision
+0278): `23505` unique, `23503` foreign key, `23502` not null, `23514`
+check, `42804` a value of another type; `name` is the constraint's name,
+`""` when the driver gives none (the in memory driver never does).
 
 The in memory driver (`memory`, `testing.fake_db`) supports: `CREATE TABLE [IF
 NOT EXISTS]` (types `INT`/`INTEGER`/`BIGINT`, `TEXT`/`VARCHAR`, `REAL`/`FLOAT`,
-`BOOL`, `TIMESTAMP`, `SERIAL`; `PRIMARY KEY` on a single integer column
+`BOOL`, `TIMESTAMP`, `SERIAL`, `BYTEA`/`BLOB` (`Blob` values), `JSON`/`JSONB`
+(`JsonText` values), and an array of any of them written `TYPE[]` (`Array`
+values whose elements are of TYPE or NULL); `PRIMARY KEY` on a single integer column
 auto-assigns keys; `NOT NULL`, `UNIQUE`, `DEFAULT literal`), `DROP TABLE`,
 `INSERT ... VALUES` (several tuples), `SELECT` of `*`, expressions with `AS`,
 or `COUNT(*)` from one table with `WHERE`, `ORDER BY` (several keys, `ASC`/`DESC`),
@@ -1751,6 +2180,169 @@ grouping, or subqueries. Reads inside a transaction see its own
 writes; reads outside see the last commit. A write through `query` that
 fails changes nothing, like one through `exec`.
 Results of a `Db` are not recorded by record and replay (core 11.3) yet.
+
+### 10.7 Drivers written in Xo
+
+Status: implemented natively and on the Go backend (decision 0278 stage
+B, 2026-10-20); the Postgres driver (10.8) uses it.
+
+```
+interface Driver {
+  fn connect(self, net: Net, dsn: Str) -> DriverConn ! SqlErr uses net.dial
+}
+interface DriverConn {
+  fn query(self, q: Str, args: List[SqlValue]) -> DriverRows ! SqlErr uses net.dial
+  fn exec(self, q: Str, args: List[SqlValue]) -> ExecResult ! SqlErr uses net.dial
+  fn begin(self) -> () ! SqlErr uses net.dial      // also commit, rollback, ping
+  fn close(self)
+  fn is_broken(self) -> Bool                       // dropped from the pool when true
+}
+struct DriverRows { columns: List[Str], rows: List[List[SqlValue]] }
+
+pub fn open_driver(net: Net, d: Driver, dsn: Str, max_open: Int = 10, max_idle: Int = 2,
+                   max_lifetime: Duration = 30m) -> Db ! SqlErr uses net.dial
+```
+
+- A driver is a value passed to `open_driver`; there is no registry of
+  names (a package global). std/sql gives it the pool: `max_open`
+  permits (each operation and open transaction holds one; waiting is a
+  cancellation point), at most `max_idle` idle connections, each closed
+  once older than `max_lifetime` (on the monotonic clock). An operation
+  takes an idle connection or connects, runs, and gives it back; a
+  connection whose `is_broken` is true is closed instead. A transaction
+  holds one connection from `begin` to `commit` or `rollback`.
+- `open_driver` connects once (a `ping`) before it returns, so a wrong
+  password or host fails there. `close` closes the idle connections;
+  later operations are `Closed`.
+- A `DriverConn` is used by one task at a time; the driver's waits are
+  cancellation points that return `Canceled`.
+
+### 10.8 Postgres
+
+Status: implemented natively (decision 0278 stage C, 2026-10-20), TLS
+through std/tls's `tls.client` (decision 0281); checked against pgx on
+PostgreSQL 17 and 14, and 17 with TLS (scripts/pg-diff.sh). The Go
+backend reports an unknown driver.
+
+```
+let db = sql.open(os.net, "postgres", "postgres://app:${pw}@db.internal:5432/app?sslmode=verify-full")?
+```
+
+`sql.open(net, "postgres", dsn, ...)` opens a PostgreSQL database
+(version 13 or later) through `net`; the driver is written in Xo and
+works on every native target. It dials through `net`, so an attenuated
+`Net` (3.2) limits which database hosts it can reach (an address
+outside the lists fails with `Conn("dial ...: denied by Net.only")`).
+
+`open` takes one more argument for this driver:
+
+```
+pub fn open(net: Net, driver: Str, dsn: Str, max_open: Int = 10, max_idle: Int = 2,
+            max_lifetime: Duration = 30m, roots: Bytes = b"") -> Db ! SqlErr uses net.dial
+```
+
+`roots` is PEM: the certificates trusted instead of the system's for
+`verify-ca` and `verify-full` (a managed database's CA bundle, read by
+the caller with `Fs`). `open` connects once and checks the server
+(`ping`) before it returns, so a wrong password or host fails at `open`.
+
+**Connection strings** (pgx's `ParseConfig`): a URL
+`postgres://user:password@host:port/database?key=value&...` (also
+`postgresql://`; percent escapes decoded; several `host:port` pairs
+separated by `,` are tried in order) or keyword form `host=db
+port=5432 user=app password='x y' dbname=app sslmode=require`. Keys:
+`host` (a name, an IP, or an absolute directory for a Unix socket:
+`/var/run/postgresql` dials `unix:/var/run/postgresql/.s.PGSQL.5432`),
+`port` (5432), `user` (required: no environment is read), `password`,
+`dbname` (the user name), `sslmode`, `connect_timeout` (seconds, 0 for
+none), `application_name`, `search_path`, `timezone`, and
+`options`, and any other key are sent as startup parameters (run time
+settings, as pgx does: `statement_timeout=5s`). `sslrootcert`, `sslcert`,
+`sslkey`, `sslpassword`, `sslcrl`, `passfile`, `service`, and
+`servicefile` name files or secrets kept elsewhere and are `Param`. The
+driver also sends `client_encoding=UTF8`, `TimeZone=UTC`, and
+`DateStyle=ISO`.
+Nothing comes from `PG*` variables or `~/.pgpass`: configuration is the
+string and the arguments (read variables with `Env` and build the
+string). The password never appears in errors, logs, or `Debug` of a
+`Db`.
+
+**TLS** (std/tls's `tls.client`, 27: SSLRequest in plain text, then the
+handshake on the same connection), by `sslmode`:
+
+| sslmode | TLS | Verification |
+|---|---|---|
+| `disable` | never | none |
+| `allow` | only when a plain connection is refused | none |
+| `prefer` | when the server accepts SSLRequest | none |
+| `require` | always (else `Conn("server refused TLS connection")`) | none: encrypted, server not authenticated; the chain when `roots` is given (libpq's rule, as pgx) |
+| `verify-ca` | always | the chain, against `roots` or the system roots |
+| `verify-full` (default) | always | the chain and the host name |
+
+A Unix socket never uses TLS, whatever `sslmode` says (pgx). Authentication: trust, cleartext password, MD5, and
+SCRAM-SHA-256; a server that asks for another method (GSSAPI, SSPI,
+SCRAM-SHA-256-PLUS only) is `Conn("unsupported authentication method
+...")`.
+
+**Statements.** `$1`, `$2`, ... are Postgres's own placeholders. A
+statement without arguments runs with the simple query protocol, so
+`exec` takes a `;` separated script (a schema); with arguments it is
+one statement on the extended protocol (Parse, Bind, Execute, Sync, an
+unnamed statement each time). Results are read whole into `List[Row]`.
+`exec`'s `rows_affected` is the count of the command tag (`INSERT 0
+3` is 3); `last_insert_id` is 0: use `RETURNING id` with `query_one`.
+Transactions run `BEGIN`, `COMMIT`, and `ROLLBACK` on one connection
+held from `begin` to its end; a statement that fails inside a
+Postgres transaction aborts it (later statements are
+`Server("25P02", ...)` until `rollback`), unlike the in memory driver.
+
+**Pool.** `max_open` connections at most, `max_idle` kept open when
+unused, each closed after `max_lifetime`. A connection that fails at
+the socket or protocol level is dropped, and the operation fails with
+`Conn`; operations are not retried (a write may have run).
+
+**Cancellation.** When the task waiting on a statement is cancelled, the
+statement returns `Canceled` and the connection is dropped (closed, so
+the server stops the statement when it notices); sending CancelRequest
+first, as pgx does, is a later step. Deadlines are `task.with_timeout`.
+A COMMIT of a transaction that had failed is
+`Server("25P02", "commit unexpectedly resulted in rollback")` (pgx's
+ErrTxCommitRollback).
+
+### 10.9 Values by Postgres type
+
+Results are read in text format and decoded by the column's type:
+
+| Postgres type | SqlValue | Read with |
+|---|---|---|
+| `int2`, `int4`, `int8`, `oid` | `Integer` | `int` |
+| `float4`, `float8` | `Real` | `float` |
+| `bool` | `Flag` | `bool` |
+| `text`, `varchar`, `bpchar`, `name`, `citext` | `Text` | `str` |
+| `timestamptz` | `At` | `time` |
+| `timestamp` | `At`, the wall clock read as UTC | `time` |
+| `bytea` | `Blob` | `bytes` |
+| `json`, `jsonb` | `JsonText` | `json[T]`, `str` |
+| arrays of the types above (one dimension) | `Array` | `ints`, `strs`, `items` |
+| every other type (`numeric`, `uuid`, `date`, `time`, `interval`, `inet`, enums, ...) | `Text`, the server's text | `str` |
+
+NULL is `Null` everywhere. Accessors convert where no information is
+lost: `float` reads `Integer` and a `numeric` Text that parses as a
+Float; `time` reads a `date` Text as its midnight in UTC; `str` reads
+`JsonText`. Anything else is `Mismatch` as before.
+
+Parameters are sent in text format with the type left to the server
+(OID 0), except `Blob`, which is sent as binary `bytea`: `Integer` and
+`Real` as their decimal text (`NaN`, `Infinity`), `Flag` as `true` or
+`false`, `At` as RFC 3339 with nanoseconds, `JsonText` as is, `Array`
+as an array literal (`{1,2,NULL}`, elements quoted as Postgres
+requires). A UUID parameter is `sql.str(id)`: the server converts it.
+
+The values and accessors are 10.2 and 10.4's.
+
+`derive SqlRow` accepts `Bytes`, `List[Int]`, and `List[Str]` fields
+too. Column names that are not field names use the field's wire name
+(decision 0277, planned): `kind as "type": Str`.
 
 ---
 
@@ -1834,6 +2426,123 @@ pub fn ed25519_verify(public_key: Bytes, msg: Bytes, sig: Bytes) -> Bool
   and the RFC 8032 vectors. The checksum log of the module commands
   (decision 0124) signs and verifies tree heads with it.
 
+**Hashes and HMAC** (decision 0279, 2026-10-20; every backend):
+
+```
+enum Hash { Md5, Sha1, Sha224, Sha256, Sha384, Sha512, Sha3_256, Sha3_512 }
+fn (h: Hash) size() -> Int                     // digest bytes: 16, 20, 28, 32, 48, 64, 32, 64
+pub fn digest(h: Hash, data: Bytes) -> Bytes
+pub fn hmac(h: Hash, key: Bytes, msg: Bytes) -> Bytes
+
+struct Hasher {}                               // a value: copies are independent
+pub fn hasher(h: Hash) -> Hasher
+pub fn hmac_hasher(h: Hash, key: Bytes) -> Hasher
+fn ([var] x: Hasher) write(data: Bytes)
+fn (x: Hasher) sum() -> Bytes                  // the digest so far; writing may continue
+fn (x: Hasher) written() -> Int
+```
+
+- The results are Go's (`md5.Sum`, `sha1.Sum`, `sha256.Sum224`, ...,
+  `sha3.Sum512`, `crypto/hmac`); `sha256(d)` and `hmac_sha256(k, m)`
+  are `digest(Sha256, d)` and `hmac(Sha256, k, m)`. HMAC hashes a key
+  longer than the hash's block first (the block is the rate for SHA-3,
+  as Go's).
+- `Md5` and `Sha1` are broken for collision resistance; they are for
+  protocols that require them (HMAC-SHA1 webhook signatures, TOTP,
+  Postgres MD5 authentication, Content-MD5). An `xo vet` note for them
+  outside an HMAC is planned.
+- A `Hasher` takes a large body a piece at a time (`var x =
+  crypto.hasher(Sha256)`, `x.write(chunk)` per chunk read from a `File`
+  or a `Conn`, then `x.sum()`). Natively the hashes are the TLS stack's
+  (std/native/llrt sha1.xo, sha256.xo, sha3.xo; SHA-256 with the CPU's
+  instructions) and MD5 is ported from Go's crypto/md5; Go's vectors for
+  each are in std/native/crypto_test.xo and llrt/md5_test.xo.
+
+**Public key signatures, keys, and PEM** (decision 0285, Accepted by
+the owner 2026-10-20; every backend; Go's results on generated keys,
+signatures, and mutations in std/native/crypto_test.xo, golden
+`crypto_keys`):
+
+```
+enum KeyAlg { Rsa, EcdsaP224, EcdsaP256, EcdsaP384, EcdsaP521, Ed25519 }
+struct PublicKey {}          // a value: ==; Debug text `<publickey>`
+struct PrivateKey {}         // Debug text `<privatekey>`: never key material
+struct KeyErr { msg: Str }
+struct PemBlock { kind: Str, headers: Map[Str, Str], bytes: Bytes }
+
+pub fn pem_decode(text: Str) -> List[PemBlock]
+pub fn pem_encode(b: PemBlock) -> Str ! KeyErr
+pub fn parse_public_key(der: Bytes) -> PublicKey ! KeyErr
+pub fn parse_private_key(der: Bytes) -> PrivateKey ! KeyErr
+pub fn jwk_public_key(jwk: Str) -> PublicKey ! KeyErr
+pub fn marshal_public_key(k: PublicKey) -> Bytes
+fn (k: PublicKey) alg() -> KeyAlg
+fn (k: PrivateKey) alg() -> KeyAlg
+fn (k: PrivateKey) public_key() -> PublicKey
+pub fn verify(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
+pub fn verify_pss(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
+pub fn verify_raw_ecdsa(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
+pub fn sign(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
+pub fn sign_pss(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
+pub fn sign_raw_ecdsa(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
+pub fn generate_key(r: Rand, alg: KeyAlg) -> PrivateKey ! KeyErr uses rand
+```
+
+- PEM is Go's `encoding/pem`: `pem_decode` is `pem.Decode` repeated on
+  the rest (text outside blocks and malformed blocks skipped; header text
+  and the type are Str, U+FFFD for bytes that are not UTF-8), and
+  `pem_encode` is `pem.EncodeToMemory` (64 column lines; `Proc-Type`
+  first, then the other headers sorted), `KeyErr` for a header key with
+  a colon.
+- `parse_public_key` reads a PKIX SubjectPublicKeyInfo (Go's
+  `ParsePKIXPublicKey`) or a PKCS #1 RSAPublicKey; `parse_private_key`
+  reads PKCS #8, PKCS #1, and SEC 1 EC keys (Go's `ParsePKCS8PrivateKey`,
+  `ParsePKCS1PrivateKey`, `ParseECPrivateKey`, tried in that order as
+  `tls.X509KeyPair` does). Errors carry Go's x509 texts (`x509: unsupported
+  elliptic curve`, ...); DER that does not parse at all is `x509:
+  malformed public key` or `x509: malformed private key` on every backend
+  (Go's encoding/asn1 texts name its internal structures). DSA and other
+  algorithms are `x509: unknown public key algorithm`.
+- `verify` hashes `msg` with `h` and checks RSA PKCS #1 v1.5 or ECDSA
+  ASN.1 DER (Go's `VerifyPKCS1v15`, `VerifyASN1`); `verify_raw_ecdsa`
+  takes the fixed size r || s form of JWS (RFC 7518 3.4). Ed25519 signs
+  the message itself and ignores `h`. A key and hash that do not fit, a
+  wrong length, or a malformed signature is `false`, never a fault.
+  `verify_pss` accepts any salt length (Go's `PSSSaltLengthAuto`);
+  `sign_pss` uses a salt as long as the hash (RFC 7518 PS256, TLS 1.3).
+- RSA keys verify and sign from 1024 bits (Go 1.24's minimum: `crypto/rsa:
+  512-bit keys are insecure (see ...)`), and a key's public values are
+  checked as Go checks them (`crypto/rsa: public exponent is even`, ...);
+  a private key is checked when parsed (`crypto/rsa: p * q != n`, its CRT
+  values computed when absent); keys of more than two primes are
+  `crypto/rsa: multi-prime keys are not supported`. A message hash too
+  long for the key is `crypto/rsa: message too long for RSA key size`;
+  `sign_pss` with another kind of key is `KeyErr`. `generate_key(r, Rsa)`
+  is `KeyErr` until prime generation lands (import RSA keys from PEM).
+- `jwk_public_key` reads RFC 7517 JSON (members matched exactly,
+  unpadded base64url values; `use`, `kid`, `alg`, and private members
+  ignored): `jwk: malformed JSON`, `jwk: unsupported key type "oct"`,
+  `jwk: unsupported curve "P-192"`, `jwk: missing member "n"`, `jwk:
+  member "n" is not unpadded base64url`, `jwk: coordinates of the wrong
+  size for P-256`, `jwk: point not on the curve`, `jwk: invalid RSA
+  key`.
+- **Nonces.** ECDSA signing takes its nonce from an HMAC_DRBG seeded with
+  the private key, bytes from `r`, and the message hash (Go 1.24's hedged
+  construction): a `Rand` that repeats or returns zeros degrades to
+  deterministic signing (as RFC 6979), so it cannot leak the key, and a
+  test's seeded `Rand` gives reproducible signatures natively. On the Go
+  backend ECDSA nonces and PSS salts come from Go's own generator (Go
+  1.26 ignores a custom reader, and with `cryptocustomrand=1` it reads
+  one extra byte at random), so those signatures verify but differ run
+  to run; the bytes the native signer takes are drawn from `r` and
+  dropped, so `r`'s later values match. Keys from `generate_key`, RSA
+  PKCS #1 v1.5, and Ed25519 signatures are the same bytes on every
+  backend for the same `r`.
+- **Timing.** Every operation on a private key or a nonce (scalar
+  multiplication, the nonce inversion, RSA's CRT exponentiation) runs in
+  time independent of the secret; bench/ct checks it with a Welch t-test
+  (on demand and nightly).
+
 Storing API tokens: tokens from `token` have 256 bits of entropy, so a
 plain `sha256` digest is enough (no salt or stretching needed) and can be
 looked up by value; compare the digest found with `equal`:
@@ -1876,7 +2585,7 @@ Status: **Accepted** (decision 0094, 2026-10-09; drafted by the spec
 audit, `bench/results/spec-audit-2026-10-09.md`). Implemented on the Go
 backend (2026-10-09): `std/time.xo`, `std/rt/timezone.go`,
 `timecivil.go`, `timefmt.go`; the compile time layout check is
-selfhost/check's (`internal/check/timelayout.go` until decision 0215). The native backends build all of it
+compiler/check's (`internal/check/timelayout.go` until decision 0215). The native backends build all of it
 (2026-10-09: `std/native/time.xo` over `std/llrt/xo_time.c`, the same
 zone data per use, output identical to the Go backend's; decision 0094
 "Native implementation"; decision 0089 makes native a preview at 1.0;
@@ -1977,6 +2686,11 @@ fn (e: LayoutErr) display() -> Str               // bad layout "{yr}": unknown f
 pub fn format(t: Time, z: Zone, layout: Str) -> Str             // faults on a bad layout (constant layouts are checked at compile time)
 pub fn parse(s: Str, layout: Str, z: Zone) -> Time ! ParseErr   // z applies when the text has no offset
 pub fn check_layout(layout: Str) -> () ! LayoutErr
+struct Layout                                              // a layout parsed once (decision 0332)
+pub fn layout(text: Str) -> Layout                         // faults on a bad layout; `const ISO: Layout = layout("{year}-{month}-{day}")` parses it on first use
+fn (l: Layout) format(t: Time, z: Zone) -> Str             // as format(t, z, text), without the layout walk
+fn (l: Layout) parse(s: Str, z: Zone) -> Time ! ParseErr   // as parse(s, text, z)
+// consts RFC3339_LAYOUT, RFC1123_LAYOUT, DATE_LAYOUT, TIME_LAYOUT are the named layouts as Layouts
 ```
 
 Fields, one spelling each: `{year}`; `{month}` 01 to 12, `{month:1}`
@@ -2004,6 +2718,14 @@ the layout (no guessing between formats); a two digit year is not offered.
 - Native backends carry the same embedded data in C; the Go backend uses
   Go's `time` package with the per use data. Implementation order: Go
   backend, checker rules, native runtime, cross backend diff tests.
+- WebAssembly (`xo build --backend=wasm`, 2026-10-17) embeds the same per
+  use data in the module's data segment, only when the program looks a
+  zone up (a program without zones, and the playground's compiler, carry
+  none); each lookup parses the zone again (no zone table shared between
+  threads yet), with the same zone identity for the same name. A wasm
+  build that does not choose zone data (compiler/wasm's own runs, the
+  playground) refuses a program that looks zones up rather than report
+  every zone unknown.
 
 ### 13.5 Implementation notes (2026-10-09)
 
@@ -2363,35 +3085,45 @@ fn report(out: Stdio, env: Env, failed: Int) uses (stdio, env) {
 
 ## 16. std/csv
 
-Status: implemented on every backend (decision 0164, 2026-10-11): the
-Go backend in `std/rt/csv.go`, the native backends in
-`std/native/csv.xo`, the same records, text, and errors.
+Status: implemented on every backend (decision 0164, 2026-10-11; Go
+parity decision 0298, 2026-10-21): the Go backend runs Go's encoding/csv
+(`std/rt/csv.go`), the native backends port it (`std/native/csv.xo`);
+Go's records, errors, and positions on 2,661 texts with every option,
+and Go's Writer on 400 row sets (`csv_test.xo`).
 
 ```
-struct CsvErr { line: Int, column: Int, msg: Str }   // displays as `csv: line 3, column 5: msg`
+struct CsvErr { start_line: Int, line: Int, column: Int, msg: Str }   // Go's ParseError
 
-pub fn parse(text: Str, sep: Rune = ',') -> List[List[Str]] ! CsvErr
-pub fn parse_maps(text: Str, sep: Rune = ',') -> List[Map[Str, Str]] ! CsvErr
-pub fn format(rows: List[List[Str]], sep: Rune = ',') -> Str
+pub fn parse(text: Str, sep: Rune = ',', comment: Rune = '\0', fields: Int = -1,
+             lazy_quotes: Bool = false, trim_leading_space: Bool = false) -> List[List[Str]] ! CsvErr
+pub fn parse_maps(text: Str, sep: Rune = ',', comment: Rune = '\0', lazy_quotes: Bool = false,
+                  trim_leading_space: Bool = false) -> List[Map[Str, Str]] ! CsvErr
+pub fn format(rows: List[List[Str]], sep: Rune = ',', crlf: Bool = false) -> Str
 ```
 
-- RFC 4180: a field in double quotes may hold the separator, line
-  breaks, and `""` for a quote; `\r\n` inside quotes reads as `\n`.
-  Records end with `\n`, `\r\n`, or the end of the text; empty lines are
-  skipped. Records may have different numbers of fields. Spaces are part
-  of fields.
-- Errors (line and column are 1-based, the column counts bytes): `" in
-  an unquoted field`, `quoted field not closed` (at the opening quote),
-  `unexpected character after a quoted field`.
+- Go's csv.Reader: `sep` is Comma, `comment` Comment (`'\0'` for none:
+  lines starting with it are skipped), `fields` FieldsPerRecord (-1 any
+  number, the default here where Go's is 0; 0 the first record's; N
+  exactly N), `lazy_quotes` LazyQuotes, `trim_leading_space`
+  TrimLeadingSpace. RFC 4180 quoting; `\r\n` reads as `\n`; empty lines
+  are skipped; a final `\r` ends the text as `\n` would.
+- Errors are Go's ParseError: `msg` is `bare " in non-quoted-field`,
+  `extraneous or missing " in quoted-field`, or `wrong number of
+  fields`; line and column (1-based, bytes) are Go's; `display` is Go's
+  Error() text: `parse error on line 1, column 5: ...`, `record on line
+  2; parse error on line 3, column 1: ...`, `record on line 4: wrong
+  number of fields`.
 - `parse_maps` reads the first record as the header and makes a map per
-  later record, in header order; a record with another number of fields
-  is `expected N fields as in the header, found M` at its first line.
-- `format` writes each record and `\n`; a field is quoted when it holds
-  the separator, a quote, `\r` or `\n`, starts with a space or a tab, or
-  is the only, empty field of a record (else the record would read as an
-  empty line). `parse(format(rows))` gives `rows` back.
-- `sep` is any rune but `"`, `\r`, and `\n` (a fault otherwise); use
-  `'\t'` for tab separated values.
+  later record; every record must have the header's number of fields
+  (FieldsPerRecord 0).
+- `format` is Go's csv.Writer (`crlf`: UseCRLF): a field is quoted when it
+  holds `sep`, a quote, `\r` or `\n`, starts with a space (Unicode), or
+  is `\.`; quotes double. One difference: the only, empty field of a
+  record is written `""` (Go writes an empty line, which reads back as no
+  record), so `parse(format(rows))` gives `rows` back.
+- `sep` and `comment` must be valid delimiters (not `"`, `\r`, `\n`,
+  `\0` for `sep`, and not each other): a fault `csv: invalid field or
+  comment delimiter` otherwise.
 
 ---
 
@@ -2399,10 +3131,10 @@ pub fn format(rows: List[List[Str]], sep: Rune = ',') -> Str
 
 Status: implemented on the Go backend (decision 0164, Go's `regexp`)
 and natively (decision 0172: Go's regexp/syntax parser, compiler, and
-Pike VM ported to Xo, the same matches and errors). Native builds have
-the Unicode classes `\pL` (`\p{Letter}`), `\p{Nd}`, `\p{Any}`, and
-`\p{ASCII}` so far; another class Go knows is a `RegexErr` saying it is
-not supported by native builds yet.
+Pike VM ported to Xo, the same matches and errors). Every Unicode class
+Go's regexp knows (`\p{Greek}`, `\pN`, `\p{Lu}`, `\p{Assigned}`, the
+category aliases such as `\p{Letter}`) is in native builds too, from
+Go's tables (Unicode 15.0.0), looked up by name as Go does.
 
 ```
 struct Regex {}                          // an immutable compiled value (not a handle, core 2.9)
@@ -2435,8 +3167,8 @@ In `replace_all`, `$name` takes the longest name it can (`$1x` is group
 
 Status: implemented on the Go backend (decision 0164, Go's
 `compress/gzip`, `archive/tar`, `archive/zip`) and natively (decision
-0172: those packages ported to Xo, the same bytes and errors; zip64
-archives are an error natively).
+0172: those packages ported to Xo, the same bytes and errors, zip64
+archives and PAX sparse tar files included since 2026-10-21).
 
 ```
 struct Entry { path: Str, data: Bytes, mode: Int, is_dir: Bool, modified: Time }
@@ -2515,3 +3247,1526 @@ fn load(fs: Fs) -> Config ! Error uses fs.read {
 - `to_json` gives the JSON text, for code that wants to read a document
   without a struct (`json.decode[Map[Str, ...]]`) or print it.
 
+
+---
+
+## 20. std/url
+
+Status: implemented on every backend (decision 0279, 2026-10-20): Go's
+net/url (url.go of go1.26) on the Go backend, ported to Xo natively
+(`std/native/url.xo`, Go's escape, query, and Values tables in
+`url_test.xo`); golden `url_basic` on arm64, LLVM, Go, and wasm. Pure:
+no capability.
+
+```
+struct EscapeErr { msg: Str }        // displays as Go's text: `invalid URL escape "%zz"`
+
+pub fn query_escape(s: Str) -> Str   // space as +, as url.QueryEscape
+pub fn query_unescape(s: Str) -> Str ! EscapeErr
+pub fn path_escape(s: Str) -> Str    // one path segment: space as %20, / escaped
+pub fn path_unescape(s: Str) -> Str ! EscapeErr
+
+struct Values {}    // a value (not a handle): keys in first appearance order, each with its values in order
+pub fn values() -> Values
+pub fn parse_query(s: Str) -> Values ! EscapeErr   // a=1&b=2&a=3
+fn (v: Values) get(key: Str) -> Str?                // the first value
+fn (v: Values) all(key: Str) -> List[Str]           // every value, [] when missing
+fn (v: Values) has(key: Str) -> Bool
+fn (v: Values) keys() -> List[Str]
+fn (v: Values) encode() -> Str                      // sorted by key, as Values.Encode
+fn ([var] v: Values) add(key: Str, value: Str)
+fn ([var] v: Values) set(key: Str, value: Str)      // replaces every value of key
+fn ([var] v: Values) remove(key: Str)
+```
+
+- `query_escape` keeps letters, digits, `-`, `.`, `_`, and `~`, writes
+  a space as `+`, and every other byte as `%XX` (upper case hex);
+  `path_escape` also keeps `$ & + : = @` and writes a space as `%20`.
+- `query_unescape` decodes `+` as a space and `%XX`; `path_unescape`
+  leaves `+` alone. A `%` not followed by two hex digits is
+  `EscapeErr`, its text naming the escape (`invalid URL escape "%4"`).
+  A decoded byte sequence that is not UTF-8 keeps each invalid byte as
+  its `%XX` escape (section 0's rule for URL parts), where Go returns
+  the raw bytes.
+- `parse_query` splits on `&`, then the first `=`; an empty pair is
+  skipped and a pair without `=` has the value `""`. A `;` in a pair
+  (`invalid semicolon separator in query`), a bad escape, or more than
+  10000 parameters (`number of URL query parameters exceeded limit`) is
+  `EscapeErr`. Go keeps the pairs parsed around an error; Xo returns
+  the error alone.
+- `encode` writes the keys sorted (byte order), each value as
+  `key=value` with `query_escape`, joined by `&`; `parse_query` of it
+  gives the same keys and values (in sorted key order).
+
+```
+var body = url.values()
+body.add("grant_type", "authorization_code")
+body.add("code", code)
+c.send(http.new_request("POST", token_url,
+  headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: body.encode().bytes()))?
+```
+
+---
+
+## 21. std/base64 and std/base32
+
+Status: implemented on every backend (decision 0279, 2026-10-20): Go's
+encoding/base64 and encoding/base32 on the Go backend, ported natively
+(`std/native/base64.xo`, `base32.xo`; 3440 cases generated from Go in
+their `_test.xo` files); golden `base64_basic`. Pure.
+
+```
+// std/base64
+enum Base64 { Std, Url, RawStd, RawUrl }       // RFC 4648 sections 4 and 5; Raw: no padding
+struct DecodeErr { at: Int }                   // displays as `illegal base64 data at input byte 4`
+pub fn encode(data: Bytes, enc: Base64 = Std) -> Str
+pub fn decode(s: Str, enc: Base64 = Std) -> Bytes ! DecodeErr
+
+// std/base32
+enum Base32 { Std, Hex, RawStd, RawHex }       // RFC 4648 sections 6 and 7
+struct DecodeErr { at: Int }                   // displays as `illegal base32 data at input byte 4`
+pub fn encode(data: Bytes, enc: Base32 = Std) -> Str
+pub fn decode(s: Str, enc: Base32 = Std) -> Bytes ! DecodeErr
+```
+
+- Decoding follows Go's rules and error offsets (CorruptInputError):
+  base64 skips `\r` and `\n` anywhere; base32 removes them first and
+  counts the offset in what remains. A symbol outside the alphabet,
+  padding in a Raw encoding, missing or misplaced padding in a padded
+  one, and data after the padding are errors; the unused low bits of
+  the last symbol need not be zero (Go's default, not `Strict`). Go
+  returns the bytes decoded before an error; Xo returns the error.
+- `Bytes.to_base64` and `Bytes.from_base64` (2.2) are `Std`. JWTs and
+  cursors use `RawUrl`; TOTP secrets use base32 `RawStd` (remove spaces
+  and upper case them first).
+
+---
+
+## 22. std/binary
+
+Status: implemented on every backend (decision 0279, 2026-10-20): Go's
+encoding/binary on the Go backend, ported natively
+(`std/native/binary.xo`); golden `binary_basic`. Pure.
+
+```
+pub fn u16_be(n: Int) -> Bytes                 // the low 16 bits, 2 bytes; also u32_be (4), u64_be (8), and _le
+pub fn get_u16_be(b: Bytes, at: Int) -> Int    // also get_u32_be, get_u64_be, and _le
+pub fn get_i16_be(b: Bytes, at: Int) -> Int    // sign extended; also get_i32_be, get_i16_le, get_i32_le
+pub fn uvarint(n: Int) -> Bytes                // n as an unsigned 64 bit word (binary.AppendUvarint)
+pub fn varint(n: Int) -> Bytes                 // zig-zag (binary.AppendVarint)
+pub fn get_uvarint(b: Bytes, at: Int) -> (Int, Int)?   // value and length; None when cut short or past 64 bits
+pub fn get_varint(b: Bytes, at: Int) -> (Int, Int)?
+```
+
+- An Int is a 64 bit word here: a write keeps its low bits, and
+  `get_u64_*` of a value past 2^63 - 1 is negative (as the Int word
+  methods, decision 0260).
+- A `get_` whose bytes run past the end faults with `binary: N bytes
+  at A out of range for Bytes of length L`; `get_uvarint` and
+  `get_varint` return None instead, as Go's `n <= 0` (also for a
+  negative `at`).
+- Build messages with a `BytesBuilder`: `bb.write(binary.u32_be(len))`.
+## 23. std/mime
+
+Status: implemented on every backend (decision 0282, 2026-10-20): Go's
+mime (mediatype.go, type.go of go1.26) and net/http's sniff.go, on the
+Go backend through Go's mime (the sniffing copied into std/rt) and
+ported natively (`std/native/mime.xo`; Go's results on 1,300 generated
+cases in `mime_test.xo`); golden `mime_basic`. Pure.
+
+```
+struct MediaType { kind: Str, params: Map[Str, Str] }   // kind and parameter names in lower case
+struct MimeErr { msg: Str }                              // Go's texts: `mime: invalid media parameter`
+
+pub fn parse_media_type(v: Str) -> MediaType ! MimeErr
+pub fn format_media_type(kind: Str, params: Map[Str, Str]) -> Str
+pub fn type_by_extension(ext: Str) -> Str?               // ".png" -> "image/png"
+pub fn extensions_by_type(kind: Str) -> List[Str] ! MimeErr
+pub fn detect_content_type(data: Bytes) -> Str
+```
+
+- `parse_media_type` is `mime.ParseMediaType`: the type before any `;`
+  (lower cased, `type/subtype` or a single token, else `mime: no media
+  type`, `mime: expected slash after first token`, ...), then `name=value`
+  parameters (a token or a quoted string; a trailing `;` is allowed),
+  with RFC 2231 continuations (`title*0=`, `title*1=`) and charsets
+  (`filename*=utf-8''na%C3%AFve.txt`; utf-8 and us-ascii, others
+  dropped). A malformed parameter is `mime: invalid media parameter`, a
+  name given twice with different values `mime: duplicate parameter
+  name`. Go also returns the media type with the first error; Xo returns
+  the error alone. A value that decodes to bytes that are not UTF-8 is
+  dropped.
+- `format_media_type` is `mime.FormatMediaType`: lower cased type and
+  names, parameters sorted by name, a value written as a token, quoted
+  (`\"` and `\\` escaped), or RFC 2231 encoded when it holds a control or
+  non ASCII byte; `""` when the type or a name is not a token.
+- `type_by_extension` and `extensions_by_type` use Go's builtin table
+  only (64 extensions), the same on every OS: no `/etc/mime.types`, which
+  would be a file read outside the capabilities. A lookup tries the
+  extension as given, then lower cased.
+- `detect_content_type` is net/http's `DetectContentType` (the WHATWG
+  MIME Sniffing algorithm over the first 512 bytes):
+  `text/html; charset=utf-8`, `image/png`, `application/pdf`,
+  `text/plain; charset=utf-8`, ..., else `application/octet-stream`.
+
+---
+
+## 24. std/uuid
+
+Status: implemented on every backend (decision 0282, 2026-10-20),
+following github.com/google/uuid v1.6.0 (outside Go's std; RFC 9562);
+google/uuid's Parse results on its test inputs in
+`std/native/uuid_test.xo`; golden `uuid_basic`. A `Uuid` field of a
+`derive Json` struct waits for newtype JSON (a code bug against core 2.8,
+being fixed); until then store `u.0`.
+
+```
+type Uuid struct(Str)                     // its canonical text, lower case 8-4-4-4-12: `u.0`
+struct UuidErr { msg: Str }               // google/uuid's texts: `invalid UUID length: 35`
+
+pub fn v4(r: Rand) -> Uuid uses rand
+pub fn v7(r: Rand, c: Clock) -> Uuid uses (rand, clock)
+pub fn parse(s: Str) -> Uuid ! UuidErr
+pub fn from_bytes(b: Bytes) -> Uuid ! UuidErr
+pub fn nil() -> Uuid
+fn (u: Uuid) version() -> Int
+fn (u: Uuid) bytes() -> Bytes
+fn (u: Uuid) display() -> Str
+```
+
+- A `Uuid` is a newtype over its canonical text, so equality, hashing,
+  and JSON (a string, core 2.8) are the text's, and two UUIDs order as their texts do (`a.0 < b.0`,
+  which is the order of their bytes). It reads and writes as a Postgres
+  `uuid` column through `sql.str(u.0)` and `uuid.parse(row.str(...)?)`.
+- `v4` is 122 random bits from `r` with the version 4 and variant bits
+  set; `v7` is the Unix time in milliseconds from `c` (48 bits), then
+  random bits, so keys made later sort later to the millisecond (no
+  counter within a millisecond: google/uuid keeps one in a package
+  variable, which std does not have). Tests are reproducible: `os.rand`
+  is seeded and `os.clock` virtual.
+- `parse` takes `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, `urn:uuid:` and
+  that (prefix in any case), the 36 characters wrapped in two others (as
+  google/uuid, `{...}`, without checking the braces), or 32 hex digits;
+  hex digits in either case. The result is the canonical lower case
+  text.
+
+---
+
+## 25. std/mail
+
+Status: implemented on every backend (decision 0282, 2026-10-20; messages
+decision 0290): Go's net/mail addresses (message.go of go1.26) with mime's RFC 2047 encoded
+words, through net/mail on the Go backend and ported natively
+(`std/native/mail.xo`; Go's results on about 1,200 generated cases in
+`mail_test.xo`); golden `mail_basic`. Pure.
+
+```
+struct Address { name: Str, address: Str }   // the display name decoded; local@domain
+struct MailErr { msg: Str }                   // Go's texts: `mail: no address`, `mail: missing @ in addr-spec`
+struct Message { headers: List[(Str, Str)], body: Bytes }   // decision 0290
+
+pub fn parse_address(s: Str) -> Address ! MailErr
+pub fn parse_address_list(s: Str) -> List[Address] ! MailErr
+fn (a: Address) display() -> Str             // `"Ann Lee" <ann@example.com>`
+pub fn read_message(msg: Bytes) -> Message ! MailErr
+fn (m: Message) header(name: Str) -> Str?    // the first value, any case
+pub fn parse_date(s: Str) -> Time ! MailErr
+pub fn compose(from: Address, to: List[Address], subject: Str, text: Str,
+               html: Str? = None, date: Time, id: Str) -> Bytes
+```
+
+- RFC 5322 as Go reads it: `name <local@domain>`, `local@domain
+  (comment)` (the comment is the name), quoted names and local parts,
+  domain literals holding an IP address (`a@[127.0.0.1]`), and groups
+  (`team: a@x, b@y;`, flattened by `parse_address_list`; one address
+  only for `parse_address`). Encoded words in names decode for utf-8,
+  iso-8859-1, and us-ascii; another charset is `charset not supported:
+  "koi8-r"`.
+- `display` is Go's `Address.String`: the local part quoted when it is
+  not a dot-atom, the name quoted when it is printable ASCII, else
+  RFC 2047 encoded (B encoding when it holds a special character, else
+  Q), in words of at most 75 bytes.
+- `read_message` is Go's ReadMessage (message.go readHeader over
+  textproto's continued lines): the fields in order, each name in
+  canonical form when it is a valid token (`x-lower` is `X-Lower`, `Bad
+  Key` stays), continuation lines unfolded with one space, values without
+  leading spaces, and the body after the first blank line; a message that
+  ends before a blank line keeps the fields read. Errors are Go's:
+  `malformed initial line: ...`, `malformed header line: ...`, `EOF`.
+- `parse_date` is Go's ParseDate: RFC 5322 dates with or without a
+  weekday and seconds, one or two digit days, two digit years (69 to 99
+  are 19xx), runs of spaces, a numeric zone, a zone name, or `UT`, and
+  trailing comments. A zone name keeps the wall clock as UTC's (Go's
+  `time.ParseInLocation` in UTC; `time.Parse` would take the local zone's
+  offset for its own names, which depends on the machine). A date outside
+  the years 1678 to 2262 is `mail: date out of range` (a `Time` is
+  nanoseconds since 1970).
+- `compose` writes `From`, `To`, `Subject` (encoded with mime's
+  QEncoding when it is not ASCII), `Date` (RFC 1123 with a numeric zone,
+  in UTC), `Message-ID: <id>`, `MIME-Version: 1.0`, and a text/plain body,
+  or multipart/alternative with the HTML part (boundary `xo` and 28 hex
+  digits of the SHA-256 of `id`), each body in quoted-printable (Go's
+  Writer: lines of at most 76 bytes, CRLF); the bytes are those of Go's
+  writers given the same boundary. Send them with `smtp.send` (29).
+- Tests: `mail_test.xo` (Go's ReadMessage and ParseDate results on Go's
+  test inputs and 3,000 random dates), golden `mail_messages` on every
+  backend.
+
+---
+
+## 26. std/multipart
+
+Status: implemented on every backend (decision 0282, 2026-10-20): Go's
+mime/multipart over a body in memory, with net/textproto's header reader
+and mime/quotedprintable's decoder, ported natively
+(`std/native/multipart.xo`: Go's results on 1,400 generated bodies in
+`multipart_test.xo`) and through mime/multipart on the Go backend;
+golden `multipart_basic`. Pure except `random_boundary`.
+
+```
+struct Part { name: Str, filename: Str?, headers: Map[Str, Str], data: Bytes }
+struct Form { values: url.Values, files: Map[Str, List[Part]] }
+struct MultipartErr { msg: Str }
+
+pub fn parse(body: Bytes, boundary: Str) -> List[Part] ! MultipartErr
+pub fn parse_form(body: Bytes, boundary: Str, max_parts: Int = 1000) -> Form ! MultipartErr
+pub fn write(parts: List[Part], boundary: Str) -> Bytes
+pub fn form_data_content_type(boundary: Str) -> Str
+pub fn random_boundary(r: Rand) -> Str uses rand
+```
+
+- `parse` is `Reader.NextPart` with each part read whole: the preamble
+  and epilogue skipped, `\r\n` or bare `\n` lines, a part whose
+  `Content-Transfer-Encoding` is `quoted-printable` decoded (and that
+  header removed), Go's errors as text (`multipart: NextPart: EOF` for a
+  body that ends without its closing boundary, `unexpected EOF` for a
+  part cut short, `malformed MIME header line: ...`). A part's `name` is
+  Content-Disposition `form-data`'s `name` and `filename` the last
+  element of its `filename` (Go's `FileName`; `/` separated on every
+  OS); `headers` holds the first value of each header, keys canonical.
+- `parse_form` is `Reader.ReadForm` with the 32 MB of http's
+  `ParseMultipartForm`: parts without a name are skipped, parts without a
+  file name become `values` (in order of appearance), the others `files`;
+  more than `max_parts` parts, or Go's memory and header limits, give
+  `multipart: message too large`. Files stay in memory (Go writes those
+  over the limit to disk). On the Go backend the header limits are per
+  part (Go's NextPart), not per form.
+- Text from the body (values, header values, names) is valid UTF-8,
+  U+FFFD for each invalid byte (decision 0259); `data` is the bytes.
+- `write` is `Writer` with `SetBoundary(boundary)`: parts in order, each
+  part's headers sorted, a `Content-Disposition` made from `name` and
+  `filename` (Go's `CreateFormField` and `CreateFormFile`, with
+  `Content-Type: application/octet-stream` for a file) when the part has
+  none. The boundary is used as given.
+- Streaming parts waits for a streaming request body.
+## 27. std/tls
+
+A TLS client on a connection the program dialed (decision 0281): the
+STARTTLS shape of Postgres's SSLRequest, SMTP, and Redis, where the
+client speaks plaintext first and then upgrades the same socket.
+
+```
+enum Verify { Full, ChainOnly, None }
+struct Roots {}                                    // handle: trusted certificates
+struct TlsErr { msg: Str }
+fn roots(pem: Bytes) -> Roots ! TlsErr
+struct TlsConn {}                                  // handle
+fn client(c: Conn, host: Str, roots: Roots? = None, verify: Verify = Verify.Full, alpn: List[Str] = []) -> TlsConn ! NetErr uses net.dial
+fn (t: TlsConn) read(max: Int) -> Bytes? ! NetErr  uses net.dial
+fn (t: TlsConn) write(data: Bytes) -> () ! NetErr  uses net.dial
+fn (t: TlsConn) close()
+fn (t: TlsConn) alpn() -> Str                      // the protocol the server chose, "" for none
+fn (t: TlsConn) version() -> Str                   // "TLS 1.2" or "TLS 1.3"
+```
+
+```
+fn pg_tls(os: Os, addr: Str, host: Str) -> tls.TlsConn ! Error uses net.dial {
+  let c = os.net.dial(addr)?
+  c.write(ssl_request())?
+  if c.read(1)? != Some(b"S") {
+    return Err(Error.msg("server refused TLS"))
+  }
+  tls.client(c, host)?
+}
+```
+
+- `client` runs a TLS 1.2 or 1.3 client handshake (Go's default cipher
+  suites and curves) on `c` and returns the encrypted connection. `c`
+  belongs to the TlsConn from then on: a `read` or `write` on `c`, or a
+  second `client`, fails with `Io("use of a connection upgraded to
+  TLS")`; `close` sends close_notify and closes `c`; a `read` or `write`
+  after `close` is `Io("use of closed network connection")`. `host` is
+  the server name sent by SNI (not for an IP address) and the name
+  verified.
+- `verify`: `Full` checks the chain against the roots and the host name
+  (an IP address against the certificate's IP addresses), as the http
+  client does (4.6); `ChainOnly` checks the chain but not the name
+  (libpq's `sslmode=verify-ca`); `None` checks nothing and only encrypts
+  (`sslmode=require`): it accepts any certificate, so it does not stop an
+  active attacker, and `xo vet` reports each use (`XO0902`).
+- `roots`: `None` is the system's roots, as the http client's (macOS's
+  trust settings; Linux's CA bundle and directories, `SSL_CERT_FILE` and
+  `SSL_CERT_DIR`); `tls.roots(pem)` trusts exactly the certificates of
+  `pem`, with http's `with_roots` parser and its error
+  (`TlsErr("tls: no certificates found in PEM input")`).
+- Errors are `NetErr`s with Go's texts: a certificate that does not
+  verify is `Io("tls: failed to verify certificate: x509: ...")`; a
+  server that does not speak TLS is `Io("tls: first record does not look
+  like a TLS handshake")`. The handshake must finish within 10 seconds,
+  else `Timeout`; it and every read and write are cancellation points
+  (`Canceled`, core 7.2).
+- `alpn` lists the protocols offered (none by default); `alpn()` is the
+  one the server chose.
+- Tests: on FakeNet `client` does no TLS: the TlsConn reads and writes the
+  connection's plain bytes, `alpn()` is "" and `version()` is "TLS
+  1.3", so a driver's tests can run an in-process fake server. Real TLS
+  is covered by golden `tls_client` (every backend) and Docker
+  differential tests against Go.
+- Effects: `client` is `net.dial`, since only a dialed connection is
+  upgraded, and so are a TlsConn's `read` and `write`, as a dialed
+  `Conn`'s (decision 0280).
+- Backends: native (std/native/llrt/tlsio.xo, the http client's TLS, on
+  the connection's descriptor) and Go (crypto/tls; `ChainOnly` as
+  InsecureSkipVerify with a check of the chain alone). Wasm has no Net.
+
+---
+
+## 28. std/netip
+
+Status: implemented on every backend (decision 0287, 2026-10-20): Go's
+net/netip, ported natively (`std/native/netip.xo`; Go's results on 3,323
+address and prefix cases in `netip_test.xo`) and through net/netip on
+the Go backend. Pure.
+
+```
+struct Addr { bits: Int, ip: Bytes, zone: Str } derive Ord   // 32, 128, or 0; 16 bytes; an IPv6 zone
+struct Prefix { addr: Addr, len: Int }
+struct ParseErr { msg: Str }   // ParseAddr("1.2.3"): IPv4 address too short
+
+pub fn parse_addr(s: Str) -> Addr ! ParseErr
+pub fn parse_prefix(s: Str) -> Prefix ! ParseErr
+pub fn addr_from_bytes(b: Bytes) -> Addr?      // 4 or 16 bytes
+fn (a: Addr) is_4() -> Bool                   // also is_6, is_4in6, is_loopback, is_private,
+                                              // is_unspecified, is_link_local_unicast, is_multicast
+fn (a: Addr) unmap() -> Addr
+fn (a: Addr) bytes() -> Bytes                 // 4 or 16 bytes (AsSlice)
+fn (a: Addr) display() -> Str                 // 1.2.3.4, 2001:db8::1, ::ffff:1.2.3.4, fe80::1%eth0
+fn (p: Prefix) contains(a: Addr) -> Bool
+fn (p: Prefix) masked() -> Prefix
+fn (p: Prefix) display() -> Str
+```
+
+- Parsing is Go's ParseAddr and ParsePrefix, errors included: IPv4
+  without leading zeros, IPv6 with `::`, an embedded IPv4, and zones (not
+  in a prefix). An IPv4 address is kept as `::ffff:a.b.c.d` in `ip`, with
+  `bits` 32; `==` and the order are Go's (`Compare`: the bit length, the
+  bytes, then the zone).
+- A typical use, the client address behind trusted proxies:
+  `trusted.any(fn(p) { p.contains(peer) })`.
+
+## 29. std/smtp
+
+Status: implemented (decision 0290, 2026-10-20) on every backend: Go's
+net/smtp SendMail as one call, on the program's own connection (so
+FakeNet's raw connections serve its tests, decision 0292); build the
+message with std/mail's `compose` (25).
+
+```
+struct SmtpErr { code: Int, msg: Str } derive Display   // the server's reply, or code 0
+enum Auth { None, Plain(user: Str, password: Secret[Str]), CramMd5(user: Str, secret: Secret[Str]) }
+enum Security { StartTls, Tls, None } derive Display
+
+fn send(net: Net, addr: Str, from: Str, to: List[Str], msg: Bytes,
+        auth: Auth = Auth.None, security: Security = Security.StartTls,
+        roots: Bytes = b"", hello: Str = "localhost") -> () ! SmtpErr uses net.dial
+```
+
+- The steps are SendMail's: the greeting, EHLO (HELO when refused),
+  STARTTLS, AUTH, `MAIL FROM:<from>` (with ` BODY=8BITMIME` and
+  ` SMTPUTF8` when offered), `RCPT TO:<to>` for each, DATA with the
+  message dot stuffed and in CRLF lines, QUIT. A reply with another code
+  than expected is `SmtpErr{code, msg}` with the server's text (a
+  multi-line reply's lines joined by `\n`).
+- `Security.StartTls` (the default) requires the server's STARTTLS
+  (`smtp: server doesn't support STARTTLS` otherwise) and verifies the
+  host name through std/tls (against `roots`, a PEM bundle, when given);
+  `Tls` is TLS from the first byte (port 465); `None` is plain text and
+  is refused unless the host is `localhost` or a loopback address
+  (owner, decision 0290).
+- Go's checks and texts: a CR or LF in `from`, an address, or `hello` is
+  `smtp: A line must not contain CR or LF`; PLAIN over plain text to a
+  host that is not loopback is `unencrypted connection`; AUTH to a server
+  that does not offer it is `smtp: server doesn't support AUTH`.
+- Tests: golden test_smtp (a fake server on FakeNet, every backend),
+  with CRAM-MD5 checked against net/smtp's auth_test vector.
+## 30. std/template
+
+Status: implemented on every backend (decision 0299, 2026-10-21): Go's
+text/template, run by the Go backend itself (`std/rt/template.go`) and
+ported natively (`std/native/template.xo`: lexer, parser, executor, the
+built in functions, and fmt's printing); Go's output and error texts on
+205 templates (`template_test.xo`) and golden `template_basic`.
+
+```
+struct TemplateErr { msg: Str } derive Display          // Go's texts
+struct Template { name: Str, sources: List[(Str, Str)], left: Str = "{{", right: Str = "}}", missing_key_error: Bool = false, parsed: Parsed }
+
+pub fn parse(name: Str, src: Str, left: Str = "{{", right: Str = "}}") -> Template ! TemplateErr
+fn (t: Template) add(name: Str, src: Str) -> Template ! TemplateErr
+fn (t: Template) missing_key(error: Bool) -> Template
+fn (t: Template) render(data: json.Value) -> Str ! TemplateErr
+fn (t: Template) render_named(name: Str, data: json.Value) -> Str ! TemplateErr
+```
+
+- `Template.parsed` is an opaque `Parsed` (std internal state, decision 0319): `parse` and `add` fill it with the parsed trees, which only the native implementation reads, so a render does not parse the sources again. A program does not build or read it; the Go backend leaves it empty.
+
+- The data is a `json.Value` (5.1; `json.to_value(x)` for a type that
+  derives Json). The template sees it as Go sees `encoding/json` data:
+  numbers are int64 (an Int) or float64, objects `map[string]interface
+  {}` (`.name` is a field, `index` an element; `range` and printing in
+  sorted key order), arrays `[]interface {}`, null a nil.
+- Everything of text/template: text and actions, `{{- ` and ` -}}` trim
+  markers, comments, variables (`$x := `, `$x = `), pipelines, `if`,
+  `else if`, `range` (lists, objects, integers, `break`, `continue`,
+  `else`), `with`, `define`, `template`, `block`, constants (booleans,
+  strings, numbers including hex, runes, and complex), and the built in
+  functions `and`, `or`, `not`, `len`, `index`, `slice`, `eq`, `ne`, `lt`,
+  `le`, `gt`, `ge`, `print`, `println`, `printf` (fmt's verbs and flags),
+  `html`, `js`, `urlquery`, and `call` (no function values in JSON data,
+  so `call` always fails). A missing field prints `<no value>`;
+  `missing_key(true)` makes it an error. No custom functions.
+- Errors are Go's: parse errors `template: t:1: function "nope" not
+  defined`, execution errors `template: t:1:7: executing "t" at
+  <.name.x>: can't evaluate field x in type interface {}`.
+- `render` parses the set again each time (a parsed set is not a value
+  yet); parse once with `parse` to check a template early.
+
+## 31. std/embed
+
+Files embedded at build time (decision 0304; core 3.1): a constant
+`const SITE: embed.Dir = embed("static")` holds every file the path or
+glob names, keyed by its slash path relative to the directory of the
+declaring file (`static/index.html`), as Go's embed.FS. The checker fills
+the Dir in; a program does not build one. Its methods read the data in
+the binary and need no capability:
+
+```
+struct Dir { files: Map[Str, Bytes] }
+fn (d: Dir) read(path: Str) -> Bytes?
+fn (d: Dir) read_text(path: Str) -> Str?     // None also when not valid UTF-8
+fn (d: Dir) contains(path: Str) -> Bool
+fn (d: Dir) paths() -> List[Str]             // sorted
+fn (d: Dir) sub(dir: Str) -> Dir             // the files under dir, keyed relative to it
+fn (d: Dir) len() -> Int
+fn (d: Dir) fs() -> Fs                       // a read-only Fs over the files
+```
+
+A single file embeds as a `Str` or `Bytes` constant instead (core 3.1).
+
+`d.fs()` serves code written against `Fs` (a static file handler, a
+template loader; decision 0307 makes it an `Fs` on the native backends).
+Paths are relative to the Dir's keys; `/`, `.`, and a leading `./` name
+the root, and a path that climbs above it is `NotFound`. Directories are
+the ones the files' paths imply. `read`, `read_text` (`Io` when not valid
+UTF-8), `stat` (size, `modified` the Unix epoch), `exists`, `read_dir`,
+`walk`, `glob` (as `Fs.glob`), `mode` (0o444, directories 0o555),
+`read_link` (always `None`), `sub`, `cwd_path` (`/` and the sub
+directory), `read_only` and `write_only` (which denies reads) work as on
+the real Fs; `write`, `create_temp`, `rename`, `remove`, `remove_all`,
+`create_dir_all`, `set_modified`, `append`, `copy`, `set_mode`,
+`symlink`, `lock`, `try_lock`, and `open` (no stream over embedded bytes
+yet: read the whole file) are `FsErr.Denied`. Nothing needs a capability
+beyond the `uses fs.read` that calling an `Fs` method states.
+
+## 32. std/compress
+
+Status: implemented on every backend (decision 0305, 2026-10-21), over
+whole buffers and streaming; `http.gzip_responses` of 0305 follows. Go's compress/gzip, compress/flate,
+and compress/zlib: the Go backend calls them, and the native backends
+port them (std/native/llrt/flate.xo, which std/archive uses too). Every
+level writes the bytes Go's writers write, and the decoders give Go's
+output or Go's error. Pure.
+
+```
+enum Level { NoCompression, BestSpeed, Default, BestCompression, HuffmanOnly, Of(n: Int) }
+struct CompressErr { msg: Str }   // Go's texts; displays as msg
+
+pub fn gzip(data: Bytes, level: Level = Level.Default) -> Bytes
+pub fn gunzip(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
+pub fn deflate(data: Bytes, level: Level = Level.Default) -> Bytes       // raw RFC 1951
+pub fn inflate(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
+pub fn zlib(data: Bytes, level: Level = Level.Default) -> Bytes          // RFC 1950
+pub fn unzlib(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
+
+enum Format { Gzip, Deflate, Zlib }
+struct Compressor {}                     // move only (core 5.3)
+pub fn compressor(format: Format, level: Level = Level.Default) -> Compressor
+fn (var c: Compressor) write(data: Bytes) -> Bytes   // the output ready so far (may be empty)
+fn (var c: Compressor) flush() -> Bytes              // everything so far: Go's Flush, a sync block
+fn (var c: Compressor) finish() -> Bytes             // the rest and the trailer; moves c
+struct Decompressor {}                   // move only
+pub fn decompressor(format: Format, max_size: Int = 1073741824) -> Decompressor
+fn (var d: Decompressor) write(data: Bytes) -> Bytes ! CompressErr
+fn (var d: Decompressor) finish() -> Bytes ! CompressErr      // the rest; moves d
+```
+
+- Streaming is push style: bytes in and bytes out, with no I/O of its own,
+  so it fits a `Stream`, an `http.BodyWriter`, or a file read in pieces.
+- **Compressor.** The concatenation of a Compressor's outputs is the bytes
+  Go's Writer writes for the same Write, Flush and Close calls. `flush`
+  and `finish` return everything up to that point on every backend.
+  Between them, how much a `write` returns may differ by backend: Go's
+  bit writer buffers up to 240 bytes.
+- **Decompressor.** The concatenation of a Decompressor's outputs is what
+  `gunzip`, `inflate`, or `unzlib` gives for the whole input.
+  - How much a `write` returns may differ by backend. Natively it is each
+    whole DEFLATE block once its input has arrived. On the Go backend it is
+    what Go's reader returns, which can hold a member's last block until
+    the next member or the end.
+  - `finish` returns the rest, or `unexpected EOF` if the stream did not
+    end.
+  - More than `max_size` bytes in all is an error at once.
+
+- `Level.Of(n)` is Go's level n, -2 (HuffmanOnly) to 9 (BestCompression);
+  outside that range it is a fault (`compress: invalid compression level
+  12: want value in range [-2, 9]`). `Default` is 6.
+- `gzip` writes no name and no time, so the output depends only on the
+  data and the level. `gunzip` reads every concatenated member, as Go's
+  multistream reader does.
+- The decoders stop at `max_size` (default 1 GiB) with
+  `gzip: output exceeds max_size (N bytes)` (`flate:`, `zlib:`). Go has
+  no limit; this is Go's reader through `io.LimitReader(r, max_size + 1)`,
+  so an error found within the first max_size + 1 bytes of output (a bad
+  checksum, a truncated stream) is reported in its place. Pass an
+  explicit limit for untrusted input: a few KB of gzip can expand to
+  gigabytes.
+- Errors are Go's: `gzip: invalid header`, `gzip: invalid checksum`,
+  `flate: corrupt input before offset N`, `zlib: invalid header`,
+  `zlib: invalid checksum`, `zlib: invalid dictionary` (a preset
+  dictionary other than the empty one), `unexpected EOF`, and `EOF` for
+  an empty gzip input.
+- Tests: internal/stdtest/testdata/corpus/compress (`go run
+  ./scripts/stdcorpus compress`): 720 writes over every level and format
+  against Go's bytes, 160 Compressors with Go's chunked writes and
+  flushes, and 431 Go-written, corrupted, bounded, and bomb streams
+  against Go's results, whole and fed to a Decompressor in pieces.
+
+## 33. std/big
+
+Status: implemented on every backend (decision 0311, 2026-10-21), stage
+1: schoolbook multiplication and division natively. Go's math/big Int as
+an immutable value: the Go backend calls math/big, and the native
+backends port its nat arithmetic (std/native/big.xo). Every operation
+gives Go's result. Variable time: not for secrets. Pure.
+
+```
+struct BigInt { key: List[Int] } derive Eq, Ord, Hash   // build with the functions, not a literal
+struct BigErr { msg: Str }
+pub fn from_int(n: Int) -> BigInt
+pub fn parse(s: Str, base: Int = 10) -> BigInt ! BigErr    // Go's SetString; base 0 reads prefixes and _
+pub fn from_bytes(b: Bytes) -> BigInt                      // unsigned big-endian
+fn (x: BigInt) add(y) / sub / mul / quo / rem / quo_rem / div / mod / div_mod
+fn (x: BigInt) exp(y: BigInt, m: BigInt? = None) -> BigInt
+fn (x: BigInt) gcd(y) -> BigInt;  mod_inverse(m) -> BigInt?;  sqrt() -> BigInt
+fn (x: BigInt) neg / abs / sign / cmp / cmp_abs
+fn (x: BigInt) lsh(n) / rsh(n) / and / or / xor / and_not / not / bit(i) / bit_len / trailing_zeros
+fn (x: BigInt) probably_prime(n: Int) -> Bool
+fn (x: BigInt) text(base: Int = 10) -> Str;  bytes();  fill_bytes(len);  to_int() -> Int?;  to_float()
+```
+
+- **The type is `BigInt`.** `Int` is predeclared (core 1.4), so Go's
+  `big.Int` is `big.BigInt` here.
+- **Order.** `<`, `==`, sorting, and Map keys use the derived Eq, Ord,
+  and Hash. These are the numbers' order and equality, because `key`
+  encodes the sign and limbs in order: zero is [0]; a number of n limbs
+  is n (-n when negative), then its limbs from the most significant, each
+  xor 2^63 (xor 2^63 - 1 when negative).
+- **Division.** `quo` and `rem` truncate (Go's Quo and Rem). `div` and
+  `mod` are Euclidean (Go's Div and Mod). A zero divisor is a fault, as
+  is a zero modulus in `mod_inverse`.
+- **Bitwise operations** act on two's complement, as Go's do. `rsh`
+  rounds toward negative infinity.
+- **`exp`** follows Go's Exp, including the sign rule for a negative base.
+  With m, a negative exponent uses the inverse, and a missing inverse is
+  a fault where Go returns nil.
+- **`probably_prime`** runs Go's checks, Miller-Rabin with base 2, and
+  the extra strong Lucas test (Baillie-PSW). Go's n extra rounds use
+  pseudorandom bases; natively they use the first primes. No input is
+  known where the two answers differ.
+- **Json.** BigInt does not derive Json, which would write its key. Use
+  `text` and `parse`.
+- **Tests.**
+  - Golden `big_basic` on every backend.
+  - A Go-generated corpus of 2,600 operations on operands up to 1,500
+    bits, plus Go's SetString on valid and invalid texts
+    (internal/stdtest/testdata/corpus/big, scripts/stdcorpus big).
+
+## 34. std/xml
+
+Status: implemented on every backend (decision 0314, 2026-10-21): stage
+1, tokens and a tree, and stage 2, `derive Xml` (decision 0315, below). Go's encoding/xml: the Go backend calls it, and the
+native backends port its Decoder and Encoder (std/native/xml.xo). The
+tokens, trees, encodings, and errors are Go's. Pure.
+
+```
+struct Name { space: Str, local: Str } derive Eq, Ord, Hash
+struct Attr { name: Name, value: Str }
+enum Token { Start(name, attrs), End(name), Text(s), Comment(s), ProcInst(target, inst), Directive(s) }
+struct XmlErr { line: Int, msg: Str }   // line > 0: displays as Go's "XML syntax error on line N: MSG"
+pub fn tokens(text: Str, strict: Bool = true) -> List[Token] ! XmlErr
+pub fn raw_tokens(text: Str) -> List[Token] ! XmlErr
+struct Element { name: Name, attrs: List[Attr], children: List[Node] }
+enum Node { Elem(e), Text(s), Comment(s), ProcInst(target, inst), Directive(s), Raw(s) }   // Raw: written as is by encode (derive Xml's text)
+pub fn parse(text: Str, strict: Bool = true) -> Element ! XmlErr
+fn (e: Element) attr(local) -> Str?;  child(local) -> Element?;  children_named(local);  text() -> Str
+fn (e: Element) encode(indent: Str = "") -> Str ! XmlErr
+pub fn escape(s: Str) -> Str
+pub fn encode_value[T: Xml](v: T, indent: Str = "") -> Str ! XmlErr   // Go's Marshal, MarshalIndent
+pub fn decode[T: Xml](text: Str) -> T ! XmlErr                         // Go's Unmarshal
+```
+
+- `tokens` is Go's Decoder.Token until EOF:
+  - names are resolved against `xmlns` and `xmlns:p` (`space` holds the
+    URL), and start and end tags are matched;
+  - entities and CDATA are decoded, and `\r\n` becomes `\n`.
+- `raw_tokens` is RawToken: prefixes as written, nothing matched.
+- `strict: false` is Go's `Strict = false` with `HTMLAutoClose` and
+  `HTMLEntity`: unquoted attribute values, `&nbsp;`, `<br>` without an
+  end tag.
+- `parse` builds the root element from the tokens. Outside it only
+  whitespace, comments, processing instructions, and directives may
+  appear. Its own errors have line 0: `xml: no root element`,
+  `xml: more than one root element`, and `xml: text outside the root
+  element`.
+- `encode` writes the tree's tokens with Go's Encoder (EncodeToken,
+  Indent("", indent)), so a namespace is written as Go writes it: an
+  `xmlns` on each element of that space, and generated prefixes for
+  attributes. Go's EncodeToken errors (a comment holding `-->`, an `xml`
+  processing instruction after the start) are errors.
+- `escape` is Go's EscapeText.
+- No DTD processing and no external entities, as in Go.
+- `derive Xml` (decision 0315, core 2.9) is Go's Marshal and Unmarshal for
+  a struct:
+  - `encode_value` writes the root element named for the struct, the
+    attributes, then the fields in order (character data where its field
+    is, `a>b>c` parents shared with the previous field, omitempty, `-`
+    skipped), with Go's text for numbers (`strconv` shortest `g`),
+    booleans, and EscapeText for text; `indent` is MarshalIndent's.
+  - `decode` reads attributes first, then the elements in document
+    order, as Unmarshal does: a repeated element overwrites a scalar,
+    adds to a List, and merges into a struct or Option struct; text of
+    numbers and booleans is trimmed and parsed with `strconv`'s errors
+    (`strconv.ParseInt: parsing "x": invalid syntax`); unknown elements
+    and attributes are ignored; a text with no element is `EOF`.
+  - Not as Go: the document is read whole before fields are set, so a
+    syntax error anywhere wins over a value error before it, and text
+    after the root element is a syntax error where Go stops reading;
+    `innerxml`, `comment`, `any`, namespaces in tags, and XMLName are not
+    supported yet.
+  - The generated code calls std/xmlcodec (`Piece`, `build`, `events`,
+    `int_of`, `float_of`, `bool_of`, `float_text`, `parse_root`), written
+    once in std/native/xmlcodec.xo and compiled by every backend
+    (decision 0312). Programs do not call it.
+  - Tests: a Go-generated corpus of 1,500 documents decoded into a
+    struct and re-encoded (compact and indented) in the xml corpus, on
+    go, arm64, and LLVM; errorcheck `derive_xml`.
+- Tests:
+  - Golden `xml_basic` on every backend.
+  - A Go-generated corpus of 2,000 documents (namespaces, entities,
+    CDATA, comments, processing instructions, bad names, cuts), with
+    tokens in all three modes, parse, and encode, plus EscapeText
+    (internal/stdtest/testdata/corpus/xml, scripts/stdcorpus xml).
+
+<!-- BEGIN prelude index: generated from std/prelude.xo by `go run ./scripts/stdindex`; do not edit -->
+
+## Appendix A. Prelude index
+
+Every function and method of std/prelude.xo, by type, as declared there
+(the sections above explain them); interface methods take `self`.
+358 declarations.
+
+### Range
+
+```
+fn (r: Range[Int]) to_list() -> List[Int]
+```
+
+### Display
+
+```
+fn display(self) -> Str
+```
+
+### Error
+
+```
+fn display(self) -> Str
+```
+
+### Debug
+
+```
+fn debug(self) -> Str
+```
+
+### Int
+
+```
+fn (static: Int) parse(s: Str) -> Int?
+fn (static: Int) parse_base(s: Str, base: Int) -> Int?
+fn (n: Int) to_str_base(base: Int) -> Str
+fn (n: Int) abs() -> Int
+fn (n: Int) pow(e: Int) -> Int
+fn (n: Int) wrapping_add(m: Int) -> Int
+fn (n: Int) wrapping_sub(m: Int) -> Int
+fn (n: Int) wrapping_mul(m: Int) -> Int
+fn (n: Int) wrapping_shl(k: Int) -> Int
+fn (n: Int) shr_logical(k: Int) -> Int
+fn (n: Int) rotate_right(k: Int) -> Int
+fn (n: Int) rotate_right32(k: Int) -> Int
+fn (n: Int) swap_bytes() -> Int
+fn (n: Int) mul_hi_unsigned(m: Int) -> Int
+fn (n: Int) lt_unsigned(m: Int) -> Bool
+fn (n: Int) le_unsigned(m: Int) -> Bool
+fn (n: Int) leading_zeros() -> Int
+fn (n: Int) trailing_zeros() -> Int
+fn (n: Int) ones_count() -> Int
+fn (n: Int) saturating_add(m: Int) -> Int
+fn (n: Int) saturating_sub(m: Int) -> Int
+fn (n: Int) saturating_mul(m: Int) -> Int
+fn (n: Int) checked_add(m: Int) -> Int?
+fn (n: Int) checked_sub(m: Int) -> Int?
+fn (n: Int) checked_mul(m: Int) -> Int?
+fn (n: Int) checked_div(m: Int) -> Int?
+```
+
+### Bool
+
+```
+fn (static: Bool) parse(s: Str) -> Bool?
+```
+
+### Float
+
+```
+fn (static: Float) parse(s: Str) -> Float?
+fn (f: Float) floor() -> Float
+fn (f: Float) ceil() -> Float
+fn (f: Float) round() -> Float
+fn (f: Float) trunc() -> Float
+fn (f: Float) abs() -> Float
+fn (f: Float) sqrt() -> Float
+fn (f: Float) is_nan() -> Bool
+fn (f: Float) pow(y: Float) -> Float
+fn (f: Float) exp() -> Float
+fn (f: Float) exp2() -> Float
+fn (f: Float) expm1() -> Float
+fn (f: Float) log() -> Float
+fn (f: Float) log2() -> Float
+fn (f: Float) log10() -> Float
+fn (f: Float) log1p() -> Float
+fn (f: Float) sin() -> Float
+fn (f: Float) cos() -> Float
+fn (f: Float) tan() -> Float
+fn (f: Float) asin() -> Float
+fn (f: Float) acos() -> Float
+fn (f: Float) atan() -> Float
+fn (f: Float) sinh() -> Float
+fn (f: Float) cosh() -> Float
+fn (f: Float) tanh() -> Float
+fn (f: Float) cbrt() -> Float
+fn (f: Float) atan2(x: Float) -> Float
+fn (f: Float) hypot(y: Float) -> Float
+fn (f: Float) mod(y: Float) -> Float
+fn (f: Float) is_inf() -> Bool
+fn (f: Float) to_bits() -> Int
+fn (static: Float) from_bits(b: Int) -> Float
+```
+
+### Int8
+
+```
+fn (static: Int8) try(x: Int) -> Int8?
+```
+
+### Int16
+
+```
+fn (static: Int16) try(x: Int) -> Int16?
+```
+
+### Int32
+
+```
+fn (static: Int32) try(x: Int) -> Int32?
+```
+
+### Int64
+
+```
+fn (static: Int64) try(x: Int) -> Int64?
+```
+
+### UInt8
+
+```
+fn (static: UInt8) try(x: Int) -> UInt8?
+```
+
+### UInt16
+
+```
+fn (static: UInt16) try(x: Int) -> UInt16?
+```
+
+### UInt32
+
+```
+fn (static: UInt32) try(x: Int) -> UInt32?
+```
+
+### UInt64
+
+```
+fn (static: UInt64) try(x: Int) -> UInt64?
+```
+
+### Rune
+
+```
+fn (static: Rune) try(x: Int) -> Rune?
+fn (r: Rune) is_digit() -> Bool
+fn (r: Rune) is_letter() -> Bool
+fn (r: Rune) is_space() -> Bool
+fn (r: Rune) to_lower() -> Rune
+fn (r: Rune) to_upper() -> Rune
+fn (r: Rune) is_print() -> Bool
+fn (r: Rune) quote() -> Str
+```
+
+### Str
+
+```
+fn (s: Str) len() -> Int
+fn (s: Str) rune_count() -> Int
+fn (s: Str) is_empty() -> Bool
+fn (s: Str) contains(sub: Str) -> Bool
+fn (s: Str) starts_with(p: Str) -> Bool
+fn (s: Str) ends_with(p: Str) -> Bool
+fn (s: Str) find(sub: Str) -> Int?
+fn (s: Str) rfind(sub: Str) -> Int?
+fn (s: Str) split(sep: Str) -> List[Str]
+fn (s: Str) lines() -> List[Str]
+fn (s: Str) trim() -> Str
+fn (s: Str) trim_start() -> Str
+fn (s: Str) trim_end() -> Str
+fn (s: Str) trim_prefix(p: Str) -> Str
+fn (s: Str) trim_suffix(p: Str) -> Str
+fn (s: Str) to_lower() -> Str
+fn (s: Str) to_upper() -> Str
+fn (s: Str) replace(old: Str, new: Str) -> Str
+fn (s: Str) repeat(n: Int) -> Str
+fn (s: Str) clone() -> Str
+fn (s: Str) runes() -> List[Rune]
+fn (s: Str) bytes() -> Bytes
+fn (s: Str) quote() -> Str
+fn (s: Str) unquote() -> Str?
+```
+
+### Bytes
+
+```
+fn (b: Bytes) len() -> Int
+fn (b: Bytes) is_empty() -> Bool
+fn (b: Bytes) to_str() -> Str?
+fn (b: Bytes) to_hex() -> Str
+fn (b: Bytes) clone() -> Bytes
+fn (b: Bytes) to_base64() -> Str
+fn (static: Bytes) from_hex(s: Str) -> Bytes?
+fn (static: Bytes) from_base64(s: Str) -> Bytes?
+fn (b: Bytes) rune_count() -> Int
+fn (b: Bytes) decode_rune(i: Int) -> (Rune, Int)
+fn (b: Bytes) quote() -> Str
+fn (b: Bytes) find(sub: Bytes) -> Int?
+fn (b: Bytes) rfind(sub: Bytes) -> Int?
+fn (b: Bytes) indexed() -> List[(Int, UInt8)]
+fn (static: Bytes) zeroed(n: Int) -> Bytes
+```
+
+### List
+
+```
+fn (static: List[T]) with_capacity(n: Int) -> List[T]
+fn (xs: List[T]) len() -> Int
+fn (xs: List[T]) is_empty() -> Bool
+fn (xs: List[T]) get(i: Int) -> T?
+fn (xs: List[T]) first() -> T?
+fn (xs: List[T]) last() -> T?
+fn (xs: List[T]) contains(x: T) -> Bool
+fn (xs: List[T]) index_of(x: T) -> Int?
+fn (xs: List[T]) indexed() -> List[(Int, T)]
+fn (xs: List[T]) map[U, E, fx: Effects](f: fn(T) -> U ! E uses fx) -> List[U] ! E uses fx
+fn (xs: List[T]) filter[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> List[T] ! E uses fx
+fn (xs: List[T]) fold[A, E, fx: Effects](init: A, f: fn(A, T) -> A ! E uses fx) -> A ! E uses fx
+fn (xs: List[T]) find[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> T? ! E uses fx
+fn (xs: List[T]) any[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (xs: List[T]) all[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (xs: List[T]) sort() -> List[T]
+fn (xs: List[T]) sort_by[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[T] ! E uses fx
+fn (xs: List[T]) group_by[K: Hash, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[(K, List[T])] ! E uses fx
+fn (xs: List[T]) reverse() -> List[T]
+fn (xs: List[T]) to_set() -> Set[T]
+fn (xs: List[Str]) join(sep: Str) -> Str
+fn (var xs: List[T]) push(x: T)
+fn (var xs: List[T]) pop() -> T?
+fn (var xs: List[T]) insert(i: Int, x: T)
+fn (var xs: List[T]) remove_at(i: Int) -> T
+fn (var xs: List[T]) set(i: Int, x: T)
+```
+
+### Map
+
+```
+fn (m: Map[K, V]) len() -> Int
+fn (m: Map[K, V]) is_empty() -> Bool
+fn (m: Map[K, V]) get(k: K) -> V?
+fn (m: Map[K, V]) get_or_fault(k: K, reason: Str) -> V
+fn (m: Map[K, V]) contains(k: K) -> Bool
+fn (m: Map[K, V]) keys() -> List[K]
+fn (m: Map[K, V]) values() -> List[V]
+fn (m: Map[K, V]) entries() -> List[(K, V)]
+fn (m: Map[K, V]) filter[E, fx: Effects](f: fn(K, V) -> Bool ! E uses fx) -> Map[K, V] ! E uses fx
+fn (m: Map[K, V]) map[U, E, fx: Effects](f: fn(K, V) -> U ! E uses fx) -> Map[K, U] ! E uses fx
+fn (m: Map[K, V]) any[E, fx: Effects](f: fn(K, V) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (m: Map[K, V]) all[E, fx: Effects](f: fn(K, V) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (var m: Map[K, V]) put(k: K, v: V)
+fn (var m: Map[K, V]) remove(k: K) -> V?
+fn (var m: Map[K, V]) update[R, E, fx: Effects](k: K, init: V, f: fn(var V) -> R ! E uses fx) -> R ! E uses fx
+```
+
+### Set
+
+```
+fn (s: Set[T]) len() -> Int
+fn (s: Set[T]) is_empty() -> Bool
+fn (s: Set[T]) contains(x: T) -> Bool
+fn (s: Set[T]) union(o: Set[T]) -> Set[T]
+fn (s: Set[T]) intersect(o: Set[T]) -> Set[T]
+fn (s: Set[T]) difference(o: Set[T]) -> Set[T]
+fn (s: Set[T]) to_list() -> List[T]
+fn (s: Set[T]) any[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (s: Set[T]) all[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
+fn (s: Set[T]) filter[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Set[T] ! E uses fx
+fn (s: Set[T]) map[U, E, fx: Effects](f: fn(T) -> U ! E uses fx) -> Set[U] ! E uses fx
+fn (var s: Set[T]) add(x: T)
+fn (var s: Set[T]) remove(x: T) -> Bool
+```
+
+### Option
+
+```
+fn (o: Option[T]) is_some() -> Bool
+fn (o: Option[T]) is_none() -> Bool
+fn (o: Option[T]) or_err[E](e: E) -> Result[T, E]
+fn (o: Option[T]) map[U, fx: Effects](f: fn(T) -> U uses fx) -> U? uses fx
+fn (o: Option[T]) and_then[U, fx: Effects](f: fn(T) -> U? uses fx) -> U? uses fx
+fn (o: Option[T]) or_fault(msg: Str) -> T
+```
+
+### Result
+
+```
+fn (r: Result[T, E]) is_ok() -> Bool
+fn (r: Result[T, E]) is_err() -> Bool
+fn (r: Result[T, E]) map[U, fx: Effects](f: fn(T) -> U uses fx) -> Result[U, E] uses fx
+fn (r: Result[T, E]) map_err[F, fx: Effects](f: fn(E) -> F uses fx) -> Result[T, F] uses fx
+fn (r: Result[T, E]) ok() -> T?
+fn (r: Result[T, E]) err() -> E?
+fn (r: Result[T, E]) or_fault(msg: Str) -> T
+fn (r: Result[T, E]) ignore_err(reason: Str) -> T?
+```
+
+### Duration
+
+```
+fn (static: Duration) from_secs(s: Float) -> Duration
+fn (static: Duration) from_secs_int(s: Int) -> Duration
+fn (static: Duration) from_millis(ms: Int) -> Duration
+fn (static: Duration) from_nanos(ns: Int) -> Duration
+fn (static: Duration) parse(s: Str) -> Duration ! DurationErr
+fn (d: Duration) seconds() -> Float
+fn (d: Duration) millis() -> Int
+fn (d: Duration) nanos() -> Int
+fn (d: Duration) scale(f: Float) -> Duration
+fn (d: Duration) ceil_seconds() -> Int
+fn (d: Duration) abs() -> Duration
+```
+
+### DurationErr
+
+```
+fn (e: DurationErr) display() -> Str
+```
+
+### Time
+
+```
+fn (static: Time) UNIX_EPOCH() -> Time
+fn (static: Time) from_unix(secs: Int) -> Time
+fn (static: Time) from_unix_millis(ms: Int) -> Time
+fn (static: Time) parse_rfc3339(s: Str) -> Time?
+fn (t: Time) unix() -> Int
+fn (t: Time) unix_millis() -> Int
+fn (t: Time) format_rfc3339() -> Str
+```
+
+### Chan
+
+```
+fn (static: Chan[T]) new(cap: Int = 0) -> Chan[T]
+fn (c: Chan[T]) send(x: T)
+fn (c: Chan[T]) recv() -> T?
+fn (c: Chan[T]) try_send(x: T) -> Bool
+fn (c: Chan[T]) try_recv() -> T?
+fn (c: Chan[T]) close()
+fn (c: Chan[T]) len() -> Int
+```
+
+### Mutex
+
+```
+fn (static: Mutex[T]) new(v: T) -> Mutex[T]
+fn (m: Mutex[T]) with[R, E, fx: Effects](f: fn(var T) -> R ! E uses fx) -> R ! E uses fx
+fn (m: Mutex[T]) with_read[R, E, fx: Effects](f: fn(T) -> R ! E uses fx) -> R ! E uses fx
+```
+
+### Atomic
+
+```
+fn (static: Atomic[T]) new(v: T) -> Atomic[T]
+fn (a: Atomic[T]) get() -> T
+fn (a: Atomic[T]) set(v: T)
+fn (a: Atomic[Int]) add(n: Int) -> Int
+fn (a: Atomic[Int]) max(n: Int) -> Int
+fn (a: Atomic[T]) swap(v: T) -> T
+fn (a: Atomic[T]) compare_and_swap(old: T, new: T) -> Bool
+```
+
+### Scope
+
+```
+fn (s: Scope) spawn[T, E, fx: Effects](f: fn() -> T ! E uses fx) -> Task[T, E] uses fx
+fn (s: Scope) spawn_background[T, E, fx: Effects](f: fn() -> T ! E uses fx) -> Task[T, E] uses fx
+fn (s: Scope) cancel()
+fn (s: Scope) group() -> task.Group
+```
+
+### Task
+
+```
+fn (t: Task[T, E]) await() -> T ! E
+```
+
+### Buf
+
+```
+fn (static: Buf[T]) new() -> Buf[T]
+fn (static: Buf[T]) with_capacity(n: Int) -> Buf[T]
+fn (var b: Buf[T]) push(x: T)
+fn (b: Buf[T]) len() -> Int
+fn (b: Buf[T]) freeze() -> List[T]
+```
+
+### StrBuilder
+
+```
+fn (static: StrBuilder) new() -> StrBuilder
+fn (var b: StrBuilder) write(s: Str)
+fn (b: StrBuilder) len() -> Int
+fn (b: StrBuilder) freeze() -> Str
+```
+
+### BytesBuilder
+
+```
+fn (static: BytesBuilder) new() -> BytesBuilder
+fn (static: BytesBuilder) with_capacity(n: Int) -> BytesBuilder
+fn (var b: BytesBuilder) write(data: Bytes)
+fn (var b: BytesBuilder) write_byte(x: UInt8)
+fn (var b: BytesBuilder) write_str(s: Str)
+fn (var b: BytesBuilder) write_rune(r: Rune)
+fn (b: BytesBuilder) len() -> Int
+fn (b: BytesBuilder) freeze() -> Bytes
+```
+
+### Secret
+
+```
+fn (static: Secret[T]) new(v: T) -> Secret[T]
+fn (s: Secret[T]) reveal() -> T
+```
+
+### Fs
+
+```
+fn sub(self, dir: Str) -> Fs
+fn cwd(self) -> Fs
+fn cwd_path(self) -> Str ! FsErr
+fn read_only(self) -> Fs
+fn write_only(self) -> Fs
+fn case_sensitive(self) -> Bool
+fn stat(self, path: Str) -> FileInfo? ! FsErr uses fs.read
+fn exists(self, path: Str) -> Bool ! FsErr uses fs.read
+fn read(self, path: Str) -> Bytes ! FsErr uses fs.read
+fn read_text(self, path: Str) -> Str ! FsErr uses fs.read
+fn read_dir(self, dir: Str) -> List[FileInfo] ! FsErr uses fs.read
+fn walk(self, dir: Str) -> List[FileInfo] ! FsErr uses fs.read
+fn write(self, path: Str, data: Bytes) -> () ! FsErr uses fs.write
+fn create_temp(self, dir: Str, prefix: Str) -> Str ! FsErr uses fs.write
+fn rename(self, from: Str, to: Str) -> () ! FsErr uses fs.write
+fn remove(self, path: Str) -> () ! FsErr uses fs.write
+fn remove_all(self, path: Str) -> () ! FsErr uses fs.write
+fn create_dir_all(self, dir: Str) -> () ! FsErr uses fs.write
+fn set_modified(self, path: Str, t: Time) -> () ! FsErr uses fs.write
+fn open(self, path: Str) -> File ! FsErr uses fs.read
+fn create(self, path: Str) -> File ! FsErr uses fs.write
+fn open_append(self, path: Str) -> File ! FsErr uses fs.write
+fn create_new(self, path: Str) -> File ! FsErr uses fs.write
+fn append(self, path: Str, data: Bytes) -> () ! FsErr uses fs.write
+fn copy(self, from: Str, to: Str) -> () ! FsErr uses fs
+fn mode(self, path: Str) -> Int ! FsErr uses fs.read
+fn set_mode(self, path: Str, mode: Int) -> () ! FsErr uses fs.write
+fn symlink(self, target: Str, link: Str) -> () ! FsErr uses fs.write
+fn read_link(self, path: Str) -> Str? ! FsErr uses fs.read
+fn glob(self, pattern: Str) -> List[Str] ! FsErr uses fs.read
+fn lock(self, path: Str) -> FileLock ! FsErr uses fs.write
+fn try_lock(self, path: Str) -> FileLock? ! FsErr uses fs.write
+```
+
+### File
+
+```
+fn (f: File) read(max: Int) -> Bytes? ! FsErr uses fs.read
+fn (f: File) read_line() -> Str? ! FsErr uses fs.read
+fn (f: File) write(data: Bytes) -> () ! FsErr uses fs.write
+fn (f: File) close() -> () ! FsErr
+```
+
+### FileLock
+
+```
+fn (l: FileLock) unlock()
+```
+
+### Listener
+
+```
+fn (l: Listener) addr() -> Str
+fn (l: Listener) accept() -> ServerConn ! NetErr uses net.listen
+fn (l: Listener) close()
+```
+
+### Conn
+
+```
+fn (c: Conn) read(max: Int) -> Bytes? ! NetErr uses net.dial
+fn (c: Conn) write(data: Bytes) -> () ! NetErr uses net.dial
+fn (c: Conn) close()
+```
+
+### ServerConn
+
+```
+fn (c: ServerConn) read(max: Int) -> Bytes? ! NetErr uses net.listen
+fn (c: ServerConn) write(data: Bytes) -> () ! NetErr uses net.listen
+fn (c: ServerConn) close()
+```
+
+### Stream
+
+```
+fn read(self, max: Int) -> Bytes? ! NetErr uses net
+fn write(self, data: Bytes) -> () ! NetErr uses net
+fn close(self)
+```
+
+### Net
+
+```
+fn listen(self, addr: Str) -> Listener ! NetErr uses net.listen
+fn dial(self, addr: Str) -> Conn ! NetErr uses net.dial
+fn only(self, hosts: List[Str]) -> Net
+```
+
+### Clock
+
+```
+fn now(self) -> Time uses clock
+fn sleep(self, d: Duration) uses clock
+fn sleep_or_cancel(self, d: Duration) -> () ! ClockErr uses clock
+fn since(self, t: Time) -> Duration uses clock
+```
+
+### Rand
+
+```
+fn int(self, lo: Int, hi: Int) -> Int uses rand
+fn float(self) -> Float uses rand
+fn bool(self) -> Bool uses rand
+fn bytes(self, n: Int) -> Bytes uses rand
+fn shuffle[T](self, xs: List[T]) -> List[T] uses rand
+```
+
+### Env
+
+```
+fn get(self, name: Str) -> Str? uses env
+fn vars(self) -> Map[Str, Str] uses env
+fn args(self) -> List[Str] uses env
+fn program(self) -> Str uses env
+fn home(self) -> Str ! EnvErr uses env
+fn only(self, names: List[Str]) -> Env
+fn config_dir(self) -> Str ! EnvErr uses env
+fn cache_dir(self) -> Str ! EnvErr uses env
+```
+
+### Stdio
+
+```
+fn print(self, text: Str) uses stdio
+fn println(self, text: Str) uses stdio
+fn eprint(self, text: Str) uses stdio
+fn eprintln(self, text: Str) uses stdio
+fn write(self, data: Bytes) -> () ! IoErr uses stdio
+fn read_line(self) -> Str? ! IoErr uses stdio
+fn read_all(self) -> Str ! IoErr uses stdio
+fn lines(self) -> List[Str] ! IoErr uses stdio
+fn stdin_is_tty(self) -> Bool uses stdio
+fn stdout_is_tty(self) -> Bool uses stdio
+fn stderr_is_tty(self) -> Bool uses stdio
+fn width(self) -> Int? uses stdio
+fn read_secret(self, prompt: Str) -> Str? ! IoErr uses stdio
+fn read_bytes(self, max: Int) -> Bytes? ! IoErr uses stdio
+fn read_all_bytes(self) -> Bytes ! IoErr uses stdio
+```
+
+### Proc
+
+```
+fn exit(self, code: Int) -> Never uses proc
+fn set_grace(self, d: Duration) uses proc
+fn run(self, cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses proc
+fn only(self, cmds: List[Str]) -> Proc
+fn cmd(self, name: Str, args: List[Str] = []) -> Cmd
+fn pipeline(self, cmds: List[Cmd]) -> ProcOutput ! ProcErr uses proc
+fn kill(self, pid: Int, signal: Str = "TERM") -> () ! ProcErr uses proc
+```
+
+### Cmd
+
+```
+fn (c: Cmd) dir(path: Str) -> Cmd
+fn (c: Cmd) env(e: Env) -> Cmd uses env
+fn (c: Cmd) set_env(name: Str, value: Str) -> Cmd
+fn (c: Cmd) stdin(data: Bytes) -> Cmd
+fn (c: Cmd) inherit() -> Cmd
+fn (c: Cmd) merge_stderr() -> Cmd
+fn (c: Cmd) output() -> ProcOutput ! ProcErr uses proc
+fn (c: Cmd) run() -> Int ! ProcErr uses proc
+fn (c: Cmd) spawn() -> Child ! ProcErr uses proc
+```
+
+### Child
+
+```
+fn (c: Child) pid() -> Int
+fn (c: Child) write(data: Bytes) -> () ! ProcErr uses proc
+fn (c: Child) close_stdin()
+fn (c: Child) read(max: Int) -> Bytes? ! ProcErr uses proc
+fn (c: Child) read_err(max: Int) -> Bytes? ! ProcErr uses proc
+fn (c: Child) read_line() -> Str? ! ProcErr uses proc
+fn (c: Child) wait() -> Int ! ProcErr uses proc
+fn (c: Child) kill()
+```
+
+### Functions
+
+```
+fn fault(msg: Str) -> Never
+fn dbg[T](x: T) -> T
+fn read_text_or(fs: Fs, path: Str, default: Str) -> Str ! FsErr uses fs.read
+fn read_or(fs: Fs, path: Str, default: Bytes) -> Bytes ! FsErr uses fs.read
+```
+
+<!-- END prelude index -->
+
+## 35. std/websocket
+
+WebSockets (RFC 6455, decision 0313) with gorilla/websocket's behavior
+(v1.5), both sides, on every backend.
+
+```
+struct Message { kind: Kind, data: Bytes }   // a text message's data is valid UTF-8
+enum Kind { Text, Binary }
+enum WsErr {
+  Closed(code: Int, reason: Str)    // the peer's close frame (1005: it had no code), answered
+  Protocol(msg: Str)                // a frame broke the protocol: close 1002 sent (1007 for text not UTF-8); or `close sent`
+  TooBig(limit: Int)                // a message over max_message: close 1009 sent
+  Net(err: NetErr)
+  Handshake(status: Int, msg: Str)  // the server refused the upgrade (status 0: no answer, or not a ws:// URL)
+}
+fn (e: WsErr) display() -> Str      // gorilla's texts: `websocket: close 1001 (going away): bye`
+struct WsConn {}
+fn (c: WsConn) read() -> Message ! WsErr       // a whole message; pings answered, pongs skipped
+fn (c: WsConn) write(m: Message) -> () ! WsErr // one frame
+fn (c: WsConn) write_text(s: Str) -> () ! WsErr
+fn (c: WsConn) ping(data: Bytes = b"") -> () ! WsErr
+fn (c: WsConn) close(code: Int = 1000, reason: Str = "") -> () ! WsErr   // the close frame, then the connection
+fn (c: WsConn) subprotocol() -> Str
+pub fn upgrade[fx: Effects](req: http.Request, f: fn(WsConn) -> () uses fx, protocols: List[Str] = [], origins: List[Str] = [], max_message: Int = 1048576) -> http.Response uses fx
+pub fn dial(net: Net, url: Str, headers: Map[Str, Str] = {}, protocols: List[Str] = [], max_message: Int = 1048576, roots: Bytes = b"") -> WsConn ! WsErr uses net.dial
+```
+
+- `upgrade` is called in a handler and its response returned. It checks
+  the request as gorilla's Upgrader: `Connection: upgrade` and `Upgrade:
+  websocket` tokens (else 400), GET (405), `Sec-WebSocket-Version: 13`
+  (400), the `Origin` (403), and a key of 16 bytes in base64 (400); a
+  refusal is the status text with `Sec-Websocket-Version: 13`. The
+  `Origin` passes when absent, when its host name is the request's
+  (`req.url.host`; ports are not compared, a Request keeps none), or when
+  `origins` lists its host (with or without the port) or `"*"`. The
+  subprotocol is the first of `protocols` that the client offers.
+- An accepted upgrade is a 101 response that hands the connection over
+  (std.md 4.3): the server writes gorilla's 101 (with
+  `Sec-WebSocket-Accept` and the subprotocol), runs `f` with the
+  connection, and closes it when `f` returns. HTTP/1.1 only.
+  `Router.call` returns the 101 without running `f`.
+- Frames as gorilla reads them: a client's frames must be masked and a
+  server's not; reserved bits, unknown opcodes, a control frame over 125
+  bytes or fragmented, and continuations out of order are `Protocol` with
+  gorilla's texts joined (`RSV1 set, bad MASK`) after a close 1002; a
+  close frame's code must be valid and its reason UTF-8. A text message
+  that is not UTF-8 is close 1007 (gorilla does not check). A read error
+  sticks. The end of the stream is `Closed(1006, "unexpected EOF")`.
+- A write is one final frame (masked with a fresh key from a client)
+  under a lock, so one task may read while another writes; writes after
+  this side's close fail with `Protocol("close sent")`. `close` sends the
+  close frame unless one was sent (also when answering the peer's), then
+  closes the connection; the peer's answering close is not awaited.
+- `dial` takes `ws://host[:port]/path?query` or `wss://` (TLS through
+  std/tls's client, no ALPN, the host name verified against `roots`, a
+  PEM bundle, when given, else the system's; a TLS or roots failure is
+  `Net`), sends gorilla's handshake with a random key,
+  the protocols, and `headers`, and fails with `Handshake(status,
+  "websocket: bad handshake")` unless the answer is a 101 with the
+  upgrade tokens and the right `Sec-WebSocket-Accept`.
+- Not provided: permessage-deflate, a message written in pieces, ping
+  timers (use `ping` and a clock), WebSockets over HTTP/2.
+
+
+## 36. std/debug
+
+Live inspection of a running server (decision 0325). Nothing is mounted
+by default: a program mounts the router under a prefix of its own and
+gives it an `auth` function.
+
+```xo
+fn router(clock: Clock, auth: fn(http.Request) -> Bool) -> http.Router uses clock
+fn heap_start(rate: Int = 0) -> Bool
+```
+
+- `GET /profile?seconds=N&hz=H`: a CPU profile of the next N seconds
+  (default 30, 1 to 300) at H samples per CPU second (default 100, 1 to
+  1000). The native backends answer decision 0240's container
+  (`Content-Type: application/x-xo-profile`; `xo prof FILE` converts a
+  saved answer to pprof files and a text summary, and `xo prof URL`
+  fetches and converts it); the Go backend answers
+  runtime/pprof's profile (`X-Profile-Format: pprof`) and ignores `hz`.
+  One profile runs at a time: a request during one is 409. 501 where
+  profiles cannot be taken (windows, wasm, a native build without
+  `--profile-support`).
+- `GET /heap`: the sampled heap profile in the same container; 409 until
+  the sampler runs on the native backends (`XO_PROF=heap` at start, or
+  `heap_start(rate)`; rate 0 is 512 KiB, Go's MemProfileRate; once
+  started it runs for the life of the process). The Go backend samples
+  always (`heap_start` returns false).
+- `GET /sched`: the scheduler's counters as `name value` lines (native:
+  the `XO_RTSTATS` counts, zero until they are on; `?on=1` turns them on.
+  Go: goroutines, gomaxprocs, threads, heap_inuse_bytes, gc_count).
+- A request for which `auth` answers false gets 403; the unmounted
+  router costs nothing.
+- A live profile running when the program exits is dropped, with no file
+  (the `XO_PROF` file profile is separate: it still writes at exit).
+
+## 37. std/metrics
+
+Counters, gauges and histograms with label values, and their Prometheus
+text exposition (format 0.0.4), with no dependency (decision 0325). A
+registry is a value that `main` makes and passes on; there is no
+program wide default.
+
+```xo
+fn registry() -> Registry
+fn latency_buckets() -> List[Float]      // 0.005 to 10 seconds
+fn (r: Registry) counter(name: Str, help: Str, labels: List[Str] = []) -> Counter
+fn (r: Registry) gauge(name: Str, help: Str, labels: List[Str] = []) -> Gauge
+fn (r: Registry) histogram(name: Str, help: Str, labels: List[Str] = [], buckets: List[Float] = latency_buckets()) -> Histogram
+fn (c: Counter) inc(values: List[Str] = [])
+fn (c: Counter) add(n: Float, values: List[Str] = [])
+fn (g: Gauge) set(v: Float, values: List[Str] = [])
+fn (g: Gauge) add(v: Float, values: List[Str] = [])
+fn (h: Histogram) observe(v: Float, values: List[Str] = [])
+fn (r: Registry) text() -> Str
+fn (r: Registry) handler() -> fn(http.Request) -> http.Response
+```
+
+- A name is a Prometheus name (letters, digits, `_` and `:`, not
+  starting with a digit); a label name has no `:` and is not `le` or
+  `__`-prefixed. A bad name, a second instrument of the same name, a
+  value list of the wrong length, a counter decreasing, or buckets that
+  do not increase is a fault: programmer errors found at start.
+- A series is the label values of one call (one per label name, in
+  order). Calls are safe from any task: a series is found under a read
+  lock and updated with atomics; the write lock is taken only to make a
+  series the first time.
+- An instrument holds at most 10,000 series: later new ones are dropped
+  and counted in `xo_metrics_dropped_total`, which `text()` always ends
+  with.
+- `reg.middleware(clock, label)` is a middleware for `router.wrap` that
+  counts requests in `http_requests_total{method,route,status}`, times
+  them in `http_request_seconds{route}` and tracks `http_in_flight`;
+  `label` maps a request to the (bounded) route label.
+- `text()` writes `# HELP` and `# TYPE` per instrument in the order they
+  were made, its series sorted by label values, a histogram as
+  cumulative `_bucket{le="..."}` (then `le="+Inf"`), `_sum` and `_count`,
+  integral values without a fraction, and label values escaped (`\\`,
+  `\"`, `\n`). `handler()` answers it as
+  `text/plain; version=0.0.4; charset=utf-8`.
+
+## 38. std/trace
+
+Request ids and a bounded ring of spans (decision 0325), with no
+exporter: a program's handler reads the ring.
+
+```xo
+struct Span { id: Str, name: Str, start_ms: Int, micros: Int, status: Int } derive Json
+fn ring(cap: Int = 1000) -> Ring
+fn (r: Ring) middleware(rand: Rand, clock: Clock) -> fn(http.Request, http.Next) -> http.Response
+fn id(req: http.Request) -> Str
+fn (r: Ring) record(id: Str, name: Str, start: Time, d: Duration)
+fn (r: Ring) spans(min: Duration, n: Int) -> List[Span]
+fn (r: Ring) handler(auth: fn(http.Request) -> Bool) -> fn(http.Request) -> http.Response
+```
+
+- The middleware takes the id from the `X-Request-Id` header when it is 1
+  to 64 printable characters without spaces, else makes a random 64 bit
+  one (16 hex digits); the request carries it (`id(req)`), the response
+  gets the `X-Request-Id` header, and a `request` span (the request's id,
+  start in Unix milliseconds, duration in microseconds, response status)
+  is recorded.
+- `record` adds a span of the program's own (status 0): time the work
+  with the clock and record it with the request's id.
+- The ring keeps the last `cap` spans; `spans(min, n)` returns the spans
+  of at least `min` newest first, at most `n` (all when n <= 0).
+  `handler(auth)` answers them as JSON (`?slow=MILLIS&n=N`, defaults 0 and
+  100); 403 when `auth` answers false.

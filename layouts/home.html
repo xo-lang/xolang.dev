@@ -132,7 +132,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
     <div class="wrap">
       <div class="eyebrow">// how it builds</div>
       <h2>One language, native by default.</h2>
-      <p class="sub">Xo has five backends. Its own arm64 and x86-64 backends, assemblers, and linkers are written in Xo and need no C toolchain. The native runtime is written in Xo, with no C, and frees memory by reference counting, with no garbage collector; a function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation. Debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. The Go backend is the other way to build the same program, and the WebAssembly backend runs it over WASI. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go.</p>
+      <p class="sub">Xo has five backends. Its own arm64 and x86-64 backends, assemblers, and linkers are written in Xo and need no C toolchain. The native runtime is written in Xo, with no C, and frees memory by reference counting, with no garbage collector; a function marked <code>uses realtime</code> gets bounded loops, no recursion, and no allocation. Debuggers see your variables, structs, lists, and maps, and a profiler and an execution trace are built in. The Go backend is the other way to build the same program, and the WebAssembly backend runs it over WASI. Interop differs by backend: native builds can call C with <code>use c</code>, and the Go backend can call Go. On the network side Xo's servers already beat Go's in places: TLS 1.3 handshakes run 1.2 to 1.5 times Go's rate and HTTP/2 with 100 streams 1.6 times, while bulk TLS is still 0.6 to 0.8 of Go's.</p>
       <div class="grid">
         <div class="cell"><div class="from">native · default on arm64</div><h3>arm64 backend</h3><p>Fast builds on Apple silicon Macs and arm64 Linux, static Linux binaries from a Mac, and binaries smaller than LLVM's.</p><code class="use">xo build</code></div>
         <div class="cell"><div class="from">native · default on x86-64</div><h3>x86-64 backend</h3><p>Fast builds on x86-64 Linux, Intel Macs, and Windows, built the same way as arm64's, with no C toolchain. Within about 6 percent of LLVM's instructions on our benchmarks, and closing (<a href="{{ "blog/correct-first-fast-later/" | relURL }}">how</a>).</p><code class="use">xo build</code></div>
@@ -179,7 +179,7 @@ main/main.xo:4:6: <span class="e">error XO1309</span>: `charge` of github.com/ac
           <div class="cmd"><code>xo doc NAME</code><span>Signature, docs, and methods</span></div>
           <div class="cmd"><code>xo edit rename</code><span>Edits rechecked before writing</span></div>
           <div class="cmd"><code>xo test --explore=N</code><span>Searches task interleavings</span></div>
-          <div class="cmd"><code>xo dev bisect-pass</code><span>Names the pass behind a miscompile</span></div>
+          <div class="cmd"><code>xo vet --cost</code><span>Costs the source does not show</span></div>
           <div class="cmd"><code>xo explain XO0401</code><span><a href="{{ "docs/diagnostics/" | relURL }}">Every code, explained</a></span></div>
         </div>
         <div class="term">
