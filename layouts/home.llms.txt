@@ -6,7 +6,7 @@ Every page below is also served as Markdown: append `index.md` to its URL.
 
 ## Install
 
-- Latest release: https://github.com/xo-lang/xo/releases/latest (0.25.2 is the first with binaries: macOS and Linux on arm64 and x86-64, Windows on x86-64, plus SHA256SUMS). Download `xo-v<version>-<os>-<arch>.tar.gz`, check it against SHA256SUMS, unpack it, and put its `bin` directory on PATH; `bin/xo` finds the standard library at `../lib/xo`, so keep the directory together. `xo version` prints the version and platform.
+- Latest release: https://github.com/xo-lang/xo/releases/latest (0.26.0, the second with binaries: macOS and Linux on arm64 and x86-64, Windows on x86-64, plus SHA256SUMS; the macOS binaries are notarized and the Windows ones Authenticode signed). Download `xo-v<version>-<os>-<arch>.tar.gz`, check it against SHA256SUMS, unpack it, and put its `bin` directory on PATH; `bin/xo` finds the standard library at `../lib/xo`, so keep the directory together. `xo version` prints the version and platform.
 - Steps per platform: [Getting started, Install]({{ with site.GetPage "/docs/getting-started" }}{{ (.OutputFormats.Get "markdown").Permalink }}{{ end }}). Building from source is the alternative on the same page.
 
 ## Specification

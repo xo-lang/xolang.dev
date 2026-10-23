@@ -277,8 +277,9 @@ Decisions 0041 (Go packages) and 0042 (two phase shutdown).
 - A rune literal where an integer type is expected is its code point
   (1.6); `Int(r)`, `Rune(n)`, and `Rune.try(n)` convert between `Rune` and
   the integer types (2.1; decision 0079).
-- `xo build --hybrid` compiles hot leaf loops to native assembly inside Go
-  backend builds (10.1; decision 0084).
+- `xo build --hybrid` compiled hot leaf loops to native assembly inside Go
+  backend builds (10.1; decision 0084); deprecated since 2026-10-22 (owner):
+  it is a plain Go backend build with a warning, and will be removed.
 - The native backends check `ensures` and struct invariants and unwind
   faults (deferred code, scopes, Mutexes, `task.isolate`, a 500 from an
   HTTP handler) as the Go backend does (3.5, 8, 9.1; decision 0085).
@@ -800,7 +801,8 @@ pub interface Store {
   }
   ```
   Using `?` on an `Option` in a function that returns a `Result` is error
-  `XO0204`, with a fix that inserts `.or_err(...)`.
+  `XO0204`, with a fix that inserts `.or_err(...)`. A test body is the
+  exception (9.2): there `opt?` fails the test.
 
 ### 2.6 Results, errors, and explicit failure
 
@@ -1061,7 +1063,12 @@ const DEFAULT = Config{port: 8080}
   reads it. An embed may hold 64 MiB and a program's embeds 256 MiB. A
   module that declares its own `embed` uses it. Errors: `XO1506` (no file,
   too many, too large), `XO1507` (outside the module), `XO1508` (a `Str`
-  that is not UTF-8), `XO1509` (any other use).
+  that is not UTF-8), `XO1509` (any other use). An `embed.Dir`'s keys
+  are those relative paths, so `embed("static")` holds
+  `static/index.html`; `read`, `read_text`, or `contains` on such a
+  constant (or a literal `.sub` of one) with a literal path it does not
+  hold is the warning `XO1511`, with the key that ends with the path as a
+  fix. A path computed at run time is not checked.
 - Unused local bindings, local constants, and imports are errors (`XO0110`). Not covered:
   function and closure parameters, names starting with `_`, and `_` itself.
   `xo fix` removes unused bindings. `xo check --wip` reports `XO0110` and
@@ -1290,7 +1297,9 @@ An `UpperCamel` name in a pattern always refers to a variant; bindings are
   type, the effects in scope, and in scope values or functions that fit
   (diagnostic `XO0900`, see section 10).
 - `xo build` rejects programs with holes. `xo run --holes` and `xo test --holes`
-  allow them and fault if a hole is evaluated.
+  allow them and fault if a hole is evaluated (`evaluated a hole \`???\``),
+  on the native backends and the Go backend alike (natively since
+  2026-10-22, owner; `--holes` chose the Go backend before).
 
 Holes let an agent write a type correct skeleton first and fill it in steps.
 
@@ -2379,12 +2388,12 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   `index 7 out of range for List of length 5 at users.xo:41:18`.
 - A fault reaching `main` is reported on standard error as one line,
   `fault: MESSAGE at FILE:LINE:COL` (and a detail line for a failed
-  contract). With `XO_TRACEBACK` set (not empty or `0`), native builds
-  follow it with `traceback:` and a line per frame, innermost first,
-  `  FUNCTION (FILE:LINE)` down to `main` (the line from the program's
-  DWARF line tables, decision 0239; inlined calls show the caller's
-  line). `xo test` sets it for the tests it runs unless it is already
-  set. With `XO_TRACEBACK=locals` each frame is followed by its
+  contract). Native builds follow it with `traceback:` and a line per
+  frame, innermost first, `  FUNCTION (FILE:LINE)` down to `main` (the
+  line from the program's DWARF line tables, decision 0239; inlined calls
+  show the caller's line), by default since 2026-10-22 (owner; a hardware
+  fault's report has its frames too, decision 0343); `XO_TRACEBACK=0`
+  leaves the frames out. With `XO_TRACEBACK=locals` each frame is followed by its
   variables, `      NAME = VALUE` (decision 0268: from the program's
   DWARF, read at the fault; `<unavailable>` where the frame does not
   keep the value; numbers, `Bool`, `Str` text, a list's first elements,
@@ -2393,6 +2402,21 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   code, scopes, Mutexes, and references are released on the way); they
   print the fault without its frames, write no crash bundle, and
   `Fault.frames` of `task.isolate` is empty there.
+- A hardware fault (an access violation, a bus error, an illegal
+  instruction, a trap) is not a fault: it is a bug below the language or
+  in C code behind `use c`, and nothing unwinds. A native program on
+  Linux, macOS or windows/amd64 reports it on standard error (decision
+  0343): `fatal error: SIGNAL: TEXT (code N)`, with `at address A` for
+  SIGSEGV and SIGBUS (Windows: `fatal error: EXCEPTION_NAME: TEXT (code
+  0xNTSTATUS, read|write|execute) at address A` for an access
+  violation), then the pc and the image's load address, the registers,
+  the frames' pcs (`frames:`) and the `traceback:` above; then the
+  signal's default action ends the program, with the same exit status
+  and core file as without the report (Windows: the same exit code, the
+  NTSTATUS; an exception C code's own handler takes is not reported).
+  `XO_CRASH_REPORT=0` turns it off; `XO_CRASH_TIMEOUT` (seconds, 5 by
+  default) bounds the naming of the frames. Sanitizer builds report
+  through their own runtimes; windows/arm64 does not report yet.
 
 There is no undefined behavior. Debug and release builds have identical
 semantics; release builds may only disable contract checks that are explicitly
@@ -2469,6 +2493,12 @@ test "retries after 503" {
 ```
 
 - `test` blocks may live in any file. They are compiled only by `xo test`.
+- `xo build` and `xo run` (with `--watch` too) do not read `_test.xo`
+  files at all (decision 0348): their declarations, errors, and `use`
+  lines do not exist for a build, so a helper declared only there is
+  `XO0601` in production code and a test-only import is never fetched
+  or bound. `xo test`, `xo check`, `xo vet`, `xo fix`, the language
+  server, and the lookup tools read them.
 - Where tests live (a note, not a rule). Both places have the same access
   to the module's private names; they differ in what else sees the edit:
   - Inline `test` blocks keep a test next to the code it checks, so a
@@ -2486,6 +2516,22 @@ test "retries after 503" {
     that does not change the binary (a test, inline or not, a comment)
     never restarts it (decision 0267).
 - A test body has type `() ! Error`, so `?` fails the test with the error.
+- `opt?` on an Option directly in a test body (at any depth of blocks,
+  `if`, `match`, and loops in it, property tests included) yields the
+  value or fails the test as `opt.or_err("missing value: opt")?` would,
+  `opt` being the source text of the operand (decision 0347):
+  ```
+  test "finds the user" {
+    let u = store.find(7)?   // --- FAIL: ... then: error: missing value: store.find(7)
+    expect(u.name) == "Ada"
+  }
+  ```
+  An Option's `?` and a Result's `?` in the same test both fail it; their
+  error types are not unified. A `?` inside a fn literal written in a
+  test keeps that function's own rules (2.5), and a helper function in a
+  `_test.xo` file is not a test body: `opt?` there is still `XO0204` or
+  `XO0205`, with a note. A property test's missing value is a failed
+  case, shrunk like any other.
 - Inside a test block, and anywhere in a `_test.xo` file for `expect` and
   `testing`, three names are predeclared:
   - `os: TestOs` with fake capabilities (in memory filesystem, virtual clock,
@@ -2525,7 +2571,7 @@ test "retries after 503" {
 | Command | Purpose |
 |---|---|
 | `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release [--error-args=false]] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is a release build (8): `requires(debug)` and `ensures(debug)` compiled out, and the native runtime's profiler and execution trace recorder left out unless `--profile-support` or `--trace-support` (decisions 0238, 0240); `--release --error-args=false` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
-| `xo run` | Build and run for the host; `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267) |
+| `xo run [DIR]` | Build and run for the host the program in exactly DIR (default `.`), never one below it (decision 0345); `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267). A stop request `xo run` gets (SIGINT or SIGTERM, 7.5) is sent on to the program as SIGTERM when standard input is not a terminal; on a terminal, Ctrl-C reaches the program through the process group |
 | `xo trace FILE [--json OUT] [--text]` | The execution trace a native program wrote under XO_TRACE as Chrome trace event JSON (Perfetto) and a summary (decision 0240) |
 | `xo check [--no-gc] [--fix]` | Parse and type check all targets, no codegen; `--no-gc` adds the native build check (XO1201); `--fix` first applies the machine fixes (below) |
 | `xo test [--seed=N] [--explore=N] [--cases=N] [--timeout=D] [--real] [--watch]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100; `--timeout` the real time each test may take, default 60s, 0 for none, 9.2); deterministic scheduling. `--watch` reruns, after each change, only the tests the change reaches (decision 0267). Doc comment examples are [P2] (1.2) |
@@ -2541,6 +2587,7 @@ test "retries after 503" {
 | `xo edit <op> ...` | Semantic edits (10.4) |
 | `xo replay`, `xo dump` | Debugging (section 11); `xo why` and `xo debug` are [P2] and not implemented yet (11.3, 11.5) |
 | `xo doc` | Docs from doc comments |
+| `xo clean -cache [-n]` | Remove every cache under `<user cache>/xo` (build directories, the native back end's cache, GOCACHE, test binaries, watch builds, xo dev outputs, the test infrastructure's caches) and print the bytes freed per cache; `-n` prints what it would remove and removes nothing. Never touches anything outside `<user cache>/xo`; the module cache and the prebuilt seeds stay; an entry whose build lock a running process holds is left. `xo clean` without `-cache` is a usage error |
 | `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
 | `xo init <path>`, `xo publish [--check]` | Start a module (xo.mod, xo.work gitignored); check a release against the previous tag (4.2) |
@@ -2560,21 +2607,33 @@ stdout with exit status 0. `xo` alone prints the command list on stderr
 and exits 2. An unknown flag, a missing argument, or an unknown command
 is a usage error: the error and the usage on stderr, exit status 2.
 
-**Directories and `DIR/...`.** A directory argument covers the
-directories below it: `check`, `vet`, `doc`, `test`, `build`, and
-`audit` take every directory with `.xo` files at or below it (one module
-each, or one program for `build` and `test`), skipping `testdata`,
-`vendor/` (with `modules.txt`), and names starting with `.` or `_`;
-`fmt` and `fix` take the files below it, skipping names starting with
-`.` or `_` (and `fix` `testdata`); `parse` takes every file. The package
-pattern `DIR/...` (`./...`, `cmd/...`) is accepted by every command that
-takes directories (`check`, `test`, `build`, `vet`, `doc`, `fmt`,
-`fix`, `parse`, `audit`) and means DIR, so `xo check ./...` and
-`xo check .` agree; an `xo.work` workspace applies to it as to DIR. A
-`DIR/...` with no `.xo` file at or below DIR (with the skips above) is
-an error, `xo CMD: DIR/... matched no directory with .xo files`, exit
-status 1. Other forms (`...` alone, `a/.../b`) and `xo run DIR/...` are
-usage errors (decision 0210).
+**Directories and `DIR/...`.** A directory argument means that
+directory alone (decision 0345, superseding 0210's implicit walk):
+`check`, `vet`, `doc`, `test`, `build`, and `audit` take the module in
+it (plus the modules it imports, and for `check` the other modules of
+its `xo.work` workspace), and `fmt`, `fix`, and `parse` its own `.xo`
+files. A directory with no `.xo` file is an error that names `DIR/...`.
+Only the package pattern `DIR/...` (`./...`, `cmd/...`, accepted by
+`check`, `test`, `build`, `vet`, `doc`, `fmt`, `fix`, `parse`, `audit`)
+covers the directories below DIR: every directory with `.xo` files at or
+below it (one module each, or one program for `build` and `test`),
+skipping `testdata`, `vendor/` (with `modules.txt`), and names starting
+with `.` or `_`; `fmt` and `fix` take the files below it, skipping names
+starting with `.` or `_` (and `fix` `testdata`); `parse` takes every
+file. A `DIR/...` walk stops past 6,000 `.xo` files or 60,000 directory
+entries with an error naming the limit, so `xo build /...` or
+`xo check $HOME/...` refuses. A `DIR/...` with no `.xo` file at or below
+DIR (with the skips above) is an error, `xo CMD: DIR/... matched no
+directory with .xo files`, exit status 1. Other forms (`...` alone,
+`a/.../b`) are usage errors (decision 0210).
+
+`xo run` takes one directory (`.` when none is given) and runs the
+program in exactly that directory: it never looks below it, since
+running code found by walking would run whatever a directory tree
+holds. A directory with no `.xo` file or no `main` is an error, whose
+note lists the subdirectories directly below that declare `main`, as a
+hint; a `.xo` file, `xo run DIR/...`, and any other pattern are errors
+(a module is a directory, 1.1), the file's with the fix `xo run DIR`.
 
 **Check and fix.** `xo check` is read only. `xo check --fix` first
 applies every unambiguous machine fix, the same set `xo fix` applies
@@ -2592,9 +2651,12 @@ diagnostic with an exact fix never costs a run (decision 0096). The MCP
 needs clang) otherwise. `--backend=go` compiles through the Go toolchain
 and is required by a program with a `use go` package; with no `--backend`
 such a program is a usage error naming it. The flags only the Go backend
-has (`--hybrid`, `--holes`, `xo test --explore`, `xo run --seed` and
-`--record`) choose it when no backend is given, and `--race` the LLVM
-backend's ThreadSanitizer. Contract fuzzing (9.2) runs on every backend
+has (`--hybrid`, `xo test --explore`, `xo run --seed` and `--record`)
+choose it when no backend is given. `--race` keeps the
+native backend where a ThreadSanitizer runtime ships for the target
+(darwin/arm64, darwin/amd64, linux/arm64, linux/amd64, windows/amd64)
+and otherwise
+takes the LLVM backend's (decision 0273 addendum). Contract fuzzing (9.2) runs on every backend
 (decision 0250): the same targets, cases, and seeds, the same tests named
 `contract fuzz: MODULE.F` (which `--run` matches like any test name), and
 the same regression tests; a target whose generated native test does not
@@ -2630,7 +2692,11 @@ on the real clock there), contract fuzzing (9.1) is reported as skipped
 traces are recorded natively but printed only in main's error report
 (decision 0104), and fault frames are not recorded natively.
 
-**Hybrid builds.** `xo build --hybrid` (Go backend) compiles the hot leaf
+**Hybrid builds (deprecated).** Since 2026-10-22 (owner) `--hybrid` is a
+plain Go backend build that warns that it is deprecated and will be
+removed: compiler/arm64 has no Go assembler mode, so nothing below
+happens. As decision 0084 described it, `xo build --hybrid` (Go backend)
+compiled the hot leaf
 functions of the main module (a loop over `Int`, `Float`, `Bool`, and
 `List`s of those or of structs of `Int` and `Float` fields, with no
 allocation) to native assembly linked into the Go program; everything
@@ -2944,12 +3010,14 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1501` | error | build | `--stamp NAME=VALUE` names no `const NAME: Str = "..."` (a plain string literal) of the main module (decision 0165) |
 | `XO1502` | error | build | the go command the Go backend runs (`$XO_GO`, else `go` on PATH) is older than Go 1.24, the oldest Go that builds generated programs and the runtime (decision 0176) |
 | `XO1503` | error | build | the Go backend finds no go command: `$XO_GO` is not an executable file, or there is no `go` on PATH; the native backends need none (decision 0176) |
-| `XO1504` | error | build | the program uses a std API the LLVM backend's runtime does not support on the build's target yet: none since stage 2 of decision 0197 (2026-10-12; stage 1 left out processes on Windows); the message names them, and the Go backend builds the program |
+| `XO1504` | error | build | the program uses a std API the native runtime does not support on the build's target yet: reported by no build since stage 2 of decision 0197 (2026-10-12; stage 1 left out processes on Windows), and Windows builds default to the amd64 backend (decisions 0254, 0270); the message would name them, and the Go backend builds the program |
 | `XO1505` | error | build | the LLVM backend's clang (`$XO_CLANG`, else `clang`, or `--cc`) is an LLVM clang older than 16, whose LLVM lacks llvm.threadlocal.address; Apple's clang (numbered apart) is not checked (gotchas/llvm-thread-local-constant.md) |
 | `XO1506` | error | checker | `embed("...")` names no file, more than one for a `Str` or `Bytes` constant, a file that cannot be read, or more than an embed may hold (64 MiB each, 256 MiB a program; decision 0304) |
 | `XO1507` | error | checker | an `embed` path leaves the module: absolute, `..`, `.`, an empty segment, or a symbolic link (decision 0304) |
 | `XO1508` | error | checker | a `Str` embed constant's file is not valid UTF-8; declare it `Bytes` (decision 0304) |
 | `XO1509` | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
+| `XO1510` | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise); rebuild with `XO_BACKEND_CACHE=off` and report it |
+| `XO1511` | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
@@ -3007,7 +3075,10 @@ LoadErr.Db(msg: "timeout")
 On a fault reaching `main`, an unhandled error from `main`, or an isolated
 fault in a server, the runtime writes `<name>-<time>.xocrash` containing: the
 error or fault with frames, the task tree, build id, source hashes, target, and
-**[P2]** the effect trace for the failing request. Native builds (`--no-gc`)
+**[P2]** the effect trace for the failing request, and prints its path on
+standard error (`crash bundle: PATH`). Bundles go to `$XO_CRASH_DIR`, else
+`<user cache>/xo/crash`, which keeps the newest 100 (owner, 2026-10-22)
+and which `xo clean -cache` does not empty. Native builds (`--no-gc`)
 write none yet (decision 0085).
 
 ### 11.3 Record and replay [P2]
@@ -3152,6 +3223,15 @@ id, and `XO_OTEL_ENDPOINT` is not read.
 
 `xo build --targets=all` builds every supported target from any host:
 `linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64 wasi/wasm32`.
+With no `--backend`, each target builds with its own native backend
+(arm64, amd64, or wasm for wasi), and `all` is the six targets a native
+backend builds: windows/arm64 needs `--backend=go`, whose `all` is all
+seven, and a note says so (decision 0270 addendum, owner 2026-10-22).
+Naming windows/arm64 in a list with no `--backend` is an error, reported
+after the other targets are built (exit status 1). Several targets write
+`NAME-OS-ARCH` binaries (`.exe` for windows, `.wasm` for wasi) into `-o`'s
+directory; `-o NAME` for a windows target with no extension writes
+`NAME.exe`.
 
 Binaries are static and builds are reproducible: the same source in the
 same directory, lockfile, and toolchain version produce byte identical

@@ -2667,7 +2667,8 @@ fn (d: Date) display() -> Str                    // "2026-10-09"
 `instant` with `Reject` returns `Skipped` for a time inside a spring
 forward gap and `Repeated` for one inside a fall back overlap; `Earlier`
 and `Later` pick the first or second instant (for a gap, the instant the
-offset before or after the change gives). Arithmetic on `Time` stays exact
+offset after or before the change gives, so `Earlier` is never after
+`Later`). Arithmetic on `Time` stays exact
 (`t + 24h` is always 24 hours); calendar arithmetic is on `Date`.
 
 ### 13.3 Formatting and parsing
@@ -2757,9 +2758,10 @@ Settled while implementing; examples are in the goldens
   to 9999; `Time` covers about 1678 to 2262, and `instant` outside it is
   `CivilErr.Invalid`. Date methods on a `Date` built with a struct
   literal and out of range fields normalize it (month 13 is January of the
-  next year). For a gap, `Earlier` uses the offset before the change and
-  `Later` the one after: 02:30 on 2026-03-08 in New York is 03:30 EDT
-  with `Earlier` and 01:30 EST with `Later` (Python's `fold=0` and `1`).
+  next year). For a gap, `Earlier` is the earlier instant and `Later` the later one
+  (Temporal's `earlier` and `later`): 02:30 on 2026-03-08 in New York is
+  01:30 EST with `Earlier` (the clock moved back by the gap) and 03:30 EDT
+  with `Later`.
   Error display text, one sentence each, no trailing period:
   `ZoneErr.Unknown` is `unknown time zone "Mars/Olympus"`, `NoLocal` is
   `cannot determine the local time zone: <msg>`; `CivilErr.Invalid` is
@@ -4673,6 +4675,11 @@ gives it an `auth` function.
 ```xo
 fn router(clock: Clock, auth: fn(http.Request) -> Bool) -> http.Router uses clock
 fn heap_start(rate: Int = 0) -> Bool
+fn mem_budget(bytes: Int)
+fn mem_label(text: Str)
+fn mem_mapped() -> Int
+fn mem_peak() -> Int
+fn mem_total() -> Int
 ```
 
 - `GET /profile?seconds=N&hz=H`: a CPU profile of the next N seconds
@@ -4697,6 +4704,20 @@ fn heap_start(rate: Int = 0) -> Bool
   router costs nothing.
 - A live profile running when the program exits is dropped, with no file
   (the `XO_PROF` file profile is separate: it still writes at exit).
+- The memory budget (decision 0349, native backends): `mem_budget(bytes)`
+  stops the program with status 70 when the bytes its heap has mapped
+  from the system pass `bytes` (0: none), writing `fatal error: memory
+  budget exceeded: N MB mapped, more than XO_MAX_MEM (M MB)` and
+  `  while: LABEL`, the last `mem_label(text)` (at most 255 bytes).
+  `XO_MAX_MEM` (bytes, or with K, M, G; `off`) sets the budget at start.
+  `mem_mapped()` is the count the budget compares (chunks and records as
+  mapped, large blocks as handed out, not the room a growing block
+  reserves), `mem_peak()` its high-water mark, `mem_total()` the
+  machine's physical memory (macOS and Linux; 0 elsewhere). xo, when
+  XO_MAX_MEM is not set, sets three quarters of physical memory, at least
+  16 GiB (decision 0349's default; none where physical memory is not
+  read). The Go backend ignores the
+  budget and its label, and both counts are 0 there.
 
 ## 37. std/metrics
 
