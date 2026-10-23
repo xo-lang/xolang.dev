@@ -94,15 +94,18 @@ tools on the machine.
 - `--targets=all` needs `--backend=go`: it builds linux/amd64,
   linux/arm64, darwin/amd64, darwin/arm64, windows/amd64,
   windows/arm64, and wasip1/wasm, one binary per target.
-- Windows (x86-64) and Intel Macs build natively through the LLVM
-  backend; this work is in progress and tested on a smaller scale than
-  the arm64 hosts.
+- Windows (x86-64), Intel Macs and x86-64 Linux build with the native
+  x86-64 backend, the default on x86-64 hosts; it is tested on a smaller
+  scale than the arm64 hosts.
 - `use c` works only on the native backends. `use go` needs
   `--backend=go`: without it, such a program is a usage error naming the
   Go package.
-- The flags only the Go backend has (`--hybrid`, `--holes`, `xo test
+- The flags only the Go backend has (`--hybrid`, deprecated, `xo test
   --explore`, `xo run --seed` and `--record`) choose it when no backend is
-  given, and `--race` chooses the LLVM backend (ThreadSanitizer).
+  given; `--holes` builds natively. `--race` keeps the native backend
+  where a prebuilt ThreadSanitizer runtime ships with the release
+  (darwin/arm64, darwin/amd64, linux/arm64, linux/amd64, windows/amd64),
+  so it needs no clang there, and chooses the LLVM backend elsewhere.
 - A program that names time zones embeds them from the IANA database
   that ships with the standard library (no Go needed); with
   `--tzdata=system` it reads the system's zone files at run time
