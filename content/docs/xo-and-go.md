@@ -195,9 +195,11 @@ Xo took less.
 
 Each row's raw output, with spreads and intervals:
 [release-vs-go-v0.26.0.md, lines 53 to 313](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.26.0.md#L53-L313).
-The rwmutex gap comes from tasks parking on almost every access when
-more than one worker thread runs
-([rwmutex-vs-go-2026-10-23.md, lines 11 to 20](https://github.com/xo-lang/xo/blob/main/bench/results/rwmutex-vs-go-2026-10-23.md#L11-L20)).
+The rwmutex row is lock bound: one task at a time can make progress.
+Go's goroutines stay with the waking P, so the loop runs nearly on one
+core, while Xo spreads the 64 tasks over all its workers at once and
+they contend; the gap exists only with more than one worker
+([rwmutex-vs-go-2026-10-23.md, lines 13 to 16 and 50 to 55](https://github.com/xo-lang/xo/blob/main/bench/results/rwmutex-vs-go-2026-10-23.md#L50-L55)).
 
 **Standard library, instructions retired** (fewer is better; Apple M4
 Pro, Go 1.26.1, 2026-10-21; native Xo against Go's packages):
