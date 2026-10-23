@@ -31,7 +31,8 @@ allocation and layout, no runtime at all (embedded, kernels, libraries
 called from C), many targets, a large ecosystem (crates.io, tokio,
 serde), or a stable language with a long compatibility record. In the
 measurements below Rust was faster on most compute rows, on JSON, on
-locks, and used a quarter of Xo's memory as a web server.
+locks, used a quarter of Xo's memory as a web server, and made binaries
+a fifth the size of Xo's.
 
 **Consider Xo** when you want much of the same compile-time safety
 (no null, no unhandled errors, exhaustive matches, no data races)
@@ -96,10 +97,30 @@ request.
 
 ## Compiler and toolchain
 
-- **Build speed.** Not measured against Rust yet. The measured
-  comparison of build times is the one against Go
-  ([Xo and Go](../xo-and-go/#compiler-and-toolchain)); a Rust row is on
-  the list for the next release's run.
+**Builds and binaries** (the CRUD server of the benchmarks below and a
+hello program; Rust with `cargo build --release` and the twins' profile,
+as the measured binaries were built; Go for reference; one build each,
+Apple M4 Pro, 2026-10-23):
+
+| | Rust 1.99.1 | Go 1.26.1 | xo 0.27.0 |
+|---|---|---|---|
+| Cold build, CRUD server | 8.1 s | 3.1 s | 3.9 s |
+| Cold build, hello | 1.3 s | 1.5 s | 1.9 s |
+| Warm build, nothing changed (CRUD / hello) | 0.03 / 0.01 s | 0.08 / 0.04 s | 0.57 / 0.28 s |
+| Build after a one-function edit (CRUD / hello) | 3.0 / 1.2 s | 0.24 / 0.09 s | 0.57 / 0.28 s |
+| Peak build memory, cold CRUD build | 408 MB | 310 MB | 960 MB |
+| Binary size (CRUD / hello) | 1.12 / 0.41 MB | 8.03 / 2.36 MB | 6.13 / 1.85 MB |
+| Hello startup, wall | 2.8 ms | 3.2 ms | 2.9 ms |
+
+Source: [twins-build-2026-10-23.md, lines 20 to 25 and 49 to 56](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-23.md#L20-L56).
+**Rust's binaries are the smallest**, by a factor of 4 to 5, and its
+no-op build is the fastest. Its cold build of the server is the
+slowest, because it compiles axum, hyper, tokio and serde from source,
+and a release build does not compile incrementally, so an edit rebuilds
+the crate (a debug build, which is incremental, was not measured). Xo
+builds use the most memory. Xo's hello started in 1.04 of Rust's time
+with 1.4 times its memory (2.6 MB against 1.8).
+
 - **Targets.** Rust lists 8 Tier 1 host targets ("guaranteed to work")
   and many more at Tier 2 and 3
   ([platform support](https://doc.rust-lang.org/rustc/platform-support.html));

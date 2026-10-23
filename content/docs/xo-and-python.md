@@ -86,17 +86,28 @@ CPU per request and had lower tail latency**.
 ## Toolchain and deployment
 
 - **Running code.** Python runs source directly, with no build step.
-  Xo compiles to a native binary first (`xo run` does both); build
-  times are in [Xo and Go](../xo-and-go/#compiler-and-toolchain).
+  Xo compiles to a native binary first (`xo run` does both).
 - **Deploying.** A Python service ships its source, its packages
   (often in a virtual environment or container), and an interpreter.
-  Xo ships one static binary (1.85 to 1.94 MB for the programs of the
-  [Go comparison](../xo-and-go/#compiler-and-toolchain)), and `xo build
-  --targets=all` cross compiles for linux, darwin and windows on arm64
-  and x86-64, plus WASI, from any host ([core 11](../spec/core/)).
-- **Startup.** The interpreter's start, about 15 ms, is included in
-  every Python row below
-  ([python-vs-xo-2026-10-23.md, line 104](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L104)).
+  Xo ships one static binary, and `xo build --targets=all` cross
+  compiles for linux, darwin and windows on arm64 and x86-64, plus
+  WASI, from any host ([core 11](../spec/core/)).
+
+**Build, size and startup** (the CRUD server of the benchmarks below and
+a hello program; CPython 3.13.12; Apple M4 Pro, 2026-10-23):
+
+| | Python | xo 0.27.0 |
+|---|---|---|
+| Before the first run | nothing to build; the first import of the server compiles it to bytecode: 0.19 to 0.20 s | a 3.9 s cold build |
+| After an edit | the next import recompiles the module: 0.04 to 0.07 s | a 0.57 s build |
+| What ships | 7.9 KB of server source, 25.8 MB of installed packages (uvicorn, Starlette, uvloop, httptools), and a 77.7 MB interpreter installation | a 6.1 MB binary |
+| Hello startup, wall | 19.6 ms | 3.0 ms (0.155 of Python's) |
+| Hello startup, peak memory | 13.9 MB | 2.6 MB |
+
+Source: [twins-build-2026-10-23.md, lines 20, 28 to 29, 37, 43 to 45 and 61 to 64](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-23.md#L20-L64).
+Python has no build to wait for; Xo's build costs seconds once and
+about half a second after a change, and in return its program starts
+6 times faster and ships as one file.
 
 ## Writing it with AI agents
 
