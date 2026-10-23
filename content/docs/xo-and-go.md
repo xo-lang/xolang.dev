@@ -6,7 +6,8 @@ weight: 6
 toc: true
 ---
 
-The first page of a comparison series. It is not a "which is better"
+The first page of a comparison series (also [Xo and Rust](../xo-and-rust/),
+[Xo and TypeScript](../xo-and-typescript/), and [Xo and Python](../xo-and-python/)). It is not a "which is better"
 page: Xo started as a language compiled through Go, it keeps much of Go's
 design, and Go is the more mature tool for most work today. This page
 says how the two relate, where each one is the better choice, and what

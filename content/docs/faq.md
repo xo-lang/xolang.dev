@@ -80,6 +80,10 @@ Rust (results, `?`, sum types, exhaustive `match`), Swift and Kotlin
 Effects and capabilities in signatures are less common in mainstream
 languages; Xo makes them part of everyday code.
 
+[Xo and Rust](../xo-and-rust/), [Xo and TypeScript](../xo-and-typescript/),
+and [Xo and Python](../xo-and-python/) compare Xo with each, with
+measurements.
+
 ## Is there a garbage collector?
 
 Not by default. Native builds, the default, manage memory by reference
