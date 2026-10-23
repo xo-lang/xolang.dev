@@ -8,6 +8,7 @@ web services, designed so AI agents can write, check, cross compile, and debug
 programs with fast, structured feedback.
 
 - [Why Xo? (FAQ)](faq/): what Xo is for, how it relates to Go, and what experimental means.
+- [Xo and Go](xo-and-go/): how they relate, where each is the better choice, and measured numbers with sources.
 - [Getting started](getting-started/): build the toolchain and run a first program.
 - [A tour of Xo](tour/): twelve short steps through the language.
 - [Dependencies and capabilities](dependencies/): limit what a dependency can do, with ceilings, the effect lock, vouches, and `xo audit`.

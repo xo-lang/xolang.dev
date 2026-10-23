@@ -71,6 +71,8 @@ must handle, optionals instead of nil, sum types with exhaustive `match`,
 value semantics instead of shared pointers, structured concurrency instead
 of free goroutines and `ctx` plumbing, and effects in signatures.
 
+[Xo and Go](../xo-and-go/) compares the two in detail, with measurements.
+
 ## Which other languages influenced it?
 
 Rust (results, `?`, sum types, exhaustive `match`), Swift and Kotlin
