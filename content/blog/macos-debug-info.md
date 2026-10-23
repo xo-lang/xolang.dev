@@ -1,8 +1,8 @@
 ---
 title: "Where macOS keeps a program's debug info, and why Xo moved it"
-date: 2026-10-22T16:00:00-04:00
+date: 2026-10-23T07:00:00-04:00
 description: "What a .dSYM is, why Apple keeps DWARF out of the executable, why Apple's own tools cannot read Go's default debug info, how Linux and Windows do it, and what Xo does since 0.26.0: the DWARF inside the executable, uncompressed."
-draft: true
+draft: false
 ---
 
 A crash report is only as good as its symbols. On macOS that turns on a
@@ -206,7 +206,8 @@ ThreadSanitizer and dwarfdump all read the embedded copy, and Apple
 notarized a Developer ID signed `xo` built this way.
 
 On Linux, Xo's executables already carry uncompressed `.debug_*`
-sections. On Windows, a PDB writer is proposed (decision 0344).
+sections. On Windows, Xo's linker writes a PDB beside the native
+executable, so WinDbg and Visual Studio can read it (decision 0344).
 
 All of this ships in Xo 0.26.0
 ([release notes](/releases/0.26/), behavior change 4).
