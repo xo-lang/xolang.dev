@@ -91,7 +91,7 @@ collector.
 
 ## What does "experimental" mean right now?
 
-The language is at specification draft 0.10 and toolchain 0.26. It is
+The language is at specification draft 0.10 and toolchain 0.27. It is
 usable and tested, but the language may still change before 1.0, and
 changes ship with automatic rewriters (`xo fix --from=draft-0.N`). The
 compatibility promise starts at 1.0, with the first frozen edition: code
