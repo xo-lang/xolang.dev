@@ -32,7 +32,7 @@ called from C), many targets, a large ecosystem (crates.io, tokio,
 serde), or a stable language with a long compatibility record. In the
 measurements below Rust was faster on most compute rows, on JSON, on
 locks, used a quarter of Xo's memory as a web server, and made binaries
-a fifth the size of Xo's.
+about half the size of Xo's release binaries.
 
 **Consider Xo** when you want much of the same compile-time safety
 (no null, no unhandled errors, exhaustive matches, no data races)
@@ -109,11 +109,12 @@ Apple M4 Pro, 2026-10-24):
 | Warm build, nothing changed (CRUD / hello) | 0.03 / 0.01 s | 0.08 / 0.03 s | 0.03 / 0.03 s |
 | Build after a one-function edit (CRUD / hello) | 2.9 / 1.2 s | 0.24 / 0.09 s | 0.50 / 0.28 s |
 | Peak build memory, cold CRUD build | 410 MB | 311 MB | 992 MB |
-| Binary size (CRUD / hello) | 1.12 / 0.41 MB | 8.03 / 2.36 MB | 6.23 / 1.90 MB |
+| Binary size, shipping flags (CRUD / hello) | 1.12 / 0.41 MB (`cargo build --release`) | 5.48 / 1.57 MB (`-ldflags="-s -w"`) | 2.28 / 0.67 MB (`xo build --release`) |
+| Binary size, plain build (CRUD / hello) | 1.12 / 0.41 MB (no debug info) | 8.03 / 2.36 MB (with DWARF) | 6.23 / 1.90 MB (with DWARF) |
 | Hello startup, wall | 2.5 ms | 2.8 ms | 2.6 ms |
 
-Source: [twins-build-2026-10-24.md, lines 20 to 25 and 49 to 56](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L56).
-**Rust's binaries are the smallest**, by a factor of 4.6 to 5.6, and its
+Source: [twins-build-2026-10-24.md, lines 20 to 25, 39 to 48 and 58 to 65](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L65).
+**Rust's binaries are the smallest**, by a factor of 1.6 to 2 against Xo's `--release` binaries (4.6 to 5.6 against the plain `xo build`, which keeps 4.1 MB of debug information in the CRUD server; Go's plain build keeps its DWARF too), and its
 no-op build is the fastest. Its cold build of the server is the
 slowest, because it compiles axum, hyper, tokio and serde from source,
 and a release build does not compile incrementally, so an edit rebuilds

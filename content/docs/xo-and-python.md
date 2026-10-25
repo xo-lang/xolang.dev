@@ -100,11 +100,11 @@ a hello program; CPython 3.13.12; Apple M4 Pro, 2026-10-24):
 |---|---|---|
 | Before the first run | nothing to build; the first import of the server compiles it to bytecode: 0.04 to 0.07 s | a 2.3 s cold build |
 | After an edit | the next import recompiles the module: 0.04 to 0.07 s | a 0.50 s build |
-| What ships | 7.9 KB of server source, 25.8 MB of installed packages (uvicorn, Starlette, uvloop, httptools), and a 77.7 MB interpreter installation | a 6.2 MB binary |
+| What ships | 7.9 KB of server source, 25.8 MB of installed packages (uvicorn, Starlette, uvloop, httptools), and a 77.7 MB interpreter installation | a 2.3 MB binary (`xo build --release`; 6.2 MB with debug information) |
 | Hello startup, wall | 17.5 ms | 2.7 ms (0.153 of Python's) |
 | Hello startup, peak memory | 13.9 MB | 2.6 MB |
 
-Source: [twins-build-2026-10-24.md, lines 20, 28 to 29, 37, 43 to 45 and 61 to 64](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L64).
+Source: [twins-build-2026-10-24.md, lines 20, 28 to 29, 39 to 40, 52 to 54 and 70 to 73](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L73).
 Python has no build to wait for; Xo's build costs seconds once and
 about half a second after a change, and in return its program starts
 6 times faster and ships as one file.
