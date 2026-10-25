@@ -100,25 +100,25 @@ request.
 **Builds and binaries** (the CRUD server of the benchmarks below and a
 hello program; Rust with `cargo build --release` and the twins' profile,
 as the measured binaries were built; Go for reference; one build each,
-Apple M4 Pro, 2026-10-23):
+Apple M4 Pro, 2026-10-24):
 
-| | Rust 1.99.1 | Go 1.26.1 | xo 0.27.0 |
+| | Rust 1.99.1 | Go 1.26.1 | xo 0.29.0 |
 |---|---|---|---|
-| Cold build, CRUD server | 8.1 s | 3.1 s | 3.9 s |
-| Cold build, hello | 1.3 s | 1.5 s | 1.9 s |
-| Warm build, nothing changed (CRUD / hello) | 0.03 / 0.01 s | 0.08 / 0.04 s | 0.57 / 0.28 s |
-| Build after a one-function edit (CRUD / hello) | 3.0 / 1.2 s | 0.24 / 0.09 s | 0.57 / 0.28 s |
-| Peak build memory, cold CRUD build | 408 MB | 310 MB | 960 MB |
-| Binary size (CRUD / hello) | 1.12 / 0.41 MB | 8.03 / 2.36 MB | 6.13 / 1.85 MB |
-| Hello startup, wall | 2.8 ms | 3.2 ms | 2.9 ms |
+| Cold build, CRUD server | 7.6 s | 2.9 s | 2.3 s |
+| Cold build, hello | 1.3 s | 1.4 s | 1.1 s |
+| Warm build, nothing changed (CRUD / hello) | 0.03 / 0.01 s | 0.08 / 0.03 s | 0.03 / 0.03 s |
+| Build after a one-function edit (CRUD / hello) | 2.9 / 1.2 s | 0.24 / 0.09 s | 0.50 / 0.28 s |
+| Peak build memory, cold CRUD build | 410 MB | 311 MB | 992 MB |
+| Binary size (CRUD / hello) | 1.12 / 0.41 MB | 8.03 / 2.36 MB | 6.23 / 1.90 MB |
+| Hello startup, wall | 2.5 ms | 2.8 ms | 2.6 ms |
 
-Source: [twins-build-2026-10-23.md, lines 20 to 25 and 49 to 56](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-23.md#L20-L56).
-**Rust's binaries are the smallest**, by a factor of 4 to 5, and its
+Source: [twins-build-2026-10-24.md, lines 20 to 25 and 49 to 56](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L56).
+**Rust's binaries are the smallest**, by a factor of 4.6 to 5.6, and its
 no-op build is the fastest. Its cold build of the server is the
 slowest, because it compiles axum, hyper, tokio and serde from source,
 and a release build does not compile incrementally, so an edit rebuilds
 the crate (a debug build, which is incremental, was not measured). Xo
-builds use the most memory. Xo's hello started in 1.04 of Rust's time
+builds use the most memory. Go's build after a one-function edit (0.24 s) is faster than Xo's (0.50 s). Xo's hello started in 1.04 of Rust's time
 with 1.4 times its memory (2.6 MB against 1.8).
 
 - **Targets.** Rust lists 8 Tier 1 host targets ("guaranteed to work")

@@ -101,20 +101,20 @@ and used a small fraction of its memory.
 
 **Build, size and startup** (the CRUD server of the benchmarks below and
 a hello program; Node 22.22.1, TypeScript 5.9.3, esbuild 0.28.2; one
-build each, Apple M4 Pro, 2026-10-23):
+build each, Apple M4 Pro, 2026-10-24):
 
-| | TypeScript on Node | xo 0.27.0 |
+| | TypeScript on Node | xo 0.29.0 |
 |---|---|---|
-| Cold build | `tsc` over the project 1.1 s; esbuild bundle of the server 0.39 s | 3.9 s (CRUD server) |
-| Rebuild, nothing changed or one function edited | `tsc` 0.53 to 0.54 s (it keeps no cache); esbuild 0.17 to 0.18 s | 0.57 s |
-| Peak build memory | `tsc` 201 MB; esbuild 76 MB | 960 MB cold, 541 MB warm |
-| What ships | a 3 KB bundle plus the 108 MB Node runtime, or a 107 MB single executable application (4.2 s to build) | a 6.1 MB binary |
-| Hello startup, wall | 49.9 ms | 3.2 ms (0.065 of Node's) |
-| Hello startup, peak memory | 36.6 MB | 2.6 MB |
+| Cold build | `tsc` over the project 0.69 s; esbuild bundle of the server 0.37 s | 2.3 s (CRUD server) |
+| Rebuild, nothing changed or one function edited | `tsc` 0.52 s (it keeps no cache); esbuild 0.16 to 0.17 s | 0.03 s unchanged, 0.50 s after an edit |
+| Peak build memory | `tsc` 201 MB; esbuild 76 MB | 992 MB cold, 547 MB after an edit |
+| What ships | a 3 KB bundle plus the 108 MB Node runtime, or a 107 MB single executable application (4.9 s to build) | a 6.2 MB binary |
+| Hello startup, wall | 46.2 ms | 2.8 ms (0.061 of Node's) |
+| Hello startup, peak memory | 36.5 MB | 2.6 MB |
 
-Source: [twins-build-2026-10-23.md, lines 20, 26 to 27, 31, 37 to 42 and 57 to 60](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-23.md#L20-L60).
-TypeScript's builds are faster and use far less memory; Xo's program
-starts 15 times faster and ships as one file a seventeenth the size of
+Source: [twins-build-2026-10-24.md, lines 20, 26 to 27, 31, 37 to 42 and 57 to 60](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L60).
+A cold build and a build after an edit are faster in TypeScript and use far less memory (Xo's no-change build, 0.03 s, is the exception); Xo's program
+starts 16 times faster and ships as one file a seventeenth the size of
 Node's single executable. The single executable application was
 checked by starting it and creating a user.
 
@@ -161,7 +161,7 @@ over Node; under 1.0 means Xo took less
 | fanout | 0.49 | better | [line 28](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L28) |
 | spawn | 0.99 | within noise | [line 23](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L23) |
 
-Two caveats. The short rows include Node's start (50 ms for a hello program, above), a large part of
+Two caveats. The short rows include Node's start (46 ms for a hello program, above), a large part of
 a 60 to 90 ms run; the fib and parallel map rows are long enough to show
 the engine. And Xo spreads tasks over every core where Node's event loop
 uses one: on spawn the wall time was the same but **Xo used 4.6 times
