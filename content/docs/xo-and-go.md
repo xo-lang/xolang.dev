@@ -89,9 +89,10 @@ use any Go package through its Go backend.
 | Warm build, nothing changed | 0.04 s | 0.27 to 0.34 s |
 | Build after a one-function edit | 0.11 to 0.14 s | 0.27 to 0.36 s |
 | Peak build memory (cold) | 0.30 to 0.33 GB | 0.49 to 0.50 GB |
-| Binary size (same programs) | 2.39 to 2.43 MB | 1.85 to 1.94 MB |
+| Binary size (same programs, plain builds) | 2.39 to 2.43 MB | 1.85 to 1.94 MB |
+| Binary size, CRUD server, shipping flags (measured with xo 0.29.0, 2026-10-24) | 5.48 MB (`go build -trimpath -ldflags="-s -w"`; 8.03 MB without the flags) | 2.28 MB (`xo build --release`; 6.23 MB without the flag) |
 
-Source: [release-vs-go-v0.27.0.md, lines 17 to 24 and 31 to 51](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.27.0.md#L17-L51).
+Source: [release-vs-go-v0.27.0.md, lines 17 to 24 and 31 to 51](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.27.0.md#L17-L51). The shipping-flags row: [twins-build-2026-10-24.md, lines 39 to 42](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L39-L42).
 **Go builds faster**, by far on warm builds, and uses less memory to
 build. Unchanged warm builds are Xo's largest gap to Go (0.42 to 0.64 s
 in 0.26.0, 0.27 to 0.34 s now).
