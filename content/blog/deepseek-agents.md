@@ -1,8 +1,8 @@
 ---
 title: "Adding DeepSeek to the team: two harnesses, guardrails, and a lead"
-date: 2026-10-24T19:00:00-04:00
+date: 2026-10-24T20:20:00-04:00
 description: "Xo is built by Claude agents. For two days a DeepSeek model worked beside them, first in the Pi coding agent and then in Claude Code, under a guard that blocks the dangerous classes of action, in its own worktree, watched first by an overseer session and then managed directly by the lead. How it was set up, what it got right, where it needed correcting, and what it cost the rest of the team."
-draft: true
+draft: false
 ---
 
 Xo is written by AI agents: Claude sessions that the project owner
