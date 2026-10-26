@@ -185,6 +185,10 @@ footer .wrap { display: flex; justify-content: space-between; align-items: cente
 
 .pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font: 500 14px "JetBrains Mono", monospace; }
 .pager a { text-decoration: none; }
+.post-pager a { display: flex; flex-direction: column; gap: 4px; max-width: 46%; }
+.post-pager .newer { margin-left: auto; text-align: right; }
+.post-pager .dir { color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.post-pager .title { font: 600 15px/1.35 "Space Grotesk", system-ui, sans-serif; }
 .steps li { margin: 6px 0; }
 .posts { list-style: none; padding: 0; margin: 0; }
 .posts li { padding: 22px 0; border-bottom: 1px solid var(--line); }

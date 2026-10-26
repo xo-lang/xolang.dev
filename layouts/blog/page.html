@@ -4,6 +4,16 @@
     <h1>{{ .Title }}</h1>
     <div class="meta">{{ .Date.Format "2006-01-02" }}{{ if site.Params.sourcePublic }}{{ with .Params.source }} · from <a href="{{ . }}">CHANGELOG.md</a>{{ end }}{{ end }}</div>
     {{ .Content }}
+    <nav class="pager post-pager" aria-label="More posts">
+      {{- /* Posts sorted by date: the older post on the left, the newer on
+         the right, nothing at either end. Hugo's Pages.Next is the page
+         before this one in the list (as on the releases pages). */}}
+      {{- $all := .CurrentSection.RegularPages.ByDate }}
+      {{- $older := $all.Next . }}
+      {{- $newer := $all.Prev . }}
+      {{- with $older }}<a class="older" href="{{ .RelPermalink }}"><span class="dir">← Older</span><span class="title">{{ .LinkTitle }}</span></a>{{ else }}<span></span>{{ end }}
+      {{- with $newer }}<a class="newer" href="{{ .RelPermalink }}"><span class="dir">Newer →</span><span class="title">{{ .LinkTitle }}</span></a>{{ end }}
+    </nav>
   </article>
 </div>
 {{ end }}
