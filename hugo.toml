@@ -5,7 +5,9 @@ enableRobotsTXT = true
 disableKinds = ["taxonomy", "term"]
 
 [params]
-description = "Xo is a small, statically typed language for backends, tools, and web services, built for AI agents to write, check, and debug."
+# Cloudflare Web Analytics site token (public: it is in every page); empty turns the beacon off
+cfBeaconToken = "8934054fa3064728be85143bdb12741f"
+description ="Xo is a small, statically typed language for backends, tools, and web services, built for AI agents to write, check, and debug."
 github = "https://github.com/xo-lang"
 # The compiler's source repo (public since 2026-10-18). With sourcePublic
 # false, pages say it is coming and hide links into it.

@@ -18,9 +18,9 @@
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
 {{- /* Cloudflare Web Analytics: no cookies; empty token = off (hugo.toml params.cfBeaconToken) */}}
-{{- with site.Params.cfBeaconToken }}
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ . }}"}'></script>
-{{- end }}
+{{- with site.Params.cfBeaconToken }}{{ if not (hasPrefix $.RelPermalink "/play/") }}
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ . }}"}'></script>
+{{- end }}{{ end }}
 </head>
 <body>
 {{ partial "announce.html" . }}
