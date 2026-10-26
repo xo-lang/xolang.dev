@@ -17,6 +17,10 @@
 {{- with resources.Get "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
+{{- /* Cloudflare Web Analytics: no cookies; empty token = off (hugo.toml params.cfBeaconToken) */}}
+{{- with site.Params.cfBeaconToken }}
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ . }}"}'></script>
+{{- end }}
 </head>
 <body>
 {{ partial "announce.html" . }}
