@@ -11,8 +11,8 @@
       {{- $all := .CurrentSection.RegularPages.ByDate }}
       {{- $older := $all.Next . }}
       {{- $newer := $all.Prev . }}
-      {{- with $older }}<a class="older" href="{{ .RelPermalink }}"><span class="dir">← Older</span><span class="title">{{ .LinkTitle }}</span></a>{{ else }}<span></span>{{ end }}
-      {{- with $newer }}<a class="newer" href="{{ .RelPermalink }}"><span class="dir">Newer →</span><span class="title">{{ .LinkTitle }}</span></a>{{ end }}
+      {{- with $older }}<a class="older" href="{{ .RelPermalink }}"><span class="dir">← Previous</span><span class="title">{{ .LinkTitle }}</span></a>{{ else }}<span></span>{{ end }}
+      {{- with $newer }}<a class="newer" href="{{ .RelPermalink }}"><span class="dir">Next →</span><span class="title">{{ .LinkTitle }}</span></a>{{ end }}
     </nav>
   </article>
 </div>

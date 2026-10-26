@@ -10,9 +10,9 @@
 
 ---
 {{ with $older }}
-- Older: [{{ .LinkTitle }}]({{ with .OutputFormats.Get "markdown" }}{{ .RelPermalink }}{{ end }})
+- Previous: [{{ .LinkTitle }}]({{ with .OutputFormats.Get "markdown" }}{{ .RelPermalink }}{{ end }})
 {{- end }}
 {{- with $newer }}
-- Newer: [{{ .LinkTitle }}]({{ with .OutputFormats.Get "markdown" }}{{ .RelPermalink }}{{ end }})
+- Next: [{{ .LinkTitle }}]({{ with .OutputFormats.Get "markdown" }}{{ .RelPermalink }}{{ end }})
 {{- end }}
 {{ end }}
