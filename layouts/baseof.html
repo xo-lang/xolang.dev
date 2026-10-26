@@ -19,7 +19,8 @@
 {{- end }}
 {{- /* Cloudflare Web Analytics: no cookies; empty token = off (hugo.toml params.cfBeaconToken) */}}
 {{- with site.Params.cfBeaconToken }}{{ if not (hasPrefix $.RelPermalink "/play/") }}
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ . }}"}'></script>
+{{- /* only on the live host: a local preview or the CI browser check would send beacons that Cloudflare's CORS rejects (console errors) */}}
+<script>if(location.hostname==="xolang.dev"){var s=document.createElement("script");s.type="module";s.src="https://static.cloudflareinsights.com/beacon.min.js";s.setAttribute("data-cf-beacon",'{"token": "{{ . }}"}');document.head.appendChild(s)}</script>
 {{- end }}{{ end }}
 </head>
 <body>
