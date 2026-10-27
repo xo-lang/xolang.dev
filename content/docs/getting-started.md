@@ -11,17 +11,17 @@ Xo is experimental, and the language may change before 1.0.
 Download the archive for your platform from the
 [latest release](https://github.com/xo-lang/xo/releases/latest) on
 GitHub. The current one is
-[0.32.0](https://github.com/xo-lang/xo/releases/tag/v0.32.0):
+[0.33.0](https://github.com/xo-lang/xo/releases/tag/v0.33.0):
 
 | Platform | Archive |
 |---|---|
-| macOS, Apple silicon | `xo-v0.32.0-darwin-arm64.tar.gz` |
-| macOS, Intel | `xo-v0.32.0-darwin-amd64.tar.gz` |
-| Linux, arm64 | `xo-v0.32.0-linux-arm64.tar.gz` |
-| Linux, x86-64 | `xo-v0.32.0-linux-amd64.tar.gz` |
-| Windows, x86-64 | `xo-v0.32.0-windows-amd64.tar.gz` |
+| macOS, Apple silicon | `xo-v0.33.0-darwin-arm64.tar.gz` |
+| macOS, Intel | `xo-v0.33.0-darwin-amd64.tar.gz` |
+| Linux, arm64 | `xo-v0.33.0-linux-arm64.tar.gz` |
+| Linux, x86-64 | `xo-v0.33.0-linux-amd64.tar.gz` |
+| Windows, x86-64 | `xo-v0.33.0-windows-amd64.tar.gz` |
 
-Each archive unpacks into one directory, `xo-v0.32.0-<os>-<arch>`, that
+Each archive unpacks into one directory, `xo-v0.33.0-<os>-<arch>`, that
 holds `bin/xo` (`bin\xo.exe` on Windows), the toolchain, and `lib/xo/std`,
 the standard library. Keep `bin` and `lib` together: `xo` finds its
 standard library at `../lib/xo`. Check the download against the
@@ -30,34 +30,34 @@ release's `SHA256SUMS`, unpack it, and put `bin` on your `PATH`.
 macOS (on Intel, use `darwin-amd64`):
 
 ```
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/xo-v0.32.0-darwin-arm64.tar.gz
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/SHA256SUMS
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/xo-v0.33.0-darwin-arm64.tar.gz
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/SHA256SUMS
 shasum -a 256 -c --ignore-missing SHA256SUMS
-tar -xzf xo-v0.32.0-darwin-arm64.tar.gz
-export PATH="$PWD/xo-v0.32.0-darwin-arm64/bin:$PATH"
+tar -xzf xo-v0.33.0-darwin-arm64.tar.gz
+export PATH="$PWD/xo-v0.33.0-darwin-arm64/bin:$PATH"
 xo version
 ```
 
 Linux (on x86-64, use `linux-amd64`):
 
 ```
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/xo-v0.32.0-linux-arm64.tar.gz
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/SHA256SUMS
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/xo-v0.33.0-linux-arm64.tar.gz
+curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/SHA256SUMS
 sha256sum -c --ignore-missing SHA256SUMS
-tar -xzf xo-v0.32.0-linux-arm64.tar.gz
-export PATH="$PWD/xo-v0.32.0-linux-arm64/bin:$PATH"
+tar -xzf xo-v0.33.0-linux-arm64.tar.gz
+export PATH="$PWD/xo-v0.33.0-linux-arm64/bin:$PATH"
 xo version
 ```
 
 Windows, in PowerShell (`tar` ships with Windows 10 and later):
 
 ```
-curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/xo-v0.32.0-windows-amd64.tar.gz
-curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.32.0/SHA256SUMS
-(Get-FileHash xo-v0.32.0-windows-amd64.tar.gz -Algorithm SHA256).Hash
+curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/xo-v0.33.0-windows-amd64.tar.gz
+curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.33.0/SHA256SUMS
+(Get-FileHash xo-v0.33.0-windows-amd64.tar.gz -Algorithm SHA256).Hash
 Select-String windows-amd64 SHA256SUMS
-tar -xzf xo-v0.32.0-windows-amd64.tar.gz
-$env:Path = "$PWD\xo-v0.32.0-windows-amd64\bin;$env:Path"
+tar -xzf xo-v0.33.0-windows-amd64.tar.gz
+$env:Path = "$PWD\xo-v0.33.0-windows-amd64\bin;$env:Path"
 xo version
 ```
 
@@ -71,7 +71,7 @@ to keep it.
   Gatekeeper checks the notarization online the first time a binary
   runs. If macOS still refuses a binary from a browser download, clear
   the download's quarantine flag:
-  `xattr -dr com.apple.quarantine xo-v0.32.0-darwin-arm64`.
+  `xattr -dr com.apple.quarantine xo-v0.33.0-darwin-arm64`.
 - **Windows:** `xo.exe` and `xo-gobind.exe` are Authenticode signed
   (since 0.26.0). PowerShell's `Get-AuthenticodeSignature bin\xo.exe`
   shows the signature and its timestamp.

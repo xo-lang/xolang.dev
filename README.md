@@ -13,6 +13,12 @@ CGO_ENABLED=0 GOBIN=$PWD/.tools/bin go install github.com/gohugoio/hugo@v0.167.0
 .tools/bin/hugo server          # http://localhost:1313, live reload
 .tools/bin/hugo --gc --minify   # build into public/
 
+# A page whose front matter `date` is later than the build time is left
+# out with no warning (Hugo's buildFuture is off). Date release pages and
+# posts at or before the moment you publish, with an offset
+# (2026-10-27T15:50:00-04:00), and check the page is in public/ after a
+# build. This has dropped pages several times (latest: the 0.33 notes).
+
 # Refresh the spec, release notes, and diagnostic code pages from the Xo
 # repo (default ../../codelang, or $XO_REPO, or a path argument). Builds
 # cmd/xo from that repo for `xo explain`, unless $XO names a binary.
