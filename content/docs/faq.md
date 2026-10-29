@@ -49,11 +49,10 @@ C toolchain.
 ## Is Xo faster than Go?
 
 On most of the benchmarks Xo is compared with Go on, yes; on a few it is
-slower. In the 0.33.0 comparison, Xo took less time than Go on 17 of 20
-workloads (from 0.025 to 0.96 of Go's wall time) and more on n-body
-(1.05), a parallel map (1.09), and channel ping-pong (1.20), on an Apple
-M4 Pro, 10 interleaved rounds each
-([release-vs-go-v0.33.0.md, lines 34 to 315](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.33.0.md#L34-L315)).
+slower. In the 0.34.0 comparison, Xo took less time than Go on 18 of 20
+workloads and more on n-body (1.04 of Go's wall time) and a parallel map
+(1.01), on an Apple M4 Pro, interleaved rounds each
+([release-vs-go-v0.34.0.md, lines 13 to 31](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.34.0.md#L13-L31)).
 [Xo and Go](../xo-and-go/#benchmarks) has every row, the method, and
 where Go is still the better choice.
 

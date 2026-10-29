@@ -70,10 +70,10 @@ def main():
     commit = run(["git", "rev-parse", "--short=8", "HEAD"], REPO).strip()
     with tempfile.TemporaryDirectory() as tmp:
         wasmc = os.path.join(tmp, "wasmc")
-        run([xo, "build", "--backend=go", "-o", wasmc, "selfhost/wasm"], REPO)
-        line = run([wasmc, "--std=std", "--wd=" + REPO, "--out=" + tmp, "selfhost/wasm"], REPO).strip()
+        run([xo, "build", "--backend=go", "-o", wasmc, "compiler/wasm"], REPO)
+        line = run([wasmc, "--std=std", "--wd=" + REPO, "--out=" + tmp, "compiler/wasm"], REPO).strip()
         if not line.startswith("== ok"):
-            sys.exit("selfhost/wasm did not build for wasm: " + line)
+            sys.exit("compiler/wasm did not build for wasm: " + line)
         parts = {
             "xoc": open(os.path.join(tmp, "wasm.wasm"), "rb").read(),
             "std": bundle(std_files()),

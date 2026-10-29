@@ -5,15 +5,15 @@
 # scripts/check-facts.sh fails the build when a page names a release
 # version in its own text. Release notes, blog posts and the measured
 # comparison pages keep the versions they were written about.
-version = "0.33.1"
-tag = "v0.33.1"
-minor = "0.33"
-date = "2026-10-28"
+version = "0.34.0"
+tag = "v0.34.0"
+minor = "0.34"
+date = "2026-10-29"
 # a phrase after the version, or empty
-note = "a fix release of 0.33.0"
-release_url = "https://github.com/xo-lang/xo/releases/tag/v0.33.1"
+note = ""
+release_url = "https://github.com/xo-lang/xo/releases/tag/v0.34.0"
 latest_url = "https://github.com/xo-lang/xo/releases/latest"
-download_base = "https://github.com/xo-lang/xo/releases/download/v0.33.1"
+download_base = "https://github.com/xo-lang/xo/releases/download/v0.34.0"
 license = "MIT"
 license_url = "https://github.com/xo-lang/xo/blob/main/LICENSE"
 author = "Joseph Spurrier"
