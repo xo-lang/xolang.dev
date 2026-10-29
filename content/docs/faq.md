@@ -1,10 +1,67 @@
 ---
-title: "Why Xo? (FAQ)"
+title: "Xo FAQ"
 linkTitle: "Why Xo? (FAQ)"
-description: "What Xo is for, how it relates to Go, how to say it, and what experimental means today."
+description: "Xo is a small, statically typed, open source (MIT) language for backends, tools, and web services, built for AI agents to write and check. Answers on installing it, its status, license, platforms, speed against Go, and Go packages."
 weight: 5
 toc: true
 ---
+
+## What is Xo?
+
+Xo is a small, statically typed, open source programming language for
+backends, tools, and web services, designed for AI agents to write and
+check and for people to read. It compiles to native code for macOS, Linux
+and Windows (and WebAssembly for WASI), and turns the bugs tests usually
+miss, such as ignored errors, nil, missing `match` cases, and data races,
+into compile errors. It is experimental: the current release is
+{{< release "version" >}}, and the language may change before 1.0.
+
+## How do I install Xo?
+
+Download the archive for your platform from the
+[latest release]({{< release "latest_url" >}}), check it against
+`SHA256SUMS`, unpack it, and put its `bin` directory on your `PATH`.
+[Getting started](../getting-started/#install) has the commands for each
+platform. You can also [try Xo in the browser](/play/) with nothing to
+install.
+
+## Is Xo production ready?
+
+Not yet: Xo is experimental and has no 1.0 or compatibility promise yet.
+It is tested on every platform it ships for, and its releases are signed,
+but the language and standard library may change between minor
+releases, with `xo fix` rewriting code across a change. See
+[what "experimental" means](#what-does-experimental-mean-right-now) below.
+
+## What license is Xo under?
+
+The [MIT license]({{< release "license_url" >}}): the compiler, the
+toolchain, and the standard library are free to use, change, and
+redistribute, in open source and commercial projects alike.
+
+## What platforms does Xo run on?
+
+The release archives cover macOS on Apple silicon and Intel, Linux on
+arm64 and x86-64, and Windows on x86-64. The toolchain cross compiles
+between them and to WebAssembly (WASI), and native programs build with no
+C toolchain.
+
+## Is Xo faster than Go?
+
+On most of the benchmarks Xo is compared with Go on, yes; on a few it is
+slower. In the 0.33.0 comparison, Xo took less time than Go on 17 of 20
+workloads (from 0.025 to 0.96 of Go's wall time) and more on n-body
+(1.05), a parallel map (1.09), and channel ping-pong (1.20), on an Apple
+M4 Pro, 10 interleaved rounds each
+([release-vs-go-v0.33.0.md, lines 34 to 315](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.33.0.md#L34-L315)).
+[Xo and Go](../xo-and-go/#benchmarks) has every row, the method, and
+where Go is still the better choice.
+
+## Can Xo use Go packages?
+
+Yes: with `use go`, a program calls any Go package directly through the Go
+backend (`--backend=go`), with the Go toolchain installed. The
+[tour's last step](../tour/12-go-packages/) shows it.
 
 ## How do you say "Xo"?
 
@@ -95,7 +152,7 @@ collector.
 
 ## What does "experimental" mean right now?
 
-The language is at specification draft 0.10 and toolchain 0.33. It is
+The language is at specification draft 0.10 and toolchain {{< release "minor" >}}. It is
 usable and tested, but the language may still change before 1.0, and
 changes ship with automatic rewriters (`xo fix --from=draft-0.N`). The
 compatibility promise starts at 1.0, with the first frozen edition: code

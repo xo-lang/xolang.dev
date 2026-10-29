@@ -1,0 +1,7 @@
+{{- /* The archive table of the current release (data/release.toml). */ -}}
+{{- $r := hugo.Data.release -}}
+| Platform | Archive |
+|---|---|
+{{ range $r.platforms -}}
+| {{ .label }} | `xo-{{ $r.tag }}-{{ .os }}-{{ .arch }}.tar.gz` |
+{{ end -}}

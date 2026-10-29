@@ -1,0 +1,20 @@
+# {{ site.Title }}: the essentials in one file
+
+> {{ site.Params.description }} Status: experimental (v{{ hugo.Data.release.version }}, {{ hugo.Data.release.date }}); expect breaking changes before 1.0. License: {{ hugo.Data.release.license }}. The index of every page is {{ "llms.txt" | absURL }}; every page is also served as Markdown at its URL plus `index.md`.
+
+This file holds, whole: the FAQ, Getting started, Xo and Go, the tour, and the latest release notes. The roadmap is at {{ with site.GetPage "/roadmap" }}{{ (.OutputFormats.Get "markdown").Permalink }}{{ end }} and the specification is at {{ with site.GetPage "/docs/spec" }}{{ .Permalink }}{{ end }} (not included: it is long).
+{{ $pages := slice -}}
+{{- range slice "/docs/faq" "/docs/getting-started" "/docs/xo-and-go" -}}
+  {{- with site.GetPage . }}{{ $pages = $pages | append . }}{{ end -}}
+{{- end -}}
+{{- with site.GetPage "/docs/tour" }}{{ $pages = $pages | append . }}{{ range .RegularPages }}{{ $pages = $pages | append . }}{{ end }}{{ end -}}
+{{- with site.GetPage "/releases" }}{{ with index .RegularPages.ByDate.Reverse 0 }}{{ $pages = $pages | append . }}{{ end }}{{ end -}}
+{{ range $pages }}
+---
+
+# {{ .Title }}
+
+Source: {{ .Permalink }}
+
+{{ .RenderShortcodes }}
+{{ end }}

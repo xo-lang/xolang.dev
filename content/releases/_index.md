@@ -4,6 +4,11 @@ description: "Every Xo version, newest first, with a summary and its release not
 earlier: "Xo 0.7, 0.8 and 0.9 (2026-10-09 to 2026-10-10) were tagged as drafts of the specification, with no release notes. Xo 0.10 (2026-10-14) was not tagged."
 ---
 
+The current Xo release is [{{< release "version" >}}]({{< release "release_url" >}})
+({{< release "date" >}}), with archives for macOS, Linux and Windows. This
+page lists every version, newest first, each with a summary and its
+release notes.
+
 > **Download Xo.** The [latest release](https://github.com/xo-lang/xo/releases/latest)
 > on GitHub has archives for macOS and Linux (arm64 and x86-64) and
 > Windows (x86-64). [Getting started](/docs/getting-started/#install)

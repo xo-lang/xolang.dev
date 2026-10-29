@@ -24,6 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the whole history: enableGitInfo dates each page by its last commit
+          fetch-depth: 0
+      - name: Check the release facts
+        run: scripts/check-facts.sh
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26"

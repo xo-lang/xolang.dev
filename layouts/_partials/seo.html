@@ -1,0 +1,85 @@
+{{- /* Canonical URL, Open Graph and Twitter cards, and schema.org JSON-LD for
+     search and answer engines. Release facts come from data/release.toml. */ -}}
+{{- $r := hugo.Data.release -}}
+{{- $desc := .Description | default site.Params.description -}}
+{{- $title := cond .IsHome site.Title (printf "%s · %s" .Title site.Title) -}}
+{{- $image := "apple-touch-icon.png" | absURL -}}
+<link rel="canonical" href="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ site.Title }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $desc }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
+<meta property="og:image" content="{{ $image }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $desc }}">
+<meta name="twitter:image" content="{{ $image }}">
+{{- $author := dict "@type" "Person" "name" $r.author -}}
+{{- $org := dict "@type" "Organization" "name" "Xo" "url" site.Home.Permalink "logo" $image "sameAs" (slice site.Params.github site.Params.sourceRepo) -}}
+{{- $graph := slice -}}
+{{- if .IsHome -}}
+  {{- $platforms := slice -}}
+  {{- range $r.platforms }}{{ $platforms = $platforms | append .label }}{{ end -}}
+  {{- $app := dict
+    "@type" "SoftwareApplication"
+    "name" "Xo"
+    "alternateName" "Xo language"
+    "description" site.Params.description
+    "url" site.Home.Permalink
+    "applicationCategory" "DeveloperApplication"
+    "operatingSystem" "macOS, Linux, Windows"
+    "softwareVersion" $r.version
+    "datePublished" $r.date
+    "license" $r.license_url
+    "downloadUrl" $r.latest_url
+    "releaseNotes" ("releases/" | absURL)
+    "isAccessibleForFree" true
+    "offers" (dict "@type" "Offer" "price" "0" "priceCurrency" "USD")
+    "author" $author
+    "publisher" $org
+    "softwareHelp" ("docs/" | absURL)
+    "featureList" (delimit $platforms "; ")
+  -}}
+  {{- $site := dict "@type" "WebSite" "name" site.Title "url" site.Home.Permalink "description" site.Params.description "publisher" $org -}}
+  {{- $graph = $graph | append $app $site $org -}}
+{{- else -}}
+  {{- if eq .Path "/docs/faq" -}}
+    {{- $qs := slice -}}
+    {{- range after 1 (split .Content "<h2") -}}
+      {{- $hp := split . "</h2>" -}}
+      {{- if ge (len $hp) 2 -}}
+        {{- $q := index (split (index $hp 0) ">") 1 | plainify | htmlUnescape | strings.TrimSpace -}}
+        {{- $ps := split (index $hp 1) "<p>" -}}
+        {{- if ge (len $ps) 2 -}}
+          {{- $a := index (split (index $ps 1) "</p>") 0 | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace -}}
+          {{- $qs = $qs | append (dict "@type" "Question" "name" $q "acceptedAnswer" (dict "@type" "Answer" "text" $a)) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $graph = $graph | append (dict "@type" "FAQPage" "url" .Permalink "mainEntity" $qs) -}}
+  {{- else if .IsPage -}}
+    {{- $art := dict
+      "@type" "TechArticle"
+      "headline" .Title
+      "description" $desc
+      "url" .Permalink
+      "author" $author
+      "publisher" $org
+      "isPartOf" (dict "@type" "WebSite" "name" site.Title "url" site.Home.Permalink)
+      "inLanguage" site.Language.Locale
+    -}}
+    {{- with .Lastmod }}{{ if not .IsZero }}{{ $art = merge $art (dict "dateModified" (.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}{{ end -}}
+    {{- with .Date }}{{ if not .IsZero }}{{ $art = merge $art (dict "datePublished" (.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}{{ end -}}
+    {{- $graph = $graph | append $art -}}
+  {{- end -}}
+  {{- $items := slice -}}
+  {{- $i := 1 -}}
+  {{- range .Ancestors.Reverse -}}
+    {{- $items = $items | append (dict "@type" "ListItem" "position" $i "name" (cond .IsHome "Home" .LinkTitle) "item" .Permalink) -}}
+    {{- $i = add $i 1 -}}
+  {{- end -}}
+  {{- $items = $items | append (dict "@type" "ListItem" "position" $i "name" .LinkTitle "item" .Permalink) -}}
+  {{- $graph = $graph | append (dict "@type" "BreadcrumbList" "itemListElement" $items) -}}
+{{- end }}
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@graph" $graph | jsonify | safeJS }}</script>

@@ -1,0 +1,4 @@
+{{- /* Usage: {{< release "version" >}} (or "tag", "minor", "date", "download_base", ...): a field of data/release.toml, the current release. */ -}}
+{{- $v := index hugo.Data.release (.Get 0) -}}
+{{- if not $v }}{{ errorf "release shortcode: no field %q in data/release.toml (%s)" (.Get 0) .Position }}{{ end -}}
+{{- $v -}}

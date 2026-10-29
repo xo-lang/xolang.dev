@@ -6,6 +6,15 @@ weight: 6
 toc: true
 ---
 
+Xo and Go share most of their design: few keywords, one formatter, static
+binaries, fast builds, and structured, readable code. Xo differs where Go
+lets a bug compile: errors are `Result` values you must handle, optionals
+replace nil, sum types have exhaustive `match`, values are not shared
+pointers, concurrency is structured, and side effects are in signatures.
+Go is mature and production proven; Xo is experimental. In the 0.33.0
+measurements Xo was faster than Go on 17 of 20 runtime workloads and slower
+on three ([below](#benchmarks)).
+
 The first page of a comparison series (also [Xo and Rust](../xo-and-rust/),
 [Xo and TypeScript](../xo-and-typescript/), and [Xo and Python](../xo-and-python/)). It is not a "which is better"
 page: Xo started as a language compiled through Go, it keeps much of Go's

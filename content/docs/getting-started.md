@@ -4,6 +4,11 @@ description: "Install xo from a release archive (or build it from source), then 
 weight: 10
 ---
 
+To install Xo, download the archive for your platform from the latest
+GitHub release ({{< release "version" >}}: macOS and Linux on arm64 and
+x86-64, Windows on x86-64), check it against `SHA256SUMS`, unpack it,
+and put its `bin` directory on your `PATH`; `xo version` confirms it.
+Go is needed only for the Go backend and `use go`.
 Xo is experimental, and the language may change before 1.0.
 
 ## Install
@@ -11,17 +16,11 @@ Xo is experimental, and the language may change before 1.0.
 Download the archive for your platform from the
 [latest release](https://github.com/xo-lang/xo/releases/latest) on
 GitHub. The current one is
-[0.33.1](https://github.com/xo-lang/xo/releases/tag/v0.33.1):
+[{{< release "version" >}}]({{< release "release_url" >}}):
 
-| Platform | Archive |
-|---|---|
-| macOS, Apple silicon | `xo-v0.33.1-darwin-arm64.tar.gz` |
-| macOS, Intel | `xo-v0.33.1-darwin-amd64.tar.gz` |
-| Linux, arm64 | `xo-v0.33.1-linux-arm64.tar.gz` |
-| Linux, x86-64 | `xo-v0.33.1-linux-amd64.tar.gz` |
-| Windows, x86-64 | `xo-v0.33.1-windows-amd64.tar.gz` |
+{{% release-archives %}}
 
-Each archive unpacks into one directory, `xo-v0.33.1-<os>-<arch>`, that
+Each archive unpacks into one directory, `xo-{{< release "tag" >}}-<os>-<arch>`, that
 holds `bin/xo` (`bin\xo.exe` on Windows), the toolchain, and `lib/xo/std`,
 the standard library. Keep `bin` and `lib` together: `xo` finds its
 standard library at `../lib/xo`. Check the download against the
@@ -30,40 +29,40 @@ release's `SHA256SUMS`, unpack it, and put `bin` on your `PATH`.
 macOS (on Intel, use `darwin-amd64`):
 
 ```
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/xo-v0.33.1-darwin-arm64.tar.gz
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/SHA256SUMS
+curl -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-darwin-arm64.tar.gz
+curl -LO {{< release "download_base" >}}/SHA256SUMS
 shasum -a 256 -c --ignore-missing SHA256SUMS
-tar -xzf xo-v0.33.1-darwin-arm64.tar.gz
-export PATH="$PWD/xo-v0.33.1-darwin-arm64/bin:$PATH"
+tar -xzf xo-{{< release "tag" >}}-darwin-arm64.tar.gz
+export PATH="$PWD/xo-{{< release "tag" >}}-darwin-arm64/bin:$PATH"
 xo version
 ```
 
 Linux (on x86-64, use `linux-amd64`):
 
 ```
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/xo-v0.33.1-linux-arm64.tar.gz
-curl -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/SHA256SUMS
+curl -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-linux-arm64.tar.gz
+curl -LO {{< release "download_base" >}}/SHA256SUMS
 sha256sum -c --ignore-missing SHA256SUMS
-tar -xzf xo-v0.33.1-linux-arm64.tar.gz
-export PATH="$PWD/xo-v0.33.1-linux-arm64/bin:$PATH"
+tar -xzf xo-{{< release "tag" >}}-linux-arm64.tar.gz
+export PATH="$PWD/xo-{{< release "tag" >}}-linux-arm64/bin:$PATH"
 xo version
 ```
 
 Windows, in PowerShell (`tar` ships with Windows 10 and later):
 
 ```
-curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/xo-v0.33.1-windows-amd64.tar.gz
-curl.exe -LO https://github.com/xo-lang/xo/releases/download/v0.33.1/SHA256SUMS
-(Get-FileHash xo-v0.33.1-windows-amd64.tar.gz -Algorithm SHA256).Hash
+curl.exe -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-windows-amd64.tar.gz
+curl.exe -LO {{< release "download_base" >}}/SHA256SUMS
+(Get-FileHash xo-{{< release "tag" >}}-windows-amd64.tar.gz -Algorithm SHA256).Hash
 Select-String windows-amd64 SHA256SUMS
-tar -xzf xo-v0.33.1-windows-amd64.tar.gz
-$env:Path = "$PWD\xo-v0.33.1-windows-amd64\bin;$env:Path"
+tar -xzf xo-{{< release "tag" >}}-windows-amd64.tar.gz
+$env:Path = "$PWD\xo-{{< release "tag" >}}-windows-amd64\bin;$env:Path"
 xo version
 ```
 
 On Windows, compare the two hashes by eye: `Get-FileHash` prints
 upper case and `SHA256SUMS` lower case. `xo version` prints
-`xo 0.26.0` and the platform; `xo version -v` also names the commit
+`xo {{< release "version" >}}` and the platform; `xo version -v` also names the commit
 the release was built from. Add the `PATH` line to your shell profile
 to keep it.
 
@@ -71,7 +70,7 @@ to keep it.
   Gatekeeper checks the notarization online the first time a binary
   runs. If macOS still refuses a binary from a browser download, clear
   the download's quarantine flag:
-  `xattr -dr com.apple.quarantine xo-v0.33.1-darwin-arm64`.
+  `xattr -dr com.apple.quarantine xo-{{< release "tag" >}}-darwin-arm64`.
 - **Windows:** `xo.exe` and `xo-gobind.exe` are Authenticode signed
   (since 0.26.0). PowerShell's `Get-AuthenticodeSignature bin\xo.exe`
   shows the signature and its timestamp.
