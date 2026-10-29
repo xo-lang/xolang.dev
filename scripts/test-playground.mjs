@@ -152,7 +152,7 @@ const SAFETY = [
   ["infinite loop is stopped", "fn main(os: Os) {\n  var i = 0\n  while true {\n    i = i + 1\n  }\n}\n", (r) => /ran for more than 10 s/.test(r.out)],
   ["output is capped, HTML stays text", "fn main(os: Os) {\n  while true {\n    os.stdio.println(\"<img src=x onerror=alert(1)>\")\n  }\n}\n", (r) => /truncated at 1 MB/.test(r.out)],
   ["memory is capped", "fn main(os: Os) {\n  var xs: List[Str] = []\n  while true {\n    xs.push(\"abcdefghijabcdefghijabcdefghijabcdefghij${xs.len()}\")\n  }\n}\n", (r) => /out of memory/.test(r.out) && /\[exit 2/.test(r.out)],
-  ["no files", "fn main(os: Os) ! {\n  let s = os.fs.read_text(\"/etc/passwd\")?\n  os.stdio.println(s)\n}\n", (r) => /error: Io/.test(r.out) && !/root:/.test(r.out)],
+  ["no files", "fn main(os: Os) ! {\n  let s = os.fs.read_text(\"/etc/passwd\")?\n  os.stdio.println(s)\n}\n", (r) => /error: (Io|.*(input\/output error|not permitted|not found|no such file))/.test(r.out) && !/root:/.test(r.out)],
   ["use go is refused", "use go \"os/exec\"\n\nfn main(os: Os) {\n}\n", (r) => /`use go` is not supported in the playground/.test(r.out)],
   ["sleep works", "fn main(os: Os) {\n  os.stdio.println(\"a\")\n  os.clock.sleep(200ms)\n  os.stdio.println(\"b\")\n}\n", (r) => /a\nb\n/.test(r.out)],
 ];

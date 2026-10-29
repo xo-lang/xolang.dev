@@ -8,8 +8,10 @@ repo): no Go toolchain in the page. (The Go-era playground, Go's compiler
 and linker in the tab, was built by this script until 2026-10-16; git
 history and decision 0242 have it.) This script uses the repo's bin/xo:
 
-  xoc.wasm     selfhost/wasm, the Xo compiler with its wasm backend, built
-               for wasm by itself (`--play check|fmt|build`, play.xo):
+  xoc.wasm     compiler/wasm, the Xo compiler with its wasm backend, built
+               for wasm by the repo's xo (`xo build --backend=wasm`; no Go
+               backend step since 2026-10-29) (`--play check|fmt|build`,
+               play.xo):
                the browser checks, formats, and compiles the program to a
                WASI module, which the runner worker runs
   std.bundle   the .xo sources (and xo.mod files) of the repo's std, which
@@ -67,15 +69,14 @@ def std_files():
 
 def main():
     xo = os.path.join(REPO, "bin", "xo")
-    commit = run(["git", "rev-parse", "--short=8", "HEAD"], REPO).strip()
+    # XO_PLAY_COMMIT names a tree that is not one commit (a release plus a
+    # fix applied to it: "72875102+abcdef12"), else the repo's HEAD
+    commit = os.environ.get("XO_PLAY_COMMIT") or run(["git", "rev-parse", "--short=8", "HEAD"], REPO).strip()
     with tempfile.TemporaryDirectory() as tmp:
-        wasmc = os.path.join(tmp, "wasmc")
-        run([xo, "build", "--backend=go", "-o", wasmc, "compiler/wasm"], REPO)
-        line = run([wasmc, "--std=std", "--wd=" + REPO, "--out=" + tmp, "compiler/wasm"], REPO).strip()
-        if not line.startswith("== ok"):
-            sys.exit("compiler/wasm did not build for wasm: " + line)
+        xoc = os.path.join(tmp, "xoc.wasm")
+        run([xo, "build", "--backend=wasm", "-o", xoc, "compiler/wasm"], REPO)
         parts = {
-            "xoc": open(os.path.join(tmp, "wasm.wasm"), "rb").read(),
+            "xoc": open(xoc, "rb").read(),
             "std": bundle(std_files()),
         }
         if os.path.isdir(OUT):
