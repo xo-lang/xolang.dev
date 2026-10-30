@@ -116,6 +116,10 @@ programs for any OS with fast, structured, unambiguous feedback.
   `while cond bound N { }`, a contract on any loop: a constant range
   longer than N is `XO1402`; otherwise starting iteration N + 1 faults
   with `XO-F006`. `bound` is a contextual word.
+- **Builds skip inline test blocks** (9.2, decision 0389): `xo build`
+  and `xo run` neither declare nor check a `test` block, as they read no
+  `_test.xo` file (decision 0348); an error in one fails `xo check` and
+  `xo test`, not a build.
 
 ## Changes in 0.9
 
@@ -177,7 +181,8 @@ specified in std.md 13 (decision 0094).
   command; `xo test` takes `--cases=N`, not `--fuzz` (10.1).
 - **[later]** markers for what is specified but not built: `xo why`,
   `xo debug`, the task line of error
-  traces, spans and OpenTelemetry, SBOMs, `std/sys`, `OpenApi` and `Proto`
+  traces, automatic spans and OpenTelemetry export (std/trace's spans and
+  std/metrics exist, 11.6), SBOMs, `std/sys`, `OpenApi` and `Proto`
   derives.
 - Modules (4.2, 4.3; decision 0086 steps 1 and 2): `require <path>
   <version>` of Xo modules with minimal version selection, git fetch into
@@ -598,7 +603,7 @@ b"raw bytes\x00"                          // Bytes, escapes but no interpolation
 | `Int` | 64 bit signed. Overflow faults. |
 | `Int8 Int16 Int32 Int64` | Sized signed integers. Overflow faults. |
 | `UInt8 UInt16 UInt32 UInt64` | Sized unsigned integers. Overflow faults. |
-| `Float` | 64 bit IEEE 754. `Float32` also exists. |
+| `Float` | 64 bit IEEE 754. `Float32` also exists. Converting an integer to `Float` or `Float32` rounds once to the nearest value, ties to even, as Go does. |
 | `Rune` | Unicode scalar value |
 | `Str` | Immutable UTF-8 text |
 | `Bytes` | Immutable byte sequence |
@@ -616,6 +621,16 @@ b"raw bytes\x00"                          // Bytes, escapes but no interpolation
 | `fn(A) -> B ! E uses fx` | Function type (section 6.2) |
 | `()` | Unit |
 | `Never` | The type with no values. Type of `return`, `break`, `continue`, `fault(...)`, `proc.exit(...)`, and infinite loops. Converts to every type. |
+
+Representation note (2026-10-26, not a language rule): with list packing
+(decision 0369, Accepted 2026-10-25 and on by default; `--pack-lists=off`
+turns it off) a `List[T]` element on the native arm64 and amd64 backends
+and on LLVM takes the width of `T` for `Int8`, `UInt8`, `Int16`, `UInt16`, `Int32`,
+`UInt32`, `Rune` and `Float32` (1, 2 or 4 bytes), 8 bytes for `Int`,
+`UInt64`, `Float` and `Duration`, and 8 bytes a word for a larger `T` (a
+`Str` is 16); `List[Bool]` is 1 byte an element and `Bytes` is packed. A
+`List[UInt8]` of a million elements is 1 MB, as a `Bytes` of them is. The
+Go backend stores Go's own sized types.
 
 A `Str` is always valid UTF-8: literals are, operations on `Str` keep it, and
 std makes outside bytes valid where they become a `Str` (std.md 0, decision
@@ -926,6 +941,12 @@ whose underlying type is Json is Json):
   same name, the variant is meant.
 - Construction and reading are open wherever the type is visible; a type
   that must guard its value is a struct with a non `pub` field.
+- `derive Ord` after the declaration (`type Name struct(Str) derive Ord`)
+  orders the newtype by its value: `<`, sorting, `min`, `max`, and
+  `T: Ord` code see `Name("a") < Name("b")` as `"a" < "b"`. The value's
+  type must be `Ord` (else `XO0404`). A newtype is not ordered without
+  it, and `Ord` is the only derive it takes (`XO0404` for any other: its
+  equality, hashing, and JSON are its value's already; decision 0390).
 
 ```
 type Email struct(Str)
@@ -972,6 +993,9 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
 - Derived `Display` prints the same text as `Debug`:
   `NotFound(id: 42)`, `User{id: 1, name: "a"}`. Implement `Display` by hand
   (`fn (e: ApiErr) display() -> Str`) for user facing text.
+  Std's error enums implement `Display` by hand and print plain messages
+  (`PATH: no such file or directory`, `connection refused`; decision 0358);
+  their `Debug` keeps the variant form.
 - `Json`, `OpenApi`, and `Proto` derives generate codecs and schemas from the
   same declaration so wire formats and docs cannot drift. JSON rules are in
   `spec/std.md`. **[after 1.0]** `OpenApi` and `Proto` are planned for
@@ -993,7 +1017,7 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
     each alone, as an Option, or in a List (`XO0425` for another type, a
     struct with type parameters, or a struct that does not derive Xml).
   - The expansion is ordinary Xo: the checker parses generated functions
-    (`xml_tree__T`, `xml_zero__T`, `xml_merge__T`, `xml_from_tree__T`,
+    (`xml_write__T`, `xml_zero__T`, `xml_merge__T`, `xml_from_tree__T`,
     `xml_encode__T`, `xml_decode__T`) into the module as a file of its
     own, so every backend compiles the same code. A diagnostic in them is
     reported at the field. They are not declarations of the program:
@@ -1004,7 +1028,7 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
 
 ### 2.10 Implicit conversions
 
-There are exactly three, and each applies only where the target type is
+There are exactly four, and each applies only where the target type is
 already known:
 
 1. A `T` where a `T?` is expected becomes `Some(T)`.
@@ -1013,9 +1037,19 @@ already known:
    implements it. This includes passing a capability fake where the
    capability interface is expected.
 3. An error at a `?` site converts to the enclosing error type (2.6).
+4. An element of a list literal written as the argument for a
+   `List[go.Any]` parameter of a `use go` function (Go's `...any`)
+   becomes a `go.Any`, as `go.any(x)` would (4.4, decision 0412); a type
+   with no Go value is `XO1106`.
 
-Conversions are not applied when joining branches (`if`/`match` arms must
-already agree) or to the `else` value of `requires`. Comparing `opt == v`
+An `if` or `match` whose type is already known (an annotated `let`, an
+argument, a field, a return) passes that type to each arm, so each arm
+converts on its own: `let s: Stream = if tls { tls_conn } else { conn }`
+and `let x: Int? = if c { 1 } else { None }` check. Without a known
+type, conversions are not applied when joining branches: the arms must
+already agree (`let y = if c { 1 } else { None }` is `XO0401`, branches
+have different types). Conversions are not applied to the `else` value
+of `requires`. Comparing `opt == v`
 wraps `v` in `Some`.
 
 Everything else, including all numeric conversions, is explicit.
@@ -1030,6 +1064,8 @@ Everything else, including all numeric conversions, is explicit.
 let x = 10            // immutable binding
 var total = 0         // mutable binding
 total += x
+let (q, r) = (7 / 2, 7 % 2)   // a pattern binds each name
+var (lo, hi) = (0, 10)        // every name mutable (decision 0384)
 const MAX_USERS = 1000
 const DEFAULT = Config{port: 8080}
 ```
@@ -1071,7 +1107,8 @@ const DEFAULT = Config{port: 8080}
   fix. A path computed at run time is not checked.
 - Unused local bindings, local constants, and imports are errors (`XO0110`). Not covered:
   function and closure parameters, names starting with `_`, and `_` itself.
-  `xo fix` removes unused bindings. `xo check --wip` reports `XO0110` and
+  `xo fix` renames an unused binding or local constant to `_name` (removing
+  it could drop its value's effects) and removes an unused import. `xo check --wip` reports `XO0110` and
   `XO0209` (section 2.6) as warnings, for checking code still being written;
   a normal check and every build reject them (decision 0293).
 - Shadowing in the same block is an error. Shadowing in a nested block is
@@ -1222,7 +1259,7 @@ match code {
   reported). The task is no longer shielded afterwards. Every backend
   behaves this way (decision 0085, amended 2026-10-10).
 
-**Patterns** are used in `match`, `let`, `if let`, `while let`, and `for`:
+**Patterns** are used in `match`, `let`, `var`, `if let`, `while let`, and `for`:
 
 | Pattern | Matches |
 |---|---|
@@ -1252,7 +1289,10 @@ special, the rest are not", as on a token kind enum) and is not reported; the
 warning names at most 8 hidden variants, then how many more (decision 0080).
 An `UpperCamel` name in a pattern always refers to a variant; bindings are
 `snake_case` (1.5), so the two never collide.
-`let` requires an irrefutable pattern (`let (a, b) = pair`).
+`let` requires an irrefutable pattern (`let (a, b) = pair`), and so does
+`var` with a pattern (`var (a, b) = pair`, `var [first, ..] = xs`,
+`var Point{x, y} = p`; decision 0384): every name it binds is mutable,
+as one `var` per name would be.
 
 ### 3.6 Indexing and slicing
 
@@ -1272,7 +1312,12 @@ An `UpperCamel` name in a pattern always refers to a variant; bindings are
   assignment `m[k] = v` is allowed and means `m.put(k, v)`.
 - `Str` cannot be indexed by position (use `runes()` or slicing).
 - Ranges slice: `xs[1..]`, `xs[..n]`, `xs[a..b]` on `List`, `Bytes`, and `Str`
-  (byte offsets; slicing a `Str` inside a UTF-8 sequence faults). Slices of
+  (byte offsets; slicing a `Str` inside a UTF-8 sequence faults). A range of a
+  `Str` or `Bytes` that is not an ordered range of its length faults with
+  `slice LO..HI out of range for Str of length N` (`Bytes` in place of `Str`),
+  and a `Str` slice whose ends are not UTF-8 boundaries with `slice LO..HI of
+  Str splits a UTF-8 sequence`; every backend prints the same text (the corpus
+  of internal/stdtest/testdata/faults). Slices of
   immutable values are O(1) and share storage: on native targets the result
   of slicing a `Str` or `Bytes` is a view of the same buffer (no copy), so a
   small view keeps its whole buffer alive (as a Go substring does; there is
@@ -1592,6 +1637,14 @@ its content hash.
   cache or vendor/ and compares them. A mismatch (a moved tag, an edited
   cache or vendor copy) is `XO1304` and nothing builds; a version with no
   entry is `XO1305` (run `xo mod tidy`). Malformed lines are `XO1301`.
+- Pinned Go modules (decision 0356): for each `require go <module>
+  <version>` line, xo.lock records Go's own go.sum hashes, `go <module>
+  <version> h1:<hash>` (the module zip) and `go <module>
+  <version>/go.mod h1:<hash>`, taken from the binding workspace's
+  go.sum. Every check compares them with the binding's go.sum: a
+  different hash is `XO1304`, a missing line `XO1305`; `xo mod tidy`
+  and `xo get` write them, and a rewrite keeps a line no binding has
+  fetched yet.
 - **[P1]** Effect lock (decision 0156): xo.lock also records, for each
   selected module (not workspace modules), the effects its exported API
   can reach: `<module path> effects <labels|none>`
@@ -1660,21 +1713,157 @@ fn main(os: Os) ! {
 
 - `xo check`, `build`, `run`, and `test` generate bindings automatically into
   `.xo/gobind/` (or `$XO_GOBIND_DIR`); `xo bind <path>` does it explicitly.
-  Third party module versions follow Go's module resolution.
+  A package outside Go's standard library needs its Go module pinned,
+  `require go <module> <version>` in xo.mod (4.2), or the use is
+  `XO1319` (decision 0356): its fix adds the line with the version Go's
+  module resolution picked, and `xo mod tidy` adds missing pins and
+  records their go.sum hashes in xo.lock from the binding (a pin whose
+  hashes no binding has fetched and xo.lock lacks is `XO1320`: run
+  `xo check` once first). The pin is of the package's own module: a
+  package in a nested Go module (aws-sdk-go-v2's `service/s3`, a module
+  inside `github.com/aws/aws-sdk-go-v2`'s path) needs its own line, and
+  a pin of the enclosing module pins only that module, which the nested
+  one resolves beside. Go's
+  standard library packages need no line; the Go toolchain's version
+  decides them.
 - Names are converted to Xo naming: functions and methods to `snake_case`
   (`Split` is `split`, `EncodeToString` is `encode_to_string`), types stay
   `UpperCamel`.
 - Types at the boundary: `(T, error)` becomes `T ! go.Error`; a pointer result
   that may be nil becomes `T?`; mutable Go objects become opaque handles;
-  slices and maps are copied in and out; a `context.Context` parameter is
+  a handle keeps Go's equality (2.9): a comparable type the package hands
+  out as a value, `T` in a signature or field (`netip.Addr`, `uuid.UUID`),
+  compares and hashes by value, a struct it passes only as `*T`
+  (`url.Parse`'s `*url.URL`) by pointer, as Go's `==` on the pointers,
+  and an interface by its dynamic value; a named Go type is one Xo type
+  in every binding that uses it, declared by its own package's binding
+  (`net`'s functions take `netip.AddrPort`), which is bound with it
+  even when the program does not name that package (decision 0392); a
+  type of a package a program cannot import (`internal`) is skipped;
+  a parameter of an unexported Go type is skipped, and so is a `[]byte`
+  parameter Go writes into (a `Read*` function's, or one named `dst`,
+  unless a result is a `[]byte`: a Bytes is a value and cannot carry
+  Go's writes back);
+  slices and maps are copied in and out; Go's `any` (`interface{}`, or a
+  named empty interface) is `go.Any`, an opaque Go value (decision 0412,
+  std.md 12): `go.any(x)` makes one from a value with a Go form, the
+  elements of a list literal for `...any` convert implicitly (2.10),
+  `as_int()`, `as_str()`, ... read one back (None on another Go type),
+  and a Go function that fills a value through `any` (`rows.scan`,
+  `json.unmarshal`) takes `go.out[T]()`'s `.any()`, read with `.get()`
+  after the call; a generic Go function is an Xo generic (decision 0415):
+  `any` is no constraint, `comparable` is `Eq`, `cmp.Ordered` is `Ord`, a
+  `~[]E` or `~map[K]V` type parameter is `List[E]` or `Map[K, V]`, other
+  constraints are skipped, and Go's `slices` and `maps` are not bound
+  (the prelude's List and Map methods cover them); a type argument for
+  `comparable` or `cmp.Ordered` needs a Go value Go can compare or order,
+  else `XO1106`, while one for `any` may be any Xo type, which Go holds
+  without looking inside; a generic Go type is a generic handle
+  (`lru.Cache[K, V]` is `Cache[K: Eq, V]`, its methods bound with `K`
+  and `V`) when its constraints map, and an instance over type
+  parameters or types Go and Xo share (`Str`, `Bool`, a type parameter)
+  is that handle's instance; a constraint interface (one with a type
+  term, such as `interface{ ~int | ~float64 }`) is not a type and is not
+  bound; a `context.Context` parameter is
   supplied from the current task (deadline and cancellation); a panic becomes
   a fault.
+- A named Go type over a basic type (`time.Month`, `fs.FileMode`) is that
+  basic type in Xo, and each method it has with a value receiver is a
+  package function named `<type>_<method>` in snake case that takes the
+  value first (decision 0416): `time.month_string(m: Int) -> Str`,
+  `fs.file_mode_is_dir(m: UInt32) -> Bool`. A pointer receiver method is
+  not bound (Xo passes a copy), and neither is one whose name a package
+  function already has.
 - An Xo function passed to Go as a callback that Go calls during the Go call,
   on the calling task's goroutine, runs as the calling task. A call from
   another goroutine (`sync.WaitGroup.go_`, a timer) runs as a task of its own,
   a child of the calling task (canceled with it), with its own held mutexes
   (decision 0067); under the deterministic scheduler such a call waits for
   a turn like a spawned task and is recorded by `--record` (core 7.4, 11.3).
+- A callback whose Go type ends in an `error` result (`func(int) error`,
+  `func(string) (int, error)`) is an Xo function `-> T ! go.Error` (`-> ()
+  ! go.Error` with no other result; decision 0416): its `Err(e)` is Go's
+  error, the Go error `e` came from when Go made it (so `errors.Is` sees a
+  sentinel such as `io.EOF`), else one with `e`'s text; `go.error(msg)`
+  makes one. A callback with several results (`func() (int, string)`,
+  `func(string) (int, bool, error)`) returns them as a tuple, `-> (Int,
+  Str)`, its error still the `! go.Error`.
+- A variadic of an unnamed Go function type, Go's functional options
+  (`optFns ...func(*s3.Options)`), is a List of Xo functions, each a
+  callback by the rules above, which Go calls in order (decision 0422):
+  `s3.new_from_config(cfg, [fn(o: s3.Options) { o.set_use_path_style(true) }])`,
+  or `[]` for none. A variadic of a named function type (`...EOption`)
+  stays a List of handles, which Go's option helpers return.
+- A struct field or package variable of a Go function type has a setter
+  that takes an Xo function, a callback by the rules above
+  (`s.set_on_error(fn(msg: Str) { log.send(msg) })`, `hook.set_logf(f)`);
+  Go may call it later, from any goroutine.
+- A Go function value Go gives Xo (a result, a field or variable read) is
+  an Xo function `uses go` that calls it, its arguments and results
+  converted as a bound function's are and a final `error` its `! go.Error`
+  (`fnval.adder(2)` is `fn(Int) -> Int uses go`; a value of a named
+  function type, such as a functional option or `http.HandlerFunc`,
+  stays a handle that goes back to Go; in a result it is
+  parenthesized, `-> (fn(Int) -> Int uses go) uses go`). Calling a nil Go
+  function faults; several results are a tuple. It cannot be passed back
+  to Go, and one taking a function is not bound.
+- Go's `error` anywhere but a function's final result (a parameter, a
+  field, a result before the last) is `go.Error?`, `nil` being `None`
+  (`errors.is(err: go.Error?, target: go.Error?) -> Bool`); an `error`
+  that is a function's only result stays `! go.Error` (`nil` is `Ok`);
+  a Go error variable is a function returning it as a `go.Error`
+  (`io.eof()`). A go.Error that came from Go goes back as the same Go
+  error (decision 0416).
+- A Go pointer to a basic type (`*bool`, `*string`, `*int`, `*float64`)
+  is `T?` (decision 0419): `nil` is `None`, otherwise the value it points
+  to. It is a copy, not an alias: Xo reads the value when it crosses the
+  boundary and passes `Some(v)` to Go as a pointer to a fresh copy of
+  `v`, so a write Go makes through the pointer later is not seen (read
+  the field again). A parameter Go writes through (sync/atomic, a `*Var`
+  function such as `flag.int_var`, an output parameter) is not bound.
+- A Go channel Go gives Xo (`<-chan T` or `chan T` as a result, a field or
+  a variable) is `go.Recv[T]` (decision 0421): `recv()` waits for the next
+  value (None once the channel is closed and empty), `try_recv()` does not
+  wait, `each(f)` receives until it is closed. Xo does not send on, close
+  or pass back a Go channel (a send only channel or a channel parameter is
+  not bound), and a nil one is closed. A waiting `recv` is a cancellation
+  point: the task's cancellation or a `task.with_timeout` deadline ends it.
+  Under the deterministic scheduler it gives the task's turn away while it
+  waits; `--record` keeps each received value that holds no handle. Go
+  timer channels (`time.after`, `time.tick`, `Timer.C`) are not bound: Xo's
+  clock is a capability they would bypass.
+- An Xo program implements a Go interface with functions (decision 0416):
+  a binding declares, for each named interface whose methods all map as
+  callbacks, a constructor named after the interface (`implement_` and
+  the name when that is taken) with one function parameter per method,
+  named after it, returning the interface's handle:
+  ```
+  let w = io.writer(write: fn(p: Bytes) -> Int ! go.Error {
+    sink.send(p)
+    p.len()
+  })
+  let h = http.handler(serve_http: fn(w, r) { w.write_header(204) })
+  ```
+  The functions are callbacks (the rules above: the calling task, or a
+  task of its own for a call from another goroutine, with spawn's rules
+  for what they capture). A method that fills a byte buffer (`Read(p
+  []byte) (int, error)`, `ReadAt`) is a function given the buffer's
+  length that returns the bytes (`fn(max: Int) -> Bytes ! go.Error`):
+  they are copied into the buffer, more than it holds is a fault, and
+  none with no error is `io.EOF`.
+- Xo does not convert one handle to another. A handle whose Go type Go
+  would assign to another interface of its package, or to one of io's
+  I/O interfaces (`Reader`, `Writer`, `Closer`, `ReadCloser`,
+  `WriteCloser`, `ReadWriter`, `ReaderAt`, `WriterTo`, `ReaderFrom`,
+  `StringWriter`, `ByteReader`) or `fmt.Stringer` when its package depends
+  on io or fmt, or to another package's interface that its package's
+  signatures name (chi's `Mux.Handle` takes net/http's `Handler`) or that
+  a package it imports exports (aws credentials' providers as
+  `aws.CredentialsProvider`), has a method that gives it as that
+  interface:
+  `io.read_all(resp.body().as_reader())`, `buf.as_writer()`,
+  `httptest.new_server(mux.as_handler())` (decision 0416 and its
+  addendum).
 - Every call into Go performs the effect `go`, which `pub` functions must
   declare. Go code can reach files and the network without a capability, so
   `uses go` marks that authority escape in signatures.
@@ -2010,9 +2199,14 @@ are unchanged. `log.configure` performs `stdio`, not `log`. std's own
 records (a handler fault, an `ignore_err`) stay attributed to std and do
 not make std functions perform `log`. Log output goes to the sink
 configured in `main` (standard error by default) and is recorded during
-record and replay like any other output. **[later]** Tagging each record
-with the dependency that wrote it is planned; the `log` effect already
-makes a dependency's logging visible in its signatures.
+record and replay like any other output. Each record a required
+module's code writes names it (decision 0173): a text record reads
+`<time> <LEVEL> [<module>@<version>] <msg> k=v ...`, and a JSON record
+carries the key `"module"` (which replaces a field of that name, so a
+dependency cannot attribute its record to another module); `log.Record`
+in tests has `module` (`""` for the main module). The main module's
+records are unchanged. The call's source file decides, so a main module
+closure run by a dependency stays the main module's.
 
 Effect labels live in their own namespace: a parameter or module named `fs` or
 `net` does not conflict with the effect `fs` or `net`.
@@ -2288,6 +2482,10 @@ select {
 ```
 
 - `ch.try_send(x) -> Bool` and `ch.try_recv() -> T?` never block.
+- A `select` receive arm `v = ch.recv() => ...` binds `v` to what `recv`
+  returns, a `T?`: a closed and drained channel's arm is ready at once
+  and runs with `None` (so `j` in the example is a `Job?`; a loop over a
+  `select` stops on `None` itself).
 - `for x in ch { ... }` receives until `ch` is closed and drained; each receive
   is a cancellation point.
 - `after` arms require the `clock` effect.
@@ -2307,7 +2505,8 @@ be pinned with `test "x" seed 8812`.
 
 `xo test --explore=N` reruns each concurrent test that passed under N further
 seeds and reports the first failing seed. `xo run --seed=N` (or `XO_SEED=N` for
-any built binary) uses the same scheduler with the real clock; interleavings
+a binary the Go backend built, or a native one built with `--seed`) uses
+the same scheduler with the real clock; interleavings
 are then reproducible as long as timer and I/O timing does not decide them.
 
 An Xo function that Go calls on a goroutine of its own (`use go`, for
@@ -2319,12 +2518,25 @@ function has crossed into Go, the return of every Go call is a scheduling
 point. Go code woken by a Go timer or I/O of its own is not reproducible
 (decision 0073).
 
-The deterministic scheduler belongs to the Go backend. Native builds
-(`--backend=llvm` and `--backend=arm64`, decision 0068) run tasks on the real
-scheduler only, on a pool of threads: `xo run --seed` is refused with them and
-`XO_SEED` has no effect, and a native program whose output depends on how its
-tasks interleave may print differently from run to run. The rest of core 7
-means the same on every backend.
+Native builds (`--backend=arm64`, `amd64` and `llvm`) run tasks on the real
+scheduler, on a pool of threads, so a native program whose output depends on
+how its tasks interleave may print differently from run to run. `xo run
+--seed=N` and `xo build --seed=N` build the program for the deterministic
+scheduler instead (decision 0350): one thread runs every task, and at each
+scheduling point a generator seeded with N (`XO_SEED=N` when the built program
+runs, default 1) picks the next ready task, so one seed gives one
+interleaving. Its scheduling points are the runtime's: channel operations,
+`select`, `Mutex.with` and `with_read`, `spawn`, `await`, `Atomic` operations
+and `task.is_canceled()`, and every wait; effect calls are not yet. A program
+built without `--seed` ignores `XO_SEED`. Native `xo test` uses the
+deterministic scheduler when given `--seed=N` or `--explore=N`, or when a test
+pins its seed (`test "x" seed N`): each test runs with its own seed, else
+`--seed`'s, else 1, and `--explore=N` runs a test without its own seed under
+seeds 1 to N until one fails, reporting how to reproduce and pin it. The
+seeds that expose a race differ from the Go backend's (its generator and
+scheduling points differ). Other native tests still run on the thread pool
+until decision 0350's stage 3; `xo run --record` still uses the Go backend.
+The rest of core 7 means the same on every backend.
 
 ### 7.5 Process signals and graceful shutdown
 
@@ -2361,6 +2573,11 @@ fn reader(os: Os, queue: Chan[Str]) -> () ! IoErr {
 }
 ```
 
+A program can take SIGINT and SIGTERM over with `os.proc.notify` (std.md
+3.7, decision 0407): while it is subscribed, that signal goes to its
+channel instead of starting phase 1, and `os.proc.request_stop()` starts
+phase 1 when the program chooses.
+
 In tests, `os.proc.signal_after(d)` delivers the first signal to a program run
 by `testing.run_main`; `os.proc.signal_after(d)` called again delivers the
 next one.
@@ -2393,11 +2610,16 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   line from the program's DWARF line tables, decision 0239; inlined calls
   show the caller's line), by default since 2026-10-22 (owner; a hardware
   fault's report has its frames too, decision 0343); `XO_TRACEBACK=0`
-  leaves the frames out. With `XO_TRACEBACK=locals` each frame is followed by its
+  leaves the frames out. A build with no function symbols left (`-s`, or a
+  program stripped after the link) prints
+  `traceback: (no function symbols: built with -s, or stripped)` instead
+  of frames it cannot name. With `XO_TRACEBACK=locals` each frame is followed by its
   variables, `      NAME = VALUE` (decision 0268: from the program's
   DWARF, read at the fault; `<unavailable>` where the frame does not
-  keep the value; numbers, `Bool`, `Str` text, a list's first elements,
-  structs' fields, and an enum's variant with its fields).
+  keep the value; numbers, `Bool`, `Str` text, a list's first elements
+  (of any element type), structs' fields, an enum's variant with its
+  fields, and `Os` by its type; a local declared at or after the frame's
+  line with no value yet is left out).
 - The native backends unwind a fault the same way (decision 0085: deferred
   code, scopes, Mutexes, and references are released on the way); they
   print the fault without its frames, write no crash bundle, and
@@ -2409,7 +2631,9 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   0343): `fatal error: SIGNAL: TEXT (code N)`, with `at address A` for
   SIGSEGV and SIGBUS (Windows: `fatal error: EXCEPTION_NAME: TEXT (code
   0xNTSTATUS, read|write|execute) at address A` for an access
-  violation), then the pc and the image's load address, the registers,
+  violation), then the build information's line (`build: xo VERSION,
+  BACKEND, TARGET, id ID, debug|release (SETTINGS)`, decision 0354), the
+  pc and the image's load address, the registers,
   the frames' pcs (`frames:`) and the `traceback:` above; then the
   signal's default action ends the program, with the same exit status
   and core file as without the report (Windows: the same exit code, the
@@ -2422,20 +2646,45 @@ There is no undefined behavior. Debug and release builds have identical
 semantics; release builds may only disable contract checks that are explicitly
 marked `requires(debug)` or `ensures(debug)`.
 
-- `xo build --release` is a release build (decision 0099): the clauses
-  marked `(debug)` are compiled out on every backend, `requires(debug) c
-  else E` included (the function no longer returns that error). Every
-  other contract, every invariant, and every fault check stays. A release
-  build fails while an xo.work workspace overrides a required module
-  (`XO1308`, 4.2) and is the only build that accepts
-  `--error-args=false` (11.1). Error frames are recorded in both. It
-  also leaves the native runtime's profiler (XO_PROF) out unless
-  `--profile-support` is given (decision 0238): not a semantic change,
-  only that diagnostic tool.
+- `xo build --release` is a release build (decisions 0099, 0354): a
+  preset of the settings below. Without it every setting starts at its
+  debug value. Any setting can be given either way in any build (`xo
+  build`, `xo run`, `xo test`), before or after `--release`; an explicit
+  flag wins over the preset, and between two explicit flags the last
+  wins. A bare `--NAME` means on; booleans accept `on|off` and
+  `true|false`.
+
+  | flag | values | debug | release |
+  |---|---|---|---|
+  | `--debug-contracts` | on, off | on | off |
+  | `--dbg` | on, off | on | off (`dbg(x)` is `x`, 11.4) |
+  | `--error-args` | on, off | on | on (11.1) |
+  | `--debug-info` | on, off, split | on | off |
+  | `--profile-support` | on, off | on | off (XO_PROF, decision 0238) |
+  | `--trace-support` | on, off | on | off (XO_TRACE, decision 0240) |
+  | `--opt` | O0, O1, O2, O3 | the LLVM split's | O2 |
+
+  `--debug-contracts=off` compiles the clauses marked `(debug)` out on
+  every backend, `requires(debug) c else E` included (the function no
+  longer returns that error); every other contract, every invariant,
+  and every fault check stays. The other settings change what a build
+  records or which diagnostic tools it carries, never what a program
+  computes. `--opt` applies to the LLVM backend; with arm64 or amd64 it
+  is a usage error, and the Go backend ignores it with a note.
+  `--debug-info=split` (decision 0355) writes the debug information
+  beside the program instead of in it: PROG.dSYM on darwin (matched by
+  the Mach-O UUID), PROG.debug on linux (Xo's ELF linker: a GNU build id
+  in both files and a `.gnu_debuglink` in the program); tracebacks,
+  `xo dev symbolize`, debuggers and symbolizers find it there. It is an
+  error on linux with a cc or clang link (`use c`, `--ld=cc`, the LLVM
+  backend), on wasip1, and with the Go backend. A release build fails while an xo.work workspace
+  overrides a required module (`XO1308`, 4.2); no flag overrides that.
 - Every other build is a debug build: `xo build` without `--release`,
   `xo run`, `xo test` (whose contract fuzzing checks the debug clauses
-  too), and `xo replay`, which rebuilds in the mode recorded in the
-  program's build information. `--ci` is a gate, not a mode: it does not
+  too), and `xo replay`, which rebuilds with the settings recorded in
+  the program's build information. Every binary records the effective
+  value of each setting, native ones included (`xo version -m BINARY`
+  prints them; a native crash report's `build:` line names them). `--ci` is a gate, not a mode: it does not
   imply `--release`; a pipeline that ships the binary passes both.
 
 ---
@@ -2499,6 +2748,12 @@ test "retries after 503" {
   `XO0601` in production code and a test-only import is never fetched
   or bound. `xo test`, `xo check`, `xo vet`, `xo fix`, the language
   server, and the lookup tools read them.
+- `xo build` and `xo run` skip inline `test` blocks the same way
+  (decision 0389): a block is neither declared nor type-checked, so an
+  error in it does not fail a build, a helper or closure declared in it
+  does not exist for the build, and a build does not load `std/testing`
+  for it. `xo test`, `xo check`, `xo vet`, `xo fix`, and the language
+  server check every test block.
 - Where tests live (a note, not a rule). Both places have the same access
   to the module's private names; they differ in what else sees the edit:
   - Inline `test` blocks keep a test next to the code it checks, so a
@@ -2570,10 +2825,10 @@ test "retries after 503" {
 
 | Command | Purpose |
 |---|---|
-| `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release [--error-args=false]] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is a release build (8): `requires(debug)` and `ensures(debug)` compiled out, and the native runtime's profiler and execution trace recorder left out unless `--profile-support` or `--trace-support` (decisions 0238, 0240); `--release --error-args=false` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
+| `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release] [--debug-contracts\|--dbg\|--error-args\|--profile-support\|--trace-support=on\|off] [--debug-info=on\|off\|split] [--opt=O0..O3] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is the release preset (8, decision 0354): `requires(debug)` and `ensures(debug)` compiled out, `dbg` off, no debug information, the native runtime's profiler and execution trace recorder left out, `--opt=O2`; each of those settings has its own flag, in any build, that wins over the preset; `--error-args=off` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
 | `xo run [DIR]` | Build and run for the host the program in exactly DIR (default `.`), never one below it (decision 0345); `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267). A stop request `xo run` gets (SIGINT or SIGTERM, 7.5) is sent on to the program as SIGTERM when standard input is not a terminal; on a terminal, Ctrl-C reaches the program through the process group |
 | `xo trace FILE [--json OUT] [--text]` | The execution trace a native program wrote under XO_TRACE as Chrome trace event JSON (Perfetto) and a summary (decision 0240) |
-| `xo check [--no-gc] [--fix]` | Parse and type check all targets, no codegen; `--no-gc` adds the native build check (XO1201); `--fix` first applies the machine fixes (below) |
+| `xo check [--backend=go] [--support] [--fix]` | Parse and type check all targets, no codegen, by the rules of the backend a build uses: the native backends' by default (`use c` is valid), the Go backend's with `--backend=go`; `--support` (old name `--no-gc`) adds the native backends' support check (XO1201), which lowers the program; `--fix` first applies the machine fixes (below) |
 | `xo test [--seed=N] [--explore=N] [--cases=N] [--timeout=D] [--real] [--watch]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100; `--timeout` the real time each test may take, default 60s, 0 for none, 9.2); deterministic scheduling. `--watch` reruns, after each change, only the tests the change reaches (decision 0267). Doc comment examples are [P2] (1.2) |
 | `xo dump <pid>` | Task tree of a running program (11.4) |
 | `xo mcp` | Model Context Protocol server over stdio: `check` (with an optional `fix`), `query`, `edit`, `explain`, `fmt`, `test`, `build` tools returning compact JSON |
@@ -2581,7 +2836,7 @@ test "retries after 503" {
 | `xo serve` | Resident checker on a unix socket; `xo check` and `xo query` use it automatically when it answers |
 | `xo fmt` | Canonical format, no options |
 | `xo fix [--dry-run] [--from=draft-0.N] [--edition=preview]` | Apply all machine fixes until none apply, xo.mod and xo.work lines included (`edition 2026` becomes `edition preview`, `xo 2026` becomes `xo preview`, `XO1315`); `--from` migrates code written for an older draft (interpolation, prelude variants, `let _ =` discards, scope timeouts, Map index reads) |
-| `xo vet` | Advisory checks, never errors (a directory, a `.xo` file's findings, a std directory checked as std, or `--std-module=M`; decision 0289): checker warnings plus `XO0207` (`??` precedence trap), `XO0208` (each `ignore_err` with its reason), `XO0530` (a field's large payload bound and shared, decision 0263), `XO0531` (a large parameter only stored while each caller passes its last use, decision 0263), `XO0532` (a Map value changed through a copy and stored back, `Map.update` instead; decision 0266), `XO0534` (a task capturing a value of 32 or more heap fields, core 5.1; decision 0294), `XO0703` (declared effect never performed), `XO0901` (`dbg` left in code), `XO0902` (`tls.Verify.None`, decision 0281), `XO0903` (an Fs, Net, or Proc error defaulted away by `.ok() ?? d` or `Err(_) => <empty>`; `// xo:allow XO0903 <reason>` silences one), `XO0904` (an embedded file git ignores or does not track; decision 0304), `XO1103` (use of Go packages per module), `XO0535` (`${x.debug()}` written as `${x:?}`, with the fix; decision 0296), `XO0536` (a list element copied out, changed, and stored back; decision 0294), `XO0906` (a four line `match` that `x ?? return v` or `r ?? e => return v` writes shorter; decision 0321), `XO0538` (a closure's capture written after its creation). `--cost` (decision 0327) builds the program up to its reference counting and adds notes on costs its source does not show: `XO0907` (a loop that copies a map's entries first), `XO0908` (an element counted up and down each iteration, or by a prelude callback walk such as `xs.any(fn ...)` over elements holding heap memory), `XO0909` (a list updated in a loop while a holder made in the same iteration keeps it shared, so each update copies it), `XO0910` (a value over 8 words copied into a closure, or out of a collection into an Option in a loop), `XO0911` (a view of a parameter's text made in a loop, or an element of its split or lines, stored in a field or a returned collection: it keeps the whole input alive; `clone()` it, decision 0330). |
+| `xo vet` | Advisory checks, never errors (a directory, a `.xo` file's findings, a std directory checked as std, or `--std-module=M`; decision 0289): checker warnings plus `XO0207` (`??` precedence trap), `XO0208` (each `ignore_err` with its reason), `XO0530` (a field's large payload bound and shared, decision 0263), `XO0531` (a large parameter only stored while each caller passes its last use, decision 0263), `XO0532` (a Map value changed through a copy and stored back, `Map.update` instead; decision 0266), `XO0534` (a task capturing a value of 32 or more heap fields, core 5.1; decision 0294), `XO0703` (declared effect never performed), `XO0901` (`dbg` left in code), `XO0902` (`tls.Verify.None`, decision 0281), `XO0903` (an Fs, Net, or Proc error defaulted away by `.ok() ?? d` or `Err(_) => <empty>`; `// xo:allow XO0903 <reason>` silences one), `XO0904` (an embedded file git ignores or does not track; decision 0304), `XO1103` (use of Go packages per module), `XO0535` (`${x.debug()}` written as `${x:?}`, with the fix; decision 0296), `XO0536` (a list element copied out, changed, and stored back; decision 0294), `XO0906` (a four line `match` that `x ?? return v` or `r ?? e => return v` writes shorter; decision 0321), `XO0538` (a closure's capture written after its creation). `--cost` (decision 0327) builds the program up to its reference counting and adds notes on costs its source does not show: `XO0907` (a loop that copies a map's entries first), `XO0908` (an element counted up and down each iteration, or by a prelude callback walk such as `xs.any(fn ...)` over elements holding heap memory), `XO0909` (a list updated in a loop while a holder made in the same iteration keeps it shared, so each update copies it), `XO0910` (a value over 8 words copied into a closure, or out of a collection into an Option in a loop), `XO0911` (a view of a parameter's text or bytes made in a loop, or an element of its split or lines, stored in a field or a returned collection: it keeps the whole input alive; `clone()` it, decision 0330). |
 | `xo def`, `xo refs`, `xo type`, `xo doc NAME`, `xo symbols` | Agents' lookups on `xo lsp`'s engine (decision 0261): `def NAME`, `refs NAME`, `type FILE:LINE:COL`, `doc NAME` (a name, or a module path and name: `std/tls.client`), `symbols [DIR] [--pub]` (the directory's own declarations, private ones too); a name in any form `xo query def` takes, std and runtime modules included (decision 0289); `--dir` (a workspace root checks the modules under it); text at a terminal, `--json` or `--text` to choose; exit 0 with an answer, 1 for no match, 2 for usage |
 | `xo query <kind> ...` | Semantic queries (10.3): `type`, `def`, `callers`, `effects`, `holes`, `api`, `imports`, `deps` |
 | `xo edit <op> ...` | Semantic edits (10.4) |
@@ -2592,6 +2847,7 @@ test "retries after 503" {
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
 | `xo init <path>`, `xo publish [--check]` | Start a module (xo.mod, xo.work gitignored); check a release against the previous tag (4.2) |
 | `xo explain <code>` | Long form explanation of a diagnostic |
+| `xo version [--json \| -v]`, `xo version -m [--json] BINARY...` | The toolchain's version and host target; `--json` and `-v` add what xo was built from (decision 0264); `-m` prints the build information a program built by xo carries on every backend (decision 0354): the xo, backend and target, its ID and directory, every effective setting of 8 (and `--opt`), the stamps, and its sources' hashes, as `go version -m` does for Go |
 | `xo bind [--json] <Go path>...`, `xo bind --c [--link x]... [--uses none\|e,...] <header>...` | Generate the bindings of Go packages (`use go`, 4.4) or C headers (`use c`, 4.5) into the project's binding cache |
 
 The commands that report diagnostics or results accept `--json`: `parse`,
@@ -2617,10 +2873,11 @@ Only the package pattern `DIR/...` (`./...`, `cmd/...`, accepted by
 `check`, `test`, `build`, `vet`, `doc`, `fmt`, `fix`, `parse`, `audit`)
 covers the directories below DIR: every directory with `.xo` files at or
 below it (one module each, or one program for `build` and `test`),
-skipping `testdata`, `vendor/` (with `modules.txt`), and names starting
-with `.` or `_`; `fmt` and `fix` take the files below it, skipping names
-starting with `.` or `_` (and `fix` `testdata`); `parse` takes every
-file. A `DIR/...` walk stops past 6,000 `.xo` files or 60,000 directory
+or for `fmt`, `fix`, and `parse` every `.xo` file below it. Every such
+walk skips directories named `testdata` or `vendor` (with or without
+`modules.txt`) and names starting with `.` or `_`, as the go command
+does, so a deliberately broken directory is kept out of `./...` by its
+name; vendored code is checked only when its directory is named. A `DIR/...` walk stops past 6,000 `.xo` files or 60,000 directory
 entries with an error naming the limit, so `xo build /...` or
 `xo check $HOME/...` refuses. A `DIR/...` with no `.xo` file at or below
 DIR (with the skips above) is an error, `xo CMD: DIR/... matched no
@@ -2651,8 +2908,9 @@ diagnostic with an exact fix never costs a run (decision 0096). The MCP
 needs clang) otherwise. `--backend=go` compiles through the Go toolchain
 and is required by a program with a `use go` package; with no `--backend`
 such a program is a usage error naming it. The flags only the Go backend
-has (`--hybrid`, `xo test --explore`, `xo run --seed` and `--record`)
-choose it when no backend is given. `--race` keeps the
+has (`--hybrid` and `xo run --record`) choose it when no backend is
+given; `xo run --seed`, `xo test --seed` and `xo test --explore` build
+natively for the deterministic scheduler (7.4, decision 0350). `--race` keeps the
 native backend where a ThreadSanitizer runtime ships for the target
 (darwin/arm64, darwin/amd64, linux/arm64, linux/amd64, windows/amd64)
 and otherwise
@@ -2677,9 +2935,9 @@ without `--no-gc` until then) or *impossible* (code from a `use go` package
 needs Go's runtime). A program the check accepts builds; the check is
 derived from the native code generator itself, so the two cannot disagree.
 `xo check --no-gc` runs the same check without building (programs only: a
-module without `main` has nothing to lower). The Go backend's deterministic
-scheduler (`--seed` of `xo run`, `--explore`) and recording (`--record`) are
-not available on native builds (decision 0083). `xo test --no-gc` builds a
+module without `main` has nothing to lower). Native builds have their own
+deterministic scheduler for `--seed` and `--explore` (7.4, decision 0350);
+recording (`--record`) is the Go backend's only (decision 0083). `xo test --no-gc` builds a
 native test binary and runs each test in a process of its own against the
 fakes of 9.2 (virtual clock, seeded `Rand`, fake environment, streams, and
 network, MemFs, FakeProc, `os.tasks`) with the same report as the Go
@@ -2801,6 +3059,10 @@ xo query deps example.com/notes/server      // the same, transitively
 xo query hash users.fetch_user              // content hash of a definition (4.3)
 ```
 
+`type` takes FILE:LINE:COL; with `--dir=DIR`, a relative FILE that is
+not under the working directory but is under DIR names that file (`xo
+mcp`'s query tool passes its `dir` this way).
+
 `hash` (decision 0125) answers `{list}`, one entry per definition the
 name resolves to (a name, `Type.method`, `pkg.name`, or `<package
 path>.name` of the module holding `--dir`): `{id, package, name, kind,
@@ -2899,6 +3161,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0176` | error | parser | `pub` before something that cannot be exported |
 | `XO0177` | error | parser | syntax from another language (Go, Rust, TypeScript, Python, Swift, Kotlin); names the habit and the Xo form (decision 0087) |
 | `XO0178` | error | parser | a line starts with a binary operator (`\|\|`, `&&`, `+`, `==`, ...); end the previous line with it (core 1.3, decision 0136) |
+| `XO0179` | error | parser | retired, never reported; was: `var` with a tuple or list pattern; decision 0384 allows `var PATTERN = e` (the code stays reserved) |
 | `XO0201` | error | checker | Result value is never used (core 2.6) |
 | `XO0202` | error | checker | error type does not convert to the enclosing error type (core 2.6) |
 | `XO0203` | error | checker | success of a Result typed T must be written Ok(x) (core 2.6) |
@@ -2975,7 +3238,10 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0908` | note | vet --cost | in a loop, an element of a collection made outside it is counted up and down each iteration (passed to a function value whose result has its type, which takes it), or a prelude method hands each element holding heap memory to such a function value (`map`, `filter`, `find`, `any`, `all`, `fold` of a List, Map, or Set; decisions 0327, 0337) |
 | `XO0909` | note | vet --cost | a list update in a loop that copies the whole list every iteration: the list is also kept in the same iteration (stored, captured, or a name used after the update), so it is shared when the update runs (decision 0327) |
 | `XO0910` | note | vet --cost | a value over 8 words copied where the source shows no copy: captured by a closure, or, in a loop, an element of a collection wrapped whole in an Option or enum value (decision 0327) |
-| `XO0911` | note | vet --cost | a view of a parameter's text (a slice or trim made in a loop, or an element of its split or lines) stored in a field or a returned collection keeps the whole input alive; `clone()` it (decision 0330) |
+| `XO0911` | note | vet --cost | a view of a parameter's text or bytes (a slice, trim or cut made in a loop, or an element of its split or lines) stored in a field or a returned collection keeps the whole input alive; `clone()` it (decision 0330) |
+| `XO0912` | warning | vet | retired in 0.34.0 (no longer reported): `u.0`, the pattern `uuid.Uuid(p)`, or `uuid.Uuid(s)` on a `uuid.Uuid` was deprecated in 0.33.0; a `uuid.Uuid` is now two Ints and those uses are type errors (std.md 24, decision 0387) |
+| `XO0913` | note | vet --cost | in a loop, a slice of a Str or Bytes read only by index, length or equality: each iteration makes a view (a range check, a count and a drop); read the whole by offsets (knowledgebase/std-performance-guide.md) |
+| `XO0914` | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
 | `XO0904` | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | `XO1001` | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | `XO1101` | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -2983,7 +3249,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1103` | note | vet | per module report of `use go` packages and the functions that perform `go` (decision 0041) |
 | `XO1104` | error | checker | C header cannot be bound (not found, clang cannot read it, a `link` file is missing, or an unknown effect in its `uses`) |
 | `XO1105` | error | checker | C function exists in the header but its signature does not map to Xo, so the binding skipped it |
-| `XO1201` | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available without a garbage collector (`--no-gc`); planned or impossible |
+| `XO1106` | error | checker | a value with no Go value passed to Go as `any`: `go.any(x)`'s argument or an element of a list literal for a `...any` parameter (decision 0412) |
+| `XO1201` | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available on the native backends (arm64, amd64, LLVM); planned or impossible |
 | `XO1301` | error | modules | malformed xo.mod require or deny line, xo.lock, or xo.work line, or a deny rule naming a package that does not exist (core 4.2, 4.3) |
 | `XO1302` | error | modules | module version cannot be fetched from git or a module proxy (XO_PROXY): repository, tag, or version missing, or its xo.mod declares another path |
 | `XO1303` | error | modules | module version is not in the module cache and the build is offline (XO_OFFLINE, --offline) |
@@ -3002,6 +3269,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1316` | error | checker, xo get | `use c` or `use go` of an impure Go package in a required module without the consumer's `vouch` for that version (4.2, decision 0156) |
 | `XO1317` | error | modules | a dependency's effects are wider than its `effects` line in xo.lock (4.3, decision 0156) |
 | `XO1318` | error | modules | a module's tree cannot be read (an I/O error) for its content hash, the effect or escape hatch audit, or `xo mod tidy`'s import scan, so none of them answers from a partial tree (4.3, decision 0156) |
+| `XO1319` | error | modules | a `use go` of a package outside Go's standard library whose Go module has no `require go` line in xo.mod (builds would follow its latest version); the fix adds the line with the version the binding resolved, and `xo mod tidy` adds it too (decision 0356) |
+| `XO1320` | error | modules | `xo mod tidy` with a `require go` pin whose go.sum hashes no binding has fetched yet (a fresh clone: .xo/gobind is not committed) and xo.lock does not hold: nothing is written; run `xo check` once, then tidy again (decision 0356) |
 | `XO1401` | error | checker | allocation in a real-time function (literal, interpolation, `+` on Str or List, closure, growth method) |
 | `XO1402` | error | checker | loop without a provable bound in a real-time function, or a `bound N` that is not a constant or is exceeded by a constant range |
 | `XO1403` | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
@@ -3018,6 +3287,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1509` | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
 | `XO1510` | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise); rebuild with `XO_BACKEND_CACHE=off` and report it |
 | `XO1511` | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
+| `XO1512` | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
+| `XO1513` | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
@@ -3060,10 +3331,9 @@ LoadErr.Db(msg: "timeout")
   have been at the `?`: values are immutable or copied on write, and the
   few whose `Debug` text can change in place (`Buf`, `Atomic`) are
   formatted when captured.
-- `xo build --release --error-args=false` records the function and
-  location only and prints `(...)` for the parameters:
-  `at users.fetch_user(...)   users/fetch.xo:18`. It is a usage error
-  without `--release`.
+- `--error-args=off` (any build, decision 0354; `--error-args=false`
+  too) records the function and location only and prints `(...)` for
+  the parameters: `at users.fetch_user(...)   users/fetch.xo:18`.
 - **[later]** A last line naming the task and its scope
   (`in task "handler#913" (scope api.serve)`) is planned.
 - Native backends (`--no-gc`, LLVM, arm64) record the same frames
@@ -3161,8 +3431,9 @@ call and its result, plus scheduler decisions.
   backend, `--no-gc` included. It needs no capability: it is the one output
   a function may produce without `Stdio`, and it is not part of a
   function's effects, so adding one changes no signature. `xo build
-  --release` compiles `dbg(expr)` to `expr` (the value is computed, nothing
-  prints); `xo run` and `xo test` keep it. `xo vet` warns (XO0901), and
+  --release` and `--dbg=off` (any build, decision 0354) compile
+  `dbg(expr)` to `expr` (the value is computed, nothing prints); other
+  builds keep it, and `--release --dbg=on` keeps it in a release build. `xo vet` warns (XO0901), and
   real-time functions reject it (XO1405) because its write blocks.
 
 ### 11.5 Debugger protocol
@@ -3206,14 +3477,21 @@ one takes the next `v`, as an `XOnnnn` code keeps its meaning.
 **[P1]** The generated Go code carries `//line file.xo:N` directives, so Delve,
 Go stack traces, and pprof report Xo source locations.
 
-### 11.6 Observability [later]
+### 11.6 Observability [P1, export later]
 
-Not implemented yet: no spans exist, log records carry no span or request
-id, and `XO_OTEL_ENDPOINT` is not read.
+What exists (decision 0325): `std/metrics` (std.md 37) has counters,
+gauges and histograms with label values in a registry that main makes and
+passes on, their Prometheus text exposition (`Registry.text`, the
+`GET /metrics` handler `Registry.handler`), and an HTTP middleware that
+counts and times every request. `std/trace` (std.md 38) gives each request
+an id and keeps a bounded ring of spans (a request's span and a program's
+own), which a handler reads; it has no exporter.
 
-- Every `scope` and every effect call is a trace span. `std/log` is structured
-  and attaches the current span and request id automatically.
-- OpenTelemetry export is enabled by setting `XO_OTEL_ENDPOINT`.
+Not implemented yet [later]: spans are a program's own (a `scope` or an
+effect call is not a span by itself), log records do not carry the
+current span or request id automatically, and there is no OpenTelemetry
+(OTLP) export: `XO_OTEL_ENDPOINT` is not read. A `traceparent`-style
+exporter is a program's own code over `Ring.spans`.
 
 ---
 
@@ -3371,7 +3649,7 @@ EnumDecl    = "enum" ident [ TypeParams ] "{" { Variant } "}" [ Derive ] .
 Variant     = { DocComment } ident [ "(" VField { "," VField } ")" ] .
 VField      = ident ":" Type | "from" Type .
 IfaceDecl   = "interface" ident [ TypeParams ] "{" { FnSig } "}" .
-TypeDecl    = "type" ident [ TypeParams ] ( "=" Type | "struct" "(" Type ")" ) .
+TypeDecl    = "type" ident [ TypeParams ] ( "=" Type | "struct" "(" Type ")" [ Derive ] ) .
 ConstDecl   = "const" ident [ ":" Type ] "=" Expr .
 TestDecl    = "test" string [ "for" Param { "," Param } ] [ "seed" int ]
               [ "uses" EffectList ] Block .

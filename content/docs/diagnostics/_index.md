@@ -41,6 +41,7 @@ prints the explanation below in a terminal.
 | [`XO0176`](xo0176/) | error | parser | `pub` before something that cannot be exported |
 | [`XO0177`](xo0177/) | error | parser | syntax from another language (Go, Rust, TypeScript, Python, Swift, Kotlin); names the habit and the Xo form (decision 0087) |
 | [`XO0178`](xo0178/) | error | parser | a line starts with a binary operator (`\|\|`, `&&`, `+`, `==`, ...); end the previous line with it (core 1.3, decision 0136) |
+| [`XO0179`](xo0179/) | error | parser | retired, never reported; was: `var` with a tuple or list pattern; decision 0384 allows `var PATTERN = e` (the code stays reserved) |
 | [`XO0201`](xo0201/) | error | checker | Result value is never used (core 2.6) |
 | [`XO0202`](xo0202/) | error | checker | error type does not convert to the enclosing error type (core 2.6) |
 | [`XO0203`](xo0203/) | error | checker | success of a Result typed T must be written Ok(x) (core 2.6) |
@@ -117,7 +118,10 @@ prints the explanation below in a terminal.
 | [`XO0908`](xo0908/) | note | vet --cost | in a loop, an element of a collection made outside it is counted up and down each iteration (passed to a function value whose result has its type, which takes it), or a prelude method hands each element holding heap memory to such a function value (`map`, `filter`, `find`, `any`, `all`, `fold` of a List, Map, or Set; decisions 0327, 0337) |
 | [`XO0909`](xo0909/) | note | vet --cost | a list update in a loop that copies the whole list every iteration: the list is also kept in the same iteration (stored, captured, or a name used after the update), so it is shared when the update runs (decision 0327) |
 | [`XO0910`](xo0910/) | note | vet --cost | a value over 8 words copied where the source shows no copy: captured by a closure, or, in a loop, an element of a collection wrapped whole in an Option or enum value (decision 0327) |
-| [`XO0911`](xo0911/) | note | vet --cost | a view of a parameter's text (a slice or trim made in a loop, or an element of its split or lines) stored in a field or a returned collection keeps the whole input alive; `clone()` it (decision 0330) |
+| [`XO0911`](xo0911/) | note | vet --cost | a view of a parameter's text or bytes (a slice, trim or cut made in a loop, or an element of its split or lines) stored in a field or a returned collection keeps the whole input alive; `clone()` it (decision 0330) |
+| [`XO0912`](xo0912/) | warning | vet | retired in 0.34.0 (no longer reported): `u.0`, the pattern `uuid.Uuid(p)`, or `uuid.Uuid(s)` on a `uuid.Uuid` was deprecated in 0.33.0; a `uuid.Uuid` is now two Ints and those uses are type errors (std.md 24, decision 0387) |
+| [`XO0913`](xo0913/) | note | vet --cost | in a loop, a slice of a Str or Bytes read only by index, length or equality: each iteration makes a view (a range check, a count and a drop); read the whole by offsets (knowledgebase/std-performance-guide.md) |
+| [`XO0914`](xo0914/) | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
 | [`XO0904`](xo0904/) | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | [`XO1001`](xo1001/) | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | [`XO1101`](xo1101/) | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -125,7 +129,8 @@ prints the explanation below in a terminal.
 | [`XO1103`](xo1103/) | note | vet | per module report of `use go` packages and the functions that perform `go` (decision 0041) |
 | [`XO1104`](xo1104/) | error | checker | C header cannot be bound (not found, clang cannot read it, a `link` file is missing, or an unknown effect in its `uses`) |
 | [`XO1105`](xo1105/) | error | checker | C function exists in the header but its signature does not map to Xo, so the binding skipped it |
-| [`XO1201`](xo1201/) | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available without a garbage collector (`--no-gc`); planned or impossible |
+| [`XO1106`](xo1106/) | error | checker | a value with no Go value passed to Go as `any`: `go.any(x)`'s argument or an element of a list literal for a `...any` parameter (decision 0412) |
+| [`XO1201`](xo1201/) | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available on the native backends (arm64, amd64, LLVM); planned or impossible |
 | [`XO1301`](xo1301/) | error | modules | malformed xo.mod require or deny line, xo.lock, or xo.work line, or a deny rule naming a package that does not exist (core 4.2, 4.3) |
 | [`XO1302`](xo1302/) | error | modules | module version cannot be fetched from git or a module proxy (XO_PROXY): repository, tag, or version missing, or its xo.mod declares another path |
 | [`XO1303`](xo1303/) | error | modules | module version is not in the module cache and the build is offline (XO_OFFLINE, --offline) |
@@ -144,6 +149,8 @@ prints the explanation below in a terminal.
 | [`XO1316`](xo1316/) | error | checker, xo get | `use c` or `use go` of an impure Go package in a required module without the consumer's `vouch` for that version (4.2, decision 0156) |
 | [`XO1317`](xo1317/) | error | modules | a dependency's effects are wider than its `effects` line in xo.lock (4.3, decision 0156) |
 | [`XO1318`](xo1318/) | error | modules | a module's tree cannot be read (an I/O error) for its content hash, the effect or escape hatch audit, or `xo mod tidy`'s import scan, so none of them answers from a partial tree (4.3, decision 0156) |
+| [`XO1319`](xo1319/) | error | modules | a `use go` of a package outside Go's standard library whose Go module has no `require go` line in xo.mod (builds would follow its latest version); the fix adds the line with the version the binding resolved, and `xo mod tidy` adds it too (decision 0356) |
+| [`XO1320`](xo1320/) | error | modules | `xo mod tidy` with a `require go` pin whose go.sum hashes no binding has fetched yet (a fresh clone: .xo/gobind is not committed) and xo.lock does not hold: nothing is written; run `xo check` once, then tidy again (decision 0356) |
 | [`XO1401`](xo1401/) | error | checker | allocation in a real-time function (literal, interpolation, `+` on Str or List, closure, growth method) |
 | [`XO1402`](xo1402/) | error | checker | loop without a provable bound in a real-time function, or a `bound N` that is not a constant or is exceeded by a constant range |
 | [`XO1403`](xo1403/) | error | checker | call in a real-time function of a function that is not real-time, a function value, or an interface method |
@@ -160,4 +167,6 @@ prints the explanation below in a terminal.
 | [`XO1509`](xo1509/) | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
 | [`XO1510`](xo1510/) | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise); rebuild with `XO_BACKEND_CACHE=off` and report it |
 | [`XO1511`](xo1511/) | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
+| [`XO1512`](xo1512/) | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
+| [`XO1513`](xo1513/) | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
 {.codes}
