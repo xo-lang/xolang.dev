@@ -1,15 +1,15 @@
 {
-  "xo": "f1a3c02c+f1032ee4.f080efcf.9b362f61.0426d926",
+  "xo": "21620368",
   "files": {
     "xoc": {
-      "path": "assets/xoc-23003f272c1b.brotli",
-      "size": 22425470,
-      "compressed": 2387828
+      "path": "assets/xoc-20e5db5939ae.brotli",
+      "size": 22528218,
+      "compressed": 2402324
     },
     "std": {
-      "path": "assets/std-a4b1b9f0eac1.brotli",
-      "size": 5184957,
-      "compressed": 1052406
+      "path": "assets/std-963e0e281fd2.brotli",
+      "size": 5704853,
+      "compressed": 1174238
     }
   }
 }
