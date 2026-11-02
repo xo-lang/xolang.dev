@@ -31,7 +31,9 @@ jobs:
         run: scripts/check-facts.sh
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.26"
+          # Hugo v0.167.0 needs go 1.27; setup-go v7 sets GOTOOLCHAIN=local, so
+          # the version must be the one Hugo requires (v5 let go download it)
+          go-version: "1.27"
           # no go.sum here: Hugo is installed with go install, nothing to cache
           cache: false
       - name: Install Hugo
