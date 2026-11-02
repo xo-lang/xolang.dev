@@ -17,6 +17,7 @@ programs with fast, structured feedback.
 - [Roadmap](/roadmap/): what is done, in progress, and next on the way to 1.0.
 - [Core language specification](spec/core/): the source of truth for syntax and semantics.
 - [Standard library](spec/std/): prelude methods and the `std` packages.
+- [Standard library coverage](std-coverage/): which of Go's standard library packages Xo covers, what is beyond Go, the gaps, and a maturity level for each module with its evidence.
 
 Every page is also available as Markdown for agents: add `index.md` to its URL,
 or start from [/llms.txt](/llms.txt).

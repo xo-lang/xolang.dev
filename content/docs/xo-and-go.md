@@ -52,7 +52,9 @@ use any Go package through its Go backend.
 - **Xo**: backends, tools, and web services, designed so AI agents can
   write, check, cross compile, and debug programs with fast, structured
   feedback ([Why Xo?](../faq/)). It keeps Go's small keyword set, single
-  formatter, static binaries, and strong standard library.
+  formatter, static binaries, and strong standard library (which of Go's
+  176 packages Xo covers, with a maturity level per module:
+  [Standard library coverage](../std-coverage/)).
 
 ## The language
 

@@ -14,16 +14,23 @@
   --ok: #8fc48a;
   --err: #f07a62;
   --glow: rgba(232,116,59,.22);
+  --lv-early-bg: #3d2c12; --lv-early-fg: #f5c37a;
+  --lv-solid-bg: #12323f; --lv-solid-fg: #8fd3ee;
+  --lv-proven-bg: #143222; --lv-proven-fg: #8fe0a8;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg: #faf6f0; --bg-2: #f2ebe1; --panel: #1f1a16; --ink: #241d18; --ink-2: #6e6053;
     --line: #e2d6c6; --glow: rgba(232,116,59,.16);
+    --lv-early-bg: #fde8c8; --lv-early-fg: #7a3e00; --lv-solid-bg: #d6ecf5; --lv-solid-fg: #0b4a63;
+    --lv-proven-bg: #d4efd9; --lv-proven-fg: #17592b;
   }
 }
 :root[data-theme="light"] {
   --bg: #faf6f0; --bg-2: #f2ebe1; --panel: #1f1a16; --ink: #241d18; --ink-2: #6e6053;
   --line: #e2d6c6; --glow: rgba(232,116,59,.16);
+  --lv-early-bg: #fde8c8; --lv-early-fg: #7a3e00; --lv-solid-bg: #d6ecf5; --lv-solid-fg: #0b4a63;
+  --lv-proven-bg: #d4efd9; --lv-proven-fg: #17592b;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -399,3 +406,11 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 @media (min-width: 901px) { .hero .stage { margin-top: 64px; } }
 .sleeper-fig { margin: 0; text-align: center; }
 .sleeper-fig figcaption { margin-top: 12px; color: var(--ink-2); font-size: 14px; }
+
+/* maturity pills (std coverage page): the level word is in the pill, the colour only adds to it; text 6.9:1 or better on the pill, border in the text colour */
+.level { display: inline-block; font: 600 12px/1.5 "JetBrains Mono", monospace; letter-spacing: .02em; padding: 0 8px; border: 1px solid; border-radius: 999px; text-decoration: none; white-space: nowrap; vertical-align: baseline; }
+a.level:hover { text-decoration: underline; }
+.level-early { background: var(--lv-early-bg); color: var(--lv-early-fg); border-color: var(--lv-early-fg); }
+.level-solid { background: var(--lv-solid-bg); color: var(--lv-solid-fg); border-color: var(--lv-solid-fg); }
+.level-proven { background: var(--lv-proven-bg); color: var(--lv-proven-fg); border-color: var(--lv-proven-fg); }
+.prose a.level { text-decoration: none; }
