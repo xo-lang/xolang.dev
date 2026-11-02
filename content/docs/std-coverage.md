@@ -264,7 +264,7 @@ The gaps are *potentially planned*: a priority and a realistic timeframe, not a 
 | Priority | Gap | Timeframe |
 |---|---|---|
 | 1 | CBOR; `image/png`, `image/jpeg` | Q4 2026 |
-| 2 | `encoding/gob`, `net/rpc`; `compress/bzip2`, `compress/lzw`; small hashes (`hash/crc64`, `hash/adler32`); `os/user`; `log/syslog`; `expvar`; a pprof handler for more profile kinds; `text/scanner`; `container/ring`; `unicode/utf16`; `index/suffixarray` | Q1 2027 |
+| 2 | `encoding/gob`, `net/rpc`; `compress/bzip2`, `compress/lzw`; small hashes (`hash/crc64`, `hash/adler32`); `os/user`; `log/syslog`; `expvar`; `text/scanner`; `container/ring`; `unicode/utf16`; `index/suffixarray` | Q1 2027 |
 | 3 | legacy crypto (`crypto/des`, `crypto/dsa`, `crypto/rc4`); `weak`, `unique` | last, or possibly never |
 
 The repository's coverage table still lists some of these as not planned (for example `encoding/gob`, `net/rpc`, `text/scanner`, `log/syslog`, `container/ring`, `index/suffixarray`, the image packages); this page follows the owner's list, and the table moves with the decision. CBOR is not a Go package; it is listed because it is first on the list.
