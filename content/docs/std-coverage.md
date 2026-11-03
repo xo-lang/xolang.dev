@@ -6,11 +6,11 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.36 (development, main 4d4a21494 of 2026-11-03); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.36 (development, main 002cccd8c of 2026-11-03); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
-Go has **176** public standard library packages. Xo has **50** `std` modules besides the prelude (the builtin types and capabilities every program sees).
+Go has **176** public standard library packages. Xo has **51** `std` modules besides the prelude (the builtin types and capabilities every program sees).
 
 | Status | Go packages |
 |---|---|
@@ -33,7 +33,7 @@ Each `std` module gets three marks, one per axis, and an overall level that is t
 
 How a mark is read here: *Features* from the rows of the coverage table that name the module (all done is Proven, any partial is Solid; a module with no Go package is Solid and says so). *Testing* from the committed corpus of Go's tests under `internal/stdtest/testdata/corpus`, Go differential tests, and fuzz tests for modules that parse untrusted input. *Performance* from a committed result file with a Go twin. A mark with no committed evidence is Early, so a missing result is the gap to close, not a hidden number. The dates are those of the result files, which can be older than this page; a re-run can only move a mark if the file is replaced.
 
-Today: overall 0 Proven, 22 Solid, 29 Early of 51 (prelude and 50 modules). Per axis, features 24/27/0, testing 0/30/21, performance 12/19/20 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
+Today: overall 0 Proven, 23 Solid, 29 Early of 52 (prelude and 51 modules). Per axis, features 25/27/0, testing 0/31/21, performance 13/19/20 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
 
 ### Per module
 
@@ -46,6 +46,7 @@ Today: overall 0 Proven, 22 Solid, 29 Early of 51 (prelude and 50 modules). Per 
 | `std/base64` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/base64" >}} Go's tests ported | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} encode 0.57, decode 0.88 of Go's wall (2026-11-03) | v0.23.0 (2026-10-20) |
 | `std/big` | {{< level "Solid" >}} | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} 0 of 1 mapped Go rows done, 1 partial | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/big" >}} Go's tests ported | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} mul 1.23, parse 0.49 of Go's wall (2026-11-03) | v0.24.0 (2026-10-21) |
 | `std/binary` | {{< level "Early" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/binary" >}} Go's tests ported | {{< level "Early" >}} no committed row against Go | v0.23.0 (2026-10-20) |
+| `std/cbor` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/cborfuzz_test.go" >}} Go's tests ported; 1,500 seeded inputs from a byte level builder (random head widths, indefinite lengths, floats of every width, tags, simple values, repeated keys, text that is not UTF-8, then bits flipped, cuts, insertions) against fxamacker/cbor v2 (Go has no CBOR in its standard library), plus 12,000 fresh cases on arm64 and LLVM and the RFC 8949 Appendix A examples | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows7-2026-11-03.md" >}} decode 0.43, encode 0.26, deterministic encode 0.62 of fxamacker/cbor's wall (2026-11-03) | unreleased (2026-11-03) |
 | `std/cli` | {{< level "Early" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cli" >}} Go's tests ported | {{< level "Early" >}} no committed row against Go | v0.11.0 (2026-10-11) |
 | `std/compress` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 2 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/compressfuzz_test.go" >}} Go's tests ported; 2,000 hostile DEFLATE, zlib and gzip streams (hand-built blocks and corrupted Go output) against Go's decoders, error texts exact, plus streaming and max_size, on every backend | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" >}} gzip 0.96, gunzip 0.92, deflate 0.96, inflate 0.91 of Go's wall (2026-11-03) | v0.24.0 (2026-10-21) |
 | `std/crc32` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crc32" >}} Go's tests ported | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} crc32 0.96, crc32c 0.37 of Go's wall (2026-11-03) | v0.35.0 (2026-10-29) |
@@ -265,9 +266,8 @@ The gaps are *potentially planned*: a priority and a realistic timeframe, not a 
 
 | Priority | Gap | Timeframe |
 |---|---|---|
-| 1 | CBOR | Q4 2026 |
-| 2 | `encoding/gob`, `net/rpc`; `compress/bzip2`, `compress/lzw`; small hashes (`hash/crc64`, `hash/adler32`); `os/user`; `log/syslog`; `expvar`; `text/scanner`; `container/ring`; `unicode/utf16`; `index/suffixarray` | Q1 2027 |
-| 3 | legacy crypto (`crypto/des`, `crypto/dsa`, `crypto/rc4`); `weak`, `unique` | last, or possibly never |
+| 1 | `encoding/gob`, `net/rpc`; `compress/bzip2`, `compress/lzw`; small hashes (`hash/crc64`, `hash/adler32`); `os/user`; `log/syslog`; `expvar`; `text/scanner`; `container/ring`; `unicode/utf16`; `index/suffixarray` | Q1 2027 |
+| 2 | legacy crypto (`crypto/des`, `crypto/dsa`, `crypto/rc4`); `weak`, `unique` | last, or possibly never |
 
 The repository's coverage table still lists some of these as not planned (for example `encoding/gob`, `net/rpc`, `text/scanner`, `log/syslog`, `container/ring`, `index/suffixarray`, the image packages); this page follows the owner's list, and the table moves with the decision. CBOR is not a Go package; it is listed because it is first on the list.
 
