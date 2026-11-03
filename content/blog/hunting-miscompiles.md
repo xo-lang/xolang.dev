@@ -1,6 +1,6 @@
 ---
 title: "How Xo hunts its own miscompiles, and the /alloc chase that ended in luck"
-date: 2026-11-03T12:00:00-05:00
+date: 2026-11-03T08:00:00-05:00
 draft: false
 description: "A compiler pass that is wrong gives a correct program a wrong answer with no error. How Xo hunts those on purpose, what it found, and a benchmark regression chase that crossed five suspects and ended at a code placement."
 ---
