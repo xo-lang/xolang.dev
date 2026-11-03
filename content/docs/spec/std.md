@@ -108,6 +108,8 @@ Int(x: Float) -> Int                 // truncates toward zero; faults on NaN or 
 Float(x: Int) -> Float
 Int32(x: Int) -> Int32               // faults out of range; same for every sized type
 Int32.try(x: Int) -> Int32?
+UInt64.from_bits(b: Int) -> UInt64       // the same 64 bits (Go's uint64(x)): -1 is 2^64 - 1
+fn (u: UInt64) to_bits() -> Int          // the same 64 bits back (Go's int64(u)): 2^63 and up are negative
 Int(r: Rune) -> Int                  // the code point; every integer type (core 2.1)
 Rune(n: Int) -> Rune                 // faults unless n is a Unicode scalar value
 Rune.try(n: Int) -> Rune?
@@ -228,7 +230,7 @@ fn (s: Str) repeat(n: Int) -> Str            // strings.Repeat; empty for 0, a f
 fn (s: Str) pad_left(width: Int, fill: Str = " ") -> Str   // to width runes (a minimum, as Go's %*s); also pad_right, center (decision 0410)
 fn (s: Str) clone() -> Str                   // an explicit copy in a buffer of its own (a slice or split piece shares its source on native targets)
 fn (s: Str) runes() -> List[Rune]
-fn (s: Str) bytes() -> Bytes
+fn (s: Str) bytes() -> Bytes                 // no copy: s's own bytes (a short inline Str is boxed once), so s.bytes()[i] is byte i in O(1)
 
 fn (b: Bytes) len() -> Int                   // b[i] is the byte at i, a UInt8
 fn (b: Bytes) is_empty() -> Bool             // `for x in b` yields each byte (core 3.5)
@@ -338,6 +340,7 @@ fn (xs: List[T]) index_of(x: T) -> Int?      // T: Eq
 fn (xs: List[T]) indexed() -> List[(Int, T)]
 fn (xs: List[T]) map[U](f: fn(T) -> U) -> List[U]
 fn (xs: List[T]) filter(f: fn(T) -> Bool) -> List[T]
+fn (xs: List[T]) filter_map[U](f: fn(T) -> U?) -> List[U]   // f's Some values, in order
 fn (xs: List[T]) fold[A](init: A, f: fn(A, T) -> A) -> A
 fn (xs: List[T]) find(f: fn(T) -> Bool) -> T?
 fn (xs: List[T]) any(f: fn(T) -> Bool) -> Bool   // also all
@@ -384,7 +387,9 @@ returns `List[U] ! E`.
 `List[T].with_capacity(n)` (also `List.with_capacity(n)` where the type is
 known) is an empty list, equal to `[]`, whose first `n` pushes append
 without growing it; `n` below 0 counts as 0. Capacity is not observable
-(decision 0170).
+(decision 0170). A new list has room for at least 4 elements, or for 1
+when its elements are over 256 bytes (decision 0452's addendum: a list of
+one connection's state held four).
 
 ### 2.4 Map[K, V] and Set[T]
 
@@ -655,6 +660,14 @@ struct FileInfo {
   is_symlink: Bool = false  // a link itself: read_dir and walk report links, stat follows them
 }
 
+struct DiskUsage {         // the file system holding a path (decision 0426)
+  total: Int               // bytes
+  free: Int                // bytes free, a superuser's reserve included
+  available: Int           // bytes free to this user
+  files: Int               // inodes (0 on Windows)
+  files_free: Int          // free inodes (0 on Windows)
+}
+
 fn (f: Fs) sub(dir: Str) -> Fs                               // lazy: dir need not exist yet
 fn (f: Fs) cwd() -> Fs                                       // sub capability at the working directory
 fn (f: Fs) cwd_path() -> Str ! FsErr                         // the working directory's absolute path, from the OS
@@ -663,10 +676,12 @@ fn (f: Fs) write_only() -> Fs                // reads fail with Denied
 fn (f: Fs) case_sensitive() -> Bool                          // of the underlying filesystem
 fn (f: Fs) stat(path: Str) -> FileInfo? ! FsErr  uses fs.read // None when missing
 fn (f: Fs) exists(path: Str) -> Bool ! FsErr     uses fs.read
+fn (f: Fs) disk_usage(path: Str) -> DiskUsage ! FsErr uses fs.read // statfs of path's file system
 fn (f: Fs) read(path: Str) -> Bytes ! FsErr      uses fs.read
 fn (f: Fs) read_text(path: Str) -> Str ! FsErr   uses fs.read
 fn read_text_or(fs: Fs, path: Str, default: Str) -> Str ! FsErr uses fs.read   // default when missing
 fn read_or(fs: Fs, path: Str, default: Bytes) -> Bytes ! FsErr uses fs.read     // the same for bytes
+fn read_mapped(fs: Fs, path: Str) -> Bytes ! FsErr uses fs.read                  // read, maybe sharing the file's pages
 fn write_atomic(fs: Fs, path: Str, data: Bytes) -> () ! FsErr uses fs            // old or new, never a part
 fn (f: Fs) read_dir(dir: Str) -> List[FileInfo] ! FsErr uses fs.read   // sorted by name
 fn (f: Fs) walk(dir: Str) -> List[FileInfo] ! FsErr     uses fs.read
@@ -688,6 +703,15 @@ fn create_dir_all_mode(fs: Fs, dir: Str, mode: Int) -> () ! FsErr uses fs  // ma
 fn (f: Fs) set_modified(path: Str, t: Time) -> () ! FsErr uses fs.write
 ```
 
+`disk_usage(path)` (decision 0426; Go's `syscall.Statfs`, and
+`GetDiskFreeSpaceEx` on Windows) is the space of the file system that
+holds `path`, a file or a directory resolved inside the Fs like `stat`:
+`NotFound` when it is missing. Byte counts are the block counts times
+the fragment size (`f_frsize`); Windows reports no inodes (`files` and
+`files_free` are 0); WASI and embedded files (`embed.dir`) answer `Io`.
+A test's MemFs answers what `set_disk_usage` set, all zero before.
+Record and replay record it (`fs.disk_usage`).
+
 `read_text_or` and `read_or` (approved by the owner, 2026-10-21) give
 the file, or `default` when it does not exist (`FsErr.NotFound`, Go's
 `errors.Is(err, fs.ErrNotExist)`). Any other error is still the result
@@ -697,6 +721,19 @@ methods of `Fs`: an `Fs` is any type with its methods (core 2.4), and a
 new interface method would stop every such type from satisfying it. They
 call `read_text` and `read`, so MemFs, FakeFs and attenuated capabilities
 answer as they do for those.
+
+`read_mapped` (decision 0402) returns the file's bytes like `read`, with
+the same errors. On the native darwin and linux backends it may share
+the file's pages instead of copying them (mmap, read only and private):
+only the pages the program touches are read. The program must not
+truncate the file or change it in place while the `Bytes` (or a slice
+of it) is alive: a truncation makes a later read of the cut pages fault,
+and a change in place shows through. Replacing the file by rename is
+safe (the mapping keeps the old file). Where mapping is not possible
+(wasm, the Go backend, Windows, an empty file or one of 4 GiB or more, a
+pipe or device, mmap failing, a user value converted to `Fs`, any `Fs`
+in a test) it is `read`. Use `read` for a file other processes may
+change in place. A free function, as `read_or`.
 
 `create_dir_all_mode` (std survey gap 16, Go's `os.MkdirAll(dir, perm)`)
 is `create_dir_all`, then `set_mode(d, mode)` on each directory it
@@ -842,6 +879,7 @@ fn (n: Net) listen(addr: Str) -> Listener ! NetErr uses net.listen
 fn (n: Net) dial(addr: Str) -> Conn ! NetErr       uses net.dial
 fn (n: Net) dial_timeout(addr: Str, d: Duration) -> Conn ! NetErr uses net.dial   // decision 0406
 fn (n: Net) lookup_host(host: Str) -> List[Str] ! NetErr uses net.dial            // decision 0406
+fn (n: Net) interfaces() -> List[NetInterface] ! NetErr uses net.listen           // decision 0426
 fn (n: Net) only(hosts: List[Str]) -> Net          // attenuation (below)
 fn (l: Listener) addr() -> Str                     // "host:port" actually bound
 fn (l: Listener) accept() -> ServerConn ! NetErr   uses net.listen
@@ -852,6 +890,10 @@ fn (c: Conn) close()
 fn (c: ServerConn) read(max: Int) -> Bytes? ! NetErr uses net.listen   // the same, on an accepted connection
 fn (c: ServerConn) write(data: Bytes) -> () ! NetErr uses net.listen
 fn (c: ServerConn) close()
+fn (c: Conn) set_deadline(clock: Clock, t: Time?) uses clock         // decision 0430: Go's SetDeadline
+fn (c: Conn) set_read_deadline(clock: Clock, t: Time?) uses clock    // Go's SetReadDeadline
+fn (c: Conn) set_write_deadline(clock: Clock, t: Time?) uses clock   // Go's SetWriteDeadline
+// ServerConn has the same three
 
 interface Stream {                                 // either kind of connection
   fn read(self, max: Int) -> Bytes? ! NetErr uses net
@@ -860,12 +902,43 @@ interface Stream {                                 // either kind of connection
 }
 ```
 
+```
+struct NetInterface {
+  index: Int                  // the system's index, 1 and up
+  name: Str                   // "lo", "eth0", "en0"; Windows: the friendly name
+  mtu: Int                    // -1 when Windows reports none
+  hardware_addr: Str          // "aa:bb:cc:dd:ee:ff"; "" when none
+  flags: InterfaceFlags
+  addrs: List[Str]            // CIDR text: "192.168.1.5/24", "fe80::1/64"
+}
+struct InterfaceFlags { up: Bool, broadcast: Bool, loopback: Bool, point_to_point: Bool, multicast: Bool, running: Bool }
+```
+
+`interfaces()` (decision 0426) is Go's `net.Interfaces` with each
+interface's `Addrs`, sorted by index: Linux asks the kernel over a
+`NETLINK_ROUTE` socket, macOS reads `getifaddrs`, Windows
+`GetAdaptersAddresses` (flags as Go's: an adapter that is up is also
+running; Ethernet and Wi-Fi broadcast; PPP and tunnels are point to
+point). An address is CIDR text without a zone (Go's `IPNet.String`);
+`std/netip` parses it. A hardware address of all zeros is "". An
+attenuated `Net` (`only`) answers it too: the list names no remote host.
+A test's FakeNet answers one loopback interface (`lo`, index 1,
+`127.0.0.1/8` and `::1/128`); WASI is `Io`. Record and replay record it
+(`net.interfaces`).
+
 A connection's reads and writes perform the effect of how it was made
 (decision 0280): a `Conn` from `dial` is `net.dial`, a `ServerConn` from
 `accept` is `net.listen`. So a client library declares `uses net.dial`
 alone though it reads and writes, and a function given only a
 `ServerConn` cannot dial. Both are handles with the same behavior;
 `Stream` takes either, under `net`.
+
+`dial` of a name with IPv6 and IPv4 addresses (decision 0462) races them
+as Go's dual stack dial does: the addresses of the first one's family in
+order, and, 300 ms after the first started or once those failed, the
+other family's beside them; the first connection wins and the other
+attempt is dropped. An error is the first family's when it got one. A
+name of one family dials its addresses one at a time, as before.
 
 TCP connections (decision 0071): `accept` waits for the next connection;
 `read` returns at most `max` bytes (at most 1 MiB; fewer when fewer are
@@ -877,6 +950,24 @@ fail with `Io`. A refused `dial` is `Refused`. `dial` gives up after 30
 seconds with `Io` (`dial tcp ADDR: i/o timeout`); `dial_timeout(addr, d)`
 gives up after `d`, over the lookup and the connect, with `Timeout`
 (decision 0406).
+
+Deadlines (decision 0430) are Go's net.Conn deadlines.
+- `set_deadline(clock, t)` sets both directions; `set_read_deadline` and
+  `set_write_deadline` set one.
+- A read or write that would wait past `t` fails with `Timeout`
+  (`i/o timeout`), and so does every later one until the deadline moves.
+  One whose deadline has already passed fails at once, even with data
+  waiting.
+- The connection stays open: a later `t`, or `None` (no deadline), lets
+  operations run again. A deadline set while a read or write waits
+  applies to that wait.
+- `t` is on `clock`, and the wait is measured from now.
+- A write that times out may have written part of its data.
+- Deadlines never cancel: cancellation stays `Canceled` (core 7.2), and
+  a `task.with_timeout` around the call still cancels it.
+- On FakeNet's in-memory connections, a deadline already passed fails at
+  once, but a waiting read or write is not woken by one.
+- They are on the concrete types, not on `Stream` (decision 0430).
 
 Names (decision 0406): `lookup_host(host)` returns host's addresses as
 text, in the order `dial` tries them, from the resolver `dial` uses (the
@@ -1100,7 +1191,7 @@ Terminals (decision 0162), on every backend:
 ### 3.7 Proc (`uses proc`)
 
 ```
-struct ProcOutput { code: Int, stdout: Bytes, stderr: Bytes }
+struct ProcOutput { code: Int, stdout: Bytes, stderr: Bytes, usage: ProcUsage = ProcUsage{user: 0s, system: 0s, max_rss: 0} }
 enum ProcErr { NotFound(cmd: Str), Io(msg: Str), Canceled, Denied(cmd: Str) }
 
 `display` prints `CMD: executable file not found`, MSG for `Io`, `canceled`,
@@ -1118,6 +1209,10 @@ fn (p: Proc) stop_notify(c: Chan[Signal])
 fn (p: Proc) request_stop()
 fn (p: Proc) pid() -> Int                    // this process's ID (0 under WASI); decision 0410
 fn (p: Proc) ppid() -> Int                   // the parent's ID (0 under WASI)
+fn (p: Proc) usage() -> ProcUsage            // this process's CPU time and peak memory; decision 0426
+fn (p: Proc) children_usage() -> ProcUsage   // the waited children's
+
+struct ProcUsage { user: Duration, system: Duration, max_rss: Int }
 enum Signal { Hangup, Interrupt, Quit, Terminate, User1, User2, WindowChange }
 ```
 
@@ -1154,6 +1249,30 @@ On Windows Ctrl-C and Ctrl-Break are `Interrupt`, and the console's close,
 a logoff and a system shutdown are `Terminate` (Go's mapping); the other
 kinds are accepted and never arrive. A test's FakeProc gives a channel
 that receives nothing.
+
+`usage()` (decision 0426; Go's `syscall.Getrusage(RUSAGE_SELF)`) is
+this process's CPU time in user mode and in the kernel and its peak
+resident set in bytes on every system (Linux reports KiB, converted);
+`children_usage()` is the same for the children the program has waited
+for (`run`, `pipeline`, `Child.wait`; `RUSAGE_CHILDREN`), the largest
+child's peak as `max_rss`. On Windows `usage` reads `GetProcessTimes` and
+the peak working set, and the runtime adds each waited child's times
+and peak to the children's totals, which Windows does not keep (the Go
+backend's totals have the times only: `max_rss` 0). WASI answers zeros.
+An attenuated `Proc` answers as the real one: it is the process's own
+state, as `pid`. A test's FakeProc answers with the real process's.
+
+A child's own usage (decision 0426's addendum; Go's
+`ProcessState.UserTime`, `SystemTime` and `SysUsage`) is
+`ProcOutput.usage` of `run`, `pipeline` and `Cmd.output`, and
+`Child.wait_usage()`'s: its CPU time in user mode and in the kernel and
+its peak resident set in bytes, read as it is waited for (`wait4`'s
+rusage; on Windows `GetProcessTimes` and the peak working set of its
+handle). A pipeline's adds its commands' times and keeps the largest
+peak. Unlike `children_usage`, whose `max_rss` is the largest of every
+child waited for, each child's is its own. A ProcOutput built as a
+literal, a FakeProc's output, and WASI have zeros; the Go backend's
+`max_rss` is 0 on Windows (os/exec closes the handle first).
 
 `kill` (decision 0190) sends the named signal to the process `pid`: one
 of `HUP`, `INT`, `QUIT`, `KILL`, `TERM`, `USR1`, `USR2`, `CONT`, `STOP`
@@ -1214,6 +1333,7 @@ fn (c: Child) read(max: Int) -> Bytes? ! ProcErr uses proc        // its output;
 fn (c: Child) read_err(max: Int) -> Bytes? ! ProcErr uses proc    // its error stream
 fn (c: Child) read_line() -> Str? ! ProcErr uses proc             // a line of its output
 fn (c: Child) wait() -> Int ! ProcErr uses proc                   // closes its input; the status
+fn (c: Child) wait_usage() -> (Int, ProcUsage) ! ProcErr uses proc // wait, and the child's own usage
 fn (c: Child) kill()
 ```
 
@@ -1303,6 +1423,12 @@ fn ([var] r: Router) mount(prefix: Str, sub: Router)   // sub's routes under pre
 fn ([var] r: Router) not_found[E: Error, fx: Effects](h: fn(Request) -> Response ! E uses fx) uses fx            // the 404's response
 fn ([var] r: Router) method_not_allowed[E: Error, fx: Effects](h: fn(Request) -> Response ! E uses fx) uses fx   // the 405's; Allow added when missing
 fn (r: Router) call(req: Request) -> Response      // in process dispatch, for tests
+fn serve_component(r: Router)                      // answers a wasi:http component's request; on the wasm backend the build's output is that component (decision 0447); faults elsewhere
+    // a wasi:http component's Client (decision 0447): send and open go through the host; the whole request and response are held, so a request
+    // blocks the instance, a piped body is read first, trailers are refused, and with_roots and with_cert fail because the host does TLS
+    // in a component a handle_stream route reads the request body from the host as it arrives, and BodyReader.trailers has the
+    // request's declared trailers; http.stream's body goes to the host as it is written (the head with the first write or flush,
+    // its Content-Type detected from those bytes when missing), and its set_trailer trailers follow it
 type Next = fn(Request) -> Response
 ```
 
@@ -1407,6 +1533,25 @@ the same way (the handler unwinds, the server keeps serving) but no crash
 bundle is written, and the error of a 500 is logged without frames.
 Streamed bodies (`http.stream`) are sent natively as net/http sends them.
 
+#### 4.2.1 Status codes (decision 0269, stage A)
+
+```
+type Status struct(Int)        // a distinct integer type
+const OK: Status = Status(200)
+const CREATED: Status = Status(201)
+const NOT_FOUND: Status = Status(404)
+...                            // every code Go's net/http names
+```
+
+`http.Status` is a newtype over `Int` (core 2.8) with a constant for each
+code Go's net/http names (`http.OK` to `http.NETWORK_AUTHENTICATION_REQUIRED`,
+62 of them, Go's names in upper case). A constant is a compile time value,
+so it is a pattern: `match s { http.OK | http.CREATED => ... http.Status(500..=599) => ... _ => ... }`
+(a `_` or binding arm is needed: the set is open). Stage A is additive: the
+status parameters and fields stay `Int` (`json`, `text`, `Response.status`,
+`StatusError.status`); the move to `Status`, its methods and `xo fix`'s
+rewrite of integer literals are the later step of decision 0269.
+
 ### 4.3 Requests and responses
 
 ```
@@ -1436,7 +1581,8 @@ struct TlsState {                             // Go's tls.ConnectionState
   cipher_suite: Str                           // Go's CipherSuiteName, e.g. "TLS_AES_128_GCM_SHA256"
   server_name: Str                            // the SNI the client sent, "" for none (an IP address)
   resumed: Bool                               // the handshake resumed a session
-  peer_certificates: List[x509.Certificate]   // the client's certificates, leaf first: empty, the server asks for none
+  peer_certificates: List[x509.Certificate]   // the client's certificates, leaf first: empty unless with_client_auth asked (4.6)
+  verified_chains: List[List[x509.Certificate]] // the chains that verified them (decision 0433)
 }
 fn (r: Request) raw_query() -> Str            // Go's URL.RawQuery
 fn (r: Request) escaped_path() -> Str         // Go's URL.EscapedPath
@@ -1493,11 +1639,20 @@ pub fn serve_content(req: Request, name: Str, modtime: Time?, content: Bytes, he
     // 416, Content-Type from headers, name's extension, or the content
 fn (w: BodyWriter) write(data: Bytes) -> () ! IoErr
 fn (w: BodyWriter) flush() -> () ! IoErr
+fn (w: BodyWriter) set_trailer(name: Str, value: Str)   // a trailer after the body (decision 0433)
+fn (r: Response) with_trailer_names(names: List[Str]) -> Response   // the `Trailer` header (HTTP/1.1)
+fn (r: Response) with_full_duplex() -> Response   // the stream may read the request body while it writes (decision 0433)
+pub fn pipe() -> (PipeWriter, BodyReader)          // a body one task writes while the client sends it (Go's io.Pipe)
+struct PipeWriter {}
+fn (w: PipeWriter) write(data: Bytes) -> () ! IoErr   // held before the reader's first read (up to 64 KiB), then waits for the reader; Io("io: read/write on closed pipe") after close
+fn (w: PipeWriter) close()                            // the reader's next read is None
+fn (w: PipeWriter) close_with_error(e: IoErr)         // the reader's next read is Err(e)
     // a response with status 101 made by std/websocket's upgrade hands its
     // connection over: the server writes nothing itself (decision 0313)
 fn (b: BodyReader) read(max: Int = 32768) -> Bytes? ! IoErr   // a handle_stream body's next bytes, None at its end
 fn (b: BodyReader) read_all() -> Bytes ! IoErr                // the rest of it
 fn (b: BodyReader) multipart(req: Request) -> PartReader ! multipart.MultipartErr   // the body's multipart/form-data parts as they arrive (decision 0310)
+fn (b: BodyReader) trailers() -> Map[Str, Str]   // the request's trailers, empty until read returned None (decision 0433)
 fn (p: PartReader) next() -> StreamPart? ! multipart.MultipartErr   // the next part (the open one's unread rest dropped), None after the last
 fn (p: PartReader) read(max: Int = 32768) -> Bytes? ! multipart.MultipartErr   // the open part's next bytes, None at its end
 fn (p: StreamPart) header_values(name: Str) -> List[Str]   // every value of a part's header, in order
@@ -1645,6 +1800,8 @@ fn (s: Server) with_read_header_timeout(d: Duration) -> Server   // Go's ReadHea
 fn (s: Server) with_idle_timeout(d: Duration) -> Server          // Go's IdleTimeout: the wait for a kept alive connection's next request
 fn (s: Server) with_max_header_bytes(n: Int) -> Server           // Go's MaxHeaderBytes (plus 4096 of slack; 1 MB when 0): a longer head is 431
 fn (s: Server) with_max_body(n: Int) -> Server                   // the body read before a handler (64 MB when 0): a longer one is 413
+fn (s: Server) with_protocols(p: Set[Protocol]) -> Server        // Go's Server.Protocols (4.6, decision 0434)
+fn (s: Server) with_h2_config(c: H2Config) -> Server             // Go's Server.HTTP2 (4.6)
 pub fn max_body(n: Int) -> fn(Request, Next) -> Response         // Go's MaxBytesReader as a middleware: 413 `http: request body too large`
 enum HttpErr { Io(msg: Str), Canceled }
 ```
@@ -1668,7 +1825,11 @@ enum HttpErr { Io(msg: Str), Canceled }
   cut by MaxBytesReader).
 
 `serve` runs until its scope is cancelled, then stops accepting, waits for
-in flight requests, and returns `Ok(())`. Each request runs as an isolated
+in flight requests, and returns `Ok(())`. A connection handed over by a
+101 (std/websocket's `upgrade`, a proxied upgrade) is in flight until its
+function returns (decision 0429): on a stop `serve` waits for it within
+the grace period (core 7.5), so a long lived handler watches
+`task.stopping()` and closes, a WebSocket with 1001. Each request runs as an isolated
 task with its own span and request id. Its memory may come from a request
 scoped arena (core 5.5, decision 0066), which no program can observe. A
 response with a body (not 1xx, 204, or 304) that is not a stream is sent
@@ -1692,9 +1853,12 @@ fn (c: Client) send(req: Request) -> Response ! ClientErr uses net.dial
 fn (c: Client) post_json[T: Json](url: Str, v: T) -> Response ! ClientErr uses net.dial
 fn (c: Client) with_roots(pem: Bytes) -> Client ! TlsErr   // 4.6
 fn (c: Client) with_redirects(max: Int) -> Client          // decision 0404
+fn (c: Client) with_protocols(p: Set[Protocol]) -> Client  // Go's Transport.Protocols (4.6, decision 0434)
+fn (c: Client) with_h2_config(cfg: H2Config) -> Client     // Go's Transport.HTTP2 (4.6)
 fn (r: Request) with_timeout(d: Duration) -> Request       // decision 0404
 fn (r: Request) with_idle_timeout(d: Duration) -> Request  // decision 0404
 fn (r: Request) with_body_reader(b: BodyReader) -> Request // decision 0404
+fn (r: Request) with_trailers(names: List[Str], f: fn() -> Map[Str, Str]) -> Request   // names declared up front, f's values sent after the body (decision 0433)
 
 pub fn reverse_proxy(client: Client, target: Url) -> ReverseProxy   // decision 0404
 struct ReverseProxy {}
@@ -1708,6 +1872,7 @@ fn (s: ClientStream) head() -> ResponseHead
 fn (s: ClientStream) read(max: Int = 32768) -> Bytes? ! ClientErr uses net.dial
 fn (s: ClientStream) read_all(max_size: Int = 1073741824) -> Bytes ! ClientErr uses net.dial
 fn (s: ClientStream) close()
+fn (s: ClientStream) trailers() -> Map[Str, Str]   // the response's trailers, empty until read returned None (decision 0433)
 
 enum ClientErr {
   InvalidUrl(msg: Str)
@@ -1721,6 +1886,56 @@ pub fn parse_url(s: Str) -> Url ! UrlErr
 struct Url { scheme: Str, host: Str, port: Int?, path: Str, query: Map[Str, Str] }
 struct UrlErr { msg: Str }
 ```
+
+Full duplex (decision 0433): inside a `handle_stream` route's
+`http.stream` function the request's BodyReader stays readable, so a
+handler reads request pieces while it writes response pieces. Over
+HTTP/2 a stream always allows it; over HTTP/1.1 only a response made
+`with_full_duplex()` does (Go's `ResponseController.EnableFullDuplex`,
+since many HTTP/1 clients read nothing until they finish writing): its
+head goes out at once, and a request that asked for `100-continue` gets
+it before the first read. `http.pipe()` gives a BodyReader that a
+PipeWriter fills as a task writes; with `Request.with_body_reader` and
+`Client.open`, which returns at the response's head, one task writes a
+request while another reads the response (a gRPC style bidirectional
+stream). A read takes at most `max` bytes of a written piece. Until the
+reader's first read the pipe holds what is written, up to 64 KiB, and
+each write returns at once, so a task may write a request's first
+pieces and then open it (decision 0444); a write past 64 KiB held, and
+from the first read on each write, waits until the reader has taken
+it, as Go's io.Pipe does.
+A client that is done with the request (its response ended or failed,
+or the stream was closed) closes the pipe's reading end, as net/http
+closes a request body: a write waiting then, and any after, fails with
+`Io("io: read/write on closed pipe")`. The native backend's HTTP/1.1
+server and client do it (the client sends the body from a task and the
+connection is not reused afterwards); the native HTTP/2 client's
+duplex pipe follows (until then its pump waits for a piped piece
+before it reads the response).
+
+Trailers (decision 0433) are fields sent after a body, as net/http sends
+them: a streamed response's `set_trailer` (Go's `TrailerPrefix`; declared
+in advance or not), a request's `with_trailers`, read by
+`ClientStream.trailers` and `BodyReader.trailers` once the body has
+ended, each name canonical and the names in sorted order. A request's
+trailer names are declared in its head (`with_trailers(names, f)`; an
+HTTP/2 server keeps only declared names, as Go's does), and f's values
+for other names are dropped. Over HTTP/1.1 they follow the last chunk
+(a body with a Content-Length carries none, and a streamed response
+that writes no body is sent with `Content-Length: 0`, so it carries
+only the trailers it declared with `with_trailer_names`, as net/http
+does, while one that writes a body and sets a trailer is sent chunked
+on every backend, so its trailers follow declared or not);
+over HTTP/2 they are a HEADERS frame ending the stream, after the
+response's HEADERS and DATA (with no body, two HEADERS frames; never
+merged into the first). Names a trailer may not carry are dropped when
+set and when received: Go's list, Authorization, Cache-Control,
+Connection, Content-Encoding, Content-Length, Content-Range,
+Content-Type, Expect, Host, Keep-Alive, Max-Forwards, Pragma,
+Proxy-Authenticate, Proxy-Authorization, Proxy-Connection, Range, Realm,
+Te, Trailer, Transfer-Encoding and Www-Authenticate. The native backend
+sends and receives none yet (its wire support follows decision 0433's
+split); there `trailers()` is empty.
 
 `display` of these errors prints plain text (decision 0358): `HttpErr` the
 message of an `Io` or `canceled`; `ClientErr` `invalid URL: MSG`, MSG for a
@@ -1833,11 +2048,13 @@ header`, `unexpected EOF`). A request that sets `Accept-Encoding` or
 ### 4.6 TLS (HTTPS)
 
 ```
-struct TlsCert {}                                  // handle: a certificate chain with its private key
+type TlsCert = tls.TlsCert                         // handle: a certificate chain with its private key (27)
 pub fn tls_cert(cert_pem: Bytes, key_pem: Bytes) -> TlsCert ! TlsErr
 struct TlsErr { msg: Str }
 fn (s: Server) with_tls(certs: List[TlsCert]) -> Server
+fn (s: Server) with_client_auth(mode: tls.ClientAuth, roots: tls.Roots? = None) -> Server
 fn (c: Client) with_roots(pem: Bytes) -> Client ! TlsErr
+fn (c: Client) with_cert(cert: TlsCert) -> Client
 ```
 
 ```
@@ -1860,10 +2077,59 @@ fn serve_https(os: Os, r: http.Router) -> () ! Error uses (fs.read, net.listen) 
   (shutdown, the arena, `Content-Length`); a client that sends plain HTTP
   gets `400` with the body `Client sent an HTTP request to an HTTPS
   server.` and the connection closes. Failed handshakes are not logged.
-  Client certificates are not requested.
+- Protocols and HTTP/2 settings (decision 0434, Go 1.24's shape):
+
+  ```
+  enum Protocol { Http1, Http2, UnencryptedHttp2 }
+  struct H2Config {                     // Go's HTTP2Config; 0: the default, out of range values clamped as Go
+    max_concurrent_streams: Int = 0     // 250
+    max_read_frame_size: Int = 0        // 1 MiB (16384 to 16 MiB)
+    max_receive_buffer_per_connection: Int = 0   // 1 MiB
+    max_receive_buffer_per_stream: Int = 0       // 1 MiB
+    max_decoder_header_table_size: Int = 0       // 4096
+    max_encoder_header_table_size: Int = 0       // 4096
+    send_ping_timeout: Duration = 0s    // read silence before a PING; none
+    ping_timeout: Duration = 0s         // the wait for its ack; 15 s
+    write_byte_timeout: Duration = 0s   // no write progress closes the connection; none
+  }
+  ```
+
+  Without `with_protocols` a server and a client speak `#{Http1,
+  Http2}`. A server with `UnencryptedHttp2` serves HTTP/2 with prior
+  knowledge (h2c: the client opens with the HTTP/2 preface) on a plain
+  listener, and HTTP/1.1 on the same port when `Http1` is in the set;
+  without `Http1` an HTTP/1.1 connection closes. A client with
+  `UnencryptedHttp2` and not `Http1` opens an `http://` URL with HTTP/2
+  prior knowledge; with both it uses HTTP/1.1 (it cannot know the server
+  speaks h2c). Over TLS, a set without `Http2` leaves `h2` out of ALPN
+  and one without `Http1` leaves out `http/1.1`. `serve` fails with
+  `Io("http: with_protocols needs a protocol the listener can speak")`
+  for an empty set, or a TLS server with neither `Http1` nor `Http2`.
+  There is no `Upgrade: h2c` (RFC 9113 deprecates it; net/http has none).
+  The native backends store the set and the config; the h2c server and
+  client and the per connection settings land with decision 0434's
+  native step.
+- Mutual TLS (decision 0433): `with_client_auth(mode, roots)` makes the
+  server ask for a client certificate in `mode` (std/tls's `ClientAuth`,
+  Go's `tls.Config.ClientAuth`): `None` asks for none (the default);
+  `Request` asks and checks nothing; `RequireAny` requires one and checks
+  nothing; `VerifyIfGiven` checks one if given; `RequireAndVerify`
+  requires one and checks it. A check verifies the client's chain against
+  `roots` (Go's `ClientCAs`; the system's when `None`) with the
+  `clientAuth` extended key usage and no host name. A client that fails
+  the mode gets Go's alert (`remote error: tls: certificate required`,
+  `remote error: tls: bad certificate`, ...) and the server logs nothing.
+  A request's `tls_state()` has the client's certificates in
+  `peer_certificates` and the chains that verified them in
+  `verified_chains` (each leaf first, ending in a root; empty when the
+  mode checked none). `with_cert(cert)` makes a client present `cert`
+  when a server asks for one; without it, it presents none. The native
+  backends do this over TLS 1.3 (a client presents a certificate only
+  when one of the request's certificate authorities issued it, as Go's
+  does) and over TLS 1.2.
 - HTTP/2 (decision 0121): over TLS a server offers `h2` and `http/1.1`
   by ALPN and prefers `h2`, and the client offers both; plain `http` is
-  always HTTP/1.1 (no h2c). Nothing in the API changes, and every backend
+  HTTP/1.1 unless `with_protocols` says otherwise (below). Nothing else in the API changes, and every backend
   behaves as net/http's HTTP/2 does: a request from Go's client (or Xo's)
   carries `User-Agent: Go-http-client/2.0` and no `Connection` field,
   several `Cookie` fields arrive joined with `; `, and a response's
@@ -1990,6 +2256,7 @@ fn (p: Patch[T]) apply_opt(current: T?) -> T? // Absent keeps, Null clears, Valu
 | `Int8`, `Int16`, `Int32`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Float32` | number; decoding refuses a number out of the type's range (`expected integer` for a signed type, `expected non negative integer` for an unsigned one, `cannot unmarshal number 1e39 into Float32` for a Float32 past its largest value, Go's words with Xo's type), on every backend |
 | `List[T]`, `Set[T]` | array |
 | `Map[Str, V]` | object |
+| valued enum (`enum E: Int` or `enum E: Str`, decision 0269) | the variant's value: a number or a string; decoding refuses a value no variant has (`unknown value 7 of enum Weekday`) |
 | enum unit variant | string `"Variant"` |
 | enum variant with fields | object `{"Variant": {fields}}` |
 | tuple `(A, B, ...)` | array `[a, b, ...]`; decodes only from an array of exactly that length (decision 0088) |
@@ -2198,6 +2465,10 @@ pub fn with_budget[T, E, fx: Effects](clock: Clock, b: Budget, f: fn() -> T ! E 
 pub fn is_canceled() -> Bool
 pub fn stop_requested() -> Bool          // the first shutdown signal arrived (core 7.5)
 pub fn stopping() -> Chan[()]            // closed when a stop is requested
+pub fn deadline(clock: Clock) -> Time? uses clock   // decision 0430: Go's ctx.Deadline()
+    // the nearest with_timeout deadline the current task works under, on clock;
+    // None outside every with_timeout. A spawned task keeps the deadline in force
+    // where it was spawned, also after that with_timeout's body returned
 
 pub fn map_concurrent[T, R, E, fx: Effects](items: List[T], limit: Int, f: fn(T) -> R ! E uses fx)
     -> List[Result[R, E]] uses fx
@@ -2335,6 +2606,7 @@ matches an operation if any of its path arguments equals the given path
 enum FsOp { Read, Write, Rename, Remove, CreateDir, ReadDir }
 fn (f: MemFs) fail_next(op: FsOp, path: Str, err: FsErr)   // next matching op fails once; `*` matches any run of characters within a segment
 fn (f: MemFs) set_case_sensitive(on: Bool)
+fn (f: MemFs) set_disk_usage(u: DiskUsage)       // what disk_usage answers (decision 0426); all zero before
 fn (f: MemFs) files() -> Map[Str, Bytes]                  // every file, by path
 ```
 
@@ -3803,7 +4075,11 @@ pub fn unzip(data: Bytes) -> List[Entry] ! ArchiveErr
   error (zip slip); so is a tar or zip entry that is a link or a device.
   Directories are written with a trailing `/` and read without it. A PAX
   global header (`git archive` writes one holding the commit) describes
-  the archive, not an entry, and `untar` skips it (2026-10-12).
+  the archive, not an entry, and `untar` skips it (2026-10-12) after the
+  path rule checks its name (or its own `path` record), as Go's reader
+  returns it under that name. Reading follows Go's archive/tar and
+  archive/zip errors exactly; internal/stdtest/archivefuzz_test.go checks
+  hostile archives against them on every backend.
 - `tar` writes PAX headers with the entries' modes (`0o7777`) and times;
   `zip` deflates files and stores their modes and times (with Unix
   extended timestamps, so times before 1980 survive).
@@ -3842,7 +4118,11 @@ fn load(fs: Fs) -> Config ! Error uses fs.read {
   (decimal, `0x`, `0o`, `0b`, underscores between digits) a JSON
   integer, a float a JSON number (its text without `+` and underscores),
   a boolean a boolean, and a date or time its RFC 3339 text (a space
-  between date and time and lower case `t` and `z` become `T` and `Z`).
+  between date and time and lower case `t` and `z` become `T` and `Z`;
+  a field out of RFC 3339's range is an error, as Go's `time.Parse`
+  checks it: a month 1 to 12, a day of that month (February 29 only in a
+  leap year), hour 0 to 23, minute and second 0 to 59, an offset's hour
+  0 to 23 and minute 0 to 59).
   `decode[T]` then follows the `derive Json` rules of section 5: missing
   keys take field defaults, unknown keys are ignored, `Duration` fields
   take `"1m30s"` text, an offset date-time decodes into `Time`, and a
@@ -3854,7 +4134,9 @@ fn load(fs: Fs) -> Config ! Error uses fs.read {
   tables]]` headers, inline tables, and arrays over several lines with
   comments and a trailing comma. Defining a key or a table twice, adding
   to an inline table, and mixing a table with an array of tables are
-  errors with their line.
+  errors with their line. Conformance: toml-test v1.5.0's TOML 1.0.0
+  documents (internal/stdtest/testdata/toml-test) and an invariant fuzz
+  run on every backend (internal/stdtest/tomlfuzz_test.go).
 - `to_json` gives the JSON text, for code that wants to read a document
   without a struct (`json.decode[Map[Str, ...]]`) or print it.
 - `encode(v)` writes a document in the layout of
@@ -4211,11 +4493,17 @@ struct Roots {}                                    // handle: trusted certificat
 struct TlsErr { msg: Str }
 fn roots(pem: Bytes) -> Roots ! TlsErr
 fn roots_of(certs: List[x509.Certificate]) -> Roots ! TlsErr
+struct TlsCert {}                                  // handle: a certificate chain with its private key
+fn cert(cert_pem: Bytes, key_pem: Bytes) -> TlsCert ! TlsErr
+enum ClientAuth { None, Request, RequireAny, VerifyIfGiven, RequireAndVerify }
 struct TlsConn {}                                  // handle
-fn client(c: Conn, host: Str, roots: Roots? = None, verify: Verify = Verify.Full, alpn: List[Str] = []) -> TlsConn ! NetErr uses net.dial
+fn client(c: Conn, host: Str, roots: Roots? = None, verify: Verify = Verify.Full, alpn: List[Str] = [], cert: TlsCert? = None) -> TlsConn ! NetErr uses net.dial
 fn (t: TlsConn) read(max: Int) -> Bytes? ! NetErr  uses net.dial
 fn (t: TlsConn) write(data: Bytes) -> () ! NetErr  uses net.dial
 fn (t: TlsConn) close()
+fn (t: TlsConn) set_deadline(clock: Clock, at: Time?) uses clock         // decision 0430: Go's tls.Conn SetDeadline
+fn (t: TlsConn) set_read_deadline(clock: Clock, at: Time?) uses clock
+fn (t: TlsConn) set_write_deadline(clock: Clock, at: Time?) uses clock
 fn (t: TlsConn) alpn() -> Str                      // the protocol the server chose, "" for none
 fn (t: TlsConn) version() -> Str                   // "TLS 1.2" or "TLS 1.3"
 fn (t: TlsConn) peer_certificates() -> List[x509.Certificate]
@@ -4264,6 +4552,20 @@ fn pg_tls(os: Os, addr: Str, host: Str) -> tls.TlsConn ! Error uses net.dial {
   (`Canceled`, core 7.2).
 - `alpn` lists the protocols offered (none by default); `alpn()` is the
   one the server chose.
+- `cert(cert_pem, key_pem)` is http's `tls_cert` (4.6) with std/tls's
+  error; `http.TlsCert` is this type (decision 0433). `client`'s `cert`
+  is presented when the server asks for a certificate (mutual TLS);
+  `ClientAuth` is the server's side, for `http.Server.with_client_auth`
+  (4.6), in Go's order and meaning.
+
+- Deadlines (decision 0430) are the connection's, as in Go's tls.Conn,
+  with std 3.2's rules. A read that times out mid-record keeps what
+  arrived, so the connection reads on after a new deadline. A deadline
+  set on the Conn before `client` also limits the handshake (Go's
+  Handshake), within its own 10 seconds. A write that fails (a timeout
+  included, or a deadline already passed) may have sent part of a
+  record, so every later write fails the same way, as Go's tls.Conn
+  ("the TLS state is corrupt").
 - Tests: on FakeNet `client` does no TLS: the TlsConn reads and writes the
   connection's plain bytes, `alpn()` is "" and `version()` is "TLS
   1.3", so a driver's tests can run an in-process fake server. Real TLS
@@ -4701,7 +5003,7 @@ Every function and method of std/prelude.xo, by type, as declared there
 `static` receiver is a function on the type (`Int.parse(s)`); one with an
 UPPER_SNAKE name and no parameters is a constant, read without a call
 (`Time.UNIX_EPOCH`).
-462 declarations.
+477 declarations.
 
 ### Range
 
@@ -4852,6 +5154,8 @@ fn (static: UInt32) try(x: Int) -> UInt32?
 
 ```
 fn (static: UInt64) try(x: Int) -> UInt64?
+fn (static: UInt64) from_bits(b: Int) -> UInt64
+fn (u: UInt64) to_bits() -> Int
 ```
 
 ### Rune
@@ -5002,6 +5306,7 @@ fn (xs: List[T]) index_of(x: T) -> Int?
 fn (xs: List[T]) indexed() -> List[(Int, T)]
 fn (xs: List[T]) map[U, E, fx: Effects](f: fn(T) -> U ! E uses fx) -> List[U] ! E uses fx
 fn (xs: List[T]) filter[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> List[T] ! E uses fx
+fn (xs: List[T]) filter_map[U, E, fx: Effects](f: fn(T) -> U? ! E uses fx) -> List[U] ! E uses fx
 fn (xs: List[T]) fold[A, E, fx: Effects](init: A, f: fn(A, T) -> A ! E uses fx) -> A ! E uses fx
 fn (xs: List[T]) find[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> T? ! E uses fx
 fn (xs: List[T]) any[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
@@ -5227,6 +5532,7 @@ fn write_only(self) -> Fs
 fn case_sensitive(self) -> Bool
 fn stat(self, path: Str) -> FileInfo? ! FsErr uses fs.read
 fn exists(self, path: Str) -> Bool ! FsErr uses fs.read
+fn disk_usage(self, path: Str) -> DiskUsage ! FsErr uses fs.read
 fn read(self, path: Str) -> Bytes ! FsErr uses fs.read
 fn read_text(self, path: Str) -> Str ! FsErr uses fs.read
 fn read_dir(self, dir: Str) -> List[FileInfo] ! FsErr uses fs.read
@@ -5289,6 +5595,9 @@ fn (l: Listener) close()
 fn (c: Conn) read(max: Int) -> Bytes? ! NetErr uses net.dial
 fn (c: Conn) write(data: Bytes) -> () ! NetErr uses net.dial
 fn (c: Conn) close()
+fn (c: Conn) set_deadline(clock: Clock, t: Time?) uses clock
+fn (c: Conn) set_read_deadline(clock: Clock, t: Time?) uses clock
+fn (c: Conn) set_write_deadline(clock: Clock, t: Time?) uses clock
 ```
 
 ### ServerConn
@@ -5297,6 +5606,9 @@ fn (c: Conn) close()
 fn (c: ServerConn) read(max: Int) -> Bytes? ! NetErr uses net.listen
 fn (c: ServerConn) write(data: Bytes) -> () ! NetErr uses net.listen
 fn (c: ServerConn) close()
+fn (c: ServerConn) set_deadline(clock: Clock, t: Time?) uses clock
+fn (c: ServerConn) set_read_deadline(clock: Clock, t: Time?) uses clock
+fn (c: ServerConn) set_write_deadline(clock: Clock, t: Time?) uses clock
 ```
 
 ### Stream
@@ -5314,6 +5626,7 @@ fn listen(self, addr: Str) -> Listener ! NetErr uses net.listen
 fn dial(self, addr: Str) -> Conn ! NetErr uses net.dial
 fn dial_timeout(self, addr: Str, d: Duration) -> Conn ! NetErr uses net.dial
 fn lookup_host(self, host: Str) -> List[Str] ! NetErr uses net.dial
+fn interfaces(self) -> List[NetInterface] ! NetErr uses net.listen
 fn only(self, hosts: List[Str]) -> Net
 ```
 
@@ -5401,6 +5714,8 @@ fn exit(self, code: Int) -> Never uses proc
 fn set_grace(self, d: Duration) uses proc
 fn pid(self) -> Int uses proc
 fn ppid(self) -> Int uses proc
+fn usage(self) -> ProcUsage uses proc
+fn children_usage(self) -> ProcUsage uses proc
 fn run(self, cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses proc
 fn only(self, cmds: List[Str]) -> Proc
 fn cmd(self, name: Str, args: List[Str] = []) -> Cmd
@@ -5435,6 +5750,7 @@ fn (c: Child) read(max: Int) -> Bytes? ! ProcErr uses proc
 fn (c: Child) read_err(max: Int) -> Bytes? ! ProcErr uses proc
 fn (c: Child) read_line() -> Str? ! ProcErr uses proc
 fn (c: Child) wait() -> Int ! ProcErr uses proc
+fn (c: Child) wait_usage() -> (Int, ProcUsage) ! ProcErr uses proc
 fn (c: Child) kill()
 ```
 
@@ -5447,6 +5763,7 @@ fn create_dir_all_mode(fs: Fs, dir: Str, mode: Int) -> () ! FsErr uses fs
 fn walk_dir[fx: Effects](fs: Fs, dir: Str, visit: fn(FileInfo) -> WalkStep uses fx) -> List[FileInfo] ! FsErr uses (fs.read, fx)
 fn read_text_or(fs: Fs, path: Str, default: Str) -> Str ! FsErr uses fs.read
 fn read_or(fs: Fs, path: Str, default: Bytes) -> Bytes ! FsErr uses fs.read
+fn read_mapped(fs: Fs, path: Str) -> Bytes ! FsErr uses fs.read
 fn write_atomic(fs: Fs, path: Str, data: Bytes) -> () ! FsErr uses fs
 ```
 
@@ -5469,12 +5786,18 @@ enum WsErr {
 }
 fn (e: WsErr) display() -> Str      // gorilla's texts: `websocket: close 1001 (going away): bye`
 struct WsConn {}
-fn (c: WsConn) read() -> Message ! WsErr       // a whole message; pings answered, pongs skipped
+fn (c: WsConn) read() -> Message ! WsErr       // a whole message; pings answered (or on_ping), pongs to on_pong
 fn (c: WsConn) write(m: Message) -> () ! WsErr // one frame
 fn (c: WsConn) write_text(s: Str) -> () ! WsErr
 fn (c: WsConn) ping(data: Bytes = b"") -> () ! WsErr
 fn (c: WsConn) close(code: Int = 1000, reason: Str = "") -> () ! WsErr   // the close frame, then the connection
 fn (c: WsConn) subprotocol() -> Str
+fn (c: WsConn) set_deadline(clock: Clock, t: Time?) uses clock         // decision 0430: gorilla's SetReadDeadline and SetWriteDeadline
+fn (c: WsConn) set_read_deadline(clock: Clock, t: Time?) uses clock
+fn (c: WsConn) set_write_deadline(clock: Clock, t: Time?) uses clock
+fn (c: WsConn) on_ping[fx: Effects](f: fn(Bytes) -> () uses fx) uses fx   // gorilla's SetPingHandler: replaces the automatic pong
+fn (c: WsConn) on_pong[fx: Effects](f: fn(Bytes) -> () uses fx) uses fx   // gorilla's SetPongHandler
+fn (c: WsConn) pong(data: Bytes = b"") -> () ! WsErr
 pub fn upgrade[fx: Effects](req: http.Request, f: fn(WsConn) -> () uses fx, protocols: List[Str] = [], origins: List[Str] = [], max_message: Int = 1048576) -> http.Response uses fx
 pub fn dial(net: Net, url: Str, headers: Map[Str, Str] = {}, protocols: List[Str] = [], max_message: Int = 1048576, roots: Bytes = b"") -> WsConn ! WsErr uses net.dial
 ```
@@ -5491,7 +5814,29 @@ pub fn dial(net: Net, url: Str, headers: Map[Str, Str] = {}, protocols: List[Str
 - An accepted upgrade is a 101 response that hands the connection over
   (std.md 4.3): the server writes gorilla's 101 (with
   `Sec-WebSocket-Accept` and the subprotocol), runs `f` with the
-  connection, and closes it when `f` returns. HTTP/1.1 only.
+  connection, and closes it when `f` returns. HTTP/1.1 only. Until `f`
+  returns the connection is a request in flight: a stop waits for it
+  (std 4.4, decision 0429) and does not close it as idle, so `f` watches
+  `task.stopping()` and closes with 1001 (going away). A handler that
+  waits in `read()` does that from a background task; its read then ends
+  when the peer answers the close:
+
+  ```
+  websocket.upgrade(req, fn(c) {
+    scope s {
+      s.spawn_background(fn() {
+        let _ = task.stopping().recv()
+        c.close(code: 1001, reason: "server stopping").ignore_err("stopping")
+      })
+      while true {
+        match c.read() {
+          Ok(m) => handle(m)
+          Err(_) => break
+        }
+      }
+    }
+  })
+  ```
   `Router.call` returns the 101 without running `f`.
 - Frames as gorilla reads them: a client's frames must be masked and a
   server's not; reserved bits, unknown opcodes, a control frame over 125
@@ -5512,8 +5857,39 @@ pub fn dial(net: Net, url: Str, headers: Map[Str, Str] = {}, protocols: List[Str
   the protocols, and `headers`, and fails with `Handshake(status,
   "websocket: bad handshake")` unless the answer is a 101 with the
   upgrade tokens and the right `Sec-WebSocket-Accept`.
+- Deadlines (decision 0430) are gorilla's. A read or write past its
+  deadline fails with `Net(Timeout)`, and so does one whose deadline has
+  already passed, at once. The error sticks for that direction: after a
+  timeout a frame may be read or sent in part, so later reads (or
+  writes) fail the same way, as gorilla's. `None` clears a deadline. A
+  client's deadlines are its connection's (`Conn` or `TlsConn`); a
+  server's apply from the next wait of the handed over connection, so
+  one set while a read or write is waiting does not move that wait (Go
+  moves it).
+- `on_ping` and `on_pong` run `f` with each ping's or pong's data inside
+  `read`, which holds its lock: `f` must not call `read`. `on_ping`
+  replaces the automatic pong (send one with `pong`). A later call
+  replaces `f`. Both are dropped when a read fails for good or the
+  connection closes, so a hook that captures its `WsConn` does not keep
+  it alive. A keepalive moves the read deadline in `on_pong` while
+  another task pings:
+
+  ```xo
+  c.set_read_deadline(clock, Some(clock.now() + 60s))
+  c.on_pong(fn(_data) { c.set_read_deadline(clock, Some(clock.now() + 60s)) })
+  scope s {
+    s.spawn_background(fn() {
+      while c.ping() is Ok(_) {
+        clock.sleep(30s)
+      }
+    })
+    while let Ok(m) = c.read() {
+      // handle m
+    }
+  }
+  ```
 - Not provided: permessage-deflate, a message written in pieces, ping
-  timers (use `ping` and a clock), WebSockets over HTTP/2.
+  timers (use `ping` and a clock, as above), WebSockets over HTTP/2.
 
 
 ## 36. std/debug
@@ -5530,6 +5906,7 @@ fn mem_label(text: Str)
 fn mem_mapped() -> Int
 fn mem_peak() -> Int
 fn mem_total() -> Int
+fn mem_trim()
 ```
 
 - `GET /profile?seconds=N&hz=H`: a CPU profile of the next N seconds
@@ -5568,11 +5945,19 @@ fn mem_total() -> Int
   `mem_mapped()` is the count the budget compares (chunks and records as
   mapped, large blocks as handed out, not the room a growing block
   reserves), `mem_peak()` its high-water mark, `mem_total()` the
-  machine's physical memory (macOS and Linux; 0 elsewhere). xo, when
+  machine's physical memory (macOS, Linux and Windows; 0 on WASI and the Go backend). xo, when
   XO_MAX_MEM is not set, sets three quarters of physical memory, at least
   16 GiB (decision 0349's default; none where physical memory is not
   read). The Go backend ignores the
   budget and its label, and both counts are 0 there.
+- `mem_trim()` (decision 0448, native backends): gives the system the
+  pages of the calling thread's free heap blocks of 16 KiB and over (its
+  free lists and spare magazines; darwin for now), each once until the
+  block is used and freed again, and on every target unmaps the cached
+  large blocks of 2 MiB and over; for a program that knows its live memory just fell, as xo
+  does after its phases that free the most. The pages come back on the next
+  use, and the next such large block maps anew. Nothing on the Go backend, whose runtime's scavenger does this
+  itself.
 
 ## 37. std/metrics
 
@@ -5968,6 +6353,7 @@ struct Backoff {
 }
 fn (b: Backoff) delay(attempt: Int, rand: Rand) -> Duration uses rand
 fn retry[T, E, fx: Effects](b: Backoff, clock: Clock, rand: Rand, op: fn() -> T ! E uses fx, retryable: fn(E) -> Bool) -> T ! E uses (clock, rand, fx)
+fn retry_notify[T, E, fx: Effects, rx: Effects, nx: Effects](b: Backoff, clock: Clock, rand: Rand, op: fn() -> T ! E uses fx, retryable: fn(E) -> Bool uses rx, notify: fn(E, Duration) -> () uses nx) -> T ! E uses (clock, rand, fx, rx, nx)
 fn always[E]() -> fn(E) -> Bool
 ```
 
@@ -5982,6 +6368,11 @@ fn always[E]() -> fn(E) -> Bool
   `retryable` is required: `backoff.always()` retries every error, the
   same as cenkalti's default (its Permanent errors are `retryable`
   answering false).
+- `retry_notify` is `retry` with cenkalti's RetryNotify: before each
+  sleep it calls `notify(e, d)` with the error and the delay, to log or
+  count retries; an error it answers is not notified. `retryable` and
+  `notify` may have effects of their own (a log, a metric): each
+  callback has its own effect variable.
 
 ## 44. std/crc32
 
@@ -6084,3 +6475,34 @@ fn lookup_addr(n: Net, ip: Str) -> List[Str] ! NetErr uses net.dial
   resolution policies (NRPT, a VPN's split DNS), its DNS over HTTPS
   setting and its cache are not consulted (decision 0427).
   The Go backend uses Go's resolver on every OS.
+
+## 47. std/deque
+
+A double ended queue on a ring buffer, as a Go slice ring or
+`container/list` used as a queue. A std module rather than the prelude:
+prelude type names cannot be redeclared (core 1.4), so a program's own
+`Deque` keeps compiling. Pure.
+
+```xo
+struct Deque[T] {}
+pub fn new[T](cap: Int = 0) -> Deque[T]
+fn (var d: Deque[T]) push_back(x: T)
+fn (var d: Deque[T]) push_front(x: T)
+fn (var d: Deque[T]) pop_front() -> T?          // None when empty
+fn (var d: Deque[T]) pop_back() -> T?
+fn (d: Deque[T]) front() -> T?
+fn (d: Deque[T]) back() -> T?
+fn (d: Deque[T]) get(i: Int) -> T?              // from the front; None out of range
+fn (d: Deque[T]) len() -> Int
+fn (d: Deque[T]) is_empty() -> Bool
+fn (d: Deque[T]) to_list() -> List[T]           // front to back
+```
+
+- Both ends are O(1), amortized: a full ring doubles (at least 8
+  slots), copying its elements once. A popped element is released at
+  once.
+- A `Deque` is a value, as `List`: a copy shares the ring until one of
+  them is written, and that write copies the ring once (O(n)). Pass it
+  by `var` or keep it in one place to avoid the copy.
+- There is no `for x in d` (core 3.5 iterates the built in collections
+  only): `for x in d.to_list()`.

@@ -32,7 +32,7 @@ prints the explanation below in a terminal.
 | [`XO0167`](xo0167/) | error | parser | top level declaration (fn, struct, const, ...) inside a block |
 | [`XO0168`](xo0168/) | error | parser | statement (let, expression, ...) at top level |
 | [`XO0169`](xo0169/) | error | parser | match or select arms separated by `,` instead of newlines |
-| [`XO0170`](xo0170/) | error | parser | several effects in a function type must be parenthesized (core 15) |
+| [`XO0170`](xo0170/) | error | parser, checker | several effects in a function type must be parenthesized (core 15); the checker reports it inside type arguments, where only the arity tells a second effect from a type argument (decision 0438) |
 | [`XO0171`](xo0171/) | error | parser | `..` used more than once or not last in pattern fields |
 | [`XO0172`](xo0172/) | error | parser | function declaration without a body |
 | [`XO0173`](xo0173/) | error | parser | `use` after the first declaration (core 15: File) |
@@ -80,6 +80,9 @@ prints the explanation below in a terminal.
 | [`XO0425`](xo0425/) | error | checker | a field type, a type parameter list, or a nested struct that `derive Xml` cannot map (core 2.9, decision 0315) |
 | [`XO0426`](xo0426/) | error | checker | a bad `xml` wire string: an unknown or unsupported option, `attr` with a path, `chardata` or `attr` on a type that cannot hold it (core 2.9, decision 0315) |
 | [`XO0427`](xo0427/) | error | checker | `xml.encode_value` or `xml.decode` of a type parameter instead of a concrete struct (core 2.9, decision 0315) |
+| [`XO0428`](xo0428/) | error | checker | two variants of a valued enum have the same value (core 2.3, decision 0269) |
+| [`XO0429`](xo0429/) | error | checker | an invalid valued enum: a value type other than `Int` or `Str`, a value on an enum with no value type, a variant with fields, type parameters, or a value that is not a constant of the value type (core 2.3, decision 0269) |
+| [`XO0430`](xo0430/) | error | checker | a pattern name spelled like a constant (upper case) that is neither a `const` in scope nor a variant: a misspelled constant pattern (core 3.5, decision 0269) |
 | [`XO0501`](xo0501/) | error | checker | var method called on a non var binding (core 3.4) |
 | [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | [`XO0503`](xo0503/) | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -98,7 +101,7 @@ prints the explanation below in a terminal.
 | [`XO0602`](xo0602/) | error | checker | import path does not yield a valid local name (core 4.1) |
 | [`XO0603`](xo0603/) | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
 | [`XO0604`](xo0604/) | error | checker | cyclic module imports (core 4.1) |
-| [`XO0605`](xo0605/) | error | checker | name is not `pub` in its module, or the std type is an opaque handle (core 1.5) |
+| [`XO0605`](xo0605/) | error | checker | name is not `pub` in its module, a field of a std struct documented `@internal` outside std (decision 0440), or the std type is an opaque handle (core 1.5) |
 | [`XO0606`](xo0606/) | error | checker | method declared outside the module of its type (core 3.4) |
 | [`XO0607`](xo0607/) | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
 | [`XO0608`](xo0608/) | error | checker | two C ABI export modules of the native std (std/native/llrt/cabi*.xo) define the same function name, one symbol `xo_x_<name>` (decision 0207) |
@@ -122,6 +125,7 @@ prints the explanation below in a terminal.
 | [`XO0912`](xo0912/) | warning | vet | retired in 0.34.0 (no longer reported): `u.0`, the pattern `uuid.Uuid(p)`, or `uuid.Uuid(s)` on a `uuid.Uuid` was deprecated in 0.33.0; a `uuid.Uuid` is now two Ints and those uses are type errors (std.md 24, decision 0387) |
 | [`XO0913`](xo0913/) | note | vet --cost | in a loop, a slice of a Str or Bytes read only by index, length or equality: each iteration makes a view (a range check, a count and a drop); read the whole by offsets (knowledgebase/std-performance-guide.md) |
 | [`XO0914`](xo0914/) | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
+| [`XO0915`](xo0915/) | warning | vet --cost | a raw address (`raw.data`, `raw.bytes_addr`, `rt.obj_addr`, std internals) used after its value was released in the same block: a value is released at its last use, even inside the arguments of the call that takes its address, so the call reads freed memory; keep it alive with `raw.alive` or `raw.alive_str` after the last access (gotchas/raw-address-outlives-bytes.md) |
 | [`XO0904`](xo0904/) | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | [`XO1001`](xo1001/) | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | [`XO1101`](xo1101/) | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -169,4 +173,7 @@ prints the explanation below in a terminal.
 | [`XO1511`](xo1511/) | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
 | [`XO1512`](xo1512/) | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
 | [`XO1513`](xo1513/) | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
+| [`XO1514`](xo1514/) | error | build | a program that calls `http.serve_component` built for wasip1/wasm, which `--backend=wasm` alone is; it builds with `--targets=wasip2/wasm` (decision 0447) |
+| [`XO1515`](xo1515/) | error | build | a program built for wasip2/wasm reaches what the `wasi:http` proxy world does not have: files, processes or sockets; the message names the call and how it is reached (decision 0447) |
+| [`XO1516`](xo1516/) | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447) |
 {.codes}

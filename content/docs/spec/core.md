@@ -765,6 +765,34 @@ pub enum LoadErr {
   a field of type `Never` cannot be constructed and may be omitted from a
   `match`.
 
+Valued enums (decision 0269). An enum whose variants are all field-less may
+declare a value type, `Int` or `Str`, after its name, and each variant may
+give its value:
+
+```
+enum Weekday: Int { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
+enum Level: Str { Debug = "debug", Info = "info", Warn = "warn" }
+enum Color: Str { Red, Green, Blue }       // "Red", "Green", "Blue"
+```
+
+- A value is a constant expression of the value type (a literal, a `const`,
+  arithmetic on them for `Int`). A variant without one is the previous
+  variant's value plus one (the first is 0) for `Int`, and its own name for
+  `Str`. Two variants with one value are `XO0428`. A value type other than
+  `Int` or `Str`, a value on an enum that names no value type, a variant
+  with fields, type parameters, or a value that is not a constant of the
+  value type are `XO0429`.
+- `e.value()` is the variant's value. `E.from(v)` is `E?`: the variant with
+  that value, or `None`. `E.all()` is `List[E]`, the variants in declaration
+  order (a list built per call in this implementation).
+- The enum stays a closed sum type: `match` is exhaustive by variant, and
+  equality, hashing, and `Ord` are by variant in declaration order, not by
+  value. Display prints the variant name.
+- `derive Json` writes and reads the value: `Weekday.Mon` is `1`,
+  `Level.Warn` is `"warn"`. A value no variant has is a decode error that
+  names the enum and the value. An enum without a value type keeps the
+  encoding `"Variant"`.
+
 ### 2.4 Interfaces
 
 ```
@@ -1280,6 +1308,17 @@ match code {
 
 Patterns nest: `Some(Ok(v))`, `Err(LoadErr.NotFound(id))`.
 
+A name in a pattern that is a `const` of the current module, or `mod.NAME`
+for a `pub const` of an imported module, matches by equality with the
+constant's value instead of binding (decision 0269):
+`match status { OK => "done", NOT_FOUND => "missing", _ => "other" }`. A
+variant of the matched enum, or of the prelude, with that name wins over a
+constant. A name spelled like a constant (upper case, digits and
+underscores, two or more characters) that is neither a constant nor a
+variant is `XO0430`, so a misspelled constant cannot bind a name that
+matches everything. A match over a constant pattern still needs a `_` or
+binding arm (`XO0301`).
+
 An unguarded `_` (or catch all binding) arm that hides variants of an enum
 declared in the same module is warning `XO0305`: list the variants, so that
 adding one later is a compile error at every `match`. Enums from other modules
@@ -1740,10 +1779,15 @@ fn main(os: Os) ! {
   (`net`'s functions take `netip.AddrPort`), which is bound with it
   even when the program does not name that package (decision 0392); a
   type of a package a program cannot import (`internal`) is skipped;
-  a parameter of an unexported Go type is skipped, and so is a `[]byte`
+  a parameter of an unexported Go type is skipped; a `[]byte`
   parameter Go writes into (a `Read*` function's, or one named `dst`,
-  unless a result is a `[]byte`: a Bytes is a value and cannot carry
-  Go's writes back);
+  unless a result is a `[]byte`) is an `Int`, the buffer's length,
+  named `max`, and the bytes Go wrote come back in place of the leading
+  `n int` result, or as the whole buffer when there are no results
+  (decision 0445): `r.read(4096) -> Bytes ! go.Error`,
+  `hex.decode(max, src) -> Bytes ! go.Error`; data that comes with
+  `io.EOF` is returned, and the next call gives the EOF; a function with
+  two such buffers (`ReadMsgUDP`) or other results is skipped;
   slices and maps are copied in and out; Go's `any` (`interface{}`, or a
   named empty interface) is `go.Any`, an opaque Go value (decision 0412,
   std.md 12): `go.any(x)` makes one from a value with a Go form, the
@@ -1774,6 +1818,10 @@ fn main(os: Os) ! {
   `fs.file_mode_is_dir(m: UInt32) -> Bool`. A pointer receiver method is
   not bound (Xo passes a copy), and neither is one whose name a package
   function already has.
+- A named Go map type (`jwt.MapClaims`, `map[string]any`) is a handle
+  with `T.of(m)`, which makes one from an Xo Map (copied in), and
+  `to_map()`, which copies it out; its methods and the interfaces it
+  implements (`as_claims()`) are bound as for any handle.
 - An Xo function passed to Go as a callback that Go calls during the Go call,
   on the calling task's goroutine, runs as the calling task. A call from
   another goroutine (`sync.WaitGroup.go_`, a timer) runs as a task of its own,
@@ -1864,6 +1912,14 @@ fn main(os: Os) ! {
   `io.read_all(resp.body().as_reader())`, `buf.as_writer()`,
   `httptest.new_server(mux.as_handler())` (decision 0416 and its
   addendum).
+- A bound call runs its binding's adapter (the argument and result
+  conversions and the panic boundary) in a frame at the Xo call's line
+  (decision 0441: the Go backend pastes the adapter's body at the call
+  under the call's `//line`, 10), so a Go library that records its
+  caller with `runtime.Caller` sees the Xo line: zap's AddCaller logs
+  `"caller":"main.xo:LINE"` with no caller skip (a call through an
+  interface value, or of a generic function, still runs the adapter in
+  Xo's runtime package, `rt/xo_gobind_PKG.go`).
 - Every call into Go performs the effect `go`, which `pub` functions must
   declare. Go code can reach files and the network without a capability, so
   `uses go` marks that authority escape in signatures.
@@ -1918,6 +1974,13 @@ fn main(os: Os) {
   Xo declaration file and a C adapter that the native build compiles and
   links with the program. Function names become snake_case
   (`zlibVersion` is `zlib_version`); struct tags become UpperCamel types.
+  A C `enum` the header defines is also bound as a valued enum
+  `enum EnumcMode: Int { Up = 0, Down = 1 }` (UpperCamel tag; the prefix
+  every enumerator shares, up to a `_`, is dropped and the rest is
+  UpperCamel) with `value()`, `E.from(v)` and `E.all()` (2.3). An
+  enumerator with a value an earlier one has is a `const` alias of that
+  variant. A parameter or result of the enum type is still `Int32`
+  (decision 0269 part 4 stage 1).
 - Types at the boundary (decision 0093), all copied, none pointing into Xo
   memory after the call returns: `int` is `Int32`, `unsigned` `UInt32`,
   `long` and `long long` `Int`, their unsigned forms `UInt64`, `short`,
@@ -1994,9 +2057,13 @@ never depend on it, but the time does:
   per pass. Change `xs[i]` in place instead (`xs[i].push(v)`, decision
   0169). `xo vet` notes it for collection elements (`XO0536`); the Map
   form has `Map.update` (`XO0532`).
-- A `Mutex.with` body changes the value while the mutex still holds it
-  (an error or fault hands it back, decision 0085), so the body's first
-  write to each collection in it copies that collection.
+- A `Mutex.with` body with a `var` parameter gets the value moved out
+  of the mutex, but an error or fault hands the value it was given back
+  (decision 0085), so the body keeps that value alive while a later
+  point can still fail or fault: a write followed by such a point (a
+  call that can fault, an index, `?`) copies the collection it writes,
+  once per `with`. A write after the body's last such point changes the
+  value in place (`m.with(fn(var l) { l.push(x) })` does not copy).
 
 ### 5.2 Mutation
 
@@ -2246,7 +2313,10 @@ pub fn sync(src: Fs, out: Stdio) -> () ! SyncErr uses fs.read, stdio { ... }
     uses (clock, fx) { ... }
   ```
   An effect variable is instantiated at each call from the argument's effects,
-  and may be empty.
+  and may be empty. When one effect variable is the effects of several
+  function parameters, it is the union of the effects of those arguments
+  (decision 0432). Elsewhere (an effect argument of a type, `Cache[K, V, fx]`)
+  the variable is bound exactly, and a conflict is an error.
 - **Structs may take effect parameters** (`struct Cache[K, V, fx: Effects]`),
   and effect sets may be written as type arguments (`Cache[Int, Item, net.dial]`).
 - **Effect arguments may be omitted.** Writing `Cache[Int, Item]` leaves the
@@ -2809,6 +2879,14 @@ test "retries after 503" {
   their seed and input.
 - Real capabilities require `test "name" uses net { ... }` and
   `xo test --real`; `os` then holds real capabilities for the listed effects.
+  Without `--real` such a test is skipped, and the summary line names every
+  skip's reason (`ok: 1 passed, 0 failed, 1 skipped (1 uses net: run with
+  --real)`; decision 0437).
+- A test run sees only the fakes unless `--real` is given, so its result
+  depends only on the test binary and the run's flags: a passed native
+  run of a binary that links no `use go` or C binding may be replayed
+  from the cache with ` (cached)` on its summary line, and `--count=1`
+  or XO_TEST_CACHE=off runs the tests (decision 0439).
 - Each test, and each case and shrinking step of a property test, may run
   for `xo test --timeout=D` of real time (default 60s; 0 for no limit).
   One that does not finish fails with `the test did not finish within D of
@@ -3010,7 +3088,13 @@ does (decision 0131).
     and gains the habit in a note and the fix: `XO0601` for names from
     other languages (`nil`, `null`, `this`, `len(x)`, `append`, `print`,
     `String`, `Vec`, `int`, `.unwrap()`, `.length`, camelCase methods,
-    Python's `t = 0` declaring by assignment), `XO0169` (commas between
+    Python's `t = 0` declaring by assignment, Go's `os.Args` as
+    `os.args`, and a Result's `.unwrap()` and `.unwrap_or(x)`, which
+    name `?`, `.or_fault`, and `r ?? _ => x`; decision 0438), `XO0406`
+    (a Result operand of an operator: add `?` or `.or_fault`),
+    `XO0165` and `XO0160` (a keyword such as `test` used as a name: a
+    rename to suggest; `T ! E` as a parameter's type: `Result[T, E]`),
+    `XO0209` (a method of a `var` binding: `xs = xs.sort()`), `XO0169` (commas between
     match arms), `XO0173` (`use` after declarations), `XO0701` (an effect
     argument left out of a parameter type, which stays an abstract effect
     variable), `XO0408` (TypeScript's `const x = f()`), `XO0110` (Kotlin's
@@ -3152,7 +3236,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0167` | error | parser | top level declaration (fn, struct, const, ...) inside a block |
 | `XO0168` | error | parser | statement (let, expression, ...) at top level |
 | `XO0169` | error | parser | match or select arms separated by `,` instead of newlines |
-| `XO0170` | error | parser | several effects in a function type must be parenthesized (core 15) |
+| `XO0170` | error | parser, checker | several effects in a function type must be parenthesized (core 15); the checker reports it inside type arguments, where only the arity tells a second effect from a type argument (decision 0438) |
 | `XO0171` | error | parser | `..` used more than once or not last in pattern fields |
 | `XO0172` | error | parser | function declaration without a body |
 | `XO0173` | error | parser | `use` after the first declaration (core 15: File) |
@@ -3200,6 +3284,9 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0425` | error | checker | a field type, a type parameter list, or a nested struct that `derive Xml` cannot map (core 2.9, decision 0315) |
 | `XO0426` | error | checker | a bad `xml` wire string: an unknown or unsupported option, `attr` with a path, `chardata` or `attr` on a type that cannot hold it (core 2.9, decision 0315) |
 | `XO0427` | error | checker | `xml.encode_value` or `xml.decode` of a type parameter instead of a concrete struct (core 2.9, decision 0315) |
+| `XO0428` | error | checker | two variants of a valued enum have the same value (core 2.3, decision 0269) |
+| `XO0429` | error | checker | an invalid valued enum: a value type other than `Int` or `Str`, a value on an enum with no value type, a variant with fields, type parameters, or a value that is not a constant of the value type (core 2.3, decision 0269) |
+| `XO0430` | error | checker | a pattern name spelled like a constant (upper case) that is neither a `const` in scope nor a variant: a misspelled constant pattern (core 3.5, decision 0269) |
 | `XO0501` | error | checker | var method called on a non var binding (core 3.4) |
 | `XO0502` | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | `XO0503` | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -3218,7 +3305,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0602` | error | checker | import path does not yield a valid local name (core 4.1) |
 | `XO0603` | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
 | `XO0604` | error | checker | cyclic module imports (core 4.1) |
-| `XO0605` | error | checker | name is not `pub` in its module, or the std type is an opaque handle (core 1.5) |
+| `XO0605` | error | checker | name is not `pub` in its module, a field of a std struct documented `@internal` outside std (decision 0440), or the std type is an opaque handle (core 1.5) |
 | `XO0606` | error | checker | method declared outside the module of its type (core 3.4) |
 | `XO0607` | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
 | `XO0608` | error | checker | two C ABI export modules of the native std (std/native/llrt/cabi*.xo) define the same function name, one symbol `xo_x_<name>` (decision 0207) |
@@ -3242,6 +3329,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0912` | warning | vet | retired in 0.34.0 (no longer reported): `u.0`, the pattern `uuid.Uuid(p)`, or `uuid.Uuid(s)` on a `uuid.Uuid` was deprecated in 0.33.0; a `uuid.Uuid` is now two Ints and those uses are type errors (std.md 24, decision 0387) |
 | `XO0913` | note | vet --cost | in a loop, a slice of a Str or Bytes read only by index, length or equality: each iteration makes a view (a range check, a count and a drop); read the whole by offsets (knowledgebase/std-performance-guide.md) |
 | `XO0914` | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
+| `XO0915` | warning | vet --cost | a raw address (`raw.data`, `raw.bytes_addr`, `rt.obj_addr`, std internals) used after its value was released in the same block: a value is released at its last use, even inside the arguments of the call that takes its address, so the call reads freed memory; keep it alive with `raw.alive` or `raw.alive_str` after the last access (gotchas/raw-address-outlives-bytes.md) |
 | `XO0904` | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | `XO1001` | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | `XO1101` | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -3289,6 +3377,9 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1511` | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
 | `XO1512` | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
 | `XO1513` | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
+| `XO1514` | error | build | a program that calls `http.serve_component` built for wasip1/wasm, which `--backend=wasm` alone is; it builds with `--targets=wasip2/wasm` (decision 0447) |
+| `XO1515` | error | build | a program built for wasip2/wasm reaches what the `wasi:http` proxy world does not have: files, processes or sockets; the message names the call and how it is reached (decision 0447) |
+| `XO1516` | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447) |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
@@ -3510,6 +3601,19 @@ after the other targets are built (exit status 1). Several targets write
 `NAME-OS-ARCH` binaries (`.exe` for windows, `.wasm` for wasi) into `-o`'s
 directory; `-o NAME` for a windows target with no extension writes
 `NAME.exe`.
+
+`--targets=wasip2/wasm`, not part of `all`, builds a program that calls
+`http.serve_component` as a `wasi:http` 0.2 component (decision 0447), and is
+named alone. A program is a component or it is not: `http.serve_component` on
+wasip1/wasm is XO1514, and on wasip2/wasm a program that never calls it is
+XO1516 and one that reaches files, processes or sockets is XO1515. Each
+component's imports are `@0.2.0`. `http.Client` works through the host's
+`wasi:http/outgoing-handler`, imported only by a program that reaches it (see
+`spec/std.md`); `net.dial`'s own sockets stay XO1515. A `handle_stream` route
+reads the request body from the host's input-stream as it arrives, with its
+trailers (`incoming-body.finish`); an `http.stream` response's body goes to
+the host's output-stream as it is written, and its trailers through
+`outgoing-body.finish`.
 
 Binaries are static and builds are reproducible: the same source in the
 same directory, lockfile, and toolchain version produce byte identical
