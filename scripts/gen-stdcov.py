@@ -101,9 +101,14 @@ FUZZ = {  # module -> (evidence path, text)
     "http": ("internal/stdtest/httpheadfuzz_test.go", "request head, response and URL fuzz tests"),
     "url": ("internal/stdtest/httpurlfuzz_test.go", "URL fuzz test"),
     "x509": ("internal/stdtest/testdata/corpus/x509/x509_test.xo", "fuzz cases in its corpus"),
-    "json": ("internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo", "fuzz corpus against encoding/json (2,003 cases; internal/stdtest/jsonfuzz_test.go runs fresh seeds)"),
+    "json": ("internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo", "fuzz corpus against encoding/json (2,022 cases; internal/stdtest/jsonfuzz_test.go runs fresh seeds)"),
     "xml": ("internal/stdtest/testdata/corpus/xmlfuzz/xmlfuzz_test.xo", "fuzz corpus against encoding/xml (2,000 documents through Token, Token not strict, and RawToken, error texts exact; internal/stdtest/xmlfuzz_test.go runs fresh seeds)"),
     "csv": ("internal/stdtest/testdata/corpus/csvfuzz/csvfuzz_test.xo", "fuzz corpus against encoding/csv (2,000 texts under random Reader options, error texts exact, and the Writer's output; internal/stdtest/csvfuzz_test.go runs fresh seeds)"),
+    "toml": ("internal/stdtest/tomlfuzz_test.go", "toml-test v1.5.0 conformance (TOML 1.0.0: 179 valid, 364 invalid documents) and a 2,000-document invariant fuzz on every backend"),
+    "compress": ("internal/stdtest/compressfuzz_test.go", "2,000 hostile DEFLATE, zlib and gzip streams (hand-built blocks and corrupted Go output) against Go's decoders, error texts exact, plus streaming and max_size, on every backend"),
+    "archive": ("internal/stdtest/archivefuzz_test.go", "2,010 hostile tar and zip archives (Go-written and hand-built headers, cut and field-mutated) against Go's archive/tar and archive/zip readers on every backend"),
+    "mime": ("internal/stdtest/mimefuzz_test.go", "2,000 cases against Go's mime and net/http: hostile Content-Type headers (RFC 2231, continuations, duplicates), format_media_type, every DetectContentType signature, on every backend"),
+    "mail": ("internal/stdtest/mailfuzz_test.go", "2,000 addresses, address lists, header blocks and dates against Go's net/mail (RFC 2047, groups, folds, zones) on every backend"),
 }
 GODIFF = {"tls": ("internal/llvm/tls13_diff_test.go", "TLS 1.3 client and server differential against Go"),
           "http": ("internal/llvm/http1_diff_test.go", "HTTP/1 differential against Go")}
