@@ -6,11 +6,11 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.36 (development, main d252105a5 of 2026-11-03); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.36 (development, main 9dc818df7 of 2026-11-03); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
-Go has **176** public standard library packages. Xo has **48** `std` modules besides the prelude (the builtin types and capabilities every program sees).
+Go has **176** public standard library packages. Xo has **49** `std` modules besides the prelude (the builtin types and capabilities every program sees).
 
 | Status | Go packages |
 |---|---|
@@ -33,7 +33,7 @@ Each `std` module gets three marks, one per axis, and an overall level that is t
 
 How a mark is read here: *Features* from the rows of the coverage table that name the module (all done is Proven, any partial is Solid; a module with no Go package is Solid and says so). *Testing* from the committed corpus of Go's tests under `internal/stdtest/testdata/corpus`, Go differential tests, and fuzz tests for modules that parse untrusted input. *Performance* from a committed result file with a Go twin. A mark with no committed evidence is Early, so a missing result is the gap to close, not a hidden number. The dates are those of the result files, which can be older than this page; a re-run can only move a mark if the file is replaced.
 
-Today: overall 0 Proven, 20 Solid, 29 Early of 49 (prelude and 48 modules). Per axis, features 22/27/0, testing 0/28/21, performance 11/18/20 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
+Today: overall 0 Proven, 21 Solid, 29 Early of 50 (prelude and 49 modules). Per axis, features 23/27/0, testing 0/29/21, performance 12/18/20 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
 
 ### Per module
 
@@ -67,6 +67,7 @@ Today: overall 0 Proven, 20 Solid, 29 Early of 49 (prelude and 48 modules). Per 
 | `std/multipart` | {{< level "Early" >}} | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} 0 of 1 mapped Go rows done, 1 partial | {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/multipart" >}} Go's tests ported; parser with no fuzz harness | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md" >}} parse 1.15 of Go's instructions (2026-10-21) | v0.23.0 (2026-10-20) |
 | `std/netip` | {{< level "Early" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/netip" >}} Go's tests ported; parser with no fuzz harness | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/netip-2026-10-22.md" >}} 1.58 of Go's instructions (2026-10-22) | v0.23.0 (2026-10-20) |
 | `std/path` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 2 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/path" >}} Go's tests ported | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} clean 1.08, join 1.13, parts 1.40 of Go's wall (2026-11-03) | v0.7.0 (2026-10-08) |
+| `std/png` | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/pngfuzz_test.go" >}} Go's tests ported; 1,000 seeded files from a chunk-level builder and Go-encoded images (every color type and depth, bad headers, palettes, tRNS, split IDATs, cuts, bit flips) against Go's Decode and DecodeConfig, plus 36,000 fresh cases over six seeds | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows5-2026-11-03.md" >}} decode 1.04, encode 0.94 of Go's wall (2026-11-03) | unreleased (2026-11-03) |
 | `prelude` | {{< level "Early" >}} | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} 15 of 18 mapped Go rows done, 3 partial | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/prelude" >}} Go's tests ported | {{< level "Early" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} Str.trim_chars 2.24 of Go's wall (a trimmed view holds a reference); fs walk 1.54 (0.95 with Go reading each entry's info); itoa 1.52, atoi 1.46, sort of strings 1.42; split, search, case and predicate workloads 0.4 to 1.24 (2026-11-03) | go-compiler-final (2026-10-08) |
 | `std/rate` | {{< level "Solid" >}} | {{< level "Solid" >}} beyond Go: x/time/rate is outside std | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/rate" >}} Go's tests ported | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows3-2026-11-03.md" >}} allow 1.29 of Go's wall (2026-11-03) | v0.35.0 (2026-10-29) |
 | `std/regexp` | {{< level "Early" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} all 1 mapped Go rows done | {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/regexp" >}} Go's tests ported; parser with no fuzz harness | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} match 1.25, find_all 0.89 of Go's wall (2026-11-03) | v0.11.0 (2026-10-11) |
@@ -231,7 +232,7 @@ Nothing yet, wanted. See [Roadmap of gaps](#roadmap-of-gaps).
 | `image` | none |
 | `image/color` | none |
 | `image/jpeg` | none |
-| `image/png` | none |
+| `image/png` | std/png |
 | `index/suffixarray` | none |
 | `log/syslog` | none |
 | `net/http/cookiejar` | none |
