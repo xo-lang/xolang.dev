@@ -197,7 +197,7 @@ register allocation change brought `/alloc` back to v0.35.0 (1.006 and
 fiber's first frame by a few bytes moved the cost with the stack alone:
 the bad shifts form a comb inside about 128 of every 4,096 bytes.
 
-![CPU microseconds a request as the fiber stack is shifted: most shifts cost 35.6 to 35.8, and a comb of shifts costs 40.7 to 48.4](/blog/hunting-miscompiles/stack-comb.svg)
+![CPU microseconds a request of one server build at 12 fiber stack offsets: seven cost 35.6 to 35.8, five cost 40.7 to 48.4, and the unshifted build is the slowest](/blog/hunting-miscompiles/stack-comb.svg)
 
 (Data: [stack-phase-2026-11-02.md:78-83](https://github.com/xo-lang/xo/blob/main/bench/results/stack-phase-2026-11-02.md).)
 
@@ -244,7 +244,7 @@ Was v0.35.0's own number a lucky placement?
 We built v0.35.0's own source at four placements and compared it with the
 release server in one job, with a repeat of pad 0 as a control:
 
-![Requests a second as a ratio to the v0.35.0 release server, for v0.35.0's own source at four placements and for main: pad 0 and its repeat sit at 1.000 to 1.011, pads 1 to 3 at 0.966 to 0.979, and main at 0.975 and 0.971](/blog/hunting-miscompiles/alloc-pads.svg)
+![/alloc speed of v0.35.0's own code built at four function layouts, and of main, as a percentage of the shipped v0.35.0 binary: the same code spans 96.6% to 101.1% and main, at 97.5% and 97.1%, sits inside that span](/blog/hunting-miscompiles/alloc-pads.svg)
 
 (Data: [alloc-pads-v0.35.0-2026-11-03.md:42-48](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-pads-v0.35.0-2026-11-03.md).)
 
