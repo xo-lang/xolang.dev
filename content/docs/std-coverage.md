@@ -39,7 +39,7 @@ Today: overall 0 Proven, 20 Solid, 28 Early of 48 (prelude and 47 modules). Per 
 
 Marks only; the prose behind each one (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes). Each module name links to its note.
 
-| Module | Overall | Features (Go rows) | Testing | Performance (vs Go) |
+| Module | Overall | Features (Go rows) | Testing | Performance (x Go's time, lower is faster) |
 |---|---|---|---|---|
 | [`prelude`](#mod-prelude) | {{< level "Early" >}} | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} 15/18 | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/prelude" >}} ported | {{< level "Early" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}} 2.24x |
 | [`std/archive`](#mod-archive) | {{< level "Solid" >}} | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}} 2/2 | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/archivefuzz_test.go" >}} ported + hostile | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" >}} 0.27 to 1.2x |

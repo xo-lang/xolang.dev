@@ -284,7 +284,7 @@ w("### Per module")
 w("")
 w("Marks only; the prose behind each one (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes). Each module name links to its note.")
 w("")
-w("| Module | Overall | Features (Go rows) | Testing | Performance (vs Go) |")
+w("| Module | Overall | Features (Go rows) | Testing | Performance (x Go's time, lower is faster) |")
 w("|---|---|---|---|---|")
 for m, f, t, p, lv, d, rel in rows:
     name = "prelude" if m == "prelude" else f"std/{m}"
