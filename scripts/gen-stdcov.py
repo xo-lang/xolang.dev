@@ -115,8 +115,12 @@ GODIFF = {"tls": ("internal/llvm/tls13_diff_test.go", "TLS 1.3 client and server
 # performance rows against Go: module -> (level, evidence file, fact)
 PERF = {
     "json": ("Proven", "bench/results/json-vs-go-2026-10-21.md", "0.33 to 0.49 of Go's instructions on native (2026-10-21)"),
-    "csv": ("Proven", "bench/results/csv-parse-2026-10-22.md", "0.91 of Go's instructions (2026-10-22)"),
-    "xml": ("Proven", "bench/results/xml-parse-2026-10-22.md", "1.00 of Go's instructions (2026-10-22)"),
+    "csv": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "parse 0.92, format 1.01 of Go's wall (2026-11-03)"),
+    "xml": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "tokens 1.15, tree 0.95 of Go's wall (2026-11-03)"),
+    "compress": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "gzip 0.96, gunzip 0.92, deflate 0.96, inflate 0.91 of Go's wall (2026-11-03)"),
+    "archive": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "zip 1.35, tar 1.08, unzip 1.00, untar 0.30 of Go's wall (2026-11-03)"),
+    "mime": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "format 1.31, parse 1.10, detect 0.89 of Go's wall (2026-11-03)"),
+    "mail": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "display 1.15, address 0.62, header block 0.45 of Go's wall (2026-11-03)"),
     "xmlcodec": ("Proven", "bench/results/xml-parse-2026-10-22.md", "1.00 of Go's instructions (2026-10-22)"),
     "url": ("Proven", "bench/results/url-parse-2026-10-23.md", "0.78 of Go's instructions (2026-10-23)"),
     "netip": ("Solid", "bench/results/netip-2026-10-22.md", "1.58 of Go's instructions (2026-10-22)"),
