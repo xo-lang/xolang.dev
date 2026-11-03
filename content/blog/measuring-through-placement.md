@@ -1,7 +1,7 @@
 ---
 title: "Measuring through code placement noise"
-date: 2026-11-03T12:00:00-05:00
-draft: true
+date: 2026-11-03T09:00:00-05:00
+draft: false
 description: "The same machine code can run 38 percent apart depending on where it lands in memory. How Xo measures a change when one build of each side can show a regression that is not there, and why aligning the code did not make the problem go away."
 ---
 
