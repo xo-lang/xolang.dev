@@ -6,18 +6,18 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.36 (development, main 1995fbd38 of 2026-11-02); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.36 (development, main a4841bb5b of 2026-11-03); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
-Go has **176** public standard library packages. Xo has **47** `std` modules besides the prelude (the builtin types and capabilities every program sees).
+Go has **176** public standard library packages. Xo has **61** `std` modules besides the prelude (the builtin types and capabilities every program sees).
 
 | Status | Go packages |
 |---|---|
-| Covered (done) | 64 |
+| Covered (done) | 66 |
 | Partial | 33 |
 | Not applicable by design | 52 |
-| Gap, potentially planned | 27 |
+| Gap, potentially planned | 25 |
 
 Beyond Go: modules with no Go standard library counterpart, or going past it, are listed under [Beyond Go](#beyond-go).
 
@@ -33,7 +33,7 @@ Each `std` module gets three marks, one per axis, and an overall level that is t
 
 How a mark is read here: *Features* from the rows of the coverage table that name the module (all done is Proven, any partial is Solid; a module with no Go package is Solid and says so). *Testing* from the committed corpus of Go's tests under `internal/stdtest/testdata/corpus`, Go differential tests, and fuzz tests for modules that parse untrusted input. *Performance* from a committed result file with a Go twin. A mark with no committed evidence is Early, so a missing result is the gap to close, not a hidden number. The dates are those of the result files, which can be older than this page; a re-run can only move a mark if the file is replaced.
 
-Today: overall 0 Proven, 20 Solid, 28 Early of 48 (prelude and 47 modules). Per axis, features 22/26/0, testing 0/27/21, performance 11/18/19 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
+Today: overall 0 Proven, 23 Solid, 39 Early of 62 (prelude and 61 modules). Per axis, features 35/27/0, testing 0/41/21, performance 14/18/30 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
 
 ### Per module
 
@@ -42,15 +42,23 @@ Marks only. Each module has its three marks (F features, T testing, P performanc
 | Module | Marks: F features, T testing, P performance |
 |---|---|
 | [`prelude`](#mod-prelude) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/prelude" "T" "Testing" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 15/18 · Testing ported · Performance 2.24x" >}} |
+| [`std/adler32`](#mod-adler32) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/adler32" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/archive`](#mod-archive) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/archivefuzz_test.go" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 2/2 · Testing ported + hostile · Performance 0.27 to 1.2x" >}} |
 | [`std/backoff`](#mod-backoff) | {{< level "Solid" "" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/backoff" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features beyond Go · Testing ported · Performance no row" >}} |
 | [`std/base32`](#mod-base32) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/base32" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows3-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.47 to 0.98x" >}} |
 | [`std/base64`](#mod-base64) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/base64" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.57 to 0.88x" >}} |
+| [`std/bcrypt`](#mod-bcrypt) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/bcrypt" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/big`](#mod-big) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/big" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported · Performance 0.49 to 1.23x" >}} |
 | [`std/binary`](#mod-binary) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/binary" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
+| [`std/bufio`](#mod-bufio) | {{< level "Solid" "" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/bufio" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features own domain · Testing ported · Performance no row" >}} |
+| [`std/cbor`](#mod-cbor) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/cborfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows7-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance see notes" >}} |
+| [`std/charset`](#mod-charset) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/charset" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 2/2 · Testing ported · Performance no row" >}} |
 | [`std/cli`](#mod-cli) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cli" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/compress`](#mod-compress) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/compressfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 2/2 · Testing ported + hostile · Performance 0.91 to 0.96x" >}} |
+| [`std/cookiejar`](#mod-cookiejar) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cookiejar" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/crc32`](#mod-crc32) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crc32" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.37 to 0.96x" >}} |
+| [`std/crc64`](#mod-crc64) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crc64" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
+| [`std/cron`](#mod-cron) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cron" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/crypto`](#mod-crypto) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crypto" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/aesgcm-2026-10-22.md" "P" "Performance" >}} {{< covdesc "Features 12/16 · Testing ported · Performance 1.12 to 1.2x" >}} |
 | [`std/csv`](#mod-csv) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/csvfuzz/csvfuzz_test.xo" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported + fuzz · Performance 0.92 to 1.01x" >}} |
 | [`std/debug`](#mod-debug) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing own tests · Performance no row" >}} |
@@ -59,8 +67,11 @@ Marks only. Each module has its three marks (F features, T testing, P performanc
 | [`std/embed`](#mod-embed) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing own tests · Performance no row" >}} |
 | [`std/fnv`](#mod-fnv) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/fnv" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.98x" >}} |
 | [`std/go`](#mod-go) | {{< level "Solid" "" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features own domain · Testing own tests · Performance no row" >}} |
+| [`std/heap`](#mod-heap) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/heap" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/html`](#mod-html) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing own tests · Performance 0.65 to 1.75x" >}} |
 | [`std/http`](#mod-http) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/httpheadfuzz_test.go" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/tls-h2-vs-go-2026-10-21.md" "P" "Performance" >}} {{< covdesc "Features 1/5 · Testing ported + fuzz · Performance see notes" >}} |
+| [`std/idna`](#mod-idna) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/idna" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
+| [`std/jpeg`](#mod-jpeg) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/jpegfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows6-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 1.01 to 1.04x" >}} |
 | [`std/json`](#mod-json) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported + fuzz · Performance 0.33 to 0.49x instr." >}} |
 | [`std/log`](#mod-log) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/2 · Testing own tests · Performance no row" >}} |
 | [`std/mail`](#mod-mail) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/mailfuzz_test.go" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.45 to 1.15x" >}} |
@@ -68,7 +79,10 @@ Marks only. Each module has its three marks (F features, T testing, P performanc
 | [`std/mime`](#mod-mime) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/mimefuzz_test.go" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported + hostile · Performance 0.9 to 1.28x" >}} |
 | [`std/multipart`](#mod-multipart) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/multipart" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported, no fuzz · Performance 1.15x instr." >}} |
 | [`std/netip`](#mod-netip) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/netip" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/netip-2026-10-22.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported, no fuzz · Performance 1.58x instr." >}} |
+| [`std/norm`](#mod-norm) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/norm" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
+| [`std/otp`](#mod-otp) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/otp" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/path`](#mod-path) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/path" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 2/2 · Testing ported · Performance 1.08 to 1.4x" >}} |
+| [`std/png`](#mod-png) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/pngfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows5-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.94 to 1.04x" >}} |
 | [`std/rate`](#mod-rate) | {{< level "Solid" "" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/rate" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows3-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features beyond Go · Testing ported · Performance 1.29x" >}} |
 | [`std/regexp`](#mod-regexp) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/regexp" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported, no fuzz · Performance 0.89 to 1.25x" >}} |
 | [`std/smtp`](#mod-smtp) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/smtp" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported, no fuzz · Performance no row" >}} |
@@ -102,6 +116,14 @@ Overall {{< level "Early" >}}. Added go-compiler-final (2026-10-08).
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/prelude" >}}: Go's tests ported.
 - Performance {{< level "Early" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}}: Str.trim_chars 2.24 of Go's wall (a trimmed view holds a reference); fs walk 1.54 (0.95 with Go reading each entry's info); itoa 1.52, atoi 1.46, sort of strings 1.42; split, search, case and predicate workloads 0.4 to 1.24 (2026-11-03).
 
+#### `std/adler32` {#mod-adler32}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/adler32" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
 #### `std/archive` {#mod-archive}
 
 Overall {{< level "Solid" >}}. Added v0.11.0 (2026-10-11).
@@ -134,6 +156,14 @@ Overall {{< level "Solid" >}}. Added v0.23.0 (2026-10-20).
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/base64" >}}: Go's tests ported.
 - Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}}: encode 0.57, decode 0.88 of Go's wall (2026-11-03).
 
+#### `std/bcrypt` {#mod-bcrypt}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/bcrypt" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
 #### `std/big` {#mod-big}
 
 Overall {{< level "Solid" >}}. Added v0.24.0 (2026-10-21).
@@ -148,6 +178,30 @@ Overall {{< level "Early" >}}. Added v0.23.0 (2026-10-20).
 
 - Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/binary" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
+#### `std/bufio` {#mod-bufio}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Solid" >}}: no Go package maps to it; covers its own domain's common uses.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/bufio" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
+#### `std/cbor` {#mod-cbor}
+
+Overall {{< level "Solid" >}}. Added v0.37.0 (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/cborfuzz_test.go" >}}: Go's tests ported; 1,500 seeded inputs from a byte level builder (random head widths, indefinite lengths, floats of every width, tags, simple values, repeated keys, text that is not UTF-8, then bits flipped, cuts, insertions) against fxamacker/cbor v2 (Go has no CBOR in its standard library), plus 12,000 fresh cases on arm64 and LLVM and the RFC 8949 Appendix A examples.
+- Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows7-2026-11-03.md" >}}: decode 0.43, encode 0.26, deterministic encode 0.62 of fxamacker/cbor's wall (2026-11-03).
+
+#### `std/charset` {#mod-charset}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 2 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/charset" >}}: Go's tests ported.
 - Performance {{< level "Early" >}}: no committed row against Go.
 
 #### `std/cli` {#mod-cli}
@@ -166,6 +220,14 @@ Overall {{< level "Solid" >}}. Added v0.24.0 (2026-10-21).
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/compressfuzz_test.go" >}}: Go's tests ported; 2,000 hostile DEFLATE, zlib and gzip streams (hand-built blocks and corrupted Go output) against Go's decoders, error texts exact, plus streaming and max_size, on every backend.
 - Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" >}}: gzip 0.96, gunzip 0.92, deflate 0.96, inflate 0.91 of Go's wall (2026-11-03).
 
+#### `std/cookiejar` {#mod-cookiejar}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cookiejar" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
 #### `std/crc32` {#mod-crc32}
 
 Overall {{< level "Solid" >}}. Added v0.35.0 (2026-10-29).
@@ -173,6 +235,22 @@ Overall {{< level "Solid" >}}. Added v0.35.0 (2026-10-29).
 - Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crc32" >}}: Go's tests ported.
 - Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}}: crc32 0.96, crc32c 0.37 of Go's wall (2026-11-03).
+
+#### `std/crc64` {#mod-crc64}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/crc64" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
+#### `std/cron` {#mod-cron}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/cron" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
 
 #### `std/crypto` {#mod-crypto}
 
@@ -238,6 +316,14 @@ Overall {{< level "Early" >}}. Added v0.7.0 (2026-10-08).
 - Testing {{< level "Early" >}}: own tests only.
 - Performance {{< level "Early" >}}: no committed row against Go.
 
+#### `std/heap` {#mod-heap}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/heap" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
 #### `std/html` {#mod-html}
 
 Overall {{< level "Early" >}}. Added v0.35.0 (2026-10-29).
@@ -253,6 +339,22 @@ Overall {{< level "Solid" >}}. Added v0.7.0 (2026-10-08).
 - Features {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: 1 of 5 mapped Go rows done, 4 partial.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/httpheadfuzz_test.go" >}}: Go's tests ported; request head, response and URL fuzz tests.
 - Performance {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/tls-h2-vs-go-2026-10-21.md" >}}: HTTP/2 14 us a request against Go's 32; /alloc 0.97 of v0.35.0 (2026-11-02).
+
+#### `std/idna` {#mod-idna}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/idna" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
+#### `std/jpeg` {#mod-jpeg}
+
+Overall {{< level "Solid" >}}. Added v0.37.0 (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/jpegfuzz_test.go" >}}: Go's tests ported; 350 seeded files from a segment-aware mutator over Go's test images and Go-encoded images (every chroma ratio, baseline and progressive, restart intervals, CMYK, YCCK, headers, tables, scan parameters, cuts, bit flips) against Go's Decode and DecodeConfig, plus 12,000 fresh cases on arm64 and LLVM.
+- Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows6-2026-11-03.md" >}}: decode 1.01, with RGBA conversion 1.04 of Go's wall (2026-11-03).
 
 #### `std/json` {#mod-json}
 
@@ -310,6 +412,22 @@ Overall {{< level "Early" >}}. Added v0.23.0 (2026-10-20).
 - Testing {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/netip" >}}: Go's tests ported; parser with no fuzz harness.
 - Performance {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/netip-2026-10-22.md" >}}: 1.58 of Go's instructions (2026-10-22).
 
+#### `std/norm` {#mod-norm}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/norm" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
+#### `std/otp` {#mod-otp}
+
+Overall {{< level "Early" >}}. Added unreleased (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/otp" >}}: Go's tests ported.
+- Performance {{< level "Early" >}}: no committed row against Go.
+
 #### `std/path` {#mod-path}
 
 Overall {{< level "Solid" >}}. Added v0.7.0 (2026-10-08).
@@ -317,6 +435,14 @@ Overall {{< level "Solid" >}}. Added v0.7.0 (2026-10-08).
 - Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 2 mapped Go rows done.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/path" >}}: Go's tests ported.
 - Performance {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}}: clean 1.08, join 1.13, parts 1.40 of Go's wall (2026-11-03).
+
+#### `std/png` {#mod-png}
+
+Overall {{< level "Solid" >}}. Added v0.37.0 (2026-11-03).
+
+- Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
+- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/pngfuzz_test.go" >}}: Go's tests ported; 1,000 seeded files from a chunk-level builder and Go-encoded images (every color type and depth, bad headers, palettes, tRNS, split IDATs, cuts, bit flips) against Go's Decode and DecodeConfig, plus 36,000 fresh cases over six seeds.
+- Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows5-2026-11-03.md" >}}: decode 1.04, encode 0.94 of Go's wall (2026-11-03).
 
 #### `std/rate` {#mod-rate}
 
@@ -482,7 +608,7 @@ Overall {{< level "Early" >}}. Added v0.24.0 (2026-10-21).
 
 All 176 packages of `go list std`, by status. A package that maps to a module names it; the repository's coverage table has the notes per row.
 
-### Covered (64)
+### Covered (66)
 
 The module covers what a backend uses of the package, on the native backends and the Go backend.
 
@@ -495,6 +621,7 @@ The module covers what a backend uses of the package, on the native backends and
 | `compress/flate` | std/compress (and std/archive gzip, gunzip) |
 | `compress/gzip` | std/compress (and std/archive gzip, gunzip) |
 | `compress/zlib` | std/compress zlib, unzlib |
+| `container/heap` | std/heap |
 | `context` | scopes, cancellation, task.with_timeout |
 | `crypto/ed25519` | std/crypto |
 | `crypto/hkdf` | std/crypto |
@@ -526,6 +653,7 @@ The module covers what a backend uses of the package, on the native backends and
 | `math/bits` | prelude Int word methods |
 | `math/rand` | prelude Rand capability |
 | `math/rand/v2` | prelude Rand capability |
+| `net/http/cookiejar` | std/cookiejar |
 | `net/http/httptest` | std/testing FakeNet, Router.call |
 | `net/http/pprof` | std/debug router (decision 0325) |
 | `net/mail` | std/mail |
@@ -599,7 +727,7 @@ Reflection, Go source tooling, cgo and the runtime's internals are replaced by l
 
 `container/list`, `crypto`, `crypto/fips140`, `crypto/mlkem/mlkemtest`, `debug/buildinfo`, `debug/dwarf`, `debug/elf`, `debug/gosym`, `debug/macho`, `debug/pe`, `debug/plan9obj`, `encoding`, `encoding/ascii85`, `go/ast`, `go/build`, `go/build/constraint`, `go/constant`, `go/doc`, `go/doc/comment`, `go/format`, `go/importer`, `go/parser`, `go/printer`, `go/scanner`, `go/token`, `go/types`, `go/version`, `image/color/palette`, `image/draw`, `image/gif`, `iter`, `math/cmplx`, `net/http/cgi`, `net/http/fcgi`, `net/http/httptrace`, `plugin`, `reflect`, `runtime`, `runtime/cgo`, `runtime/coverage`, `runtime/debug`, `runtime/metrics`, `runtime/pprof`, `runtime/race`, `runtime/trace`, `structs`, `syscall`, `testing/cryptotest`, `testing/iotest`, `testing/slogtest`, `text/template/parse`, `unsafe`
 
-### Gaps, potentially planned (27)
+### Gaps, potentially planned (25)
 
 Nothing yet, wanted. See [Roadmap of gaps](#roadmap-of-gaps).
 
@@ -607,29 +735,27 @@ Nothing yet, wanted. See [Roadmap of gaps](#roadmap-of-gaps).
 |---|---|
 | `compress/bzip2` | none |
 | `compress/lzw` | none |
-| `container/heap` | none |
 | `container/ring` | none |
 | `crypto/des` | none |
 | `crypto/dsa` | none |
 | `crypto/hpke` | none |
 | `crypto/rc4` | none |
 | `encoding/gob` | none |
-| `hash/adler32` | none |
-| `hash/crc64` | none |
+| `hash/adler32` | std/adler32 |
+| `hash/crc64` | std/crc64 |
 | `hash/maphash` | none |
 | `image` | none |
 | `image/color` | none |
-| `image/jpeg` | none |
-| `image/png` | none |
+| `image/jpeg` | std/jpeg |
+| `image/png` | std/png |
 | `index/suffixarray` | none |
 | `log/syslog` | none |
-| `net/http/cookiejar` | none |
 | `net/http/httputil` | none |
 | `net/rpc` | none |
 | `net/rpc/jsonrpc` | none |
 | `os/user` | Env.home |
 | `text/scanner` | none |
-| `unicode/utf16` | none |
+| `unicode/utf16` | std/charset |
 | `unique` | none |
 | `weak` | none |
 
