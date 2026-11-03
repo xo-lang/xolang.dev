@@ -1,8 +1,8 @@
 ---
 title: "Capping the allocator's cache: how 0.36.0 grew a small program's memory, and how 0.37.0 takes it back"
-date: 2026-11-03
-draft: true
-description: "Xo 0.36.0's release benchmarks showed a small program peaking at 1.18 to 1.32 times its 0.35.0 memory. The extra was not live data: it was freed memory the allocator kept for reuse. 0.37.0 caps that cache at a quarter of the bytes in use, and the same programs now peak below 0.35.0 and below Go."
+date: 2026-11-03T10:00:00-05:00
+draft: false
+description: "Xo 0.36.0's release benchmarks showed a small program peaking at 1.18 to 1.32 times its 0.35.0 memory. The extra was not live data: it was freed memory the allocator kept for reuse. 0.37.0, the next release, caps that cache at a quarter of the bytes in use, and the same programs now peak below 0.35.0 and below Go."
 ---
 
 Every Xo release is measured against the one before it and against Go,
@@ -10,7 +10,7 @@ on the same programs. Xo 0.36.0's comparison flagged one result we did
 not expect: `coll putget`, a small program that fills and reads a map,
 peaked at 1.18 times its 0.35.0 memory on macOS and 1.32 times on
 Linux. Its speed had not changed. This post covers how we found where
-the memory went, what we changed for 0.37.0, and how Go handles the same
+the memory went, what we changed for 0.37.0 (the next release), and how Go handles the same
 problem. Every figure links to the committed file it comes from.
 
 ### What the release benchmark saw
@@ -63,7 +63,7 @@ the compiler itself needs the cache. Without it, Linux builds of `coll` ran
 1.039 times as long, a concurrency benchmark's build 1.072 times, and the
 compiler's build of itself 1.018 times
 ([decision 0448, lines 1069 to 1071](https://github.com/xo-lang/xo/blob/main/knowledgebase/decisions/0448-compiler-memory.md#L1069-L1071)).
-So 0.37.0 keeps the cache but bounds it by the program's size: a freed
+So 0.37.0, the next release, keeps the cache but bounds it by the program's size: a freed
 mapping is kept only while the cache stays under a quarter of the bytes
 the program has in use. A small program caches little. The compiler, with
 tens of megabytes to gigabytes in use, keeps all of its reuse.
@@ -74,8 +74,8 @@ tens of megabytes to gigabytes in use, keeps all of its reuse.
 
 Peak memory (maximum resident set size, KB, median of 7 runs) of the
 same `coll` binary built at each step, and of the same workloads written
-in Go (bench/perf/go), on macOS; the 0.37.0 row is the released build,
-b6421a8c5
+in Go (bench/perf/go), on macOS; the 0.37.0 row is b6421a8c5, the build that
+ships as 0.37.0, the next release
 ([alloc-cache-cap-2026-11-03.md, lines 44 to 56 and 104 to 116](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-cache-cap-2026-11-03.md#L44-L56)):
 
 | Build | putget | push |
@@ -106,7 +106,7 @@ Go's push varies the most: from 66,236 to 88,380 KB across these 7 runs,
 and from 55,992 to 103,240 KB in the job that measured 0.37.0.
 macOS has no huge page advice, so decision 0469 changes nothing there.
 
-{{< figure "alloc-cache-cap-results" "Peak memory of coll putget and push for each build, relative to Xo 0.35.0 (1.0), with Go 1.26.1 for comparison. 0.37.0 is the released build (b6421a8c5), which also ships decision 0469." "Grouped bars, relative to Xo 0.35.0. macOS putget: 0.36.0 1.18, plus 4n 1.14, plus cap 0.86, 0.37.0 0.86, Go 1.20; push: 1.10, 0.82, 0.53, 0.53, Go 1.14. Linux putget: 0.36.0 1.39, plus 4n 1.23, plus cap 1.03, 0.37.0 0.85, Go 0.96; push: 1.06, 0.81, 0.62, 0.58, Go 1.36." >}}
+{{< figure "alloc-cache-cap-results" "Peak memory of coll putget and push for each build, relative to Xo 0.35.0 (1.0), with Go 1.26.1 for comparison. 0.37.0 is b6421a8c5, the build of the next release, which also ships decision 0469." "Grouped bars, relative to Xo 0.35.0. macOS putget: 0.36.0 1.18, plus 4n 1.14, plus cap 0.86, 0.37.0 0.86, Go 1.20; push: 1.10, 0.82, 0.53, 0.53, Go 1.14. Linux putget: 0.36.0 1.39, plus 4n 1.23, plus cap 1.03, 0.37.0 0.85, Go 0.96; push: 1.06, 0.81, 0.62, 0.58, Go 1.36." >}}
 
 The compiler keeps its speed. With the cap, the build of `coll` without a
 binary cache ran at 0.991 of the uncapped time on macOS, the compiler's
