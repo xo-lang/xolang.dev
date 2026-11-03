@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" role="img" aria-label="CPU microseconds a request of one server build as its fiber stack is shifted by 12 amounts of bytes">
+<style>:root{--fg:#1f2328;--mut:#6b7280;--grid:#e5e7eb;--ok:#9ca3af;--bad:#dc2626}@media (prefers-color-scheme:dark){:root{--fg:#e6edf3;--mut:#9ca3af;--grid:#30363d;--ok:#6b7280;--bad:#f87171}}text{font:13px system-ui,sans-serif;fill:var(--fg)}.m{fill:var(--mut);font-size:12px}.g{stroke:var(--grid);stroke-width:1}.r{stroke:var(--mut);stroke-width:1.5;stroke-dasharray:4 3}</style>
+<text x="56" y="22" style="font-weight:600">CPU microseconds a request as the fiber stack is shifted (32 connections)</text>
+<line class="g" x1="56" x2="620" y1="266.0" y2="266.0"/><text class="m" x="48" y="270.0" text-anchor="end">0</text>
+<line class="g" x1="56" x2="620" y1="227.1" y2="227.1"/><text class="m" x="48" y="231.1" text-anchor="end">10</text>
+<line class="g" x1="56" x2="620" y1="188.1" y2="188.1"/><text class="m" x="48" y="192.1" text-anchor="end">20</text>
+<line class="g" x1="56" x2="620" y1="149.2" y2="149.2"/><text class="m" x="48" y="153.2" text-anchor="end">30</text>
+<line class="g" x1="56" x2="620" y1="110.3" y2="110.3"/><text class="m" x="48" y="114.3" text-anchor="end">40</text>
+<line class="g" x1="56" x2="620" y1="71.4" y2="71.4"/><text class="m" x="48" y="75.4" text-anchor="end">50</text>
+<rect x="60.0" y="127.0" width="39.0" height="139.0" fill="var(--ok)"/><text x="79.5" y="122.0" text-anchor="middle" style="font-size:12px">35.7</text><text class="m" x="79.5" y="284" text-anchor="middle">-112</text>
+<rect x="107.0" y="127.0" width="39.0" height="139.0" fill="var(--ok)"/><text x="126.5" y="122.0" text-anchor="middle" style="font-size:12px">35.7</text><text class="m" x="126.5" y="284" text-anchor="middle">-64</text>
+<rect x="154.0" y="127.0" width="39.0" height="139.0" fill="var(--ok)"/><text x="173.5" y="122.0" text-anchor="middle" style="font-size:12px">35.7</text><text class="m" x="173.5" y="284" text-anchor="middle">-32</text>
+<rect x="201.0" y="100.2" width="39.0" height="165.8" fill="var(--bad)"/><text x="220.5" y="95.2" text-anchor="middle" style="font-size:12px">42.6</text><text class="m" x="220.5" y="284" text-anchor="middle">-16</text>
+<rect x="248.0" y="77.6" width="39.0" height="188.4" fill="var(--bad)"/><text x="267.5" y="72.6" text-anchor="middle" style="font-size:12px">48.4</text><text class="m" x="267.5" y="284" text-anchor="middle">0</text>
+<rect x="295.0" y="127.4" width="39.0" height="138.6" fill="var(--ok)"/><text x="314.5" y="122.4" text-anchor="middle" style="font-size:12px">35.6</text><text class="m" x="314.5" y="284" text-anchor="middle">16</text>
+<rect x="342.0" y="126.6" width="39.0" height="139.4" fill="var(--ok)"/><text x="361.5" y="121.6" text-anchor="middle" style="font-size:12px">35.8</text><text class="m" x="361.5" y="284" text-anchor="middle">32</text>
+<rect x="389.0" y="107.6" width="39.0" height="158.4" fill="var(--bad)"/><text x="408.5" y="102.6" text-anchor="middle" style="font-size:12px">40.7</text><text class="m" x="408.5" y="284" text-anchor="middle">48</text>
+<rect x="436.0" y="106.0" width="39.0" height="160.0" fill="var(--bad)"/><text x="455.5" y="101.0" text-anchor="middle" style="font-size:12px">41.1</text><text class="m" x="455.5" y="284" text-anchor="middle">64</text>
+<rect x="483.0" y="86.1" width="39.0" height="179.9" fill="var(--bad)"/><text x="502.5" y="81.1" text-anchor="middle" style="font-size:12px">46.2</text><text class="m" x="502.5" y="284" text-anchor="middle">96</text>
+<rect x="530.0" y="127.4" width="39.0" height="138.6" fill="var(--ok)"/><text x="549.5" y="122.4" text-anchor="middle" style="font-size:12px">35.6</text><text class="m" x="549.5" y="284" text-anchor="middle">128</text>
+<rect x="577.0" y="127.0" width="39.0" height="139.0" fill="var(--ok)"/><text x="596.5" y="122.0" text-anchor="middle" style="font-size:12px">35.7</text><text class="m" x="596.5" y="284" text-anchor="middle">160</text>
+<line class="r" x1="56" x2="620" y1="127.0" y2="127.0"/>
+<text class="m" x="338.0" y="306" text-anchor="middle">stack shift in bytes (0 is the build as shipped)</text>
+<line class="r" x1="56" x2="80" y1="322" y2="322"/><text class="m" x="88" y="326">v0.35.0 in the same job: 35.7</text></svg>
