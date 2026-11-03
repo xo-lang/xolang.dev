@@ -74,21 +74,22 @@ tens of megabytes to gigabytes in use, keeps all of its reuse.
 
 Peak memory (maximum resident set size, KB, median of 7 runs) of the
 same `coll` binary built at each step, and of the same workloads written
-in Go (bench/perf/go), on macOS
-([alloc-cache-cap-2026-11-03.md, lines 44 to 56](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-cache-cap-2026-11-03.md#L44-L56)):
+in Go (bench/perf/go), on macOS; the 0.37.0 row is the released build,
+b6421a8c5
+([alloc-cache-cap-2026-11-03.md, lines 44 to 56 and 104 to 116](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-cache-cap-2026-11-03.md#L44-L56)):
 
 | Build | putget | push |
 |---|---|---|
 | Xo 0.35.0 | 7,296 | 50,944 |
 | Xo 0.36.0 | 8,624 | 56,096 |
 | + room for 4n | 8,288 | 41,568 |
-| + cache capped (0.37.0) | 6,304 | 26,832 |
+| + cache capped | 6,304 | 26,832 |
+| Xo 0.37.0 | 6,288 | 26,784 |
 | Go 1.26.1 | 8,784 | 57,936 |
 
 On Linux (arm64, transparent huge pages on, the default huge page
-mode), the same builds plus decision 0469, which 0.37.0 also ships
-(see below)
-([alloc-cache-cap-2026-11-03.md, lines 79 to 102](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-cache-cap-2026-11-03.md#L79-L102)):
+mode), the same builds; 0.37.0 also ships decision 0469 (see below)
+([alloc-cache-cap-2026-11-03.md, lines 79 to 102 and 104 to 116](https://github.com/xo-lang/xo/blob/main/bench/results/alloc-cache-cap-2026-11-03.md#L79-L116)):
 
 | Build | putget | push |
 |---|---|---|
@@ -96,15 +97,16 @@ mode), the same builds plus decision 0469, which 0.37.0 also ships
 | Xo 0.36.0 | 14,348 | 58,108 |
 | + room for 4n | 12,712 | 44,332 |
 | + cache capped | 10,684 | 33,752 |
-| + no huge pages for the first chunk (0.37.0) | 8,696 | 31,764 |
+| Xo 0.37.0 | 8,772 | 31,840 |
 | Go 1.26.1 | 9,988 | 74,276 |
 
 0.36.0's putget is bimodal on Linux (about 12,900 or 14,400 KB a run),
 which is why its median here differs from the release run's 13,634 KB.
-Go's push varies the most, from 66,236 to 88,380 KB across the 7 runs.
+Go's push varies the most: from 66,236 to 88,380 KB across these 7 runs,
+and from 55,992 to 103,240 KB in the job that measured 0.37.0.
 macOS has no huge page advice, so decision 0469 changes nothing there.
 
-{{< figure "alloc-cache-cap-results" "Peak memory of coll putget and push for each build, relative to Xo 0.35.0 (1.0), with Go 1.26.1 for comparison. Linux adds decision 0469 (+0469), which 0.37.0 also ships." "Grouped bars, relative to Xo 0.35.0. macOS putget: 0.36.0 1.18, plus 4n 1.14, plus cap 0.86, Go 1.20; push: 1.10, 0.82, 0.53, Go 1.14. Linux putget: 0.36.0 1.39, plus 4n 1.23, plus cap 1.03, plus 0469 0.84, Go 0.96; push: 1.06, 0.81, 0.62, 0.58, Go 1.36." >}}
+{{< figure "alloc-cache-cap-results" "Peak memory of coll putget and push for each build, relative to Xo 0.35.0 (1.0), with Go 1.26.1 for comparison. 0.37.0 is the released build (b6421a8c5), which also ships decision 0469." "Grouped bars, relative to Xo 0.35.0. macOS putget: 0.36.0 1.18, plus 4n 1.14, plus cap 0.86, 0.37.0 0.86, Go 1.20; push: 1.10, 0.82, 0.53, 0.53, Go 1.14. Linux putget: 0.36.0 1.39, plus 4n 1.23, plus cap 1.03, 0.37.0 0.85, Go 0.96; push: 1.06, 0.81, 0.62, 0.58, Go 1.36." >}}
 
 The compiler keeps its speed. With the cap, the build of `coll` without a
 binary cache ran at 0.991 of the uncapped time on macOS, the compiler's

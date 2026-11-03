@@ -1,5 +1,6 @@
-<svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="acc-t">
+<svg viewBox="0 0 720 302" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="acc-t">
 <title id="acc-t">Two schematic panels of memory over a run. Left, Xo: live bytes rise and fall; freed large blocks kept for reuse sit on top, and since 0.37 they may total at most a quarter of the bytes in use. Right, Go: the heap goal is about twice the live heap at the last collection (GOGC=100), and the background scavenger returns free pages until the retained memory is about 10% over what the heap goal implies.</title>
+<rect class="f-bg" x="0" y="0" width="720" height="302" rx="10" fill="#faf6f0"/>
 <g transform="translate(20,20)">
   <text class="f-ink" x="0" y="0" font-weight="600">Xo 0.37: cache capped at 1/4 of in-use</text>
   <line class="f-axis" x1="0" y1="220" x2="320" y2="220" stroke-width="1"/>
@@ -23,6 +24,6 @@
   <path class="f-accent-s" fill="none" stroke-width="1.5" stroke-dasharray="5 4" d="M0,150 C40,130 60,40 100,36 C140,40 160,90 200,96 C240,90 280,72 320,62"/>
   <rect class="f-band" x="12" y="246" width="12" height="10"/><text class="f-ink2" x="30" y="255">live heap</text>
   <rect class="f-mute" x="96" y="246" width="12" height="10"/><text class="f-ink2" x="114" y="255">garbage and free pages</text>
-  <line class="f-accent-s" x1="236" y1="251" x2="252" y2="251" stroke-width="1.5" stroke-dasharray="5 4"/><text class="f-ink2" x="256" y="255">~2x live + 10%</text>
+  <line class="f-accent-s" x1="12" y1="267" x2="28" y2="267" stroke-width="1.5" stroke-dasharray="5 4"/><text class="f-ink2" x="32" y="271">goal: about 2x live, + 10% retained</text>
 </g>
 </svg>

@@ -419,6 +419,7 @@ a.level:hover { text-decoration: underline; }
 .post-figure { margin: 1.6rem 0; }
 .post-figure svg { display: block; width: 100%; height: auto; max-width: 720px; }
 .post-figure figcaption { color: var(--ink-2); font-size: .9rem; margin-top: .5rem; }
+.post-figure .f-bg { fill: var(--bg-2); }
 .post-figure .f-ink { fill: var(--ink); }
 .post-figure .f-ink2 { fill: var(--ink-2); }
 .post-figure .f-line { stroke: var(--line); }
