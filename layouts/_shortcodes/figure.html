@@ -1,0 +1,8 @@
+{{- /* Usage: {{< figure "name" "Caption text." "Alt text: what the figure shows, in words." >}}: inlines assets/figures/name.svg (drawn with the site's CSS variables, so it follows the light and dark themes) in a <figure> with its caption. */ -}}
+{{- $name := .Get 0 -}}{{- $cap := .Get 1 -}}{{- $alt := .Get 2 -}}
+{{- with resources.Get (printf "figures/%s.svg" $name) -}}
+<figure class="post-figure" role="group" aria-label="{{ $alt }}">
+{{ .Content | safeHTML }}
+<figcaption>{{ $cap | markdownify }}</figcaption>
+</figure>
+{{- else -}}{{- errorf "figure: assets/figures/%s.svg not found" $name -}}{{- end -}}

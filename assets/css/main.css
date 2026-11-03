@@ -414,3 +414,19 @@ a.level:hover { text-decoration: underline; }
 .level-solid { background: var(--lv-solid-bg); color: var(--lv-solid-fg); border-color: var(--lv-solid-fg); }
 .level-proven { background: var(--lv-proven-bg); color: var(--lv-proven-fg); border-color: var(--lv-proven-fg); }
 .prose a.level { text-decoration: none; }
+
+/* Post figures: inline SVG drawn with the theme's variables (layouts/_shortcodes/figure.html). */
+.post-figure { margin: 1.6rem 0; }
+.post-figure svg { display: block; width: 100%; height: auto; max-width: 720px; }
+.post-figure figcaption { color: var(--ink-2); font-size: .9rem; margin-top: .5rem; }
+.post-figure .f-ink { fill: var(--ink); }
+.post-figure .f-ink2 { fill: var(--ink-2); }
+.post-figure .f-line { stroke: var(--line); }
+.post-figure .f-axis { stroke: var(--ink-2); }
+.post-figure .f-accent { fill: var(--accent); }
+.post-figure .f-accent-s { stroke: var(--accent); }
+.post-figure .f-ok { fill: var(--ok); }
+.post-figure .f-ok-s { stroke: var(--ok); }
+.post-figure .f-mute { fill: var(--ink-2); opacity: .45; }
+.post-figure .f-band { fill: var(--accent); opacity: .18; }
+.post-figure text { font-family: inherit; font-size: 12px; }

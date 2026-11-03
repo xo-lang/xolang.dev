@@ -1,0 +1,28 @@
+<svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="acc-t">
+<title id="acc-t">Two schematic panels of memory over a run. Left, Xo: live bytes rise and fall; freed large blocks kept for reuse sit on top, and since 0.37 they may total at most a quarter of the bytes in use. Right, Go: the heap goal is about twice the live heap at the last collection (GOGC=100), and the background scavenger returns free pages until the retained memory is about 10% over what the heap goal implies.</title>
+<g transform="translate(20,20)">
+  <text class="f-ink" x="0" y="0" font-weight="600">Xo 0.37: cache capped at 1/4 of in-use</text>
+  <line class="f-axis" x1="0" y1="220" x2="320" y2="220" stroke-width="1"/>
+  <line class="f-axis" x1="0" y1="20" x2="0" y2="220" stroke-width="1"/>
+  <text class="f-ink2" x="300" y="236" text-anchor="end">time</text>
+  <text class="f-ink2" x="4" y="32">bytes</text>
+  <path class="f-band" d="M0,220 L0,180 C40,170 60,110 100,100 C140,90 160,140 200,150 C240,160 280,130 320,120 L320,220 Z"/>
+  <path class="f-mute" d="M0,180 C40,170 60,110 100,100 C140,90 160,140 200,150 C240,160 280,130 320,120 L320,100 C280,112 240,145 200,135 C160,124 140,70 100,78 C60,88 40,150 0,170 Z"/>
+  <path class="f-accent-s" fill="none" stroke-width="1.5" stroke-dasharray="5 4" d="M0,170 C40,150 60,88 100,78 C140,70 160,124 200,135 C240,145 280,112 320,100"/>
+  <rect class="f-band" x="12" y="246" width="12" height="10"/><text class="f-ink2" x="30" y="255">live bytes</text>
+  <rect class="f-mute" x="104" y="246" width="12" height="10"/><text class="f-ink2" x="122" y="255">freed blocks kept</text>
+  <line class="f-accent-s" x1="232" y1="251" x2="248" y2="251" stroke-width="1.5" stroke-dasharray="5 4"/><text class="f-ink2" x="252" y="255">cap: 1.25 x live</text>
+</g>
+<g transform="translate(380,20)">
+  <text class="f-ink" x="0" y="0" font-weight="600">Go: heap goal and scavenger</text>
+  <line class="f-axis" x1="0" y1="220" x2="320" y2="220" stroke-width="1"/>
+  <line class="f-axis" x1="0" y1="20" x2="0" y2="220" stroke-width="1"/>
+  <text class="f-ink2" x="300" y="236" text-anchor="end">time</text>
+  <path class="f-band" d="M0,220 L0,180 C40,170 60,110 100,100 C140,90 160,140 200,150 C240,160 280,130 320,120 L320,220 Z"/>
+  <path class="f-mute" d="M0,180 C40,170 60,110 100,100 C140,90 160,140 200,150 C240,160 280,130 320,120 L320,62 C280,72 240,90 200,96 C160,90 140,40 100,36 C60,40 40,130 0,150 Z"/>
+  <path class="f-accent-s" fill="none" stroke-width="1.5" stroke-dasharray="5 4" d="M0,150 C40,130 60,40 100,36 C140,40 160,90 200,96 C240,90 280,72 320,62"/>
+  <rect class="f-band" x="12" y="246" width="12" height="10"/><text class="f-ink2" x="30" y="255">live heap</text>
+  <rect class="f-mute" x="96" y="246" width="12" height="10"/><text class="f-ink2" x="114" y="255">garbage and free pages</text>
+  <line class="f-accent-s" x1="236" y1="251" x2="252" y2="251" stroke-width="1.5" stroke-dasharray="5 4"/><text class="f-ink2" x="256" y="255">~2x live + 10%</text>
+</g>
+</svg>
