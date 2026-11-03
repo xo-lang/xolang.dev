@@ -283,7 +283,7 @@ w(f"Today: overall {lvcount['Proven']} Proven, {lvcount['Solid']} Solid, {lvcoun
 w("")
 w("### Per module")
 w("")
-w("Marks only. Each module has its Overall mark under its name, then its three marks (F features, T testing, P performance) and the short figures behind them; times are multiples of Go's time, so lower is faster and 0.47x is better than Go. The prose behind each mark (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes); each module name links to its note.")
+w("Marks only. Each module has its three marks (F features, T testing, P performance) and the short figures behind them; times are multiples of Go's time, so lower is faster and 0.47x is better than Go. The prose behind each mark (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes); each module name links to its note.")
 w("")
 w("| Module | Marks: F features, T testing, P performance |")
 w("|---|---|")
@@ -291,7 +291,7 @@ for m, f, t, p, lv, d, rel in rows:
     name = "prelude" if m == "prelude" else f"std/{m}"
     pills = " ".join(pill(x[0], link(x[2]), k, n) for x, k, n in ((f, "F", "Features"), (t, "T", "Testing"), (p, "P", "Performance")))
     desc = "Features " + short_feat(f) + " · Testing " + short_test(t) + " · Performance " + short_perf(p)
-    w(f"| [`{name}`](#{anchor(m)}) {pill(lv)} | {pills} {{{{< covdesc \"{desc}\" >}}}} |")
+    w(f"| [`{name}`](#{anchor(m)}) | {pills} {{{{< covdesc \"{desc}\" >}}}} |")
 w("")
 w("### Module notes")
 w("")
