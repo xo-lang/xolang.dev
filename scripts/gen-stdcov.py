@@ -101,6 +101,9 @@ FUZZ = {  # module -> (evidence path, text)
     "http": ("internal/stdtest/httpheadfuzz_test.go", "request head, response and URL fuzz tests"),
     "url": ("internal/stdtest/httpurlfuzz_test.go", "URL fuzz test"),
     "x509": ("internal/stdtest/testdata/corpus/x509/x509_test.xo", "fuzz cases in its corpus"),
+    "json": ("internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo", "fuzz corpus against encoding/json (2,003 cases; internal/stdtest/jsonfuzz_test.go runs fresh seeds)"),
+    "xml": ("internal/stdtest/testdata/corpus/xmlfuzz/xmlfuzz_test.xo", "fuzz corpus against encoding/xml (2,000 documents through Token, Token not strict, and RawToken, error texts exact; internal/stdtest/xmlfuzz_test.go runs fresh seeds)"),
+    "csv": ("internal/stdtest/testdata/corpus/csvfuzz/csvfuzz_test.xo", "fuzz corpus against encoding/csv (2,000 texts under random Reader options, error texts exact, and the Writer's output; internal/stdtest/csvfuzz_test.go runs fresh seeds)"),
 }
 GODIFF = {"tls": ("internal/llvm/tls13_diff_test.go", "TLS 1.3 client and server differential against Go"),
           "http": ("internal/llvm/http1_diff_test.go", "HTTP/1 differential against Go")}
