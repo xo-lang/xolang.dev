@@ -75,9 +75,17 @@ def changelog():
         version, date = m.group(1), m.group(2)
         end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
         body = text[m.end():end].strip() + "\n"
+        slug = version.replace(".", "-")
+        # extra/changelog/<slug>.md: a section the post adds to a released
+        # CHANGELOG section (which stays as released), placed before the
+        # section's first ### heading
+        extra = os.path.join(SITE, "extra", "changelog", slug + ".md")
+        if os.path.exists(extra):
+            add = open(extra).read().strip() + "\n\n"
+            at = body.find("\n### ")
+            body = body + "\n" + add if at < 0 else body[:at + 1] + add + body[at + 1:]
         draft = re.search(r"Spec draft (\d+\.\d+)", body)
         desc = f"Release notes for Xo {version}" + (f", spec draft {draft.group(1)}." if draft else ".")
-        slug = version.replace(".", "-")
         write(f"content/blog/{slug}.md", front(
             title=f"Xo {version}", date=date, description=desc,
             source=SOURCE + "CHANGELOG.md",
