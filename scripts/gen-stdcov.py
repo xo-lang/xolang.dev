@@ -77,7 +77,7 @@ gaps = [p for p in gopk if status[p] == "planned"]
 
 # ---- modules
 mods = sorted(f[:-3] for f in os.listdir(f"{XO}/std") if f.endswith(".xo") and "_test" not in f and f != "internal.xo")
-mods = [m for m in mods if m != "embed" or True]
+mods = [m for m in mods if m != "prelude"]  # std/prelude.xo is the prelude, which has its own first row; it was listed and counted twice
 nmods = len(mods)
 corpus = set(os.listdir(f"{XO}/internal/stdtest/testdata/corpus"))
 tags = sh("git tag | sort -V").split()
@@ -193,6 +193,40 @@ def perf(m):
         return lv, fact, ev
     return "Early", "no committed row against Go", None
 
+def anchor(m):
+    return "mod-" + m
+
+def short_feat(f):
+    t = f[1]
+    m = re.match(r"all (\d+) mapped Go rows done", t)
+    if m: return f"{m.group(1)}/{m.group(1)}"
+    m = re.match(r"(\d+) of (\d+) mapped Go rows done", t)
+    if m: return f"{m.group(1)}/{m.group(2)}"
+    if t.startswith("beyond Go"): return "beyond Go"
+    if t.startswith("no Go package"): return "own domain"
+    return ""
+
+def short_test(t):
+    x = t[1]
+    if x.startswith("own tests"): return "own tests"
+    base = "differential" if "differential" in x and "ported" not in x else "ported"
+    if "no fuzz harness" in x: return base + ", no fuzz"
+    if "hostile" in x: return base + " + hostile"
+    if "fuzz" in x: return base + " + fuzz"
+    return base
+
+def short_perf(p):
+    x = p[1]
+    if x.startswith("no committed row"): return "no row"
+    x = re.sub(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$", "", x)
+    x = re.sub(r"\([^)]*\)", "", x)
+    clauses = [c for c in x.split(";") if "of Go" in c and " us " not in c]
+    nums = [float(n) for c in clauses for n in re.findall(r"(?<![\d./-])\d+\.\d+(?![\d])", c)]
+    if not nums: return "see notes"
+    unit = "x instr." if "instructions" in x else "x"
+    lo, hi = min(nums), max(nums)
+    return f"{lo:g}{unit}" if lo == hi else f"{lo:g} to {hi:g}{unit}"
+
 rows = []
 for m in ["prelude"] + mods:
     f, t, p = feat(m), test(m), perf(m)
@@ -248,12 +282,28 @@ w(f"Today: overall {lvcount['Proven']} Proven, {lvcount['Solid']} Solid, {lvcoun
 w("")
 w("### Per module")
 w("")
-w("| Module | Overall | Features | Testing | Performance | Added |")
-w("|---|---|---|---|---|---|")
+w("Marks only; the prose behind each one (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes). Each module name links to its note.")
+w("")
+w("| Module | Overall | Features (Go rows) | Testing | Performance (vs Go) |")
+w("|---|---|---|---|---|")
 for m, f, t, p, lv, d, rel in rows:
     name = "prelude" if m == "prelude" else f"std/{m}"
-    w(f"| `{name}` | {pill(lv)} | {pill(f[0], link(f[2]))} {f[1]} | {pill(t[0], link(t[2]))} {t[1]} | {pill(p[0], link(p[2]))} {p[1]} | {rel} ({d}) |")
+    w(f"| [`{name}`](#{anchor(m)}) | {pill(lv)} | {pill(f[0], link(f[2]))} {short_feat(f)} | {pill(t[0], link(t[2]))} {short_test(t)} | {pill(p[0], link(p[2]))} {short_perf(p)} |")
 w("")
+w("### Module notes")
+w("")
+w("One entry per module: the three marks with their evidence, in words, and when the module was added. The marks are the table's; nothing here changes one.")
+w("")
+for m, f, t, p, lv, d, rel in rows:
+    name = "prelude" if m == "prelude" else f"std/{m}"
+    w(f"#### `{name}` {{#{anchor(m)}}}")
+    w("")
+    w(f"Overall {pill(lv)}. Added {rel} ({d}).")
+    w("")
+    w(f"- Features {pill(f[0], link(f[2]))}: {f[1]}.")
+    w(f"- Testing {pill(t[0], link(t[2]))}: {t[1]}.")
+    w(f"- Performance {pill(p[0], link(p[2]))}: {p[1]}.")
+    w("")
 w("## Go packages")
 w("")
 w(f"All {len(gopk)} packages of `go list std`, by status. A package that maps to a module names it; the repository's coverage table has the notes per row.")
