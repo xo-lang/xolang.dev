@@ -96,7 +96,7 @@ BEYOND_GO = {"sql": "database/sql plus a PostgreSQL driver", "websocket": "Go ha
 
 # parsers of untrusted input need fuzzing for Solid testing (owner, 2026-11-02)
 PARSERS = {"http", "url", "mime", "multipart", "mail", "smtp", "tls", "x509", "websocket", "json", "xml", "xmlcodec", "toml", "csv",
-           "archive", "compress", "dns", "regexp", "template", "html", "netip", "time", "png"}
+           "archive", "compress", "dns", "regexp", "template", "html", "netip", "time", "png", "jpeg"}
 FUZZ = {  # module -> (evidence path, text)
     "http": ("internal/stdtest/httpheadfuzz_test.go", "request head, response and URL fuzz tests"),
     "url": ("internal/stdtest/httpurlfuzz_test.go", "URL fuzz test"),
@@ -106,6 +106,7 @@ FUZZ = {  # module -> (evidence path, text)
     "csv": ("internal/stdtest/testdata/corpus/csvfuzz/csvfuzz_test.xo", "fuzz corpus against encoding/csv (2,000 texts under random Reader options, error texts exact, and the Writer's output; internal/stdtest/csvfuzz_test.go runs fresh seeds)"),
     "toml": ("internal/stdtest/tomlfuzz_test.go", "toml-test v1.5.0 conformance (TOML 1.0.0: 179 valid, 364 invalid documents) and a 2,000-document invariant fuzz on every backend"),
     "png": ("internal/stdtest/pngfuzz_test.go", "1,000 seeded files from a chunk-level builder and Go-encoded images (every color type and depth, bad headers, palettes, tRNS, split IDATs, cuts, bit flips) against Go's Decode and DecodeConfig, plus 36,000 fresh cases over six seeds"),
+    "jpeg": ("internal/stdtest/jpegfuzz_test.go", "350 seeded files from a segment-aware mutator over Go's test images and Go-encoded images (every chroma ratio, baseline and progressive, restart intervals, CMYK, YCCK, headers, tables, scan parameters, cuts, bit flips) against Go's Decode and DecodeConfig, plus 12,000 fresh cases on arm64 and LLVM"),
     "compress": ("internal/stdtest/compressfuzz_test.go", "2,000 hostile DEFLATE, zlib and gzip streams (hand-built blocks and corrupted Go output) against Go's decoders, error texts exact, plus streaming and max_size, on every backend"),
     "archive": ("internal/stdtest/archivefuzz_test.go", "2,010 hostile tar and zip archives (Go-written and hand-built headers, cut and field-mutated) against Go's archive/tar and archive/zip readers on every backend"),
     "mime": ("internal/stdtest/mimefuzz_test.go", "2,000 cases against Go's mime and net/http: hostile Content-Type headers (RFC 2231, continuations, duplicates), format_media_type, every DetectContentType signature, on every backend"),
@@ -119,6 +120,7 @@ PERF = {
     "csv": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "parse 0.92, format 1.01 of Go's wall (2026-11-03)"),
     "xml": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "tokens 1.15, tree 0.95 of Go's wall (2026-11-03)"),
     "png": ("Proven", "bench/results/std-twin-rows5-2026-11-03.md", "decode 1.04, encode 0.94 of Go's wall (2026-11-03)"),
+    "jpeg": ("Solid", "bench/results/std-twin-rows6-2026-11-03.md", "decode 1.38, with RGBA conversion 1.41 of Go's wall (2026-11-03)"),
     "compress": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "gzip 0.96, gunzip 0.92, deflate 0.96, inflate 0.91 of Go's wall (2026-11-03)"),
     "archive": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "zip 1.20, tar 1.04, unzip 0.99, untar 0.27 of Go's wall (2026-11-03)"),
     "mime": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "format 1.28, parse 1.06, detect 0.90 of Go's wall (2026-11-03)"),
@@ -303,7 +305,7 @@ w("The gaps are *potentially planned*: a priority and a realistic timeframe, not
 w("")
 w("| Priority | Gap | Timeframe |")
 w("|---|---|---|")
-w("| 1 | CBOR; `image/png`, `image/jpeg` | Q4 2026 |")
+w("| 1 | CBOR | Q4 2026 |")
 w("| 2 | `encoding/gob`, `net/rpc`; `compress/bzip2`, `compress/lzw`; small hashes (`hash/crc64`, `hash/adler32`); `os/user`; `log/syslog`; `expvar`; `text/scanner`; `container/ring`; `unicode/utf16`; `index/suffixarray` | Q1 2027 |")
 w("| 3 | legacy crypto (`crypto/des`, `crypto/dsa`, `crypto/rc4`); `weak`, `unique` | last, or possibly never |")
 w("")
