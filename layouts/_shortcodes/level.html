@@ -1,3 +1,3 @@
-{{- /* Usage: {{< level "Solid" >}} or {{< level "Solid" "https://evidence" >}}: a maturity pill (Early, Solid, Proven). The word is in the pill; colour only adds to it. */ -}}
-{{- $l := .Get 0 -}}{{- $u := .Get 1 -}}
-{{- if $u }}<a class="level level-{{ lower $l }}" href="{{ $u }}">{{ $l }}</a>{{ else }}<span class="level level-{{ lower $l }}">{{ $l }}</span>{{ end -}}
+{{- /* Usage: {{< level "Solid" >}}, {{< level "Solid" "https://evidence" >}} or {{< level "Solid" "https://evidence" "F" "Features" >}}: a maturity pill (Early, Solid, Proven). The word is in the pill; colour only adds to it. The optional third and fourth arguments put a one letter axis label in front (title: its name). An empty second argument is no link. */ -}}
+{{- $l := .Get 0 -}}{{- $u := .Get 1 -}}{{- $k := .Get 2 -}}{{- $n := .Get 3 -}}
+{{- if $u }}<a class="level level-{{ lower $l }}" href="{{ $u }}"{{ if $n }} title="{{ $n }}"{{ end }}>{{ if $k }}<span class="lk">{{ $k }}</span> {{ end }}{{ $l }}</a>{{ else }}<span class="level level-{{ lower $l }}"{{ if $n }} title="{{ $n }}"{{ end }}>{{ if $k }}<span class="lk">{{ $k }}</span> {{ end }}{{ $l }}</span>{{ end -}}

@@ -414,12 +414,17 @@ a.level:hover { text-decoration: underline; }
 .level-solid { background: var(--lv-solid-bg); color: var(--lv-solid-fg); border-color: var(--lv-solid-fg); }
 .level-proven { background: var(--lv-proven-bg); color: var(--lv-proven-fg); border-color: var(--lv-proven-fg); }
 .prose a.level { text-decoration: none; }
-/* std coverage "Per module" table: marks only. A cell is a pill with a short figure under it and never wraps, so five columns fit the content column at desktop width; at phone width the table scrolls inside its own box (.prose table is display: block). */
-.prose table:has(td > .level) { font-size: 12.5px; line-height: 1.35; }
-.prose table:has(td > .level) th, .prose table:has(td > .level) td { padding: 5px 7px; white-space: nowrap; }
-.prose table:has(td > .level) td > .level { display: table; margin-bottom: 2px; }
+/* std coverage "Per module" table: two columns, so it fits the content column at any width. Column 1: the module and its Overall pill under it. Column 2: the three labelled pills on one line (they wrap as whole pills on a phone), then the short figures. */
+.prose table:has(td > .level) { font-size: 13.5px; line-height: 1.4; }
+.prose table:has(td > .level) th, .prose table:has(td > .level) td { padding: 7px 10px; }
+.prose table:has(td > .level) td:first-child { white-space: nowrap; }
 .prose table:has(td > .level) td:first-child a { text-decoration: none; color: var(--ink); }
 .prose table:has(td > .level) td:first-child a code { color: inherit; }
+.prose table:has(td > .level) td:first-child > .level { display: block; width: fit-content; margin-top: 4px; }
+.prose table:has(td > .level) td:last-child { min-width: 17em; }
+.prose table:has(td > .level) td > .level { margin: 0 4px 2px 0; }
+.level .lk { opacity: .75; }
+.covdesc { display: block; margin-top: 4px; color: var(--ink-2); font-size: 12.5px; line-height: 1.4; }
 
 /* Post figures: inline SVG drawn with the theme's variables (layouts/_shortcodes/figure.html). */
 .post-figure { margin: 1.6rem 0; }

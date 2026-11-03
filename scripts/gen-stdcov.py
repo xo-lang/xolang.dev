@@ -159,7 +159,8 @@ MAIN_NOTE = {"prelude": "Str, Bytes, List, Map, Fs, Net, Clock, Rand, Env, Stdio
 
 LV = {"Early": 0, "Solid": 1, "Proven": 2}
 NM = ["Early", "Solid", "Proven"]
-def pill(level, link=None):
+def pill(level, link=None, key="", name=""):
+    if key: return '{{< level "%s" "%s" "%s" "%s" >}}' % (level, link or "", key, name)
     if link: return '{{< level "%s" "%s" >}}' % (level, link)
     return '{{< level "%s" >}}' % level
 
@@ -282,13 +283,15 @@ w(f"Today: overall {lvcount['Proven']} Proven, {lvcount['Solid']} Solid, {lvcoun
 w("")
 w("### Per module")
 w("")
-w("Marks only; the prose behind each one (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes). Each module name links to its note.")
+w("Marks only. Each module has its Overall mark under its name, then its three marks (F features, T testing, P performance) and the short figures behind them; times are multiples of Go's time, so lower is faster and 0.47x is better than Go. The prose behind each mark (which rows are partial, the timings, what is missing, the evidence link) is under [Module notes](#module-notes); each module name links to its note.")
 w("")
-w("| Module | Overall | Features (Go rows) | Testing | Performance (x Go's time, lower is faster) |")
-w("|---|---|---|---|---|")
+w("| Module | Marks: F features, T testing, P performance |")
+w("|---|---|")
 for m, f, t, p, lv, d, rel in rows:
     name = "prelude" if m == "prelude" else f"std/{m}"
-    w(f"| [`{name}`](#{anchor(m)}) | {pill(lv)} | {pill(f[0], link(f[2]))} {short_feat(f)} | {pill(t[0], link(t[2]))} {short_test(t)} | {pill(p[0], link(p[2]))} {short_perf(p)} |")
+    pills = " ".join(pill(x[0], link(x[2]), k, n) for x, k, n in ((f, "F", "Features"), (t, "T", "Testing"), (p, "P", "Performance")))
+    desc = "Features " + short_feat(f) + " · Testing " + short_test(t) + " · Performance " + short_perf(p)
+    w(f"| [`{name}`](#{anchor(m)}) {pill(lv)} | {pills} {{{{< covdesc \"{desc}\" >}}}} |")
 w("")
 w("### Module notes")
 w("")
