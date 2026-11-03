@@ -121,7 +121,7 @@ PERF = {
     "csv": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "parse 0.92, format 1.01 of Go's wall (2026-11-03)"),
     "xml": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "tokens 1.15, tree 0.95 of Go's wall (2026-11-03)"),
     "png": ("Proven", "bench/results/std-twin-rows5-2026-11-03.md", "decode 1.04, encode 0.94 of Go's wall (2026-11-03)"),
-    "jpeg": ("Solid", "bench/results/std-twin-rows6-2026-11-03.md", "decode 1.22, with RGBA conversion 1.24 of Go's wall (2026-11-03)"),
+    "jpeg": ("Solid", "bench/results/std-twin-rows6-2026-11-03.md", "decode 1.14, with RGBA conversion 1.19 of Go's wall (2026-11-03)"),
     "cbor": ("Proven", "bench/results/std-twin-rows7-2026-11-03.md", "decode 0.43, encode 0.26, deterministic encode 0.62 of fxamacker/cbor's wall (2026-11-03)"),
     "compress": ("Proven", "bench/results/std-twin-rows-2026-11-03.md", "gzip 0.96, gunzip 0.92, deflate 0.96, inflate 0.91 of Go's wall (2026-11-03)"),
     "archive": ("Solid", "bench/results/std-twin-rows-2026-11-03.md", "zip 1.20, tar 1.04, unzip 0.99, untar 0.27 of Go's wall (2026-11-03)"),
