@@ -52,7 +52,7 @@ On most of the benchmarks Xo is compared with Go on, yes; on a few it is
 slower. In the 0.36.0 comparison (an Apple M4 Pro, 3 interleaved rounds
 each), Xo took less time than Go on 18 of 20 workloads and more on n-body
 (1.06 of Go's wall time); the parallel map was 1.04 in a noisy 3-round
-run (0.35.0: 0.99)
+run (0.99 in the 0.35.0 comparison)
 ([release-vs-go-v0.36.0.md, lines 20 to 22 and 66 to 87](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L20-L87)).
 [Xo and Go](../xo-and-go/#benchmarks) has every row, the method, and
 where Go is still the better choice.
