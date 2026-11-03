@@ -68,7 +68,7 @@ mapping is kept only while the cache stays under a quarter of the bytes
 the program has in use. A small program caches little. The compiler, with
 tens of megabytes to gigabytes in use, keeps all of its reuse.
 
-{{< figure "alloc-cache-cap" "Schematic, not to scale. Left: Xo 0.37.0 keeps freed large blocks for reuse only while they total under a quarter of the bytes in use. Right: Go collects garbage when the heap reaches its goal (about twice the live heap with GOGC=100) and its background scavenger returns free pages down to about 10% over what that goal implies." "Two panels of memory over a run. In Xo's, the kept freed blocks stay under a line at 1.25 times live bytes. In Go's, garbage and free pages fill up to about twice the live heap plus 10%." >}}
+{{< figure "alloc-cache-cap" "Illustrative, not measured, and not to scale. Left: Xo 0.37.0 keeps freed large blocks for reuse only while they total under a quarter of the bytes in use. Right: Go's heap grows from the live heap toward the goal its last collection set (with GOGC=100, twice the live heap at that collection) and drops back at each collection; the goal is the most the heap may reach before the next one, not what Go holds all the time. Pages the collections free are returned by the background scavenger, which keeps about 10% over what the goal implies." "Two panels of memory over a run. In Xo's, the kept freed blocks stay under a dashed line at 1.25 times live bytes. In Go's, the heap rises from the live heap to a stepped dashed goal line and drops at each collection, a sawtooth." >}}
 
 ### The results
 

@@ -1,7 +1,8 @@
-<svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="acr-t">
-<title id="acr-t">Peak memory of coll putget and push relative to Xo 0.35.0</title>
-<rect class="f-bg" x="0" y="0" width="800" height="320" rx="10" fill="#faf6f0"/>
-<g transform="translate(30,0)">
+<svg viewBox="0 0 800 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="acr-t">
+<title id="acr-t">Peak memory (max RSS) of coll putget and push relative to Xo 0.35.0, lower is better</title>
+<rect class="f-bg" x="0" y="0" width="800" height="348" rx="10" fill="#faf6f0"/>
+<text class="f-ink" x="20" y="24" font-weight="600">Peak memory (max RSS) relative to Xo 0.35.0, lower is better</text>
+<g transform="translate(30,28)">
 <text class="f-ink" x="0" y="20" font-weight="600">macOS (arm64)</text>
 <line class="f-line" x1="0" y1="240.0" x2="360" y2="240.0" stroke-width="1"/>
 <text class="f-ink2" x="-4" y="244.0" text-anchor="end">0.0</text>
@@ -48,7 +49,7 @@
 <text class="f-ink2" x="352.3" y="250" text-anchor="end" font-size="10" transform="rotate(-45 352.3 250)">Go</text>
 <text class="f-ink" x="271.3" y="302" text-anchor="middle">push</text>
 </g>
-<g transform="translate(430,0)">
+<g transform="translate(430,28)">
 <text class="f-ink" x="0" y="20" font-weight="600">Linux (arm64)</text>
 <line class="f-line" x1="0" y1="240.0" x2="360" y2="240.0" stroke-width="1"/>
 <text class="f-ink2" x="-4" y="244.0" text-anchor="end">0.0</text>
