@@ -18,8 +18,8 @@
 <line class="g" x1="710.0" x2="710.0" y1="74" y2="328"/>
 <text class="m" x="710.0" y="346" text-anchor="middle">105%</text>
 <line class="l" x1="556.7" x2="556.7" y1="74" y2="328"/>
-<text x="236" y="114" text-anchor="end" class="t">v0.35.0's own code,</text><text class="m" x="236" y="132" text-anchor="end">built at 4 layouts</text>
-<text x="236" y="254" text-anchor="end" class="t">main (0.37 development),</text><text class="m" x="236" y="272" text-anchor="end">built at 1 layout</text>
+<text x="236" y="114" text-anchor="end" class="t">v0.35.0's own code</text><text class="m" x="236" y="132" text-anchor="end">built at 4 layouts</text>
+<text x="236" y="254" text-anchor="end" class="t">main (0.37 development)</text><text class="m" x="236" y="272" text-anchor="end">built at 1 layout</text>
 <rect x="476.9" y="97" width="88.9" height="18" rx="9" fill="var(--band)"/>
 <circle cx="565.9" cy="106" r="6" fill="var(--a)"/>
 <circle cx="489.2" cy="106" r="6" fill="var(--a)"/>
