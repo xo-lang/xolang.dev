@@ -1,0 +1,85 @@
+<svg viewBox="0 0 760 538" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="gt-t">
+<title id="gt-t">Xo divided by Go for each comparison in this post, on a log scale where 1.0 means equal. Below 1.0 Xo used less time or memory: push and putget peak memory, /alloc tail latency at an equal request rate, edit builds, and the walkdir, dns, otp, idna and norm rows. Above 1.0 Go did: warm build peak memory, nbody, strconv itoa, strings trim and bcrypt hash.</title>
+<rect class="f-bg" x="0" y="0" width="760" height="538" rx="10" fill="#faf6f0"/>
+<text class="f-ink" x="20" y="26" font-weight="600">Xo / Go, each comparison in this post (log scale)</text>
+<text class="f-ink2" x="20" y="44">below 1.0: Xo used less time or memory; above 1.0: Go did</text>
+<line class="f-line" x1="383.1" y1="56" x2="383.1" y2="480" stroke-width="1"/>
+<text class="f-ink2" x="383.1" y="498" text-anchor="middle">0.25</text>
+<line class="f-line" x1="485.7" y1="56" x2="485.7" y2="480" stroke-width="1"/>
+<text class="f-ink2" x="485.7" y="498" text-anchor="middle">0.5</text>
+<line class="f-line" x1="588.4" y1="56" x2="588.4" y2="480" stroke-width="2"/>
+<text class="f-ink2" x="588.4" y="498" text-anchor="middle">1</text>
+<line class="f-line" x1="691.1" y1="56" x2="691.1" y2="480" stroke-width="1"/>
+<text class="f-ink2" x="691.1" y="498" text-anchor="middle">2</text>
+<text class="f-ink2" x="485.7" y="520" text-anchor="middle">Xo less</text>
+<text class="f-ink2" x="691.1" y="520" text-anchor="middle">Go less</text>
+<text class="f-ink" x="20" y="81.0" font-weight="600">Memory</text>
+<text class="f-ink2" x="290" y="81.0" text-anchor="end">coll push peak RSS, Linux, 0.37.0</text>
+<line class="f-axis" x1="588.4" y1="77.0" x2="451.2" y2="77.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="451.2" cy="77.0" r="5.5"/>
+<text class="f-ink" x="441.2" y="81.0" text-anchor="end">0.40</text>
+<text class="f-ink2" x="290" y="107.0" text-anchor="end">coll putget peak RSS, Linux, 0.37.0</text>
+<line class="f-axis" x1="588.4" y1="103.0" x2="569.1" y2="103.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="569.1" cy="103.0" r="5.5"/>
+<text class="f-ink" x="559.1" y="107.0" text-anchor="end">0.88</text>
+<text class="f-ink" x="20" y="133.0" font-weight="600">Latency</text>
+<text class="f-ink2" x="290" y="133.0" text-anchor="end">/alloc p99 at 10,000 req/s</text>
+<line class="f-axis" x1="588.4" y1="129.0" x2="401.5" y2="129.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="401.5" cy="129.0" r="5.5"/>
+<text class="f-ink" x="391.5" y="133.0" text-anchor="end">0.28</text>
+<text class="f-ink2" x="290" y="159.0" text-anchor="end">/alloc p99.9 at 10,000 req/s</text>
+<line class="f-axis" x1="588.4" y1="155.0" x2="395.7" y2="155.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="395.7" cy="155.0" r="5.5"/>
+<text class="f-ink" x="385.7" y="159.0" text-anchor="end">0.27</text>
+<text class="f-ink" x="20" y="185.0" font-weight="600">Builds</text>
+<text class="f-ink2" x="290" y="185.0" text-anchor="end">HTTP service, edit build</text>
+<line class="f-axis" x1="588.4" y1="181.0" x2="521.3" y2="181.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="521.3" cy="181.0" r="5.5"/>
+<text class="f-ink" x="511.3" y="185.0" text-anchor="end">0.64</text>
+<text class="f-ink2" x="290" y="211.0" text-anchor="end">fib, edit build</text>
+<line class="f-axis" x1="588.4" y1="207.0" x2="555.5" y2="207.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="555.5" cy="207.0" r="5.5"/>
+<text class="f-ink" x="545.5" y="211.0" text-anchor="end">0.80</text>
+<text class="f-ink2" x="290" y="237.0" text-anchor="end">coll warm build, peak memory</text>
+<line class="f-axis" x1="588.4" y1="233.0" x2="682.0" y2="233.0" stroke-width="1" opacity=".5"/>
+<circle class="f-accent" cx="682.0" cy="233.0" r="5.5"/>
+<text class="f-ink" x="692.0" y="237.0" text-anchor="start">1.88</text>
+<text class="f-ink" x="20" y="263.0" font-weight="600">Floats</text>
+<text class="f-ink2" x="290" y="263.0" text-anchor="end">nbody wall</text>
+<line class="f-axis" x1="588.4" y1="259.0" x2="596.5" y2="259.0" stroke-width="1" opacity=".5"/>
+<circle class="f-accent" cx="596.5" cy="259.0" r="5.5"/>
+<text class="f-ink" x="606.5" y="263.0" text-anchor="start">1.06</text>
+<text class="f-ink" x="20" y="289.0" font-weight="600">std</text>
+<text class="f-ink2" x="290" y="289.0" text-anchor="end">strconv itoa</text>
+<line class="f-axis" x1="588.4" y1="285.0" x2="632.7" y2="285.0" stroke-width="1" opacity=".5"/>
+<circle class="f-accent" cx="632.7" cy="285.0" r="5.5"/>
+<text class="f-ink" x="642.7" y="289.0" text-anchor="start">1.35</text>
+<text class="f-ink2" x="290" y="315.0" text-anchor="end">strings trim</text>
+<line class="f-axis" x1="588.4" y1="311.0" x2="659.9" y2="311.0" stroke-width="1" opacity=".5"/>
+<circle class="f-accent" cx="659.9" cy="311.0" r="5.5"/>
+<text class="f-ink" x="669.9" y="315.0" text-anchor="start">1.62</text>
+<text class="f-ink2" x="290" y="341.0" text-anchor="end">bcrypt hash</text>
+<line class="f-axis" x1="588.4" y1="337.0" x2="642.4" y2="337.0" stroke-width="1" opacity=".5"/>
+<circle class="f-accent" cx="642.4" cy="337.0" r="5.5"/>
+<text class="f-ink" x="652.4" y="341.0" text-anchor="start">1.44</text>
+<text class="f-ink2" x="290" y="367.0" text-anchor="end">walkdir entries</text>
+<line class="f-axis" x1="588.4" y1="363.0" x2="574.5" y2="363.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="574.5" cy="363.0" r="5.5"/>
+<text class="f-ink" x="564.5" y="367.0" text-anchor="end">0.91</text>
+<text class="f-ink2" x="290" y="393.0" text-anchor="end">dns mx</text>
+<line class="f-axis" x1="588.4" y1="389.0" x2="577.4" y2="389.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="577.4" cy="389.0" r="5.5"/>
+<text class="f-ink" x="567.4" y="393.0" text-anchor="end">0.93</text>
+<text class="f-ink2" x="290" y="419.0" text-anchor="end">otp sha512</text>
+<line class="f-axis" x1="588.4" y1="415.0" x2="578.8" y2="415.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="578.8" cy="415.0" r="5.5"/>
+<text class="f-ink" x="568.8" y="419.0" text-anchor="end">0.94</text>
+<text class="f-ink2" x="290" y="445.0" text-anchor="end">idna mixed</text>
+<line class="f-axis" x1="588.4" y1="441.0" x2="579.3" y2="441.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="579.3" cy="441.0" r="5.5"/>
+<text class="f-ink" x="569.3" y="445.0" text-anchor="end">0.94</text>
+<text class="f-ink2" x="290" y="471.0" text-anchor="end">norm nfc</text>
+<line class="f-axis" x1="588.4" y1="467.0" x2="535.6" y2="467.0" stroke-width="1" opacity=".5"/>
+<circle class="f-ok" cx="535.6" cy="467.0" r="5.5"/>
+<text class="f-ink" x="525.6" y="471.0" text-anchor="end">0.70</text>
+</svg>
