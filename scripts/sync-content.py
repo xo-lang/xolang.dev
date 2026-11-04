@@ -68,6 +68,10 @@ def spec():
         ) + body)
 
 
+# the first release with a generated post (changelog())
+FIRST_POST = (0, 36, 0)
+
+
 def changelog():
     text = read("CHANGELOG.md")
     heads = list(re.finditer(r"^## (v\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\s*$", text, re.M))
@@ -76,6 +80,12 @@ def changelog():
         end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
         body = text[m.end():end].strip() + "\n"
         slug = version.replace(".", "-")
+        # one post per release from v0.36.0 on (owner, 2026-11-04): the
+        # CHANGELOG split of 720076c85 gave v0.11 to v0.35 sections of their
+        # own, which get no post; a release older than that keeps the post it
+        # already has (v0.7.0 to v0.9.0)
+        if tuple(int(n) for n in version[1:].split(".")) < FIRST_POST and not os.path.exists(os.path.join(SITE, "content", "blog", slug + ".md")):
+            continue
         # extra/changelog/<slug>.md: a section the post adds to a released
         # CHANGELOG section (which stays as released), placed before the
         # section's first ### heading
