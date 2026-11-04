@@ -158,6 +158,68 @@ PERF = {
     "http": ("Solid", "bench/results/tls-h2-vs-go-2026-10-21.md", "HTTP/2 14 us a request against Go's 32; /alloc 0.97 of v0.35.0 (2026-11-02)"),
     "time": ("Early", "bench/results/std-twin-rows2-2026-11-03.md", "format 3.7 and parse 3.6 of Go's wall with string layouts (5.4 and 4.7 before the one-scan format and parse), 2.03 and 1.90 with a const Layout; civil 0.46 (2026-11-03)"),
 }
+
+# Facts from the newest per-module results file (bench/results/std-twin-MODULE-DATE.md, plus the names in
+# EXTRA_RESULTS): the last table with a ratio column gives "workload ratio, ...", and the level follows
+# decision 0461 (Proven at most 1.05 of Go's wall, Solid at most 1.5). The hand-written PERF row stays for
+# modules with no such file and for facts spread over several files (prelude).
+EXTRA_RESULTS = {"dns": ["dns-netpoll"]}
+def newest_results(m):
+    names = [m] + EXTRA_RESULTS.get(m, [])
+    best = None
+    for n in names:
+        d = f"{XO}/bench/results"
+        for f in os.listdir(d):
+            g = re.match(r"(?:std-twin-)?%s-(\d{4}-\d\d-\d\d)\.md$" % re.escape(n), f)
+            if g and (best is None or (g.group(1), f) > (best[0], best[1])):
+                best = (g.group(1), f)
+    return best
+def table_facts(path):
+    last = None
+    rows = []; col = None
+    for l in open(path):
+        if not l.startswith("|"):
+            if rows:
+                last = rows
+            rows = []; col = None
+            continue
+        cells = [c.strip() for c in l.strip().strip("|").split("|")]
+        if col is None:
+            for i, c in enumerate(cells):
+                if c.lower() in ("ratio", "xo / go", "xo/go"):
+                    col = i; break
+            rows = []
+            continue
+        if set("".join(cells)) <= set("-: "):
+            continue
+        try:
+            rows.append((cells[0], float(cells[col])))
+        except (ValueError, IndexError):
+            pass
+    if rows:
+        last = rows
+    return last
+def apply_results():
+    for m in list(PERF):
+        nr = newest_results(m)
+        if not nr:
+            continue
+        date, f = nr
+        lv, ev, fact = PERF[m]
+        m0 = re.search(r"(\d{4}-\d\d-\d\d)\.md$", ev)
+        if m0 and date < m0.group(1):
+            continue
+        rows = table_facts(f"{XO}/bench/results/{f}")
+        if not rows or not all(w for w, _ in rows):
+            continue
+        rows = [(w, r) for w, r in rows if w not in ("none", "setup")]
+        if not rows:
+            continue
+        worst = max(r for _, r in rows)
+        lvl = "Proven" if worst <= 1.05 else "Solid" if worst <= 1.5 else "Early"
+        txt = ", ".join(f"{w} {r:g}" for w, r in rows) + f" of Go's wall ({date})"
+        PERF[m] = (lvl, f"bench/results/{f}", txt)
+apply_results()
 MAIN_NOTE = {"prelude": "Str, Bytes, List, Map, Fs, Net, Clock, Rand, Env, Stdio, Proc"}
 
 LV = {"Early": 0, "Solid": 1, "Proven": 2}
