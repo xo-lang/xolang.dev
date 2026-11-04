@@ -120,6 +120,11 @@ programs for any OS with fast, structured, unambiguous feedback.
   and `xo run` neither declare nor check a `test` block, as they read no
   `_test.xo` file (decision 0348); an error in one fails `xo check` and
   `xo test`, not a build.
+- **A fault inside `Mutex.with` poisons the mutex** (5.4, decision 0482):
+  the closure's writes are no longer undone; later `with` and `with_read`
+  fault with `XO-F010` until `m.reset(v)`. An `Err` and a cancellation
+  still leave the value unchanged. A closure that changes a collection no
+  longer copies it to keep the old value for a fault.
 
 ## Changes in 0.9
 
@@ -792,6 +797,53 @@ enum Color: Str { Red, Green, Blue }       // "Red", "Green", "Blue"
   `Level.Warn` is `"warn"`. A value no variant has is a decode error that
   names the enum and the value. An enum without a value type keeps the
   encoding `"Variant"`.
+- Variant names on the wire (decision 0478): `derive Json(case: snake)`
+  on an enum (also `camel`, `pascal`, `kebab`) converts every variant's
+  name, split into words at its capitals (`JoinRoom` is `join_room`,
+  `HTTPError` `http_error`), and its fields' keys as 2.2's rule does for
+  a struct. A variant may name its own, `Chat as "chat.message"(body:
+  Str)`, which always wins. Decoding reads only the wire names. An
+  unknown argument or case is `XO0413`, an empty name `XO0412`, two
+  variants with one name `XO0411`, and a variant wire name on an enum
+  without `derive Json` the warning `XO0414`.
+- Tagged enums (decision 0478): `derive Json(tag: "type")` writes a
+  variant as one object, its wire name under the tag and its fields
+  beside it: `Say(room: "r", text: "hi")` is
+  `{"type":"say","room":"r","text":"hi"}` (with `case: snake`), a unit
+  variant `{"type":"ping"}`, and a variant holding one struct (`from
+  Move`) has that struct's fields beside the tag. Adding `content:
+  "data"` puts the payload under its own key instead, as the external
+  form writes it: `{"type":"say","data":{"room":"r","text":"hi"}}`; a
+  unit variant has no content key. Decoding finds the tag anywhere in the
+  object and reads the fields with the struct rules (unknown keys
+  ignored, `T?` and defaults may be missing); a missing tag, a tag that
+  is not a string and an unknown name are `DecodeErr`s. A variant whose
+  payload is not an object (`Count(from Int)`) without `content:` is
+  `XO0431`; a field, or a wrapped struct's field, with the tag's key,
+  and a content key equal to the tag, are `XO0411`; `content:` without
+  `tag:`, a tag that is not a string, and `tag:` on a valued enum are
+  `XO0413`.
+- A type's own JSON form (decision 0478): a struct, enum or newtype
+  without type parameters may travel as another Json type P, `derive
+  Json(via: P, to: f, from: g)`, where `f` is `fn(T) -> P` and `g` is
+  `fn(P) -> T ! E` (or `fn(P) -> T`), both non generic functions of T's
+  module, and E implements Display. Encoding a T encodes `f(v)`; decoding
+  decodes a P at the same path, then calls `g`, and an `Err(e)` is a
+  `DecodeErr` at that path whose message is `e`'s Display text (`at
+  $.legs[1].amount: invalid amount "12.3.4"`). The type then works
+  wherever a Json type does (fields, `List`, `Map`, `T?`). A `to:` or
+  `from:` naming no such function is `XO0432`, a mistyped one, or an E
+  without Display, `XO0433`; `via:` without both functions, beside any
+  other `derive Json` argument, or on a generic type is `XO0413`.
+
+```
+struct Money {
+  minor: Int
+} derive Json(via: Str, to: money_text, from: parse_money)
+
+fn money_text(m: Money) -> Str { ... }             // "12.34"
+fn parse_money(s: Str) -> Money ! MoneyErr { ... }  // MoneyErr: Display
+```
 
 ### 2.4 Interfaces
 
@@ -974,7 +1026,9 @@ whose underlying type is Json is Json):
   `T: Ord` code see `Name("a") < Name("b")` as `"a" < "b"`. The value's
   type must be `Ord` (else `XO0404`). A newtype is not ordered without
   it, and `Ord` is the only derive it takes (`XO0404` for any other: its
-  equality, hashing, and JSON are its value's already; decision 0390).
+  equality, hashing, and JSON are its value's already; decision 0390),
+  apart from `derive Json(via: P, to: f, from: g)`, which gives it a JSON
+  form of its own (2.3, decision 0478).
 
 ```
 type Email struct(Str)
@@ -2058,12 +2112,13 @@ never depend on it, but the time does:
   0169). `xo vet` notes it for collection elements (`XO0536`); the Map
   form has `Map.update` (`XO0532`).
 - A `Mutex.with` body with a `var` parameter gets the value moved out
-  of the mutex, but an error or fault hands the value it was given back
-  (decision 0085), so the body keeps that value alive while a later
-  point can still fail or fault: a write followed by such a point (a
-  call that can fault, an index, `?`) copies the collection it writes,
-  once per `with`. A write after the body's last such point changes the
-  value in place (`m.with(fn(var l) { l.push(x) })` does not copy).
+  of the mutex and changes it in place: a fault poisons the mutex rather
+  than restoring the value (5.4, decision 0482), so nothing keeps the
+  value it was given. An `Err` still hands that value back, and so does a
+  cancellation of a body that waits: in a body that can return `Err` or
+  waits, a write followed by a point that can fail or wait (a `?`, an
+  `Err` return, a call that can be canceled) copies the collection it
+  writes, once per `with`.
 
 ### 5.2 Mutation
 
@@ -2180,8 +2235,20 @@ fn (m: Mutex[T]) with[R, E, fx: Effects](f: fn(var T) -> R ! E uses fx) -> R ! E
 
 - The closure's return value (or error) is the result of `with`.
 - Mutations to the `var` parameter are written back when the closure returns
-  successfully. If it returns an error or faults, the protected value is left
+  successfully. If it returns an error, the protected value is left
   unchanged.
+- If a fault unwinds out of the closure, the mutex is poisoned (decision
+  0482): the writes the closure made are not undone, and no later code sees
+  them, since every later `with` and `with_read` on that mutex faults with
+  `XO-F010` until `m.reset(v)` stores a new value and clears the poison. A
+  cancellation of the task while the closure waits (on a lock, a channel, a
+  task, I/O) leaves the value unchanged and does not poison.
+  ```
+  let r = task.isolate(fn() -> Int ! () { add(cache, entry) })  // add faults inside with
+  if r.is_err() {
+    cache.reset({})                                      // poisoned until here
+  }
+  ```
 - A closure parameter declared without `var` gets a read only view.
 - Warning `XO0540`: the closure writes its `var` value and a later path can
   return `Err` (`return Err(...)`, `?`, or a call that can fail as its
@@ -3287,6 +3354,9 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0428` | error | checker | two variants of a valued enum have the same value (core 2.3, decision 0269) |
 | `XO0429` | error | checker | an invalid valued enum: a value type other than `Int` or `Str`, a value on an enum with no value type, a variant with fields, type parameters, or a value that is not a constant of the value type (core 2.3, decision 0269) |
 | `XO0430` | error | checker | a pattern name spelled like a constant (upper case) that is neither a `const` in scope nor a variant: a misspelled constant pattern (core 3.5, decision 0269) |
+| `XO0431` | error | checker | a variant of an internally tagged enum (`derive Json(tag: "type")` without `content:`) whose payload is not an object: one field that is not a struct (core 2.3, decision 0478) |
+| `XO0432` | error | checker | `derive Json(via: P, to: f, from: g)` whose `to:` or `from:` names no non generic, non method function of the type's module (core 2.3, decision 0478) |
+| `XO0433` | error | checker | a mistyped `to:` or `from:` of `derive Json(via: ...)`: `to` must be `fn(T) -> P` with no error, `from` `fn(P) -> T ! E` with E implementing Display (core 2.3, decision 0478) |
 | `XO0501` | error | checker | var method called on a non var binding (core 3.4) |
 | `XO0502` | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | `XO0503` | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -3330,6 +3400,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0913` | note | vet --cost | in a loop, a slice of a Str or Bytes read only by index, length or equality: each iteration makes a view (a range check, a count and a drop); read the whole by offsets (knowledgebase/std-performance-guide.md) |
 | `XO0914` | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
 | `XO0915` | warning | vet --cost | a raw address (`raw.data`, `raw.bytes_addr`, `rt.obj_addr`, std internals) used after its value was released in the same block: a value is released at its last use, even inside the arguments of the call that takes its address, so the call reads freed memory; keep it alive with `raw.alive` or `raw.alive_str` after the last access (gotchas/raw-address-outlives-bytes.md) |
+| `XO0916` | warning | vet | `time.format` or `time.parse` called with a layout that is a compile time string (a literal, a constant, or a `+` of them): each call parses the layout text again (5.4 and 4.7 of Go's wall), where a `const Layout` made with `time.layout` is parsed once (2.0 and 1.9); a layout built at run time is not reported, and `// xo:allow XO0916 REASON` silences a cold call (decision 0464) |
 | `XO0904` | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | `XO1001` | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | `XO1101` | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -3378,8 +3449,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1512` | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
 | `XO1513` | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
 | `XO1514` | error | build | a program that calls `http.serve_component` built for wasip1/wasm, which `--backend=wasm` alone is; it builds with `--targets=wasip2/wasm` (decision 0447) |
-| `XO1515` | error | build | a program built for wasip2/wasm reaches what the `wasi:http` proxy world does not have: files, processes or sockets; the message names the call and how it is reached (decision 0447) |
-| `XO1516` | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447) |
+| `XO1515` | error | build | a program built for wasip2/wasm reaches what its world does not have: processes, or files or sockets in a `wasi:http` component (a command has `wasi:filesystem` since 2026-11-02 and `wasi:sockets` since 2026-11-03); the message names the call and how it is reached (decision 0447); on wasip3/wasm also a program that is not a `wasi:http` component (stage 5) |
+| `XO1516` | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447); no longer reported since stage 3 (2026-11-02), when such a program became a `wasi:cli/command` component |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
@@ -3395,6 +3466,7 @@ Faults (8) that have a stable code print it in their message:
 | `XO-F007` | a real-time section allocated (6.5, native builds) |
 | `XO-F008` | shielded code under a resource budget ran past twice a ceiling (std.md 7, decision 0173) |
 | `XO-F009` | a constant read during its own initialization, through a function its initializer calls (core 3.1, decision 0332) |
+| `XO-F010` | `Mutex.with` or `with_read` on a mutex poisoned by a fault inside an earlier `with`, until `reset` (5.4, decision 0482) |
 
 ---
 
@@ -3602,18 +3674,55 @@ after the other targets are built (exit status 1). Several targets write
 directory; `-o NAME` for a windows target with no extension writes
 `NAME.exe`.
 
-`--targets=wasip2/wasm`, not part of `all`, builds a program that calls
-`http.serve_component` as a `wasi:http` 0.2 component (decision 0447), and is
-named alone. A program is a component or it is not: `http.serve_component` on
-wasip1/wasm is XO1514, and on wasip2/wasm a program that never calls it is
-XO1516 and one that reaches files, processes or sockets is XO1515. Each
-component's imports are `@0.2.0`. `http.Client` works through the host's
+`--targets=wasip2/wasm`, not part of `all`, builds a WASI 0.2 component and
+is named alone (decision 0447). A program that calls `http.serve_component`
+is a `wasi:http` 0.2 component (the `wasi:http/proxy` world); any other
+program is a `wasi:cli/command` component, whose `wasi:cli/run` export runs
+main (stage 3, 2026-11-02): its arguments and environment are
+`wasi:cli/environment`'s, its input `wasi:cli/stdin`'s (as standard input
+is fd_read's on wasip1/wasm; a `wasi:http` component's is empty), its output
+`wasi:cli/stdout` and `stderr`'s, its files `wasi:filesystem`'s (the
+host's preopened directories named `.` and `/`, which a relative and an
+absolute path resolve against, as on wasip1/wasm; `wasmtime run --dir
+.::. --dir /::/`; file modes, locks and times before 1970 are refused as on
+wasip1/wasm), and
+an exit status other than 0 (a fault, `proc.exit(n)`) is `wasi:cli/exit`'s
+err, which a host reports as status 1. `http.serve_component` on
+wasip1/wasm is XO1514; on wasip2/wasm a program that reaches processes,
+or a `wasi:http` component that reaches files or sockets, is XO1515 (XO1516, a program with no router, is no
+longer reported: such a program is a command). Each component's imports
+are `@0.2.0`. `http.Client` works through the host's
 `wasi:http/outgoing-handler`, imported only by a program that reaches it (see
-`spec/std.md`); `net.dial`'s own sockets stay XO1515. A `handle_stream` route
+`spec/std.md`). A command's TCP network is `wasi:sockets`' (2026-11-03):
+`Net.listen`, `Net.dial`, `Net.dial_timeout`, `Net.lookup_host`, `Net.only`,
+`Listener` and `Conn` with their deadlines, with the native targets' NetErr
+values and texts; no Unix domain sockets (`unix:` is `Io`) and no service
+names for ports. A component that imports `wasi:sockets/tcp` needs its
+host's network (`wasmtime run -S inherit-network=y`), one that imports
+`wasi:sockets/ip-name-lookup` name lookup (`-S allow-ip-name-lookup=y`);
+a component that imports neither needs neither. HTTP servers and clients
+over the native sockets, TLS, UDP and DNS records are not yet available in
+a command. A `handle_stream` route
 reads the request body from the host's input-stream as it arrives, with its
 trailers (`incoming-body.finish`); an `http.stream` response's body goes to
 the host's output-stream as it is written, and its trailers through
 `outgoing-body.finish`.
+
+`--targets=wasip3/wasm`, not part of `all` and named alone, builds a
+program that calls `http.serve_component` as a WASI 0.3 `wasi:http`
+component (decision 0447 stage 5, steps 1 and 2, 2026-11-03): it
+exports `wasi:http/handler@0.3.0`'s `handle`, an async function lifted
+with a callback, and imports `wasi:http/types@0.3.0`, and
+`wasi:http/client@0.3.0` when it makes outgoing requests; its output and
+clocks are the `@0.2.0` interfaces a wasip2/wasm component imports. Main
+runs inside `handle`. A `handle_stream` route reads the request body as
+it arrives (`stream<u8>`), with its trailers (a future); a response's
+body goes to the host as main writes it, then its trailers. `http.Client`
+sends through `client.send`, lowered async, writing the request body
+while the call runs. One request runs at a time in an instance
+(`backpressure`), and a host may start the next on the same instance.
+On wasip3/wasm, a program that does not call `http.serve_component` is
+XO1515.
 
 Binaries are static and builds are reproducible: the same source in the
 same directory, lockfile, and toolchain version produce byte identical
@@ -3748,9 +3857,10 @@ StructDecl  = "struct" ident [ TypeParams ] "{" { Field } "}" [ Invariant ] [ De
 Field       = { DocComment } [ "pub" ] ident [ "as" ( string | rawstring ) ] ":" Type [ "=" Expr ] .
 Invariant   = "invariant" Expr .
 Derive      = "derive" DeriveItem { "," DeriveItem } .
-DeriveItem  = QualName [ "(" ident ":" ident { "," ident ":" ident } ")" ] .
+DeriveItem  = QualName [ "(" DeriveArg { "," DeriveArg } ")" ] .
+DeriveArg   = ident ":" ( ident | string | rawstring ) .
 EnumDecl    = "enum" ident [ TypeParams ] "{" { Variant } "}" [ Derive ] .
-Variant     = { DocComment } ident [ "(" VField { "," VField } ")" ] .
+Variant     = { DocComment } ident [ "as" ( string | rawstring ) ] [ "(" VField { "," VField } ")" ] .
 VField      = ident ":" Type | "from" Type .
 IfaceDecl   = "interface" ident [ TypeParams ] "{" { FnSig } "}" .
 TypeDecl    = "type" ident [ TypeParams ] ( "=" Type | "struct" "(" Type ")" [ Derive ] ) .

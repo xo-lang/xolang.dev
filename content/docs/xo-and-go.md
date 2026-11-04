@@ -11,9 +11,9 @@ binaries, fast builds, and structured, readable code. Xo differs where Go
 lets a bug compile: errors are `Result` values you must handle, optionals
 replace nil, sum types have exhaustive `match`, values are not shared
 pointers, concurrency is structured, and side effects are in signatures.
-Go is mature and production proven; Xo is experimental. In the 0.36.0
-measurements Xo was faster than Go on 18 of 20 runtime workloads and slower
-on two ([below](#benchmarks)).
+Go is mature and production proven; Xo is experimental. In the 0.38.1
+measurements Xo was faster than Go on 19 of 20 runtime workloads and slower
+on one ([below](#benchmarks)).
 
 The first page of a comparison series (also [Xo and Rust](../xo-and-rust/),
 [Xo and TypeScript](../xo-and-typescript/), and [Xo and Python](../xo-and-python/)). It is not a "which is better"
@@ -26,8 +26,8 @@ the measurements show, including the rows where Xo is slower.
 as of Go 1.27.3 (the newest release, 2026-10-19). The measurements
 below were taken against **Go 1.26.1**, the Go installed on the
 measuring machine; they will be rerun against 1.27 at the next release.
-Xo figures are from xo 0.36.0 unless a row says otherwise.
-Last verified: 2026-11-03.
+Xo figures are from xo 0.38.1 unless a row says otherwise.
+Last verified: 2026-11-04.
 
 ## Short version
 
@@ -94,17 +94,17 @@ use any Go package through its Go backend.
 
 ## Compiler and toolchain
 
-| | Go 1.26.1 | xo 0.36.0 |
+| | Go 1.26.1 | xo 0.38.1 |
 |---|---|---|
-| Cold build of a small program | 1.37 to 1.41 s | 0.84 to 1.04 s |
+| Cold build of a small program | 1.45 to 1.59 s | 1.05 to 1.24 s |
 | Warm build, nothing changed | 0.03 to 0.04 s | 0.03 to 0.04 s with the run cache off (the collections program 0.10 s) |
-| Build after a one-function edit | 0.09 to 0.10 s | 0.03 to 0.04 s (the collections program 0.10 s) |
-| Peak build memory (cold) | 0.29 to 0.31 GB | 0.25 GB |
-| Peak build memory (warm / edit) | 25 to 26 MB / 66 to 69 MB | 38 to 47 MB / 38 to 47 MB |
-| Binary size (same programs, plain builds) | 2.39 to 2.43 MB | 1.27 to 1.43 MB |
+| Build after a one-function edit | 0.10 to 0.11 s | 0.03 to 0.04 s (the collections program 0.10 s) |
+| Peak build memory (cold) | 0.30 GB | 0.25 to 0.26 GB |
+| Peak build memory (warm / edit) | 26 MB / 67 to 68 MB | 39 to 49 MB / 41 to 49 MB |
+| Binary size (same programs, plain builds) | 2.39 to 2.43 MB | 1.29 to 1.44 MB |
 | Binary size, CRUD server, shipping flags (measured with xo 0.29.0, 2026-10-24) | 5.48 MB (`go build -trimpath -ldflags="-s -w"`; 8.03 MB without the flags) | 2.28 MB (`xo build --release`; 6.23 MB without the flag) |
 
-Source: [release-vs-go-v0.36.0.md, lines 97 to 132](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L97-L132). The shipping-flags row: [twins-build-2026-10-24.md, lines 39 to 42](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L39-L42).
+Source: [release-vs-go-v0.38.1.md, lines 53 to 93](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L53-L93). The shipping-flags row: [twins-build-2026-10-24.md, lines 39 to 42](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L39-L42).
 **Xo builds a small program cold faster than Go, and rebuilds it after
 an edit faster** (since 0.34 an edit compiles only your own code against
 a prebuilt standard library, and since 0.35 it links only your code too).
@@ -119,12 +119,14 @@ CPU, because Go compiles each imported std package from source while xo
 links a prebuilt runtime; warm, Xo was 2 to 7 times slower, and after an
 edit 1.7 to 2.2 times slower on the native backend
 ([test-speed-vs-go-2026-10-21.md, lines 74 to 86](https://github.com/xo-lang/xo/blob/main/bench/results/test-speed-vs-go-2026-10-21.md#L74-L86)).
-In the 0.36.0 comparison, `xo test --std-module` took 0.57 of `go test
--count=1`'s time on encoding/base64 cold and 0.82 after an edit, and 0.24
-on encoding/json after an edit, with 1.15 to 1.86 times Go's peak memory
-([release-vs-go-v0.36.0.md, lines 420 to 482](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L420-L482)); its json
-cold row ran on a loaded machine and is not a reliable ratio
-([line 61](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L61)).
+In the 0.38.1 comparison, `xo test --std-module` took 0.64 of `go test
+-count=1`'s time on encoding/base64 cold and 0.84 after an edit, and 0.37
+and 0.25 on encoding/json cold and after an edit, with 1.15 to 1.94 times
+Go's peak memory
+([release-vs-go-v0.38.1.md, lines 378 to 439](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L378-L439)); those
+runs started at load 5 and xo's cold test builds use every core, so the
+cold wall ratios are rough
+([lines 38 to 44](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L38-L44)).
 
 - **Cross compiling.** Go: set `GOOS` and `GOARCH`; "you are always
   cross-compiling", across 43 valid pairs
@@ -154,10 +156,10 @@ cold row ran on a loaded machine and is not a reliable ratio
 ## Deployment and runtime
 
 - Both produce static binaries.
-- **Memory while running**: on the twenty workloads of the 0.36.0
-  comparison, Xo's peak memory was 0.38 to 1.03 of Go's: lower on 17,
-  and 1.01 to 1.03 on three collections rows (get, iter, push)
-  ([release-vs-go-v0.36.0.md, lines 137 to 417](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L137-L417)).
+- **Memory while running**: on the twenty workloads of the 0.38.1
+  comparison, Xo's peak memory was 0.35 to 0.86 of Go's, lower on all
+  twenty
+  ([release-vs-go-v0.38.1.md, lines 95 to 376](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L95-L376)).
   A CRUD server under 1,024 connections peaked at 47 to 60 MB against
   Go's 66 to 78 MB
   ([net-vs-go-2026-10-22.md, line 33](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-22.md#L33)).
@@ -191,46 +193,46 @@ designed for the agent's loop:
 
 ## Benchmarks
 
-**Method.** The 0.36.0 comparison builds the same programs twice, once
+**Method.** The 0.38.1 comparison builds the same programs twice, once
 in Go and once in Xo (bench/perf's Go twins: compute, collections,
 concurrency), and runs each workload under `xo bench --ab` with Go as A
 and Xo as B, 3 interleaved rounds; a verdict is "better" or "worse"
 only when the 95% interval excludes 1.0. **Machine**: Apple M4 Pro
 (12 cores), 24 GB, macOS 27, darwin/arm64, with other jobs running
-(load 4 to 5 at the start of each run). **Versions**: the released xo
-0.36.0 archive and Go 1.26.1. **Date**: 2026-11-03. Ratios are Xo over
+(load about 5 at the start of each run). **Versions**: the released xo
+0.38.1 archive and Go 1.26.1. **Date**: 2026-11-04. Ratios are Xo over
 Go; under 1.0 means Xo took less.
-([release-vs-go-v0.36.0.md, lines 1 to 16 and 137](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L1-L16))
+([release-vs-go-v0.38.1.md, lines 1 to 17 and 95](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L1-L17))
 
 | workload | wall time, Xo / Go | verdict |
 |---|---|---|
-| collections: branch | 0.024 | better |
-| concurrency: mutex | 0.27 | better |
-| collections: iter | 0.28 | better |
-| interpreter | 0.30 | better |
-| concurrency: spawn | 0.44 | better |
-| strings | 0.53 | better |
-| collections: putget, get, update, copymut, push | 0.60 to 0.85 | better |
-| concurrency: fanout | 0.69 | better |
-| sort | 0.82 | better |
-| concurrency: ping-pong | 0.88 | better |
-| concurrency: rwmutex | 0.89 | better |
-| collatz | 0.92 | better |
-| fib | 0.97 | better |
-| sieve | 0.97 | better |
-| concurrency: parallel map | **1.04** | worse |
-| n-body (floating point) | **1.06** | worse |
+| collections: branch | 0.026 | better |
+| collections: iter | 0.25 | better |
+| concurrency: mutex | 0.28 | better |
+| interpreter | 0.32 | better |
+| concurrency: spawn | 0.43 | better |
+| strings | 0.49 | better |
+| collections: putget, get, update, copymut, push | 0.60 to 0.75 | better |
+| concurrency: fanout | 0.64 | better |
+| sort | 0.81 | better |
+| collatz | 0.90 | better |
+| concurrency: ping-pong | 0.93 | better |
+| concurrency: rwmutex | 0.93 | better |
+| fib | 0.94 | better |
+| sieve | 0.95 | better |
+| concurrency: parallel map | 0.99 | better |
+| n-body (floating point) | **1.07** | worse |
 
 Each row's raw output, with spreads and intervals:
-[release-vs-go-v0.36.0.md, lines 137 to 417](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L137-L417).
-Against 0.35.0's comparison ([release-vs-go-v0.35.0.md, lines 150 to 431](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.35.0.md#L150-L431)),
-three rows moved by more than their spreads. Strings went from 0.46 to
-0.53, which a direct timing of the two releases' builds puts within
-noise. Collections push went from 0.73 to 0.85: a macOS only slowdown
-(0.95 of 0.35.0's time on linux/arm64), from the list growth curve of
-decision 0452, which cut the compiler's own peak memory. The parallel
-map went from 0.99 to 1.04, within its 3-round spread (1.01 to 1.45)
-([lines 18 to 53](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L18-L53)).
+[release-vs-go-v0.38.1.md, lines 95 to 376](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L95-L376).
+Against 0.36.0's comparison, seven rows improved by more than 3%: strings
+(0.53 to 0.49), collections push (0.85 to 0.75, 0.36.0's macOS push
+slowdown undone), update and iter, and concurrency spawn, fanout and the
+parallel map (1.04 to 0.99, now faster than Go). The rows that looked
+worse by more than 3% were timed directly, 0.36.0's build against
+0.38.1's of the same program on linux/arm64, and none was slower
+([lines 19 to 51](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L19-L51)). n-body stays the one row slower than
+Go (1.07; 0.36.0: 1.06).
 In 0.27.0 rwmutex was 3.58 times Go's time and spawn 1.20. The rwmutex
 row is lock bound: one task at a time can make progress, and Go's
 goroutines stay with the waking P while Xo spread the 64 tasks over all
@@ -264,11 +266,11 @@ the number of reps, and the file gives every rep. TLS, HTTP/2,
 WebSocket, and HTTP/1.1 rows run natively on macOS; the CRUD row runs in
 linux/arm64 Docker on the same Mac
 ([net-vs-go-2026-10-23.md, lines 7 to 30](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L7-L30)).
-The 0.36.0 release comparison adds an HTTP server pair on the
-linux/arm64 offload host (bench/perf/jitter, 5 reps a row): Xo's
-/alloc served 5.90 and 3.06 times Go's requests a second at 32 and 256
-connections, and /hello 1.29 and 1.84 times
-([release-vs-go-v0.36.0.md, lines 484 to 524](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.36.0.md#L484-L524)).
+The 0.38.1 release comparison adds an HTTP server pair on the
+linux/arm64 offload host (bench/perf/jitter): Xo's /alloc served 6.01
+and 3.15 times Go's requests a second at 32 and 256 connections, and
+/hello 1.29 and 1.83 times
+([release-vs-go-v0.38.1.md, lines 441 to 507](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L441-L507)).
 
 | workload | Xo / Go (median) | reps | source |
 |---|---|---|---|
