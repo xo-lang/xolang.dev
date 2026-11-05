@@ -57,6 +57,8 @@ def spec():
          "Syntax and semantics of Xo: types, errors, concurrency, effects, modules, diagnostics."),
         ("std.md", "Xo Standard Library", "Standard library", 20,
          "Prelude methods and the standard library surface."),
+        ("conventions.md", "Xo Conventions", "Conventions", 30,
+         "How to write Xo: naming, errors, collections, performance, concurrency, tests and layout, each rule with its source."),
     ]:
         body = read("spec/" + name)
         status = re.search(r"^Status: (.*)$", body, re.M)
