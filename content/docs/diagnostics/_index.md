@@ -86,6 +86,9 @@ prints the explanation below in a terminal.
 | [`XO0431`](xo0431/) | error | checker | a variant of an internally tagged enum (`derive Json(tag: "type")` without `content:`) whose payload is not an object: one field that is not a struct (core 2.3, decision 0478) |
 | [`XO0432`](xo0432/) | error | checker | `derive Json(via: P, to: f, from: g)` whose `to:` or `from:` names no non generic, non method function of the type's module (core 2.3, decision 0478) |
 | [`XO0433`](xo0433/) | error | checker | a mistyped `to:` or `from:` of `derive Json(via: ...)`: `to` must be `fn(T) -> P` with no error, `from` `fn(P) -> T ! E` with E implementing Display (core 2.3, decision 0478) |
+| [`XO0434`](xo0434/) | error | checker | a variant with fields in a valued enum that is not its catch-all: the catch-all is the last variant, with one field of the value type and no value (core 2.3, decision 0493) |
+| [`XO0435`](xo0435/) | error | checker | a valued enum's catch-all built from a constant that a named variant has (`StorageClass.Unknown("STANDARD")`): a second spelling of that variant, unequal to it (core 2.3, decision 0493) |
+| [`XO0436`](xo0436/) | error | checker | `for` over a type with `next()` whose `?` does not match it: `for x in v` where `next()` can fail (write `for x? in v`), `for x? in v` where it cannot or over a builtin iteration, or a `next()` that does not return `T?` (core 3.5, decision 0494) |
 | [`XO0501`](xo0501/) | error | checker | var method called on a non var binding (core 3.4) |
 | [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | [`XO0503`](xo0503/) | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -103,7 +106,7 @@ prints the explanation below in a terminal.
 | [`XO0601`](xo0601/) | error | checker | name does not resolve (core 4.3) |
 | [`XO0602`](xo0602/) | error | checker | import path does not yield a valid local name (core 4.1) |
 | [`XO0603`](xo0603/) | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
-| [`XO0604`](xo0604/) | error | checker | cyclic module imports (core 4.1) |
+| [`XO0604`](xo0604/) | error | checker | cyclic package imports (core 4.1) |
 | [`XO0605`](xo0605/) | error | checker | name is not `pub` in its module, a field of a std struct documented `@internal` outside std (decision 0440), or the std type is an opaque handle (core 1.5) |
 | [`XO0606`](xo0606/) | error | checker | method declared outside the module of its type (core 3.4) |
 | [`XO0607`](xo0607/) | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
@@ -130,6 +133,7 @@ prints the explanation below in a terminal.
 | [`XO0914`](xo0914/) | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
 | [`XO0915`](xo0915/) | warning | vet --cost | a raw address (`raw.data`, `raw.bytes_addr`, `rt.obj_addr`, std internals) used after its value was released in the same block: a value is released at its last use, even inside the arguments of the call that takes its address, so the call reads freed memory; keep it alive with `raw.alive` or `raw.alive_str` after the last access (gotchas/raw-address-outlives-bytes.md) |
 | [`XO0916`](xo0916/) | warning | vet | `time.format` or `time.parse` called with a layout that is a compile time string (a literal, a constant, or a `+` of them): each call parses the layout text again (5.4 and 4.7 of Go's wall), where a `const Layout` made with `time.layout` is parsed once (2.0 and 1.9); a layout built at run time is not reported, and `// xo:allow XO0916 REASON` silences a cold call (decision 0464) |
+| [`XO0917`](xo0917/) | warning | vet | a valued enum's catch-all built directly from a run time value (`StorageClass.Unknown(s)`): a value a named variant has would become a second spelling of it; `E.from(s)` picks the named variant (decision 0493) |
 | [`XO0904`](xo0904/) | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | [`XO1001`](xo1001/) | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | [`XO1101`](xo1101/) | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -138,6 +142,7 @@ prints the explanation below in a terminal.
 | [`XO1104`](xo1104/) | error | checker | C header cannot be bound (not found, clang cannot read it, a `link` file is missing, or an unknown effect in its `uses`) |
 | [`XO1105`](xo1105/) | error | checker | C function exists in the header but its signature does not map to Xo, so the binding skipped it |
 | [`XO1106`](xo1106/) | error | checker | a value with no Go value passed to Go as `any`: `go.any(x)`'s argument or an element of a list literal for a `...any` parameter (decision 0412) |
+| [`XO1107`](xo1107/) | warning | checker | a List, Map or Set given to a Go function as `any` (`go.any(xs)` for an `any` parameter, or an element of a `...any` list): Go receives a copy, so a change it makes is not seen; not for a function compiler/check/goreads.xo lists as only reading, nor with `// xo:allow XO1107 <reason>` (core 4.4, decision 0491) |
 | [`XO1201`](xo1201/) | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available on the native backends (arm64, amd64, LLVM); planned or impossible |
 | [`XO1301`](xo1301/) | error | modules | malformed xo.mod require or deny line, xo.lock, or xo.work line, or a deny rule naming a package that does not exist (core 4.2, 4.3) |
 | [`XO1302`](xo1302/) | error | modules | module version cannot be fetched from git or a module proxy (XO_PROXY): repository, tag, or version missing, or its xo.mod declares another path |

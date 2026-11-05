@@ -495,13 +495,13 @@ Consequences: `} else {` and `} else if` must be on the same line as the
 closing brace. A list that spans lines needs a trailing comma after the last
 element. Trailing commas are allowed in every comma separated list.
 
-### 1.4 Keywords (28)
+### 1.4 Keywords (27)
 
 ```
 as        break     const     continue  defer     else      ensures
 enum      fn        for       if        in        interface invariant
-let       match     pub       requires  return    scope     select
-struct    test      type      use       uses      var       while
+let       match     pub       requires  return    select    struct
+test      type      use       uses      var       while
 ```
 
 Predeclared identifiers (cannot be redefined at top level):
@@ -517,7 +517,8 @@ elsewhere): `derive` (after a type body), `from` (in an enum variant),
 `with` (postfix struct update), `after` (in a `select` arm), `seed` (after a
 test name), `result` and `old` (inside `ensures`), `is` (binary operator
 position), `bound` (after a loop header's expression, 3.5), `realtime` (in
-a declaration's uses clause, 6.5).
+a declaration's uses clause, 6.5), `scope` (the scope expression, written
+`scope NAME {`, 7.1; anywhere else `scope` is a name, decision 0497).
 
 To keep parsing unambiguous, an unparenthesized struct literal may not appear
 in an `if`, `while`, `for`, `match`, `requires`, or `ensures` expression (the
@@ -790,12 +791,36 @@ enum Color: Str { Red, Green, Blue }       // "Red", "Green", "Blue"
 - `e.value()` is the variant's value. `E.from(v)` is `E?`: the variant with
   that value, or `None`. `E.all()` is `List[E]`, the variants in declaration
   order (a list built per call in this implementation).
+- Catch-all (decision 0493). The last variant may keep the values no
+  other variant names, for a set a server owns and grows (AWS adds enum
+  values after a client is built):
+
+  ```
+  enum StorageClass: Str {
+    Standard = "STANDARD"
+    Glacier = "GLACIER"
+    Unknown(value: Str)
+  } derive Json
+  ```
+
+  It has one field of the value type and no value; any other variant
+  with fields in a valued enum is `XO0434`. `E.from(v)` is then `E`, not
+  `E?`: the variant with that value, else `Unknown(v)`. `E.known(v)` is
+  the strict lookup (`E?`, `None` for an unlisted value). `value()` of
+  the catch-all is its field, `all()` leaves it out, and `derive Json`
+  writes it as its value and reads a value no variant has as it, so
+  decoding never fails on an unlisted value (a value of the wrong JSON
+  type still does). A `match` needs an arm for it. Built from a constant
+  that a named variant has (`StorageClass.Unknown("STANDARD")`) it is
+  `XO0435`, since it would be a second spelling of that variant, unequal
+  to it; built from a run time value it is the `xo vet` warning `XO0917`
+  (use `E.from(v)`).
 - The enum stays a closed sum type: `match` is exhaustive by variant, and
   equality, hashing, and `Ord` are by variant in declaration order, not by
   value. Display prints the variant name.
 - `derive Json` writes and reads the value: `Weekday.Mon` is `1`,
   `Level.Warn` is `"warn"`. A value no variant has is a decode error that
-  names the enum and the value. An enum without a value type keeps the
+  names the enum and the value, unless the enum has a catch-all (above). An enum without a value type keeps the
   encoding `"Variant"`.
 - Variant names on the wire (decision 0478): `derive Json(case: snake)`
   on an enum (also `camel`, `pascal`, `kebab`) converts every variant's
@@ -859,7 +884,10 @@ pub interface Store {
 - `Never` satisfies every interface.
 - A type satisfies an interface through its methods whether or not they are
   `pub`. Calling a non `pub` method by name from another module is still an
-  error.
+  error (XO0605), except a method that implements a method of a prelude
+  interface with its signature (`display` of `Display` or `Error`, `debug`
+  of `Debug`), which is callable by name wherever the type is (decision
+  0496); other interfaces' methods need `pub`.
 - Every derivable name (`Display`, `Ord`, `Json`, ...) is also an interface and
   may be used as a constraint: `fn reply[T: Json](v: T)`.
 
@@ -1287,12 +1315,33 @@ match code {
 
 - `if` without `else` has type `()`.
 - `for` iterates over a List, Buf, Set, Map (as `(k, v)` tuples), Chan, Range,
-  or Bytes. Over `Bytes` it yields each byte as a `UInt8`, in order
+  Bytes, or a value whose type has a `next()` method (below). Over `Bytes` it yields each byte as a `UInt8`, in order
   (decision 0138); a byte compares with an ASCII rune literal
   (`b >= 'a'`) and converts with `Int(b)`. Index pairs come from
   `xs.indexed()` on a List; for Bytes, loop over `0..data.len()` and
   read `data[i]`. A `Str` is not iterable: choose `.runes()` or
   `.bytes()`.
+- Iterating a user type (decision 0494). A value whose type has a method
+  `next()` with no parameters returning `T?` may be iterated: `for x in v
+  { body }` is `while let Some(x) = v.next() { body }`. v is read again
+  for each call when it is a place (a name or a field path), so a
+  `next(var self)` updates it and it holds the last state after the loop
+  (it must then be a `var`); any other v is evaluated once. Patterns,
+  `bound`, `break` and `continue` work as in any `for`. When `next()`
+  returns `T? ! E`, the loop says where the error goes with `?` after its
+  pattern: `for page? in pages { }` is `while let Some(page) =
+  pages.next()? { }`, so an error from any step propagates as `?` does
+  (2.6). A `?` that does not match `next()` (left out where it can fail,
+  written where it cannot or on a builtin iteration), or a `next()` that
+  does not return an Option, is `XO0436`. To handle the error inside the
+  loop, write `loop { match v.next() { ... } }`.
+
+  ```
+  var pages = s3.ListObjectsV2Paginator.new(client, req)
+  for page? in pages bound 10000 {
+    for obj in page.contents { os.stdio.println(obj.key ?? "") }
+  }
+  ```
 - `while let pattern = value { ... }` computes `value` before each
   iteration and runs the body while it matches the pattern, with the
   pattern's names bound in the body; the loop ends at the first value
@@ -1467,7 +1516,9 @@ use github.com/acme/billing/invoice
   so `deny` rules (4.2) see every import. A `.` inside a segment is fine
   (`example.com`, `.github`, `v1.2`).
 - Imports are explicit. There is no dot import or glob import.
-- Cyclic module imports are an error.
+- Cyclic package imports are an error (`XO0604`): package a importing b
+  and b importing a, whether the two are in one module or in two.
+  Requirement cycles between modules are allowed (4.2).
 - `std/internal` holds primitives for std's implementation and the Xo
   toolchain's own modules (decision 0214) and is not part of std (std.md
   does not list it): only std modules and modules whose path is
@@ -1512,13 +1563,18 @@ note `XO1315` (decision 0155). Any other name stops the check.
   and bitbucket.org the repository is the first three path elements; on
   other hosts the longest prefix of the path that git answers for is the
   repository. A directory holding its own xo.mod is never part of the
-  module around it (it is not fetched, hashed, or vendored with it).
+  module around it (it is not fetched, hashed, or vendored with it), and
+  the module around it imports its packages only by requiring it, as
+  any other module (`XO1306` without the requirement).
 - There is no `replace`, `exclude`, or `retract` (`XO1301`); local copies
   are reached only through a workspace (below).
 - Minimal version selection: the build uses, for each module, the highest
   version that any reached xo.mod requires (the main module's, then those
   of every required version, transitively). No ranges, no solver; a
-  version changes only when an xo.mod changes.
+  version changes only when an xo.mod changes. Requirement cycles are
+  allowed and resolved the same way, as in Go (a root module requiring a
+  nested one that requires the root back: each module's highest
+  required version is selected, the main module's own path aside).
 - Imports resolve inside the main module, the embedded `std`, and the
   selected module versions (the longest module path that prefixes the
   import path). A module must require every module it imports from:
@@ -1548,9 +1604,15 @@ note `XO1315` (decision 0155). Any other name stops the check.
   with `vendor/modules.txt`. When `vendor/modules.txt` exists, builds use
   only vendor/ (no cache, no network); a requirement it lacks is `XO1307`.
 - Commands: `xo get <path>[@version|@latest|@none]` sets a requirement
-  (latest tag by default) and rewrites xo.mod and xo.lock; `xo mod tidy`
+  (latest tag by default) and rewrites xo.mod and xo.lock, and says
+  which module version still requires a higher version when the build
+  does not select the one set; `xo mod tidy`
   requires every imported module, removes requirements nothing imports
-  (unless they raise a version the graph selects), and rewrites xo.lock.
+  (unless they raise a version the graph selects), and rewrites xo.lock;
+  `xo mod graph` prints the requirement graph as Go's `go mod graph`
+  does, one `<module>[@version] <module>@<version>` edge per line (the
+  main module without a version), and with `--json` the version selected
+  for each module.
 
 **[P1]** Workspaces: an `xo.work` file at or above the main module makes
 the modules it lists build from their directories:
@@ -1872,6 +1934,30 @@ fn main(os: Os) ! {
   `fs.file_mode_is_dir(m: UInt32) -> Bool`. A pointer receiver method is
   not bound (Xo passes a copy), and neither is one whose name a package
   function already has.
+- A Go struct's embedded fields are bound as its other fields are
+  (decision 0491 A): an exported embedded field gets a getter and a
+  setter named after it (observer.LoggedEntry's `le.entry()`,
+  `le.set_entry(v)`); an embedded struct held by value is a handle of the
+  outer value's field, so a change through it is the outer value's, as
+  Go's `&le.Entry` is; an embedded `*T` is `T?`, an embedded interface
+  its interface handle. Every field Go's selector reaches through
+  embedded structs gets accessors on the outer handle (`le.message()`,
+  `le.set_message(s)`), by Go's rules: the shallowest name wins, a name
+  two embedded fields have at one depth is ambiguous and not bound, and
+  a method or a shallower field of the name wins. Promoted methods are
+  bound as the type's own.
+- A List, Map or Set given to Go is a copy: a Go function that changes
+  its argument in place (through `any`, an interface, or a slice
+  parameter) changes the copy, and the Xo value stays as it was; take
+  the result Go returns, or use `go.out[T]()` for a function that fills
+  a value. `xo check` warns `XO1107` where one is given as Go's `any`
+  (`go.any(xs)` for an `any` parameter, or an element of a `...any`
+  list), except in a call of a function known only to read it (the
+  reviewed list in compiler/check/goreads.xo: encoding/json and
+  encoding/xml's encoders, fmt's print family, log, log/slog, zap's
+  field constructors, database/sql's query arguments, the templates'
+  `execute`), or with `// xo:allow XO1107 <reason>` on the line or the
+  line above (decision 0491 B).
 - A named Go map type (`jwt.MapClaims`, `map[string]any`) is a handle
   with `T.of(m)`, which makes one from an Xo Map (copied in), and
   `to_map()`, which copies it out; its methods and the interfaces it
@@ -2986,7 +3072,7 @@ test "retries after 503" {
 | `xo query <kind> ...` | Semantic queries (10.3): `type`, `def`, `callers`, `effects`, `holes`, `api`, `imports`, `deps` |
 | `xo edit <op> ...` | Semantic edits (10.4) |
 | `xo replay`, `xo dump` | Debugging (section 11); `xo why` and `xo debug` are [P2] and not implemented yet (11.3, 11.5) |
-| `xo doc` | Docs from doc comments |
+| `xo doc` | Docs from doc comments; `xo doc std` lists the std modules this xo ships, a line each |
 | `xo clean -cache [-n]` | Remove every cache under `<user cache>/xo` (build directories, the native back end's cache, GOCACHE, test binaries, watch builds, xo dev outputs, the test infrastructure's caches) and print the bytes freed per cache; `-n` prints what it would remove and removes nothing. Never touches anything outside `<user cache>/xo`; the module cache and the prebuilt seeds stay; an entry whose build lock a running process holds is left. `xo clean` without `-cache` is a usage error |
 | `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
@@ -3160,7 +3246,7 @@ does (decision 0131).
     name `?`, `.or_fault`, and `r ?? _ => x`; decision 0438), `XO0406`
     (a Result operand of an operator: add `?` or `.or_fault`),
     `XO0165` and `XO0160` (a keyword such as `test` used as a name: a
-    rename to suggest; `T ! E` as a parameter's type: `Result[T, E]`),
+    rename to suggest; `T ! E` as the type of a parameter, a struct field or a `let` or `var` binding: `Result[T, E]`),
     `XO0209` (a method of a `var` binding: `xs = xs.sort()`), `XO0169` (commas between
     match arms), `XO0173` (`use` after declarations), `XO0701` (an effect
     argument left out of a parameter type, which stays an abstract effect
@@ -3357,6 +3443,9 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0431` | error | checker | a variant of an internally tagged enum (`derive Json(tag: "type")` without `content:`) whose payload is not an object: one field that is not a struct (core 2.3, decision 0478) |
 | `XO0432` | error | checker | `derive Json(via: P, to: f, from: g)` whose `to:` or `from:` names no non generic, non method function of the type's module (core 2.3, decision 0478) |
 | `XO0433` | error | checker | a mistyped `to:` or `from:` of `derive Json(via: ...)`: `to` must be `fn(T) -> P` with no error, `from` `fn(P) -> T ! E` with E implementing Display (core 2.3, decision 0478) |
+| `XO0434` | error | checker | a variant with fields in a valued enum that is not its catch-all: the catch-all is the last variant, with one field of the value type and no value (core 2.3, decision 0493) |
+| `XO0435` | error | checker | a valued enum's catch-all built from a constant that a named variant has (`StorageClass.Unknown("STANDARD")`): a second spelling of that variant, unequal to it (core 2.3, decision 0493) |
+| `XO0436` | error | checker | `for` over a type with `next()` whose `?` does not match it: `for x in v` where `next()` can fail (write `for x? in v`), `for x? in v` where it cannot or over a builtin iteration, or a `next()` that does not return `T?` (core 3.5, decision 0494) |
 | `XO0501` | error | checker | var method called on a non var binding (core 3.4) |
 | `XO0502` | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | `XO0503` | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -3374,7 +3463,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0601` | error | checker | name does not resolve (core 4.3) |
 | `XO0602` | error | checker | import path does not yield a valid local name (core 4.1) |
 | `XO0603` | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
-| `XO0604` | error | checker | cyclic module imports (core 4.1) |
+| `XO0604` | error | checker | cyclic package imports (core 4.1) |
 | `XO0605` | error | checker | name is not `pub` in its module, a field of a std struct documented `@internal` outside std (decision 0440), or the std type is an opaque handle (core 1.5) |
 | `XO0606` | error | checker | method declared outside the module of its type (core 3.4) |
 | `XO0607` | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
@@ -3401,6 +3490,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0914` | note | vet --cost | in a loop, a List of at most 8 elements made and only filled and read in the iteration: an allocation and a free every iteration; keep the values in locals or reuse one list made before the loop (knowledgebase/std-performance-guide.md) |
 | `XO0915` | warning | vet --cost | a raw address (`raw.data`, `raw.bytes_addr`, `rt.obj_addr`, std internals) used after its value was released in the same block: a value is released at its last use, even inside the arguments of the call that takes its address, so the call reads freed memory; keep it alive with `raw.alive` or `raw.alive_str` after the last access (gotchas/raw-address-outlives-bytes.md) |
 | `XO0916` | warning | vet | `time.format` or `time.parse` called with a layout that is a compile time string (a literal, a constant, or a `+` of them): each call parses the layout text again (5.4 and 4.7 of Go's wall), where a `const Layout` made with `time.layout` is parsed once (2.0 and 1.9); a layout built at run time is not reported, and `// xo:allow XO0916 REASON` silences a cold call (decision 0464) |
+| `XO0917` | warning | vet | a valued enum's catch-all built directly from a run time value (`StorageClass.Unknown(s)`): a value a named variant has would become a second spelling of it; `E.from(s)` picks the named variant (decision 0493) |
 | `XO0904` | warning | vet | a file an embed constant embeds is ignored or untracked by git, so a build of a clean checkout embeds something else or fails (decision 0304) |
 | `XO1001` | error | reserved | `std/sys/<os>` used outside the matching target arm (core 12.2) |
 | `XO1101` | error | checker | Go package cannot be bound (not found, does not build, main package, or binding error) |
@@ -3409,6 +3499,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1104` | error | checker | C header cannot be bound (not found, clang cannot read it, a `link` file is missing, or an unknown effect in its `uses`) |
 | `XO1105` | error | checker | C function exists in the header but its signature does not map to Xo, so the binding skipped it |
 | `XO1106` | error | checker | a value with no Go value passed to Go as `any`: `go.any(x)`'s argument or an element of a list literal for a `...any` parameter (decision 0412) |
+| `XO1107` | warning | checker | a List, Map or Set given to a Go function as `any` (`go.any(xs)` for an `any` parameter, or an element of a `...any` list): Go receives a copy, so a change it makes is not seen; not for a function compiler/check/goreads.xo lists as only reading, nor with `// xo:allow XO1107 <reason>` (core 4.4, decision 0491) |
 | `XO1201` | error | no GC check, checker (`use c` without `--no-gc`) | construct, std API, or effect not available on the native backends (arm64, amd64, LLVM); planned or impossible |
 | `XO1301` | error | modules | malformed xo.mod require or deny line, xo.lock, or xo.work line, or a deny rule naming a package that does not exist (core 4.2, 4.3) |
 | `XO1302` | error | modules | module version cannot be fetched from git or a module proxy (XO_PROXY): repository, tag, or version missing, or its xo.mod declares another path |
@@ -3554,7 +3645,7 @@ call and its result, plus scheduler decisions.
   attached to crash bundles.
 - `xo replay trace.xotrace` (or a `.xocrash`) re executes the program offline
   with identical effect results and interleavings.
-- `xo debug --replay trace.xotrace` supports stepping backward.
+- **[later]** `xo debug --replay trace.xotrace` steps backward (11.5: `xo debug` is not built).
 - `xo why <expr> --at file:line` traces where a value came from (the
   assignments, calls, and effect results that produced it) using the replay.
 
@@ -3601,9 +3692,23 @@ call and its result, plus scheduler decisions.
 
 ### 11.5 Debugger protocol
 
-`xo debug --json` speaks a JSON line protocol (breakpoints, conditional
-breakpoints, break on contract failure, eval, step, step back with replay).
-`xo debug --dap` speaks the Debug Adapter Protocol for editors.
+What is built (decision 0253 stages 1 and 5's protocol, 2026-10-17):
+`xo dev debug` (hidden) runs the debugger's commands on a recorded,
+stopped thread (`--snap FILE`, as lldb or gdb recorded it): `break`
+resolves a FILE:LINE or a function to its addresses, and `backtrace`
+(inlined calls as frames), `frame`, `locals`, `print` (a field path),
+`threads` and `quit` read the snapshot through the program's DWARF and
+unwind tables. With `--json` each command gives one JSON line, the
+protocol's version 1 below; with no `-c` it reads commands from standard
+input. `run`, `continue`, `step`, `next` and `finish` answer that
+process control comes with stage 2, `tasks` and `task` with stage 4.
+
+**[later]** Not built: the `xo debug` command itself (a live process:
+0253 stage 2 on macOS arm64, stage 6 for Linux and Windows), conditional
+breakpoints, a break on a contract failure, evaluating expressions
+(beyond `print`'s field path), and stepping back over a replay (11.3).
+`xo debug --dap`, the Debug Adapter Protocol for editors, is planned and
+is not a stage of decision 0253 yet.
 
 The protocol's version 1 (decision 0253; compiler/debug session.xo; until
 the process control of stage 2 it runs on a recorded thread as `xo dev
@@ -3719,8 +3824,10 @@ runs inside `handle`. A `handle_stream` route reads the request body as
 it arrives (`stream<u8>`), with its trailers (a future); a response's
 body goes to the host as main writes it, then its trailers. `http.Client`
 sends through `client.send`, lowered async, writing the request body
-while the call runs. One request runs at a time in an instance
-(`backpressure`), and a host may start the next on the same instance.
+while the call runs. Several requests run at once in an instance
+(step 3, 2026-11-04): each runs main in a task of its own, and a task
+that waits for the host lets the others run; no state outlives main, so
+the requests share nothing but the instance's memory.
 On wasip3/wasm, a program that does not call `http.serve_component` is
 XO1515.
 
@@ -3877,7 +3984,7 @@ Stmt        = "let" Pattern [ ":" Type ] "=" Expr
             | ForStmt | WhileStmt | Expr .
 AssignOp    = "=" | "+=" | "-=" | "*=" | "/=" | "%=" .
 Place       = ident { "." ident | "." int | "[" Expr "]" } .
-ForStmt     = [ ident ":" ] "for" Pattern "in" Expr [ "bound" Expr ] Block .
+ForStmt     = [ ident ":" ] "for" Pattern [ "?" ] "in" Expr [ "bound" Expr ] Block .
 WhileStmt   = [ ident ":" ] "while" [ ( Expr | "let" Pattern "=" Expr ) [ "bound" Expr ] ] Block .
 
 Expr        = IfExpr | MatchExpr | ScopeExpr | SelectExpr | Block | FnLit | Binary

@@ -68,39 +68,19 @@ def spec():
         ) + body)
 
 
-# the first release with a generated post (changelog())
-FIRST_POST = (0, 36, 0)
+# Release notes live only on the /releases/ pages (content/releases/0.N.md,
+# written by the release step); the blog gets no release posts (owner,
+# 2026-11-05: "No release blog posts in the blog section"). The posts
+# changelog() used to write from CHANGELOG.md (v0.7.0 to v0.9.0, v0.36.0,
+# v0.38.1) are gone, their URLs aliases of the matching /releases/ page.
+RELEASE_POST = re.compile(r"^v\d+-\d+-\d+\.md$")
 
 
-def changelog():
-    text = read("CHANGELOG.md")
-    heads = list(re.finditer(r"^## (v\d+\.\d+\.\d+) \((\d{4}-\d{2}-\d{2})\)\s*$", text, re.M))
-    for i, m in enumerate(heads):
-        version, date = m.group(1), m.group(2)
-        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
-        body = text[m.end():end].strip() + "\n"
-        slug = version.replace(".", "-")
-        # one post per release from v0.36.0 on (owner, 2026-11-04): the
-        # CHANGELOG split of 720076c85 gave v0.11 to v0.35 sections of their
-        # own, which get no post; a release older than that keeps the post it
-        # already has (v0.7.0 to v0.9.0)
-        if tuple(int(n) for n in version[1:].split(".")) < FIRST_POST and not os.path.exists(os.path.join(SITE, "content", "blog", slug + ".md")):
-            continue
-        # extra/changelog/<slug>.md: a section the post adds to a released
-        # CHANGELOG section (which stays as released), placed before the
-        # section's first ### heading
-        extra = os.path.join(SITE, "extra", "changelog", slug + ".md")
-        if os.path.exists(extra):
-            add = open(extra).read().strip() + "\n\n"
-            at = body.find("\n### ")
-            body = body + "\n" + add if at < 0 else body[:at + 1] + add + body[at + 1:]
-        draft = re.search(r"Spec draft (\d+\.\d+)", body)
-        desc = f"Release notes for Xo {version}" + (f", spec draft {draft.group(1)}." if draft else ".")
-        write(f"content/blog/{slug}.md", front(
-            title=f"Xo {version}", date=date, description=desc,
-            source=SOURCE + "CHANGELOG.md",
-            generated="scripts/sync-content.py from CHANGELOG.md; edit the source, not this file",
-        ) + body)
+def no_release_posts():
+    """Fail if a release post (content/blog/vN-N-N.md) is back."""
+    posts = sorted(n for n in os.listdir(os.path.join(SITE, "content", "blog")) if RELEASE_POST.match(n))
+    if posts:
+        sys.exit("release posts in content/blog (release notes go in content/releases only): " + ", ".join(posts))
 
 
 def md_text(s):
@@ -169,5 +149,5 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(REPO, "spec", "core.md")):
         sys.exit(f"no spec/core.md under {REPO}; pass the xo repo path or set XO_REPO")
     spec()
-    changelog()
     diagnostics()
+    no_release_posts()

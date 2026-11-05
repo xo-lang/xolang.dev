@@ -1865,7 +1865,7 @@ fn (s: Server) with_tls(certs: List[TlsCert]) -> Server   // HTTPS (4.6)
 fn (s: Server) with_read_timeout(d: Duration) -> Server          // Go's ReadTimeout: a request's head and body, from its first byte
 fn (s: Server) with_read_header_timeout(d: Duration) -> Server   // Go's ReadHeaderTimeout
 fn (s: Server) with_idle_timeout(d: Duration) -> Server          // Go's IdleTimeout: the wait for a kept alive connection's next request
-fn (s: Server) with_max_header_bytes(n: Int) -> Server           // Go's MaxHeaderBytes (plus 4096 of slack; 1 MB when 0): a longer head is 431
+fn (s: Server) with_max_header_bytes(n: Int) -> Server           // Go's MaxHeaderBytes (plus 4096 of slack; 1 MB when 0): a longer head is 431; HTTP/2's header list limit is n plus 320 (Go's maxHeaderListSize)
 fn (s: Server) with_max_body(n: Int) -> Server                   // the body read before a handler (64 MB when 0): a longer one is 413
 fn (s: Server) with_protocols(p: Set[Protocol]) -> Server        // Go's Server.Protocols (4.6, decision 0434)
 fn (s: Server) with_h2_config(c: H2Config) -> Server             // Go's Server.HTTP2 (4.6)
@@ -2001,7 +2001,7 @@ Connection, Content-Encoding, Content-Length, Content-Range,
 Content-Type, Expect, Host, Keep-Alive, Max-Forwards, Pragma,
 Proxy-Authenticate, Proxy-Authorization, Proxy-Connection, Range, Realm,
 Te, Trailer, Transfer-Encoding and Www-Authenticate. Every backend sends
-and receives them (the native one since 8c0cc7f84); golden http_trailers
+and receives them (the native one since e0444461a); golden http_trailers
 checks the native and Go backends agree.
 
 `display` of these errors prints plain text (decision 0358): `HttpErr` the
@@ -2225,7 +2225,8 @@ fn serve_https(os: Os, r: http.Router) -> () ! Error uses (fs.read, net.listen) 
   not verify is `Protocol("Get \"https://...\": tls: failed to verify
   certificate: x509: ...")` (`certificate signed by unknown authority`,
   `certificate is valid for a, b, not c`, `certificate has expired or is
-  not yet valid: ...`), a server answering plain HTTP is `Protocol("...:
+  not yet valid: ...`, whose current time is in the local zone, as Go's,
+  and in UTC on wasm), a server answering plain HTTP is `Protocol("...:
   http: server gave HTTP response to HTTPS client")`, and an alert of the
   server (no shared cipher suite, a required client certificate) is
   `Connect("remote error: tls: handshake failure")`.
@@ -2323,7 +2324,7 @@ fn (p: Patch[T]) apply_opt(current: T?) -> T? // Absent keeps, Null clears, Valu
 | `Int8`, `Int16`, `Int32`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Float32` | number; decoding refuses a number out of the type's range (`expected integer` for a signed type, `expected non negative integer` for an unsigned one, `cannot unmarshal number 1e39 into Float32` for a Float32 past its largest value, Go's words with Xo's type), on every backend |
 | `List[T]`, `Set[T]` | array |
 | `Map[Str, V]` | object |
-| valued enum (`enum E: Int` or `enum E: Str`, decision 0269) | the variant's value: a number or a string; decoding refuses a value no variant has (`unknown value 7 of enum Weekday`) |
+| valued enum (`enum E: Int` or `enum E: Str`, decision 0269) | the variant's value: a number or a string; decoding refuses a value no variant has (`unknown value 7 of enum Weekday`), or, with a catch-all variant (`Unknown(value: Str)`, decision 0493), keeps it there and writes it back unchanged |
 | enum unit variant | string `"Variant"` (its wire name: `as "name"` or `case:`, decision 0478, core 2.3) |
 | enum variant with fields | object `{"Variant": {fields}}`, the name and the fields' keys as above |
 | tagged enum, `derive Json(tag: "type")` | object `{"type": "Variant", fields...}`, a wrapped struct's fields beside the tag; with `content: "data"`, `{"type": "Variant", "data": payload}` (decision 0478, core 2.3) |
@@ -2410,6 +2411,61 @@ pub fn from_value[T: Json](v: Value) -> T ! DecodeErr
 - `derive Json` fields marked `as "key,omitempty"` (core 2.2) are left
   out of `encode`'s output when empty.
 - Goldens `json_stream` and `json_omitempty` (every backend).
+
+### 5.3 Tokens (decision 0495)
+
+```
+enum Token { ObjectStart, ObjectEnd, ArrayStart, ArrayEnd, Key(s: Str), Str(s: Str),
+             Number(text: Str), Bool(b: Bool), Null }
+struct TokenReader {}                               // move only
+pub fn token_reader(max_token: Int = 67108864) -> TokenReader
+pub fn tokens(data: Bytes) -> TokenReader           // a whole text, read by next
+fn (var r: TokenReader) write(data: Bytes) -> List[Token] ! DecodeErr
+fn (var r: TokenReader) finish() -> List[Token] ! DecodeErr
+fn (var r: TokenReader) next() -> Token? ! DecodeErr
+fn (var r: TokenReader) more() -> Bool
+fn (r: TokenReader) offset() -> Int
+fn (var r: TokenReader) skip() -> () ! DecodeErr
+fn (var r: TokenReader) value() -> Value ! DecodeErr
+
+struct JsonWriter {}                                // move only
+pub fn json_writer(escape_html: Bool = true) -> JsonWriter
+fn (var w: JsonWriter) object_start() / object_end() / array_start() / array_end()
+fn (var w: JsonWriter) key(name: Str) / str(s: Str) / int(n: Int) / bool(b: Bool) / null()
+fn (var w: JsonWriter) float(f: Float) / number(text: Str) / raw(text: Str) / value(v: Value) -> () ! DecodeErr
+fn (var w: JsonWriter) finish() -> Bytes
+```
+
+- The reader is the state machine of Go's `Decoder.Token` (stream.go:
+  tokenState, tokenStack, tokenError), so tokens, errors (`invalid
+  character ',' after array element`), `more` (Decoder.More) and `offset`
+  (Decoder.InputOffset) are Go's. Differences: an object member's name
+  is `Key`, a number is its text as written (Go's UseNumber), and the
+  input that ends inside an array or object is `invalid JSON: unexpected
+  EOF` (Go returns io.EOF there, as at a clean end). The empty text and
+  white space give None. Values follow one another, as in 5.2.
+- `tokens(data)` reads a text in memory with `next`; `write` and `finish`
+  take bytes in pieces, as `Decoder` does, with the same rule for an error
+  after some tokens (the next call returns it) and `max_token` bounding a
+  string or number that is not complete.
+- Strings are read as `decode` reads them (invalid UTF-8 and lone
+  surrogate escapes are U+FFFD). `skip` steps over the next value (an
+  array or object whole, found by its brackets and then checked) and
+  `value` reads it as `parse_value` does.
+- The writer inserts commas and colons and writes strings as encoding/json
+  does (`"`, `\`, control characters, U+2028, U+2029 and invalid
+  UTF-8 escaped; `<`, `>`, `&` as `\u003c`, `\u003e`, `\u0026` when `escape_html`) and
+  floats as Go's floatEncoder (shortest form, exponent below 1e-6 or from
+  1e21). `float` refuses NaN and infinities, `number` text that is not a
+  JSON number, `raw` text that is not JSON (it is written compacted). A call
+  out of order (a value where a key is due, `array_end` with no open
+  array, `finish` with one open) faults. Top level values are separated by
+  a newline.
+- Tested against Go's Decoder.Token, More and InputOffset on 1,200
+  generated streams and 55 hand picked ones, read whole and in random
+  pieces, and against Marshal's strings and floats
+  (internal/stdtest/testdata/corpus/jsontoken, scripts/stdcorpus);
+  twin bench/perf/jsontoken.
 
 ## 6. std/log
 
@@ -4236,7 +4292,8 @@ struct ZipFile { path: Str, size: Int, compressed: Int, mode: Int, is_dir: Bool,
   comes, a data descriptor after it), and the next `add`, `create` or
   `close` ends it; `w.close()` writes the central directory. Memory is the
   directory records, not the data. No zip64: more than 65,535 entries or
-  4 GB is an error. (Decision 0479 sketched `create` returning an
+  4 GB is an error, for `zip` as for `zip_writer`, on every backend
+  (2026-11-04; Go's writer would switch to zip64). (Decision 0479 sketched `create` returning an
   `EntryWriter`; a separate value cannot tell the writer how much it
   wrote, so the entry is the writer's current one.)
 
@@ -6561,6 +6618,10 @@ enum RateErr { Exceeds(n: Int, burst: Int), Canceled }
 - `set_limit` and `set_burst` keep the tokens so far. A limit of 0
   allows the burst once and then nothing; `INF` allows everything,
   whatever the burst. `every(d)` is `INF` for d of 0 or less.
+- Answers are x/time/rate's to the bit (a random differential on the
+  virtual clock, 2026-11-04): tokens use Go's `Duration.Seconds`, and a
+  wait of forever acts at Xo's last Time (Go's Time reaches further)
+  while `delay()` counts down from it as Go's does; nothing overflows.
 - Go's API without a Context: Go's `WaitN(ctx, n)` deadline check is the
   task's cancellation; `AllowN(t, n)` and the other `*At` forms are the
   clock's time (a test sets it).
@@ -6887,7 +6948,7 @@ its golden strings and on pseudo random buffers of 0 to 1,500,000 bytes
 (corpus `crc64`). Pure.
 
 ```xo
-enum Poly { Iso, Ecma }
+enum Poly { Iso, Ecma, Nvme }  // Nvme: CRC-64/NVME, 0x9a6c9329ac4bc9b5 reversed (S3's default checksum); check value of "123456789" 0xae8b14860a799888
 pub fn checksum(data: Bytes, poly: Poly = Poly.Iso) -> Int             // Checksum(data, MakeTable(poly))
 pub fn update(crc: Int, data: Bytes, poly: Poly = Poly.Iso) -> Int     // Update
 ```
@@ -7150,7 +7211,8 @@ Status: implemented on every backend (2026-11-03, decision 0486, Accepted by the
 JSON Web Signature compact tokens (RFC 7515, RFC 7519) with HS256/384/512, RS*, PS*, ES256/384/512 and EdDSA; no JWE
 for now. Checked against github.com/golang-jwt/jwt/v5 v5.3.1 (`internal/stdtest/testdata/corpus/jwt`, generated by
 `go run ./scripts/stdcorpus jwt` from scripts/stdcorpus/jwtoracle): the same tokens byte for byte for the algorithms
-with deterministic signatures, and the same error category for about 400 tokens and option sets.
+with deterministic signatures (except that a claim text holding `<`, `>` or `&` is written as it is, where Go's
+encoding/json writes `\u003c`, `\u003e` and `\u0026`: both are valid JSON and verify alike), and the same error category for about 400 tokens and option sets.
 
 ```xo
 enum Alg { HS256, HS384, HS512, RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512, EdDSA }
