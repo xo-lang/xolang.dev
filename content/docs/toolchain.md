@@ -218,7 +218,7 @@ missing package or header on first use.
 
 | Command | What it does | Example |
 |---|---|---|
-| `xo lsp` | Language Server Protocol server over stdio, for editors | configure your editor to run `xo lsp` |
+| `xo lsp` | Language Server Protocol server over stdio, for editors; the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=xo-lang.xo) (also on [Open VSX](https://open-vsx.org/extension/xo-lang/xo)) runs it | configure your editor to run `xo lsp` |
 | `xo mcp` | Model Context Protocol server over stdio, for agents: check, query, edit, explain, fmt, test, build | configure your agent to run `xo mcp` |
 | `xo serve` | A resident checker on a Unix socket; `xo check` and `xo query` use it when it answers | `xo serve` |
 | `xo dump` | The task tree of a running program (Go backend builds) | `xo dump 4121` |

@@ -77,6 +77,20 @@ to keep it.
 - Go is needed only for the Go backend (`--backend=go`) and `use go`;
   the native backends need no Go.
 
+## Editor support
+
+The Xo extension for VS Code gives syntax highlighting, and runs
+`xo lsp` (the `xo` on your `PATH`, or the `xo.path` setting) for
+diagnostics and quick fixes as you type, hover, go to definition,
+references, rename, and formatting. Install it from the
+[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=xo-lang.xo) or, for VSCodium, Cursor and other
+editors that use it, from [Open VSX](https://open-vsx.org/extension/xo-lang/xo), or search for "Xo Language"
+in the editor's Extensions view. Debugging from the editor (F5 on a
+`.xo` file) runs `xo debug --dap` and needs the release after 0.39.0.
+Its source is [xo-lang/vscode](https://github.com/xo-lang/vscode). Any
+other editor with a Language Server Protocol client can run `xo lsp`
+directly.
+
 ## Build from source
 
 {{< source-status >}}
