@@ -86,7 +86,7 @@ references, rename, and formatting. Install it from the
 [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=xo-lang.xo) or, for VSCodium, Cursor and other
 editors that use it, from [Open VSX](https://open-vsx.org/extension/xo-lang/xo), or search for "Xo Language"
 in the editor's Extensions view. Debugging from the editor (F5 on a
-`.xo` file) runs `xo debug --dap` and needs the release after 0.39.0.
+`.xo` file) runs `xo debug --dap`, which arrives in the next release.
 Its source is [xo-lang/vscode](https://github.com/xo-lang/vscode). Any
 other editor with a Language Server Protocol client can run `xo lsp`
 directly.
