@@ -77,11 +77,9 @@ customizations; see the limits below), so its core being
 ten times larger is not ten times waste. The generated code is the
 fairer comparison: both are full clients for the same 435 models, and
 Xo's are about a third the size. We have not broken down where the
-difference comes from, so read it as a size, not a verdict. Only ten
-services are committed to the repository while it is young (S3,
-DynamoDB, SQS, SNS, STS, EC2, Lambda, Secrets Manager, Kinesis and
-Transcribe Streaming: 492,813 generated lines); the rest are generated
-and type checked on every gate.
+difference comes from, so read it as a size, not a verdict. All 435
+services are committed to the repository, each its own module, and
+every one is regenerated and type checked on every gate.
 
 ## How it was tested
 
