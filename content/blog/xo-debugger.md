@@ -158,7 +158,9 @@ no lldb, gdb or C library of either:
   ptrace call made from one tracer thread, since Linux takes a traced
   process's requests only from the thread that seized it, and an Xo
   fiber can move between threads. Windows uses the system's debugging
-  functions and is in progress. Each OS's calls are listed in the design
+  functions (`WaitForDebugEvent`, `ReadProcessMemory`, thread contexts)
+  and walks the stack with the executable's own unwind tables
+  (`.pdata`). Each OS's calls are listed in the design
   decision, and the owner approved each list before it was used.
 - **The task walk from the runtime's own records.** `tasks` does not
   guess from the stack: it reads the runtime's task tree, scopes and
@@ -172,8 +174,9 @@ no lldb, gdb or C library of either:
   using the line table and the call instructions of each architecture
   (arm64 and x86_64).
 
-It runs today on macOS arm64 and Linux arm64 and x86_64, with attach on
-macOS; attaching on Linux and the Windows port are next.
+It runs on macOS arm64, Linux arm64 and x86_64, and Windows x86_64,
+with attach on all three. (Updated 2026-11-05: attaching on Linux and
+the Windows port landed the day this post went out.)
 
 ## Compared with Delve
 
