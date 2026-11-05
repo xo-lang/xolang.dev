@@ -1,8 +1,8 @@
 ---
 title: "Xo gets a debugger"
-date: 2026-11-05T09:00:00-05:00
+date: 2026-11-05T07:34:00-05:00
 description: "xo debug is a live debugger built into the xo command: breakpoints, stepping by source line, locals, and Xo's tasks read from the runtime's own records, in a terminal, as JSON for agents, or in VS Code through the Debug Adapter Protocol. What it does, how it is built (in Xo, with its own DWARF reader and its own process control on each OS), how it compares with Delve, and the two bugs it found on the way."
-draft: true
+draft: false
 ---
 
 Since 0.26.0 an Xo executable has carried its DWARF debug information
