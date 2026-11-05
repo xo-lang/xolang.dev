@@ -73,6 +73,9 @@ def spec():
 # 2026-11-05: "No release blog posts in the blog section"). The posts
 # changelog() used to write from CHANGELOG.md (v0.7.0 to v0.9.0, v0.36.0,
 # v0.38.1) are gone, their URLs aliases of the matching /releases/ page.
+# This script never writes content/releases: those pages are edited by hand
+# and keep what is added after a release (a Known issues entry found later,
+# as 0.39's cabi.on_prof one, 2026-11-05).
 RELEASE_POST = re.compile(r"^v\d+-\d+-\d+\.md$")
 
 
