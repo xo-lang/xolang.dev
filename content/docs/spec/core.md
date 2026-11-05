@@ -6,12 +6,12 @@ description: "Syntax and semantics of Xo: types, errors, concurrency, effects, m
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/core.md"
-status: "draft 0.10 (2026-10-10; 0.9 released as toolchain v0.9.0, decision 0089)"
+status: "draft 0.41 (2026-11-05; 0.40 released as toolchain v0.40.0, decision 0089)"
 generated: "scripts/sync-content.py from spec/core.md; edit the source, not this file"
 ---
 # Xo Language Specification (Core)
 
-Status: draft 0.10 (2026-10-10; 0.9 released as toolchain v0.9.0, decision 0089)
+Status: draft 0.41 (2026-11-05; 0.40 released as toolchain v0.40.0, decision 0089)
 Edition: preview (the only edition before 1.0, decision 0155)
 Companion: `spec/std.md` (prelude methods and standard library surface)
 
@@ -21,7 +21,29 @@ fast builds, static binaries, a strong standard library, a compatibility
 promise) and is designed so that an AI agent can write, check, build, and debug
 programs for any OS with fast, structured, unambiguous feedback.
 
-## Changes in 0.10
+## Changes in 0.41
+
+None yet.
+
+## Changes in 0.40
+
+- `xo debug PROG` runs a native program under xo's debugger on macOS
+  arm64 (10.1, 11.5; decision 0253 stages 2 and 3), with `run`,
+  `continue`, `step`, `next` and `finish` and their `stop` fields in the
+  protocol, `tasks` and `task N [bt]` from the runtime's records and
+  `xo debug -p PID PROG` to attach (stage 4), and `xo debug --dap` for
+  editors (decision 0504); darwin
+  builds with debug
+  information carry `get-task-allow`, and `xo build --entitlement=KEY`
+  adds an entitlement.
+
+## Changes in 0.10 to 0.39
+
+The header stayed at draft 0.10 through toolchain v0.39.0 (2026-10-10 to
+2026-11-05) instead of moving with each minor release as decision 0089
+says; the changes of those releases are listed together here, and
+`CHANGELOG.md` has them per release.
+
 
 - **User capabilities on every backend** (decision 0307): a program's own
   type converted to `Fs`, `Proc`, `Env`, `Net`, `Stdio`, `Clock`, or
@@ -1136,6 +1158,15 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
     generated function of its type; a type parameter or a struct that
     does not derive Xml is `XO0427` or `XO0404`.
 
+- `Yaml` (structs only, no type parameters; decision 0512, Accepted 2026-11-05) gives the struct gopkg.in/yaml.v3's
+  decoding and encoding through `yaml.decode[T]`, `yaml.decode_all[T]`, `yaml.encode_value[T]` and `yaml.encode_all[T]`
+  (spec/std.md 63). A field's key is its `yaml` string, else its `as` string, else its name; the options after a comma are
+  `omitempty`, `flow` and `inline`, and the name `-` leaves the field out. Field types are Str, Int, Float, Bool, Duration, Bytes, a struct that
+  derives Yaml, an Option, a List, or a Map[Str, V] of those (`XO0425` for another type). The expansion is ordinary Xo as for
+  `Xml` (`yaml_zero__T`, `yaml_merge__T`, `yaml_set__T`, `yaml_known__T`, `yaml_from_node__T`, `yaml_decode__T`,
+  `yaml_decode_all__T`, `yaml_write__T`, `yaml_fields__T`, `yaml_encode__T`, `yaml_encode_all__T` and one `yaml_dec__TYPE`
+  and `yaml_enc__TYPE` a field type), and a call of one of the four functions is rewritten to the generated function.
+
 ### 2.10 Implicit conversions
 
 There are exactly four, and each applies only where the target type is
@@ -1631,8 +1662,13 @@ use ./billing
   selection runs over the requirements of all listed modules.
 - The workspace applies when it lists the main module; `--workspace=off`
   (or `XO_WORK=off`) ignores it, `XO_WORK=<file>` names another one.
-- `xo check`, `test`, `query`, `edit`, and `mcp` take every listed module
-  as one program (a rename reaches all of them, atomically).
+- `xo test`, `query`, `edit`, and `mcp` take every listed module as one
+  program (a rename reaches all of them, atomically). `xo check` does
+  when it is given the workspace's own directory or a walk of it
+  (`./...` there); a walk below it (`DIR/...`) checks the modules under
+  DIR, and `xo check DIR` of a plain directory DIR's module, each with
+  the workspace modules they import, transitively, so modules nothing
+  imports cost nothing (decision 0511).
 - xo.lock is never written with workspace overrides (`xo get`, `xo mod
   tidy`, and `xo vendor` ignore the workspace); builds record the local
   directories in build information only. A release build (`xo build
@@ -3057,7 +3093,7 @@ test "retries after 503" {
 | Command | Purpose |
 |---|---|
 | `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release] [--debug-contracts\|--dbg\|--error-args\|--profile-support\|--trace-support=on\|off] [--debug-info=on\|off\|split] [--opt=O0..O3] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is the release preset (8, decision 0354): `requires(debug)` and `ensures(debug)` compiled out, `dbg` off, no debug information, the native runtime's profiler and execution trace recorder left out, `--opt=O2`; each of those settings has its own flag, in any build, that wins over the preset; `--error-args=off` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
-| `xo run [DIR]` | Build and run for the host the program in exactly DIR (default `.`), never one below it (decision 0345); `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267). A stop request `xo run` gets (SIGINT or SIGTERM, 7.5) is sent on to the program as SIGTERM when standard input is not a terminal; on a terminal, Ctrl-C reaches the program through the process group |
+| `xo run [DIR]` | Build and run for the host the program in exactly DIR (default `.`), never one below it (decision 0345); `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (its builds record no source digests in the build information, so an edit that changes no code, such as a comment that moves no line, leaves it running; `xo version -m` of such a binary shows `-` for each source; a restart sends SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267). A stop request `xo run` gets (SIGINT or SIGTERM, 7.5) is sent on to the program as SIGTERM when standard input is not a terminal; on a terminal, Ctrl-C reaches the program through the process group |
 | `xo trace FILE [--json OUT] [--text]` | The execution trace a native program wrote under XO_TRACE as Chrome trace event JSON (Perfetto) and a summary (decision 0240) |
 | `xo check [--backend=go] [--support] [--fix]` | Parse and type check all targets, no codegen, by the rules of the backend a build uses: the native backends' by default (`use c` is valid), the Go backend's with `--backend=go`; `--support` (old name `--no-gc`) adds the native backends' support check (XO1201), which lowers the program; `--fix` first applies the machine fixes (below) |
 | `xo test [--seed=N] [--explore=N] [--cases=N] [--timeout=D] [--real] [--watch]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100; `--timeout` the real time each test may take, default 60s, 0 for none, 9.2); deterministic scheduling. `--watch` reruns, after each change, only the tests the change reaches (decision 0267). Doc comment examples are [P2] (1.2) |
@@ -3074,6 +3110,7 @@ test "retries after 503" {
 | `xo replay`, `xo dump` | Debugging (section 11); `xo why` and `xo debug` are [P2] and not implemented yet (11.3, 11.5) |
 | `xo doc` | Docs from doc comments; `xo doc std` lists the std modules this xo ships, a line each |
 | `xo clean -cache [-n]` | Remove every cache under `<user cache>/xo` (build directories, the native back end's cache, GOCACHE, test binaries, watch builds, xo dev outputs, the test infrastructure's caches) and print the bytes freed per cache; `-n` prints what it would remove and removes nothing. Never touches anything outside `<user cache>/xo`; the module cache and the prebuilt seeds stay; an entry whose build lock a running process holds is left. `xo clean` without `-cache` is a usage error |
+| `xo debug [--batch] [--json] [--timeout=DUR] [-c CMD]... PROG [ARGS]`, `xo debug --dap` | Run a native program with its debug information under xo's own debugger (11.5; macOS arm64, Linux and Windows amd64): break, run, continue, step, next, finish, print, locals, backtrace, frame, threads, quit; `--json` gives the protocol of 11.5, `--dap` the Debug Adapter Protocol for editors |
 | `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
 | `xo init <path>`, `xo publish [--check]` | Start a module (xo.mod, xo.work gitignored); check a release against the previous tag (4.2) |
@@ -3097,8 +3134,8 @@ is a usage error: the error and the usage on stderr, exit status 2.
 **Directories and `DIR/...`.** A directory argument means that
 directory alone (decision 0345, superseding 0210's implicit walk):
 `check`, `vet`, `doc`, `test`, `build`, and `audit` take the module in
-it (plus the modules it imports, and for `check` the other modules of
-its `xo.work` workspace), and `fmt`, `fix`, and `parse` its own `.xo`
+it (plus the modules it imports; `check` of the `xo.work` workspace's
+own directory takes every module of the workspace, decision 0511), and `fmt`, `fix`, and `parse` its own `.xo`
 files. A directory with no `.xo` file is an error that names `DIR/...`.
 Only the package pattern `DIR/...` (`./...`, `cmd/...`, accepted by
 `check`, `test`, `build`, `vet`, `doc`, `fmt`, `fix`, `parse`, `audit`)
@@ -3299,6 +3336,18 @@ xo query hash users.fetch_user              // content hash of a definition (4.3
 `type` takes FILE:LINE:COL; with `--dir=DIR`, a relative FILE that is
 not under the working directory but is under DIR names that file (`xo
 mcp`'s query tool passes its `dir` this way).
+
+What a query checks (decision 0515): a directory with `.xo` files of its
+own (`--dir`, `type`'s file's directory, an `api`, `imports` or `deps`
+directory argument) is checked with the modules it imports, not the
+rest of its workspace; `callers` adds every workspace package that
+imports it, directly or through others. A name is resolved in what was
+checked, so a short name ambiguous only across the whole workspace
+answers for the module `--dir` names. `def` of a name (and `xo def`,
+`xo doc`) at a workspace or repository root checks the packages whose
+declarations name one of its segments, and everything when none does (a
+std or prelude name). Several declarations (`def`, `xo def`, `xo doc`)
+are listed in file and position order.
 
 `hash` (decision 0125) answers `{list}`, one entry per definition the
 name resolves to (a name, `Type.method`, `pkg.name`, or `<package
@@ -3692,7 +3741,108 @@ call and its result, plus scheduler decisions.
 
 ### 11.5 Debugger protocol
 
-What is built (decision 0253 stages 1 and 5's protocol, 2026-10-17):
+What is built (decision 0253 stage 2, 2026-11-05): `xo debug [--batch]
+[--json] [-c CMD]... PROG [ARGS]` runs PROG, a native executable with its
+debug information, under the debugger on macOS arm64: started stopped
+with ASLR off (its addresses are its file's DWARF addresses), `break`
+plants a trap (`brk #0`) at each of the location's addresses, `run`
+starts it and `continue` resumes it (over the trap it stopped at by one
+single stepped instruction) until a breakpoint, a fault (`stopped by
+exception N`, the Mach exception), or its exit (`the program exited with
+status N`); at a stop every thread of the program is suspended, and
+`backtrace`, `frame`, `locals`, `print` and `threads` read the stopped
+thread and the program's memory. `step` (stage 3) runs the stopped
+thread alone, an instruction at a time, to the start of a statement of
+another line (the line table's `is_stmt` rows), into a call (inlined or
+not; a call into code without line information is run over); `next`
+runs calls over (with every thread, to a temporary trap at the return
+address in the same frame) and calls inlined from the same line, so it
+stops at the frame's next line (a call inlined from another line stops
+it at that call's first statement with the frame selected); `finish`
+runs the selected frame out: an inlined call until its code is left
+(its caller's frame selected), a function to its caller's return
+address in the caller's frame. A frame is told by its canonical frame
+address (the unwinder's) and then its inlined depth, so recursion and a
+tail call are handled. A breakpoint or fault on the way stops them. The commands come from `-c` (`--batch`
+echoes each as `(xo) CMD`), else from standard input; the program is
+ended after the last one or `quit`. The process needs the
+`com.apple.security.cs.debugger` entitlement on xo, or `get-task-allow`
+on the program, and Developer Mode: a darwin build with debug
+information that is not `--release` or `-s` carries `get-task-allow` in
+its ad hoc signature, `xo build --entitlement=KEY` adds others, and the
+checkout's and a release's xo carry the debugger's (decision 0253
+point 5).
+
+On Linux (stage 6, 2026-11-05: arm64, then x86_64) the same commands
+run the program under ptrace: started with fork, seized (PTRACE_SEIZE,
+with every thread it makes traced and the program ended with xo), and
+stopped at its exec; Xo's executables are fixed address (ET_EXEC), so
+nothing turns ASLR off. A trap is `brk #0` (arm64) or `int3` (x86_64,
+the pc moved back on it at the stop), written with PTRACE_POKEDATA; a
+stop interrupts every other thread (PTRACE_INTERRUPT); memory is read
+with process_vm_readv; a fault is reported as `stopped by exception N`
+with the Mach numbering (1 bad access, 2 bad instruction, 3 arithmetic)
+and its signal delivered when the program runs on; signals the program
+handles itself (SIGURG's preemption, SIGCHLD, SIGPIPE) pass without a
+stop. `attach` and `-p` read the process's threads from /proc/PID/task,
+seize each (no kill on the debugger's exit) and stop it, until no new
+thread appears, and find the executable's load address from its ELF
+header in memory; `quit` detaches and the program runs on. A security
+module may forbid ptrace: Yama's ptrace_scope 1 (the default of many
+distributions, and of WSL) lets a process attach only to its own
+descendants, so `-p` of an unrelated process fails there (the error
+says so) unless the debugger runs as root or the scope is 0.
+
+On Windows (amd64) the debugger uses the system's debugging functions: the
+program is started with CreateProcessW and DEBUG_ONLY_THIS_PROCESS (through
+std's process launch, so its standard handles are set up as `xo run`'s), its
+debug events come from WaitForDebugEventEx, memory through
+Read/WriteProcessMemory with FlushInstructionCache after a trap's write,
+registers and the trap flag (a step) through Get/SetThreadContext, and the
+other threads are suspended at a stop (SuspendThread). The image is loaded
+where ASLR puts it, so the debug information is moved by its load address
+at each run. `attach` and `-p` use DebugActiveProcess, and `quit` detaches
+(DebugActiveProcessStop), leaving the program running. Frames are unwound by
+the image's .pdata and its unwind codes (a PE has no .eh_frame), with an
+epilog's own instructions at the first frame. Breakpoint files match with
+either separator and a drive's path in any case.
+
+`tasks` and `task N [bt]` (stage 4, 2026-11-05) read the stopped
+program's tasks from the runtime's own records in its memory, as `xo
+dump` walks them from inside (decision 0251): the static words from the
+`xo_static` DWARF variable (else its symbol), the root contexts'
+registry, and each root's cancellation nodes. `tasks` lists the tree as
+`xo dump` does, one line each (main is task 1, numbered depth first; a
+scope's line has no number): `task N (spawned at FILE:LINE)` and its
+state: `running`, `ready`, `blocked in OP at FILE:LINE` (OP one of
+receive, send, select, Mutex.with, await, sleep, network I/O, serve,
+advance; the location the first frame of the program's own code, not
+std's), `in scope`, or `waiting for its tasks` (a scope's body),
+`(canceled)` after a canceled one. `task N` selects a blocked task's
+frames, read from its fiber's saved stack (or a root's wait from the
+park's frame pointers), with the frame of the program's code where it
+waits selected, so `locals`, `print` and `frame` read the task there
+until the next stop; `task N bt` also prints its backtrace. A running
+task's frames are its thread's: the worker whose running fiber is the
+task's, and the thread whose stack pointer is in that fiber's stack,
+with its live registers. A ready task has no frames to read, and
+neither does a task run inline on another's fiber. The record layouts the debugger reads are copies of
+std/native/llrt's, each marked with its source and checked by
+TestRuntimeLayoutCopies.
+
+`xo debug -p PID PROG` (stage 4) attaches to a running process instead
+of starting one (the command `attach PID`, run first): every thread is
+suspended and the first one selected; the executable's ASLR slide is
+found from the threads (a return address into it, then the page aligned
+slide whose memory holds the executable's Mach-O header and load
+commands byte for byte), and the debug information and unwind tables are
+moved by it. PROG must be the process's executable (else the attach is
+refused). `quit` detaches: the traps are taken out, the exception ports
+reset to none, and every thread resumed, so the program runs on; `run` is
+refused in an attached session; the program's end is `the program ended`
+(its exit status is its parent's).
+
+Before it (decision 0253 stages 1 and 5's protocol, 2026-10-17):
 `xo dev debug` (hidden) runs the debugger's commands on a recorded,
 stopped thread (`--snap FILE`, as lldb or gdb recorded it): `break`
 resolves a FILE:LINE or a function to its addresses, and `backtrace`
@@ -3700,30 +3850,60 @@ resolves a FILE:LINE or a function to its addresses, and `backtrace`
 `threads` and `quit` read the snapshot through the program's DWARF and
 unwind tables. With `--json` each command gives one JSON line, the
 protocol's version 1 below; with no `-c` it reads commands from standard
-input. `run`, `continue`, `step`, `next` and `finish` answer that
-process control comes with stage 2, `tasks` and `task` with stage 4.
+input. There `run` and `continue` answer that the session is a recorded
+thread.
 
-**[later]** Not built: the `xo debug` command itself (a live process:
-0253 stage 2 on macOS arm64, stage 6 for Linux and Windows), conditional
+**[later]** Not built: conditional
 breakpoints, a break on a contract failure, evaluating expressions
-(beyond `print`'s field path), and stepping back over a replay (11.3).
-`xo debug --dap`, the Debug Adapter Protocol for editors, is planned and
-is not a stage of decision 0253 yet.
+(beyond `print`'s field path), stepping back over a replay (11.3), and
+DAP's `pause`.
 
-The protocol's version 1 (decision 0253; compiler/debug session.xo; until
-the process control of stage 2 it runs on a recorded thread as `xo dev
-debug --json`): each command (decision 0253 point 4) gives one line, an
+`xo debug --dap` (decision 0504, 0253's stage 7, 2026-11-05) serves the
+Debug Adapter Protocol on standard input and output (Content-Length
+framing) for editors, each request mapped onto the session's commands
+through this protocol: `initialize`; `launch` (`program`, `args`, `cwd`)
+answered and followed by the `initialized` event; `setBreakpoints` (a
+source's lines, by its path, else its base name; `verified` when the line
+has code); `configurationDone` runs the program; `continue`, `next`,
+`stepIn`, `stepOut` are continue, next, step, finish; `threads`,
+`stackTrace` (inlined calls as frames, from the frame the stop selected;
+a source's `path` absolute: relative to `cwd`, std's files in xo's std),
+`scopes` (one, Locals), `variables` (a struct value's fields as children),
+`evaluate` (print's field path); `disconnect`. Stops are `stopped` events
+(`breakpoint`, `step`, `exception`, every thread stopped), the end is
+`exited` then `terminated`, and the program's standard output and error
+(written to a file, since standard output is the protocol) are `output`
+events at each stop. While the program runs, the adapter reads no request
+(no `pause`). An `attach` request (`processId`, else `pid`, and
+`program`, its executable) takes a running process instead (stage 4's
+`attach PID`): `configurationDone` attaches and reports a `stopped`
+event (`pause`, every thread stopped), and `disconnect` detaches,
+leaving it running; its output is not captured.
+
+The protocol's version 1 (decision 0253; compiler/debug session.xo;
+`xo debug --json`, and `xo dev debug --json` on a recorded thread): each command (decision 0253 point 4) gives one line, an
 object with `v` (1), `cmd` (the command's long name: `break`, `delete`,
 `run`, `continue`, `step`, `next`, `finish`, `print`, `locals`,
-`backtrace`, `frame`, `tasks`, `task`, `threads`, `quit`; `""` for a line
+`backtrace`, `frame`, `tasks`, `task`, `threads`, `attach`, `quit`; `""` for a line
 that is not a command), and `ok`. With `ok` false the object has `error`
 (the text), nothing else. With `ok` true, by command:
 
 - `break`: `id`, `locations` (each `{pc, file, line}`; `pc` is a `"0x..."`
   string, `file` a base name).
 - `delete`: `id`.
-- `backtrace`: `frames`, each `{index, pc, function, inlined, file, line,
-  selected}`; an inlined call is a frame of its own (`inlined` true) with
+- `run`, `continue`, `step`, `next`, `finish`: `stop`: `"step"` (a
+  step or next that reached its line) or `"finish"` with `thread` and
+  `frame`; `"breakpoint"` with `id`, `thread` and
+  `frame` (the innermost, as in `backtrace`); `"exception"` with
+  `exception`, `code`, `subcode` (the Mach exception's), `thread` and
+  `frame`; `"exited"` with `status`; `"signaled"` with `signal`;
+  `"timeout"` with `ms` (`--timeout`: no stop within it, the program
+  ended or, attached, detached and left running);
+  `"ended"` (an attached program's end).
+- `attach`: `stop` `"attached"` with `pid`, `slide` (`"0x..."`),
+  `threads` (their count), `thread` and `frame`.
+- `backtrace`: `frames`, each `{index, pc, function, inlined, file, path,
+  line, selected}` (`path` the file as the line table names it); an inlined call is a frame of its own (`inlined` true) with
   its physical frame's `pc`, innermost first.
 - `frame`: `frame`, one frame as in `backtrace`.
 - `locals`: `frame` (the selected frame's index), `vars`, each `{name,
@@ -3731,6 +3911,11 @@ that is not a command), and `ok`. With `ok` false the object has `error`
   variable cannot be read there (`text` then says why, as
   `<optimized out>`).
 - `print`: `frame`, `path` (`p.a.x`), `text`, `value`.
+- `tasks`: `tasks`, each `{id, depth, kind, spawned, state, op, at,
+  canceled}` (`kind` main, runtime, task or scope; `id` 0 for a scope;
+  `state` running, ready, blocked, in scope or waiting).
+- `task`: `task` (one as in `tasks`) and `frames`, the task's frames as in
+  `backtrace` (the selected one marked).
 - `threads`: `threads`, each `{id, selected}` (and `recorded` for a
   recorded thread).
 - `quit`: no more fields.

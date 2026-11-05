@@ -6,12 +6,12 @@ description: "Prelude methods and the standard library surface."
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/std.md"
-status: "draft 0.8 (2026-10-09; the same draft number as `spec/core.md`, decision 0089)"
+status: "draft 0.41 (2026-11-05; the same draft number as `spec/core.md`, decision 0089)"
 generated: "scripts/sync-content.py from spec/std.md; edit the source, not this file"
 ---
 # Xo Standard Library and Prelude
 
-Status: draft 0.8 (2026-10-09; the same draft number as `spec/core.md`, decision 0089)
+Status: draft 0.41 (2026-11-05; the same draft number as `spec/core.md`, decision 0089)
 Companion to `spec/core.md`.
 
 Signatures are written in Xo syntax. `[var]` before a receiver means the method
@@ -379,8 +379,16 @@ equal), keeps the stable merge.
 nothing (decision 0374); they are stable exactly like `sort` and `sort_by`. A
 list another binding shares is copied first, the way `push` and `set` copy
 one, so the other holder keeps its own order; a uniquely owned list is sorted
-in its own array with a scratch under one list, where `sort` builds a
-whole second list.
+in its own array with a scratch under one list. A `List[Int]` receiver is
+sorted by the same pattern-defeating quicksort as `sort`, in its own array
+with no scratch.
+
+A builder whose receiver nothing else holds reuses the receiver's array
+(decision 0508): `sort` of a list passed at its last use (a temporary such
+as `xs.freeze().sort()`, or a binding not read again) sorts that list's own
+array, and `map` of a list of 256 or more elements to its own element type
+writes each result over its element. A list another binding holds is copied
+first, so results never change, only allocation.
 
 Higher order methods (`map`, `filter`, ...) pass through the callback's effects
 and errors through effect variables (core 6.2); `map` with a failing callback
@@ -469,7 +477,7 @@ Duration.from_secs_int(s: Int) -> Duration    // the same as `1s * s`; faults on
 Duration.from_millis(ms: Int) -> Duration
 Duration.from_nanos(ns: Int) -> Duration
 Duration.parse(s: Str) -> Duration ! DurationErr
-fn (d: Duration) seconds() -> Float
+fn (d: Duration) seconds() -> Float          // Go's Duration.Seconds to the bit: whole seconds plus the rest over 1e9 (decision 0503)
 fn (d: Duration) millis() -> Int             // truncated
 fn (d: Duration) nanos() -> Int
 fn (d: Duration) scale(f: Float) -> Duration // rounds to the nearest nanosecond
@@ -2686,6 +2694,15 @@ fn (n: FakeNet) requests() -> List[http.Request]     // every request seen, incl
   a real socket's backlog (a test that never serves it reports a deadlock
   naming the wait); after `serve` returns, requests fail with
   `ClientErr.Connect`.
+- A request reaches a handler or a served router as one call, and the
+  whole response comes back. `Client.open` of a request whose body is a
+  source (`http.pipe`, `with_body_reader`) is full duplex (2026-11-04): the
+  handler runs in its own task with the source as its request body, the
+  head comes back when the handler returns its response, and a streamed
+  response's writes reach `read` as they are made, so a test can write,
+  read the answer and write again before it closes the pipe. Only tasks and
+  channels carry it, so the test scheduler's seed and replay hold. A
+  FakeNet handler (`handle`) takes the request whole, as before.
 - Raw connections (decision 0292): `os.net.dial(addr)` connects to the
   open in memory listener at `addr` and returns at once, the connection
   waiting in the listener's backlog until `accept()` returns its other
@@ -4291,9 +4308,9 @@ struct ZipFile { path: Str, size: Int, compressed: Int, mode: Int, is_dir: Bool,
   starts a streamed file entry that `w.write(data)` feeds (deflated as it
   comes, a data descriptor after it), and the next `add`, `create` or
   `close` ends it; `w.close()` writes the central directory. Memory is the
-  directory records, not the data. No zip64: more than 65,535 entries or
-  4 GB is an error, for `zip` as for `zip_writer`, on every backend
-  (2026-11-04; Go's writer would switch to zip64). (Decision 0479 sketched `create` returning an
+  directory records, not the data. Past 65,534 entries, or an entry, the
+  directory or an offset at 4 GB, `zip` and `zip_writer` write zip64 as
+  Go's writer does, byte for byte (decision 0499). (Decision 0479 sketched `create` returning an
   `EntryWriter`; a separate value cannot tell the writer how much it
   wrote, so the entry is the writer's current one.)
 
@@ -6237,13 +6254,19 @@ fn mem_trim()
   16 GiB (decision 0349's default; none where physical memory is not
   read). The Go backend ignores the
   budget and its label, and both counts are 0 there.
-- `mem_trim()` (decision 0448, native backends): gives the system the
-  pages of the calling thread's free heap blocks of 16 KiB and over (its
-  free lists and spare magazines; darwin for now), each once until the
-  block is used and freed again, and on every target unmaps the cached
-  large blocks of 2 MiB and over; for a program that knows its live memory just fell, as xo
-  does after its phases that free the most. The pages come back on the next
-  use, and the next such large block maps anew. Nothing on the Go backend, whose runtime's scavenger does this
+- `mem_trim()` (decisions 0448 and 0505, native backends): gives the
+  system the pages of the free heap blocks of 16 KiB and over of every
+  worker thread (each thread's free lists and spare magazines; a task's
+  frees land on whichever thread ran it) and of the central lists'
+  magazines, each once until the block is
+  used and freed again, and on every target unmaps the cached large
+  blocks of 1 MiB and over; for a program that knows its live memory just
+  fell, as xo does after its phases that free the most. The calling thread
+  trims its own blocks, wakes the idle workers to trim theirs, and waits up
+  to about 20 ms for them; a worker busy in a task trims at its next
+  switch, which may come after `mem_trim` returns. The pages come back on
+  the next use (a page fault each), and the next such large block maps
+  anew. Nothing on the Go backend, whose runtime's scavenger does this
   itself.
 
 ## 37. std/metrics
@@ -6273,6 +6296,12 @@ struct Sample { values: List[Str], value: Float }
 enum Kind { Counter, Gauge }
 fn (c: Counter) remove(values: List[Str]) -> Bool   // also Gauge, Histogram, Summary
 fn (c: Counter) reset()                             // also Gauge, Histogram, Summary
+fn (c: Counter) child(values: List[Str] = []) -> CounterChild      // also Gauge, Histogram, Summary
+fn (c: CounterChild) inc()
+fn (c: CounterChild) add(n: Float)
+fn (g: GaugeChild) set(v: Float)
+fn (g: GaugeChild) add(v: Float)
+fn (h: HistogramChild) observe(v: Float)                           // also SummaryChild
 fn (r: Registry) text(now: Time? = None) -> Str
 fn (r: Registry) handler() -> fn(http.Request) -> http.Response
 fn (r: Registry) handler_at(clock: Clock) -> fn(http.Request) -> http.Response uses clock
@@ -6288,6 +6317,14 @@ fn (r: Registry) middleware(clock: Clock, label: fn(http.Request) -> Str) -> fn(
   order). Calls are safe from any task: a series is found under a read
   lock and updated with atomics; the write lock is taken only to make a
   series the first time.
+- A child (decision 0501, client_golang's WithLabelValues) is a held
+  series: `child(values)` finds or makes it (a wrong count is the same fault
+  as `inc`), and `inc`, `add`, `set` and `observe` on it take no label list,
+  key, lock or lookup. It shares the series' cells, is safe from any task,
+  and past the series limit counts into a series nothing exposes (the drop
+  is counted). `remove` and `reset` detach a series: a child made before
+  keeps counting into the detached series, so take a new child after a
+  remove.
 - An instrument holds at most 10,000 series: later new ones are dropped
   and counted in `xo_metrics_dropped_total`, which `text()` always ends
   with.
@@ -6847,8 +6884,8 @@ fn encode(img: Image, level: Compression = Compression.Default) -> Bytes ! PngEr
 
 ## 49. std/jpeg
 
-Go's image/jpeg decoder over whole buffers: `decode` and `decode_config`
-(decision 0467). Baseline and progressive JPEG, every chroma subsampling
+Go's image/jpeg decoder and encoder over whole buffers: `decode`,
+`decode_config` (decision 0467) and `encode` (decision 0510). Baseline and progressive JPEG, every chroma subsampling
 ratio Go supports, restart intervals, Adobe CMYK, YCCK and RGB, and Go
 1.26's integer IDCT, so the decoded planes are the bytes Go's decoder
 returns. One `Image` struct holds Go's four decoded image types. Pure.
@@ -6859,13 +6896,14 @@ enum Subsample { S444, S440, S422, S420, S411, S410 } derive Eq, Display
 struct Image { width: Int, height: Int, model: Model, subsample: Subsample = Subsample.S444,
                pix: Bytes = b"", y: Bytes = b"", cb: Bytes = b"", cr: Bytes = b"" }
 struct Config { width: Int, height: Int, model: Model }
-enum JpegErr { Format(msg: Str), Unsupported(msg: Str), Truncated }
+enum JpegErr { Format(msg: Str), Unsupported(msg: Str), Truncated, Encode(msg: Str) }
 fn (e: JpegErr) display() -> Str
 fn (img: Image) chroma_width() -> Int
 fn (img: Image) chroma_height() -> Int
 fn (img: Image) to_rgba() -> Bytes
 fn decode(data: Bytes, max_pixels: Int = 100000000) -> Image ! JpegErr
 fn decode_config(data: Bytes) -> Config ! JpegErr
+fn encode(img: Image, quality: Int = 75) -> Bytes ! JpegErr
 ```
 
 - `decode` returns the type Go's `jpeg.Decode` does: Gray for one component,
@@ -6881,8 +6919,17 @@ fn decode_config(data: Bytes) -> Config ! JpegErr
   full text) and `Truncated` for `unexpected EOF`. A frame header asking for
   more than `max_pixels` pixels is `Format("image too large")`, refused before
   anything is allocated (Go allocates from the header).
-- Not ported: the `image.Image` interface, `jpeg.Encode`, and the `Reader`
-  interface (whole buffers only).
+- `encode` is Go's `jpeg.Encode` with `Options{Quality: quality}`, byte for
+  byte: baseline JPEG with the standard Huffman tables, quality scaled
+  quantization tables, Go's integer forward DCT, one component for Gray and
+  4:2:0 for every other input (a YCbCr of any `subsample` is resampled as Go
+  does; RGBA ignores alpha, as Go's `image.RGBA` fast path; CMYK goes through
+  Go's generic path). `quality` is clamped to 1..100. A width or height of
+  65,536 or more is `Encode("jpeg: image is too large to encode")`; an
+  `Image` whose `pix` or planes do not match its size is a fault, as in
+  `png.encode`. A zero size image gives what Go gives.
+- Not ported: the `image.Image` interface, a streaming encoder, and the
+  `Reader` interface (whole buffers only).
 
 ## 50. std/cbor
 
@@ -7244,3 +7291,72 @@ fn jwks(set: Str) -> Map[Str, Key] ! JwtErr
   claims with `json.encode`; ECDSA signatures are the fixed-width `r || s` of RFC 7518 and RSA-PSS uses a salt
   as long as the hash.
 - `jwks` reads an RFC 7517 key set (RSA, EC and OKP public keys) into keys by `kid`, skipping `use: enc`.
+
+## 63. std/yaml
+
+Status: implemented on every backend (2026-11-05, decision 0512, Accepted by the owner 2026-11-05): one pure source,
+`std/native/yaml.xo` (about 5,000 lines), that the Go backend compiles (std/go_compiled.txt, decision 0312), a port of
+gopkg.in/yaml.v3 v3.0.1 (reader, scanner, parser, composer, resolver, decoder, emitter, encoder), deviations included.
+Checked against yaml.v3 (`internal/stdtest/testdata/corpus/yaml` and `yamlfuzz`, generated by `go run ./scripts/stdcorpus yaml`
+and `yamlfuzz` from scripts/stdcorpus/yamloracle): the same values, the same error texts and the same Marshal bytes on 466
+documents and 8,000 fuzz documents.
+
+```xo
+struct YamlErr { line: Int, msg: Str }
+fn (e: YamlErr) display() -> Str
+fn decode[T: Yaml](text: Str, strict: Bool = false) -> T ! YamlErr
+fn decode_all[T: Yaml](text: Str, strict: Bool = false) -> List[T] ! YamlErr
+fn encode_value[T: Yaml](v: T, indent: Int = 4) -> Str ! YamlErr
+fn encode_all[T: Yaml](docs: List[T], indent: Int = 4) -> Str ! YamlErr
+enum NodeKind { Document, Sequence, Mapping, Scalar, Alias }
+struct Node { kind: NodeKind, style: Int, tag: Str, value: Str, anchor: Str,
+              head_comment: Str, line_comment: Str, foot_comment: Str, alias: Node?,
+              content: List[Node], line: Int, column: Int }
+fn parse(text: Str) -> Node ! YamlErr
+fn parse_all(text: Str) -> List[Node] ! YamlErr
+fn encode_node(n: Node, indent: Int = 4) -> Str ! YamlErr
+fn to_json(text: Str) -> Str ! YamlErr
+```
+
+- `derive Yaml` (structs only, no type parameters) maps Str, Int, Float, Bool, Duration, Bytes, Time, `time.Civil`, `yaml.Node`, an Option, a List, a Map[Str, V] of those, or a
+  struct that derives Yaml (`XO0425` for another type). A field's key is its `yaml "name,options"` string, else its `as` string
+  (shared with Json), else its name. Options are `omitempty` (also in the shared `as "name,omitempty"`), `flow` (only in
+  `yaml "name,flow"`) and `inline` (a field that is a struct deriving Yaml, read and written in the enclosing mapping); the name
+  `-` leaves the field out.
+- Decoding follows yaml.v3: errors are collected as `unmarshal errors:` lines in document order, a null item of a List is
+  dropped and a null Map value stores the zero value, explicit tags (`!!str`) are checked, a duplicate key in a mapping is an
+  error at the later line, merge keys (`<<`) put the own entries first and a merged entry never replaces one, aliases are
+  limited by yaml.v3's expansion ratio, nesting by 10000 levels, and only the first document is read by `decode`.
+  `strict` refuses a key no field takes (`line N: field K not found in type T`, yaml.v3's KnownFields).
+- Encoding follows yaml.v3's Marshal: keys of a Map sorted as yaml.v3 sorts them, strings quoted where yaml.v3 quotes them
+  (`"n"`, `"yes"`, `"1"`), indent 4 by default (decision 0512) and 2 to 9 with `indent`.
+- A `yaml.Node` field holds the node of its key as it is (an alias stays an Alias node, as in yaml.v3, which stops at the Node type
+  before its alias handling), comments included, and is written back through `encode_node`'s rules; a field the document lacks is a
+  null scalar (yaml.v3's zero Node has kind 0 and is written as null).
+- A `Time` field decodes a timestamp scalar (yaml.v3's layouts `2001-12-14`, `2001-12-14 21:59:43.10`, `2001-12-14t21:59:43.10-05:00`)
+  to its instant, which equals yaml.v3's `t.UnixNano()`; any other scalar must be RFC 3339 (`Time.UnmarshalText`), else the
+  error `parsing time "x" as "2006-01-02T15:04:05Z07:00": cannot parse` (the rest of Go's layout error text is not
+  reproduced), and a mapping decodes into nothing, as for yaml.v3's struct. A `Time` is an instant with no zone (decision
+  0094) and spans 1677-09-21 to 2262-04-11, so a timestamp outside that range is `cannot unmarshal !!timestamp ... into
+  time.Time`, and a `Time` is written as RFC 3339 in UTC (`2001-12-15T02:59:43.1Z`), where yaml.v3 keeps the zone it read. A
+  `time.Civil` field keeps the offset (`+05:30`) and writes it back as yaml.v3 does. The zero of both is 1970-01-01T00:00:00Z
+  (yaml.v3's is year 1), so a field the document lacks differs.
+- A Duration is a string in `Duration.parse` syntax (`1h30m`), written as Go's Duration.String (`1h30m0s`); yaml.v3 refuses an
+  int or a float there (`cannot unmarshal !!int `5` into time.Duration`), and so does Xo. Bytes is, as yaml.v3's `[]byte`, a
+  sequence of ints 0 to 255 (a string or `!!binary` value is an error, `into []uint8`), written as such (`[]` when empty).
+- `parse` and `parse_all` give yaml.v3's Node trees (a Document node holds the root; a scalar's `tag` is the resolved tag such
+  as `!!int`; `style` has yaml.v3's bits `TAGGED`, `DOUBLE_QUOTED`, `SINGLE_QUOTED`, `LITERAL`, `FOLDED`, `FLOW`; `line` and
+  `column` count from 1); the trees equal yaml.v3's on 466 documents. A Node carries its head, line and foot
+  comments (`head_comment`, `line_comment`, `foot_comment`) as yaml.v3 associates them (the scanner's comment folding, the parser's
+  stem and document comments, the composer's foot comment moves): the `#` stays in the text, the lines of one comment are joined
+  by a line feed, an empty string is no comment. `alias` of an Alias node is the node it names.
+  `parse_all` is all or nothing: on an error it returns the error, where yaml.v3's Decoder has returned the earlier documents.
+- `encode_node` writes a Node as yaml.v3's Marshal of a `yaml.Node` does (a Document node as is, another node as a document
+  of its own; a tag is left out when the text resolves to it, except `!!merge`; styles and anchors are kept); equal to yaml.v3 on
+  all 466 documents (a text with no document, which yaml.v3 writes as null for a zero Node, is not compared), comments
+  included: the head, line and foot comments of a Node are written where yaml.v3 writes them.
+- `to_json` is the first document as JSON text, as yaml.v3 decoded into an `any` and written by encoding/json: keys sorted, aliases
+  and merge keys resolved, an empty document `null`, an error for NaN and the infinities. Deviations: `<`, `>` and `&` are
+  written as they are (Go writes `\u003c`, `\u003e`, `\u0026`; both are valid JSON), a timestamp is its text, and compared
+  documents leave out non-string keys, integers above the int64 range and invalid UTF-8.
+- Not yet (later stages): Time and Node fields, inline Maps.
