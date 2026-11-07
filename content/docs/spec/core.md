@@ -6,12 +6,12 @@ description: "Syntax and semantics of Xo: types, errors, concurrency, effects, m
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/core.md"
-status: "draft 0.41 (2026-11-05; 0.40 released as toolchain v0.40.0, decision 0089)"
+status: "draft 0.42 (2026-11-06; 0.41 released as toolchain v0.41.0, decision 0089)"
 generated: "scripts/sync-content.py from spec/core.md; edit the source, not this file"
 ---
 # Xo Language Specification (Core)
 
-Status: draft 0.41 (2026-11-05; 0.40 released as toolchain v0.40.0, decision 0089)
+Status: draft 0.42 (2026-11-06; 0.41 released as toolchain v0.41.0, decision 0089)
 Edition: preview (the only edition before 1.0, decision 0155)
 Companion: `spec/std.md` (prelude methods and standard library surface)
 
@@ -21,9 +21,13 @@ fast builds, static binaries, a strong standard library, a compatibility
 promise) and is designed so that an AI agent can write, check, build, and debug
 programs for any OS with fast, structured, unambiguous feedback.
 
-## Changes in 0.41
+## Changes in 0.42
 
 None yet.
+
+## Changes in 0.41
+
+- 5.5 describes native memory management (reference counting, decision 0046, and the one way a cycle forms) instead of only the Go backend's tracing collector; no behavior change.
 
 ## Changes in 0.40
 
@@ -1122,6 +1126,7 @@ Opt in with `derive` on the declaration:
 pub struct User { ... } derive Display, Ord, Json, OpenApi
 ```
 
+- `List`, `Map` and `Set` implement `Display` when their element types do, with the same text as `Debug`: `"${[1, 2]}"` is `[1, 2]`, `"${m}"` is `{"a": 1}`, `"${s}"` is `#{"x"}`, in iteration order, strings quoted (decision 0525). `Option` and `Result` do not (unwrap with `??`).
 - Derived `Display` prints the same text as `Debug`:
   `NotFound(id: 42)`, `User{id: 1, name: "a"}`. Implement `Display` by hand
   (`fn (e: ApiErr) display() -> Str`) for user facing text.
@@ -1166,6 +1171,18 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
   `Xml` (`yaml_zero__T`, `yaml_merge__T`, `yaml_set__T`, `yaml_known__T`, `yaml_from_node__T`, `yaml_decode__T`,
   `yaml_decode_all__T`, `yaml_write__T`, `yaml_fields__T`, `yaml_encode__T`, `yaml_encode_all__T` and one `yaml_dec__TYPE`
   and `yaml_enc__TYPE` a field type), and a call of one of the four functions is rewritten to the generated function.
+
+- `Cbor` (structs, and plain enums without type parameters; decision 0527) gives the struct fxamacker/cbor/v2's typed encoding and decoding
+  through `cbor.marshal[T]`, `cbor.unmarshal[T]` and `cbor.unmarshal_prefix[T]` (spec/std.md 50). A field's key is its
+  `cbor` string, else its `as` string, else its name under `derive Cbor(case: snake | camel | pascal | kebab)` (as for `Json`, 2.2), else its name; the options after a comma are `omitempty`, `omitzero`,
+  `keyasint` and `toarray` (on the first field: the struct is an array), and the name `-` leaves the field out (`XO0422` for another option). Field types are Str, Int, Float, Bool,
+  Bytes, Time, Duration, a cbor.Value, a struct that derives Cbor, an Option, a List, or a Map[Str, V] of those (`XO0425`
+  for another type). The expansion is ordinary Xo as for `Yaml` (`cbor_zero__T`, `cbor_rd__T`, `cbor_wr__T`,
+  `cbor_marshal__T`, `cbor_unmarshal__T`, `cbor_unmarshal_prefix__T` and one `cbor_rd__TYPE` and `cbor_wr__TYPE` a field
+  type), and a call of one of the three functions is rewritten to the generated function.
+  On an enum a unit variant is the text of its name (`as "x"` on the variant renames it, `derive Cbor(case:)` converts it as `derive Json` does), a variant with fields a one entry
+  map from its name to a map of its fields keyed by field name (a lone unnamed `from` field is the value itself), and a
+  struct field of an enum type uses the same form; an unknown variant is `CborErr.Type`.
 
 ### 2.10 Implicit conversions
 
@@ -2406,8 +2423,15 @@ fn (m: Mutex[T]) with[R, E, fx: Effects](f: fn(var T) -> R ! E uses fx) -> R ! E
 
 ### 5.5 Memory management
 
-Tracing GC, plus request scoped arenas (decision 0066; on by default, off
-with `--no-arenas`). An arena is memory owned by one HTTP request served by
+Native builds (the default, 10.1 Backends) reference count their memory (decision
+0046): a value is freed when its last reference goes, with no collector and
+no pauses. Values cannot form cycles, since Xo has no mutable references; a
+cycle can form only through a shared handle (a `Mutex`, an `Atomic`, or a
+std handle such as a WebSocket connection) that stores a closure capturing
+the handle itself, and such a cycle is never freed, so the owner drops what
+it stored when nothing can call it again (conventions.md 6.1). The Go
+backend (`--backend=go`) uses Go's tracing garbage collector, plus request
+scoped arenas (decision 0066; on by default, off with `--no-arenas`). An arena is memory owned by one HTTP request served by
 `http.server` (std.md 4.4) and reused by a later request once the handler has
 returned and the response is written. The compiler and the runtime place in it
 only memory that provably cannot outlive the request: the request's header,
@@ -2898,7 +2922,10 @@ failed `Int32(x)` conversion, evaluated hole, explicit `fault("msg")`.
   and core file as without the report (Windows: the same exit code, the
   NTSTATUS; an exception C code's own handler takes is not reported).
   `XO_CRASH_REPORT=0` turns it off; `XO_CRASH_TIMEOUT` (seconds, 5 by
-  default) bounds the naming of the frames. Sanitizer builds report
+  default) bounds the naming of the frames. `XO_CRASH_FILE=PATH` (Linux
+  and macOS, decision 0520) appends both reports, this one and an uncaught
+  fault's `fault:` line with its traceback, to the file PATH as well as
+  standard error; the file is opened at start and stays open. Sanitizer builds report
   through their own runtimes; windows/arm64 does not report yet.
 
 There is no undefined behavior. Debug and release builds have identical
@@ -3095,12 +3122,12 @@ test "retries after 503" {
 | `xo build [--targets=all\|os/arch,...] [--no-gc] [--tzdata=embedded\|system] [--ci] [--release] [--debug-contracts\|--dbg\|--error-args\|--profile-support\|--trace-support=on\|off] [--debug-info=on\|off\|split] [--opt=O0..O3] [--stamp NAME=VALUE]...` | Build static binaries; `--stamp` (repeatable, also `xo run`) sets a `const NAME: Str = "..."` of the main module to VALUE for this build, else `XO1501`, and is recorded in the build information so `xo replay` rebuilds the same program (decision 0165); `--no-gc` on a native backend without a garbage collector (below); `--tzdata=system` reads time zones from the host instead of embedding the ones the program uses (std.md 13); `--ci` fails before building on an unformatted file (10.5) or a `dbg` left in code (11.4); `--release` is the release preset (8, decision 0354): `requires(debug)` and `ensures(debug)` compiled out, `dbg` off, no debug information, the native runtime's profiler and execution trace recorder left out, `--opt=O2`; each of those settings has its own flag, in any build, that wins over the preset; `--error-args=off` drops parameter values from error frames (11.1); `-s` leaves debug information and local symbols out of a native binary. Builds are debug builds otherwise, and `xo run` and `xo test` always are |
 | `xo run [DIR]` | Build and run for the host the program in exactly DIR (default `.`), never one below it (decision 0345); `--profile=cpu\|heap\|cpu,heap` (XO_PROF, decision 0238) and `--trace=FILE` (XO_TRACE, decision 0240) on a native backend; `--watch [--grace=D]` rebuilds after a source change and restarts the program only when the built binary changed (its builds record no source digests in the build information, so an edit that changes no code, such as a comment that moves no line, leaves it running; `xo version -m` of such a binary shows `-` for each source; a restart sends SIGTERM, up to `--grace`, default 5s, then SIGKILL; decision 0267). A stop request `xo run` gets (SIGINT or SIGTERM, 7.5) is sent on to the program as SIGTERM when standard input is not a terminal; on a terminal, Ctrl-C reaches the program through the process group |
 | `xo trace FILE [--json OUT] [--text]` | The execution trace a native program wrote under XO_TRACE as Chrome trace event JSON (Perfetto) and a summary (decision 0240) |
-| `xo check [--backend=go] [--support] [--fix]` | Parse and type check all targets, no codegen, by the rules of the backend a build uses: the native backends' by default (`use c` is valid), the Go backend's with `--backend=go`; `--support` (old name `--no-gc`) adds the native backends' support check (XO1201), which lowers the program; `--fix` first applies the machine fixes (below) |
+| `xo check [--backend=go] [--support[=false]] [--support-all] [--fix]` | Parse and type check all targets, no codegen, by the rules of the backend a build uses: the native backends' by default (`use c` is valid), the Go backend's with `--backend=go`; when the check finds no error, the native backends' support check (XO1201) follows by default, lowering every function of the named directories' modules, a library's too, so a `use go` program fails it as a native build would (decision 0523); a walk (`DIR/...`) runs it only with `--support` (then on every walked module), `--support=false` skips it, `--support-all` runs it on every module of the workspace; `--fix` first applies the machine fixes (below) |
 | `xo test [--seed=N] [--explore=N] [--cases=N] [--timeout=D] [--real] [--watch]` | Tests, contract fuzzing, property tests (`--cases` per property test and fuzzed function, default 100; `--timeout` the real time each test may take, default 60s, 0 for none, 9.2); deterministic scheduling. `--watch` reruns, after each change, only the tests the change reaches (decision 0267). Doc comment examples are [P2] (1.2) |
 | `xo dump <pid>` | Task tree of a running program (11.4) |
 | `xo mcp` | Model Context Protocol server over stdio: `check` (with an optional `fix`), `query`, `edit`, `explain`, `fmt`, `test`, `build` tools returning compact JSON |
 | `xo lsp` | Language Server Protocol server over stdio for editors: diagnostics with quick fixes, hover, definition, references, rename, document symbols, semantic tokens, formatting |
-| `xo serve` | Resident checker on a unix socket; `xo check` and `xo query` use it automatically when it answers |
+| `xo serve` | Resident checker on a unix socket; `xo check`, `xo query`, and inside a module `xo def`, `refs`, `type`, `symbols` and `doc` use it automatically when it answers, reusing an answer until a file under the module root or std changes |
 | `xo fmt` | Canonical format, no options |
 | `xo fix [--dry-run] [--from=draft-0.N] [--edition=preview]` | Apply all machine fixes until none apply, xo.mod and xo.work lines included (`edition 2026` becomes `edition preview`, `xo 2026` becomes `xo preview`, `XO1315`); `--from` migrates code written for an older draft (interpolation, prelude variants, `let _ =` discards, scope timeouts, Map index reads) |
 | `xo vet` | Advisory checks, never errors (a directory, a `.xo` file's findings, a std directory checked as std, or `--std-module=M`; decision 0289): checker warnings plus `XO0207` (`??` precedence trap), `XO0208` (each `ignore_err` with its reason), `XO0530` (a field's large payload bound and shared, decision 0263), `XO0531` (a large parameter only stored while each caller passes its last use, decision 0263), `XO0532` (a Map value changed through a copy and stored back, `Map.update` instead; decision 0266), `XO0534` (a task capturing a value of 32 or more heap fields, core 5.1; decision 0294), `XO0703` (declared effect never performed), `XO0901` (`dbg` left in code), `XO0902` (`tls.Verify.None`, decision 0281), `XO0903` (an Fs, Net, or Proc error defaulted away by `.ok() ?? d` or `Err(_) => <empty>`; `// xo:allow XO0903 <reason>` silences one), `XO0904` (an embedded file git ignores or does not track; decision 0304), `XO1103` (use of Go packages per module), `XO0535` (`${x.debug()}` written as `${x:?}`, with the fix; decision 0296), `XO0536` (a list element copied out, changed, and stored back; decision 0294), `XO0906` (a four line `match` that `x ?? return v` or `r ?? e => return v` writes shorter; decision 0321), `XO0538` (a closure's capture written after its creation). `--cost` (decision 0327) builds the program up to its reference counting and adds notes on costs its source does not show: `XO0907` (a loop that copies a map's entries first), `XO0908` (an element counted up and down each iteration, or by a prelude callback walk such as `xs.any(fn ...)` over elements holding heap memory), `XO0909` (a list updated in a loop while a holder made in the same iteration keeps it shared, so each update copies it), `XO0910` (a value over 8 words copied into a closure, or out of a collection into an Option in a loop), `XO0911` (a view of a parameter's text or bytes made in a loop, or an element of its split or lines, stored in a field or a returned collection: it keeps the whole input alive; `clone()` it, decision 0330). |
@@ -3111,7 +3138,7 @@ test "retries after 503" {
 | `xo doc` | Docs from doc comments; `xo doc std` lists the std modules this xo ships, a line each |
 | `xo clean -cache [-n]` | Remove every cache under `<user cache>/xo` (build directories, the native back end's cache, GOCACHE, test binaries, watch builds, xo dev outputs, the test infrastructure's caches) and print the bytes freed per cache; `-n` prints what it would remove and removes nothing. Never touches anything outside `<user cache>/xo`; the module cache and the prebuilt seeds stay; an entry whose build lock a running process holds is left. `xo clean` without `-cache` is a usage error |
 | `xo debug [--batch] [--json] [--timeout=DUR] [-c CMD]... PROG [ARGS]`, `xo debug --dap` | Run a native program with its debug information under xo's own debugger (11.5; macOS arm64, Linux and Windows amd64): break, run, continue, step, next, finish, print, locals, backtrace, frame, threads, quit; `--json` gives the protocol of 11.5, `--dap` the Debug Adapter Protocol for editors |
-| `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
+| `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156); `xo get` checks each newly required version in full once (`xo check`, recorded per version in the module cache) and warns about its errors, since a build checks a dependency's bodies only as it reaches them (decision 0517; XO_GET_CHECK=0 skips it), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
 | `xo init <path>`, `xo publish [--check]` | Start a module (xo.mod, xo.work gitignored); check a release against the previous tag (4.2) |
 | `xo explain <code>` | Long form explanation of a diagnostic |
@@ -3123,6 +3150,18 @@ The commands that report diagnostics or results accept `--json`: `parse`,
 JSON), `doc`, `explain`, `bind`, and `audit`. `run`, `replay`, `dump`, `serve`, and
 `version` print the program's or the tool's own output. When stdout is not a
 terminal, JSON is the default for `query`.
+
+**What a build checks** (decision 0517). `xo build` and `xo run` check
+every declaration of every module, and every function body of the
+modules they are given (the root modules); a dependency's function body
+is parsed and checked when the build reaches it. A dependency function
+the program never calls is not checked by the build, so a type error in
+it does not fail the build. Its declared effects and capabilities are
+checked at every call, and a dependency's non-`pub` method that another
+module may call (a prelude interface's `display` or `debug`, 2.4) is
+always checked. `xo check`, `xo test`, and `xo vet` of a module check all
+of its bodies, and `xo get` checks each newly required version in full
+once (above). `XO_DEP_LAZY=0` makes a build check every body.
 
 **Help and usage errors.** `xo help` lists every command with a one line
 purpose; `xo help <command>`, and `-h` or `--help` anywhere before `--`
@@ -3157,8 +3196,9 @@ program in exactly that directory: it never looks below it, since
 running code found by walking would run whatever a directory tree
 holds. A directory with no `.xo` file or no `main` is an error, whose
 note lists the subdirectories directly below that declare `main`, as a
-hint; a `.xo` file, `xo run DIR/...`, and any other pattern are errors
-(a module is a directory, 1.1), the file's with the fix `xo run DIR`.
+hint. A `.xo` file names its directory: `xo run DIR/main.xo` runs the
+program of DIR, every file of it (a module is a directory, 1.1).
+`xo run DIR/...` and any other pattern are errors.
 
 **Check and fix.** `xo check` is read only. `xo check --fix` first
 applies every unambiguous machine fix, the same set `xo fix` applies
@@ -3202,8 +3242,8 @@ its site, naming the feature and saying whether support is *planned* (build
 without `--no-gc` until then) or *impossible* (code from a `use go` package
 needs Go's runtime). A program the check accepts builds; the check is
 derived from the native code generator itself, so the two cannot disagree.
-`xo check --no-gc` runs the same check without building (programs only: a
-module without `main` has nothing to lower). Native builds have their own
+`xo check` runs the same check without building, by default (decision
+0523; every function of the named modules, a library's too). Native builds have their own
 deterministic scheduler for `--seed` and `--explore` (7.4, decision 0350);
 recording (`--record`) is the Go backend's only (decision 0083). `xo test --no-gc` builds a
 native test binary and runs each test in a process of its own against the
@@ -3694,7 +3734,7 @@ call and its result, plus scheduler decisions.
   attached to crash bundles.
 - `xo replay trace.xotrace` (or a `.xocrash`) re executes the program offline
   with identical effect results and interleavings.
-- **[later]** `xo debug --replay trace.xotrace` steps backward (11.5: `xo debug` is not built).
+- **[later]** `xo debug --replay trace.xotrace` steps backward (11.5's `xo debug` runs forward only).
 - `xo why <expr> --at file:line` traces where a value came from (the
   assignments, calls, and effect results that produced it) using the replay.
 

@@ -6,12 +6,12 @@ description: "Prelude methods and the standard library surface."
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/std.md"
-status: "draft 0.41 (2026-11-05; the same draft number as `spec/core.md`, decision 0089)"
+status: "draft 0.42 (2026-11-06; the same draft number as `spec/core.md`, decision 0089)"
 generated: "scripts/sync-content.py from spec/std.md; edit the source, not this file"
 ---
 # Xo Standard Library and Prelude
 
-Status: draft 0.41 (2026-11-05; the same draft number as `spec/core.md`, decision 0089)
+Status: draft 0.42 (2026-11-06; the same draft number as `spec/core.md`, decision 0089)
 Companion to `spec/core.md`.
 
 Signatures are written in Xo syntax. `[var]` before a receiver means the method
@@ -79,7 +79,7 @@ order and NaNs end up last), derived `Ord` on types with Float fields,
 and every std error type implement `Display`, and so does every type with
 `derive Display`: `e.display()` is callable on each of them (the same text
 as `"${e}"`), as well as through a `T: Display` bound or an `Error` value.
-`Bytes` does not (use `to_str()`). `Json` is implemented by `derive Json` and by
+`List[T]`, `Map[K, V]` and `Set[T]` do when every type argument does, with their Debug text (`[1, 2]`, `{"a": 1}`, `#{"x"}`; decision 0525). `Bytes` does not (use `to_str()`). `Json` is implemented by `derive Json` and by
 builtin types (section 5). `SqlRow` is implemented only by `derive SqlRow`
 (section 10.4).
 
@@ -108,7 +108,9 @@ Int(x: Float) -> Int                 // truncates toward zero; faults on NaN or 
 Float(x: Int) -> Float
 Int32(x: Int) -> Int32               // faults out of range; same for every sized type
 Int32.try(x: Int) -> Int32?
-UInt64.from_bits(b: Int) -> UInt64       // the same 64 bits (Go's uint64(x)): -1 is 2^64 - 1
+Int8.wrapping_from(x: Int) -> Int8       // Go's conversion T(x): the low bits kept, sign extended for a signed T, no fault;
+                                         // also Int16, Int32, UInt8, UInt16, UInt32 (Int8.wrapping_from(300) is 44, UInt8.wrapping_from(-1) is 255)
+UInt64.from_bits(b: Int) -> UInt64       // the same 64 bits (Go's uint64(x)): -1 is 2^64 - 1; UInt64.wrapping_from(x) is the same
 fn (u: UInt64) to_bits() -> Int          // the same 64 bits back (Go's int64(u)): 2^63 and up are negative
 Int(r: Rune) -> Int                  // the code point; every integer type (core 2.1)
 Rune(n: Int) -> Rune                 // faults unless n is a Unicode scalar value
@@ -139,6 +141,8 @@ fn (f: Float) atan2(x: Float) -> Float       // Go's Atan2(f, x)
 fn (f: Float) hypot(y: Float) -> Float
 fn (f: Float) mod(y: Float) -> Float         // Go's Mod: the remainder with the sign of f
 fn (f: Float) to_bits() -> Int               // the IEEE 754 bits; Float.from_bits(b) back
+fn (f: Float32) to_bits() -> UInt32          // the binary32 bits (Go's Float32bits); Float32.from_bits(b: UInt32) back (Float32frombits).
+                                             // A signaling NaN comes back quiet on the native backends (the Go backend keeps it)
 ```
 
 Int's word methods (decision 0260) treat an `Int` as a 64 bit word for
@@ -429,6 +433,8 @@ fn ([var] m: Map[K, V]) update[R](k: K, init: V, f: fn(var V) -> R) -> R
 fn (s: Set[T]) len() -> Int
 fn (s: Set[T]) contains(x: T) -> Bool
 fn (s: Set[T]) union(o: Set[T]) -> Set[T]    // also intersect, difference
+fn (s: Set[T]) is_subset(o: Set[T]) -> Bool   // every element of s is in o
+fn (s: Set[T]) intersects(o: Set[T]) -> Bool  // a shared element; stops at the first, allocates nothing
 fn (s: Set[T]) to_list() -> List[T]
 fn (s: Set[T]) is_empty() -> Bool
 fn (s: Set[T]) any(f: fn(T) -> Bool) -> Bool   // also all
@@ -438,10 +444,9 @@ fn ([var] s: Set[T]) add(x: T)
 fn ([var] s: Set[T]) remove(x: T) -> Bool
 ```
 
-A `Set` has no literal of its own: build one from a list, and an empty
-one from an empty list whose element type the context gives
-(`let seen: Set[Str] = [].to_set()`, `S{tags: [].to_set()}`); `[]`
-alone is a `List`, not a `Set`.
+A `Set` literal is `#{1, 2, 3}`, and `#{}` is an empty one whose element
+type the context gives (`let seen: Set[Str] = #{}`; core 1.6); a list
+converts with `to_set()`. `[]` alone is a `List`, not a `Set`.
 
 Iterating a `var` collection while mutating it iterates the value as it was
 when the loop started.
@@ -1040,7 +1045,9 @@ Deadlines (decision 0430) are Go's net.Conn deadlines.
 - Deadlines never cancel: cancellation stays `Canceled` (core 7.2), and
   a `task.with_timeout` around the call still cancels it.
 - On FakeNet's in-memory connections, a deadline already passed fails at
-  once, but a waiting read or write is not woken by one.
+  once, and a waiting read is woken by its deadline (the virtual clock
+  moves to it; 2026-11-05, it deadlocked before); a waiting write is not
+  woken by one.
 - They are on the concrete types, not on `Stream` (decision 0430).
 
 Names (decision 0406): `lookup_host(host)` returns host's addresses as
@@ -1639,6 +1646,7 @@ struct Request {
   remote_ip: Str
 }
 fn (r: Request) param(name: Str) -> Str             // faults if the pattern has no such segment
+fn (r: Request) param_opt(name: Str) -> Str?        // None if the pattern has no such segment
 fn (r: Request) param_int(name: Str) -> Int         // segment must be declared {name:Int}
 fn (r: Request) query(name: Str) -> Str?
 fn (r: Request) query_all(name: Str) -> List[Str]   // every value of a repeated key, in order
@@ -1932,6 +1940,7 @@ fn (c: Client) with_protocols(p: Set[Protocol]) -> Client  // Go's Transport.Pro
 fn (c: Client) with_h2_config(cfg: H2Config) -> Client     // Go's Transport.HTTP2 (4.6)
 fn (r: Request) with_timeout(d: Duration) -> Request       // decision 0404
 fn (r: Request) with_idle_timeout(d: Duration) -> Request  // decision 0404
+fn (r: Request) with_expect_continue(timeout: Duration = 1s) -> Request  // Go's Transport.ExpectContinueTimeout: sets `Expect: 100-continue`; an HTTP/1.1 client sends the head, waits up to timeout for `100 Continue`, then sends the body; a final response first is the result and the body is never sent (the connection is not reused); other 1xx are skipped. A with_body_reader body is not read before the 100. No effect without a body, over HTTP/2 or for Client.open
 fn (r: Request) with_body_reader(b: BodyReader) -> Request // decision 0404
 fn (r: Request) with_trailers(names: List[Str], f: fn() -> Map[Str, Str]) -> Request   // names declared up front, f's values sent after the body (decision 0433)
 
@@ -2679,6 +2688,7 @@ library given `os.net.only([...])` fails with `Denied` elsewhere.
 ```
 fn (n: FakeNet) handle(pattern: Str, h: fn(http.Request) -> http.Response)
     // pattern: "[METHOD ]<absolute url pattern>", e.g. "GET https://api.test/users/{id}"
+    // a second handle with the same method, URL prefix and path pattern replaces the first (last wins; Go's ServeMux panics)
 fn (n: FakeNet) fail(pattern: Str, err: http.ClientErr)       // every matching request, until clear_failures
 fn (n: FakeNet) fail_next(pattern: Str, err: http.ClientErr)  // the next matching request only
 fn (n: FakeNet) clear_failures()
@@ -3499,7 +3509,7 @@ pub fn verify_raw_ecdsa(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
 pub fn sign(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
 pub fn sign_pss(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
 pub fn sign_raw_ecdsa(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
-pub fn generate_key(r: Rand, alg: KeyAlg) -> PrivateKey ! KeyErr uses rand
+pub fn generate_key(r: Rand, alg: KeyAlg, bits: Int = 2048) -> PrivateKey ! KeyErr uses rand
 ```
 
 - PEM is Go's `encoding/pem`: `pem_decode` is `pem.Decode` repeated on
@@ -3531,8 +3541,16 @@ pub fn generate_key(r: Rand, alg: KeyAlg) -> PrivateKey ! KeyErr uses rand
   values computed when absent); keys of more than two primes are
   `crypto/rsa: multi-prime keys are not supported`. A message hash too
   long for the key is `crypto/rsa: message too long for RSA key size`;
-  `sign_pss` with another kind of key is `KeyErr`. `generate_key(r, Rsa)`
-  is `KeyErr` until prime generation lands (import RSA keys from PEM).
+  `sign_pss` with another kind of key is `KeyErr`. `generate_key(r, Rsa,
+  bits)` is Go's `rsa.GenerateKey` (FIPS 186-5 A.1.1: two random primes of
+  half the size, e = 65537, d = e^-1 mod lcm(p - 1, q - 1), the key checked
+  as a parsed key is): `bits` from 1024 (`crypto/rsa: 512-bit keys are
+  insecure (see ...)` below, Go 1.26's floor) to 8192 (`crypto/rsa: 8193-bit
+  keys are too large`, the largest key std signs with); `bits` is ignored
+  for other algorithms. The prime candidates are `r`'s bytes (Go's
+  `randomPrime`: the top two bits and the low bit set), so the same `r`
+  gives the same key on every backend; the Miller-Rabin bases come from the
+  system's random bytes, as Go's.
 - `jwk_public_key` reads RFC 7517 JSON (members matched exactly,
   unpadded base64url values; `use`, `kid`, `alg`, and private members
   ignored): `jwk: malformed JSON`, `jwk: unsupported key type "oct"`,
@@ -3549,7 +3567,7 @@ pub fn generate_key(r: Rand, alg: KeyAlg) -> PrivateKey ! KeyErr uses rand
   1.26 ignores a custom reader, and with `cryptocustomrand=1` it reads
   one extra byte at random), so those signatures verify but differ run
   to run; the bytes the native signer takes are drawn from `r` and
-  dropped, so `r`'s later values match. Keys from `generate_key`, RSA
+  dropped, so `r`'s later values match. Keys from `generate_key` (RSA included), RSA
   PKCS #1 v1.5, and Ed25519 signatures are the same bytes on every
   backend for the same `r`.
 - **Timing.** Every operation on a private key or a nonce (scalar
@@ -5267,7 +5285,7 @@ Every function and method of std/prelude.xo, by type, as declared there
 `static` receiver is a function on the type (`Int.parse(s)`); one with an
 UPPER_SNAKE name and no parameters is a constant, read without a call
 (`Time.UNIX_EPOCH`).
-502 declarations.
+513 declarations.
 
 ### Range
 
@@ -5376,18 +5394,21 @@ fn (static: Float) from_bits(b: Int) -> Float
 
 ```
 fn (static: Int8) try(x: Int) -> Int8?
+fn (static: Int8) wrapping_from(x: Int) -> Int8
 ```
 
 ### Int16
 
 ```
 fn (static: Int16) try(x: Int) -> Int16?
+fn (static: Int16) wrapping_from(x: Int) -> Int16
 ```
 
 ### Int32
 
 ```
 fn (static: Int32) try(x: Int) -> Int32?
+fn (static: Int32) wrapping_from(x: Int) -> Int32
 ```
 
 ### Int64
@@ -5400,26 +5421,37 @@ fn (static: Int64) try(x: Int) -> Int64?
 
 ```
 fn (static: UInt8) try(x: Int) -> UInt8?
+fn (static: UInt8) wrapping_from(x: Int) -> UInt8
 ```
 
 ### UInt16
 
 ```
 fn (static: UInt16) try(x: Int) -> UInt16?
+fn (static: UInt16) wrapping_from(x: Int) -> UInt16
 ```
 
 ### UInt32
 
 ```
 fn (static: UInt32) try(x: Int) -> UInt32?
+fn (static: UInt32) wrapping_from(x: Int) -> UInt32
 ```
 
 ### UInt64
 
 ```
 fn (static: UInt64) try(x: Int) -> UInt64?
+fn (static: UInt64) wrapping_from(x: Int) -> UInt64
 fn (static: UInt64) from_bits(b: Int) -> UInt64
 fn (u: UInt64) to_bits() -> Int
+```
+
+### Float32
+
+```
+fn (f: Float32) to_bits() -> UInt32
+fn (static: Float32) from_bits(b: UInt32) -> Float32
 ```
 
 ### Rune
@@ -5626,6 +5658,8 @@ fn (s: Set[T]) contains(x: T) -> Bool
 fn (s: Set[T]) union(o: Set[T]) -> Set[T]
 fn (s: Set[T]) intersect(o: Set[T]) -> Set[T]
 fn (s: Set[T]) difference(o: Set[T]) -> Set[T]
+fn (s: Set[T]) is_subset(o: Set[T]) -> Bool
+fn (s: Set[T]) intersects(o: Set[T]) -> Bool
 fn (s: Set[T]) to_list() -> List[T]
 fn (s: Set[T]) any[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
 fn (s: Set[T]) all[E, fx: Effects](f: fn(T) -> Bool ! E uses fx) -> Bool ! E uses fx
@@ -6229,8 +6263,10 @@ fn mem_trim()
   started it runs for the life of the process). The Go backend samples
   always (`heap_start` returns false).
 - `GET /sched`: the scheduler's counters as `name value` lines (native:
-  the `XO_RTSTATS` counts, zero until they are on; `?on=1` turns them on.
-  Go: goroutines, gomaxprocs, threads, heap_inuse_bytes, gc_count).
+  the `XO_RTSTATS` counts, zero until they are on; `?on=1` turns them on;
+  and `heap_live`, the heap blocks allocated and not yet freed, when the
+  heap counts from the start: `XO_LEAKCHECK`, `XO_HEAPSTATS` or
+  `XO_RTSTATS` set, decision 0520. Go: goroutines, gomaxprocs, threads, heap_inuse_bytes, gc_count).
 - A request for which `auth` answers false gets 403; the unmounted
   router costs nothing.
 - A live profile running when the program exits is dropped, with no file
@@ -6474,6 +6510,8 @@ struct CertErr { msg: Str }
 fn (e: CertErr) display() -> Str
 fn parse(der: Bytes) -> Certificate ! CertErr
 fn parse_pem(pem: Bytes) -> List[Certificate] ! CertErr
+struct Pkcs12 { key: crypto.PrivateKey, certificate: Certificate, ca: List[Certificate] }
+fn parse_pkcs12(data: Bytes, password: Str) -> Pkcs12 ! CertErr
 struct VerifyOptions {
   roots: List[Certificate], intermediates: List[Certificate] = [],
   dns_name: Str = "", at: Time, key_usages: List[ExtKeyUsage] = []   // [] is [ServerAuth]
@@ -6519,6 +6557,15 @@ struct RevocationList {
 fn parse_revocation_list(der: Bytes) -> RevocationList ! CertErr
 fn (l: RevocationList) check_signature_from(issuer: Certificate) -> () ! CertErr
 ```
+`parse_pkcs12` reads a PKCS #12 file (RFC 7292, a `.pfx` or `.p12`) as golang.org/x/crypto/pkcs12 does: a v3 file with a
+SHA-1 MAC, `pbeWithSHAAnd3-KeyTripleDES-CBC` and `pbeWithSHAAnd40BitRC2-CBC` encryption (the only algorithms Go reads; a
+PBES2 or AES file is `pkcs12: algorithm 1.2.840.113549.1.5.13 is not supported`), DER encoded. The password is the text
+the file was made with (`""` also opens a file made with no password, as Go does); a wrong one is `pkcs12: decryption
+password incorrect`. Deviations from Go's `Decode`, which accepts exactly one certificate and one key: any number of
+certificates and bags are read, `ca` holds those other than the leaf, the leaf is the certificate whose `localKeyID`
+names the key (else the first), and an unencrypted key bag is read too (on the native backends only). The corpus
+(`internal/stdtest/testdata/corpus/pkcs12`) holds Go's three test files and two made with OpenSSL, each with the right
+and a wrong password, truncated and bit-flipped; Go's results are the expected values.
 
 ```
 // a development certificate for a local HTTPS server
@@ -6983,8 +7030,29 @@ fn from_json(j: json.Value) -> Value
   tags dropped, `Undefined` as null, `Simple(n)` as the text `simple(n)`, map
   keys of text, integer, float, bool and null kinds as their text; NaN,
   infinity and other keys are `Invalid`. `from_json` follows 6.1.
-- Not ported: a derive for typed values (use `derive Json` through `to_json`
-  and `from_json`), streaming, the date and time tag helpers.
+- `derive Cbor` (decision 0527, core 2.9) gives a struct typed `marshal[T]`,
+  `unmarshal[T]` and `unmarshal_prefix[T]`, matching fxamacker/cbor/v2's
+  `Marshal` and `Unmarshal` (differential corpus `testdata/corpus/cbor`,
+  2,000 typed cases):
+  - Fields: Str, Int, Float, Bool, Bytes, Time, Duration, `cbor.Value`, an
+    Option, a List, a `Map[Str, V]` of those, or a struct that derives Cbor.
+    Key: the field's `cbor "key,options"` string, else its `as` string, else
+    its name; options `omitempty`, `omitzero` (the same here), `keyasint`;
+    `-` skips the field; `cbor ",toarray"` on a struct's first field writes the struct as an
+    array in field order and reads an array of exactly that many items.
+    `derive Cbor(case:)` is not built yet.
+  - `marshal` writes a map of the fields (keys sorted when `deterministic`),
+    Float in the shortest form, Time as integer seconds or, with a fraction,
+    a float (fxamacker's TimeUnixDynamic), Duration as integer nanoseconds,
+    None as null.
+  - `unmarshal` matches a text key exactly, then ignoring case, and the first
+    key to reach a field wins; a `keyasint` field also takes its number as
+    text. Null leaves a field alone; tags are transparent after fxamacker's
+    checks of tags 0 to 3 (the tag 2 and 3 big integers read into Int when
+    they fit); an array of small integers reads as Bytes; an integer reads as
+    a Float. The first type mismatch is kept (`CborErr.Type`) and decoding
+    goes on; `strict: true` also makes a key no field names an error.
+- Not ported: streaming, the date and time tag helpers.
 
 ## 51. std/crc64
 
@@ -7264,19 +7332,24 @@ encoding/json writes `\u003c`, `\u003e` and `\u0026`: both are valid JSON and ve
 ```xo
 enum Alg { HS256, HS384, HS512, RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512, EdDSA }
 enum Key { Hmac(secret: Secret[Bytes]), Public(key: crypto.PublicKey), Private(key: crypto.PrivateKey) }
-struct Header { alg: Alg, kid: Str?, typ: Str? }
+struct Header { alg: Alg, kid: Str?, typ: Str?, extra: Map[Str, Str] = {}, x5c: List[Str] = [] }
 struct Options { algs: List[Alg], now: Time, leeway: Duration = 0s, issuer: Str? = None, audience: Str? = None,
                  subject: Str? = None, require_exp: Bool = true, check_iat: Bool = false,
                  max_age: Duration? = None, max_size: Int = 16384 }
 enum JwtErr { Malformed(msg: Str), Alg(msg: Str), Signature, Expired(at: Time), NotYetValid(at: Time), Issuer,
               Audience, Subject, Claim(msg: Str), Key(msg: Str) }
 fn (e: JwtErr) display() -> Str
-fn sign[T: Json](r: Rand, alg: Alg, key: Key, claims: T, kid: Str? = None) -> Str ! JwtErr uses rand
+fn sign[T: Json](r: Rand, alg: Alg, key: Key, claims: T, kid: Str? = None, header: Map[Str, Str] = {}, x5c: List[Str] = []) -> Str ! JwtErr uses rand
 fn verify_with[T: Json](token: Str, key: Key, opts: Options) -> T ! JwtErr
 fn verify[T: Json](token: Str, keys: fn(Header) -> Key ! JwtErr, opts: Options) -> T ! JwtErr
 fn peek_header(token: Str) -> Header ! JwtErr
 fn jwks(set: Str) -> Map[Str, Key] ! JwtErr
 ```
+`sign`'s `header` adds string fields to the protected header (`x5t#S256`, `jku`) and `x5c` the certificate chain
+(standard base64 DER, leaf first); they are written after `alg`, `kid` and `typ`, ordered by name (`x5c` among them),
+and a `header` name of `alg`, `kid`, `typ` or `crit` is `Malformed`. `Header.extra` and `Header.x5c` give the string
+fields and the chain of a parsed token (`peek_header`, the `verify` key function); an `x5c` that is not a list of strings
+is `Malformed`. A call without them writes the header it always did.
 
 - There is no `none` algorithm and no default for `Options.algs`: a token whose `alg` is not in the list is
   `Alg`, and a key that does not fit the algorithm (an HMAC secret for RS256, an RSA key for HS256, a P-384
@@ -7360,3 +7433,278 @@ fn to_json(text: Str) -> Str ! YamlErr
   written as they are (Go writes `\u003c`, `\u003e`, `\u0026`; both are valid JSON), a timestamp is its text, and compared
   documents leave out non-string keys, integers above the int64 range and invalid UTF-8.
 - Not yet (later stages): Time and Node fields, inline Maps.
+
+## 64. std/amqp
+
+AMQP 1.0 (ISO/IEC 19464) on a port of github.com/Azure/go-amqp v1.7.0 (MIT; decision 0521). Stage 1: the type
+system and its encoding. Connections, sessions, links and the CBS helper follow in stages 2 to 4. Pure: no
+capability, one source for every backend (std/go_compiled.txt).
+
+```
+enum Value { Null, Bool(v), UByte(v), UShort(v), UInt(v), ULong(v), Byte(v), Short(v), Int(v), Long(v),
+             Float(v: Float32), Double(v: Float), Decimal32(bits), Decimal64(bits), Decimal128(bits: Bytes),
+             Char(v: Rune), Timestamp(ms: Int), Uuid(bytes: Bytes), Binary(v: Bytes), Str(v: Str),
+             Symbol(v: Str), List(items), Map(pairs: List[(Value, Value)]), Array(items),
+             Described(descriptor: Value, value: Value) }
+enum AmqpErr { Decode(msg: Str), Encode(msg: Str) }
+pub fn encode(v: Value) -> Bytes ! AmqpErr
+pub fn decode(b: Bytes) -> (Value, Int) ! AmqpErr   // the value at the start of b and the bytes it took
+```
+
+- `encode` writes go-amqp's constructors: `smalluint`/`uint0` and `smallulong`/`ulong0` for unsigned values below
+  256, `smallint`/`smalllong` for signed values in -128 to 127, `str8`/`vbin8`/`sym8` up to 255 bytes and the
+  32 bit forms above, `list0` for an empty list, always `list32` and `map32` otherwise (go-amqp never writes
+  `list8` or `map8`). An array holds one element type and one constructor: the narrow form when every integer
+  fits it (`arrayUint32` with all elements below 256 is `smalluint`), a variable width form by its longest
+  element, an array of maps always with the `array32` header and `map32` bodies. An empty array, an array of
+  mixed types, of nulls, of lists or of arrays, a uuid or decimal128 that is not 16 bytes, and invalid UTF-8
+  are `Encode` errors.
+- `decode` accepts every constructor of the specification (the narrow and wide forms, `list8`, `map8`, `array8`,
+  zero width values, decimals, chars, described values), keeps a map's pairs in wire order and duplicate keys,
+  and refuses with a `Decode` error, never a fault: an unknown constructor, a length past the data, a compound
+  whose size or count disagrees with its elements, an odd map count, invalid UTF-8 in a string or symbol, a
+  boolean other than 0 or 1, and nesting deeper than 64 levels. Deviations from go-amqp's `ReadAny`: it refuses
+  decimals, chars and described values outside its typed composites, and decodes a symbol as a string; here they
+  decode to their own `Value`s.
+- The corpus (`internal/stdtest/testdata/corpus/amqp`) is go-amqp's encoder run on 148 values and its decoder's
+  verdict on each, checked on every backend: Xo decodes each of go-amqp's encodings to the same value and
+  encodes it back to the same bytes, and refuses the truncations go-amqp refuses.
+
+### 64.1 Frames and performatives (stage 2a)
+
+```
+enum Role { Sender, Receiver }
+enum SenderSettleMode { Unsettled, Settled, Mixed }
+enum ReceiverSettleMode { First, Second }
+struct WireError { condition: Str, description: Str = "", info: List[(Str, Value)] = [] }
+enum DeliveryState { Received(section_number: UInt32, section_offset: UInt64), Accepted, Rejected(error: WireError?),
+                     Released, Modified(delivery_failed: Bool, undeliverable_here: Bool, annotations: List[(Value, Value)]) }
+struct Source { address, durable, expiry_policy, timeout, dynamic, dynamic_node_properties, distribution_mode,
+                filter, default_outcome, outcomes, capabilities }                 // every field defaulted
+struct Target { address, durable, expiry_policy, timeout, dynamic, dynamic_node_properties, capabilities }
+struct Open, Begin, Attach, Flow, Transfer, Disposition, Detach, End, Close,
+       SaslMechanisms, SaslInit, SaslChallenge, SaslResponse, SaslOutcome   // one field per performative field
+enum FrameBody { Open(v), Begin(v), Attach(v), Flow(v), Transfer(v), Disposition(v), Detach(v), End(v), Close(v),
+                 SaslMechanisms(v), SaslInit(v), SaslChallenge(v), SaslResponse(v), SaslOutcome(v), Empty }
+struct Frame { channel: UInt16, body: FrameBody }
+pub fn encode_frame(f: Frame) -> Bytes ! AmqpErr
+pub fn decode_frame(b: Bytes, max_size: Int = 4294967295) -> (Frame, Int) ! AmqpErr
+```
+
+- A frame is the 8 byte header (size, data offset 2, type 0 for AMQP and 1 for SASL, channel) and a described
+  list; a `Transfer`'s `payload` follows the list. `encode_frame` writes go-amqp's bytes: trailing null fields
+  trimmed, an empty list as `list0`, defaults omitted (`max_frame_size` 2^32-1, `channel_max` 65535,
+  `handle_max` 2^32-1, zero `idle_timeout_ms`), a receiver's `Attach` without `initial_delivery_count`, one
+  symbol for a one element symbol list and an array otherwise.
+- Fields that hold an unsigned wire value with a default (`durable`, `timeout`, `max_frame_size`, `channel_max`,
+  `handle_max`, `initial_delivery_count`, `max_message_size`, `idle_timeout_ms`) are `Int` and must be in the
+  wire type's range, or `encode_frame` returns an `Encode` error. (A `UInt32` field with a literal default would
+  need an Int to UInt32 conversion in the default that the native backends lack, XO1201.)
+- `decode_frame` refuses with a `Decode` error: a short header, a data offset below 2 or past the size, a size
+  past the data or past `max_size`, an unknown frame type, a SASL frame with no body, a performative that does
+  not belong to the frame type, an unknown performative or delivery state, and a field of the wrong type.
+  Unknown extra fields past the performative's last are ignored.
+- The corpus captures the frames go-amqp's client writes (SASL init, open, begin, attach as a sender and as a
+  receiver, transfer, flow, disposition, detach, end, close) against a fake peer over `net.Pipe`; Xo decodes each
+  and encodes it back to the same bytes.
+
+### 64.2 The connection (stage 2b-i)
+
+```
+enum Sasl { None, Plain(user: Str, password: Str), Anonymous }
+struct ConnOptions { container_id: Str = "", hostname: Str = "", max_frame_size: Int = 65536, channel_max: Int = 65535,
+                     idle_timeout_ms: Int = 0, properties: List[(Str, Value)] = [], sasl: Sasl = Sasl.None,
+                     tls_roots: tls.Roots? = None, tls_verify: tls.Verify = tls.Verify.Full }
+struct Connection { st: Mutex[ConnState] }   // a handle (copies share the connection); peer_container_id(), peer_max_frame_size(), peer_channel_max(), peer_idle_timeout_ms(), peer_properties()
+pub fn dial(net: Net, addr: Str, opts: ConnOptions = ConnOptions{}) -> Connection ! AmqpErr uses net.dial
+fn (c: Connection) send(f: Frame) -> () ! AmqpErr uses net.dial
+fn (c: Connection) recv() -> Frame ! AmqpErr uses net.dial
+fn (c: Connection) begin(opts: SessionOptions = SessionOptions{}) -> Session ! AmqpErr uses net.dial
+fn (c: Connection) end_session(s: Session, error: WireError? = None) -> () ! AmqpErr uses net.dial
+fn (c: Connection) close(error: WireError? = None) -> () ! AmqpErr uses net.dial
+fn (c: Connection) abort()
+```
+
+- `dial` takes `host:port`, `amqp://host[:port]` or `amqps://host[:port]` (ports 5672 and 5671; `[::1]:5671` for
+  IPv6). `amqps` runs TLS first (`tls.client` with `tls_roots` and `tls_verify`). With a SASL layer it sends the
+  `AMQP\x03\x01\x00\x00` header, reads the mechanisms, sends the init (`PLAIN` is `\0user\0password`, `ANONYMOUS`
+  is empty) and needs an outcome with code 0 (`Auth(code, text)` otherwise; a mechanism the server does not offer
+  is `Auth(-1, ...)`); then the `AMQP\x00\x01\x00\x00` header and the two Opens. The advertised idle timeout is
+  half of `idle_timeout_ms`, as go-amqp does. `container_id` defaults to `xo-amqp`.
+- The connection is a handle over a Mutex (the Go backend's go_compiled modules take no `var` receivers); every call holds the lock while it works, so concurrent tasks take turns. It is meant to be driven by one task: `recv` returns the next frame (queued ones first), `begin` and
+  `end_session` read until their reply and queue frames for other channels. A peer Close or End with an error is
+  `Peer(error)`; a frame past `max_frame_size` or out of turn is `Protocol`, a transport failure is `Net`.
+  `close` sends Close and waits for the peer's Close (a peer error in it is `Peer`).
+- Timeouts and heartbeats (stage 2b-ii; they need `ConnOptions.clock`, and every call then also `uses clock`): `timeout_ms` bounds the wait for the peer's next bytes inside one call (`Net("i/o timeout")`, the connection stays usable); the Open advertises `idle_timeout_ms / 2`, the connection fails with `Net("idle timeout: ...")` when the peer sends nothing for `idle_timeout_ms`, and a call that waits sends an empty frame at half the peer's idle timeout. `dial` also bounds the connect by `timeout_ms` (`Net("i/o timeout")`), and `receiver.receive(timeout_ms)` gives up after that many milliseconds in total without a delivery (`Net("i/o timeout")`; the link stays usable). `c.keepalive(g)` spawns a task in the task group `g` that does the same while no call is running (and reads and applies arriving frames); it ends when `g` is cancelled or the connection closes, and a failure it finds is returned by later calls. Without `keepalive` the calling task reads while it waits, holding the lock, so tasks take turns. With `keepalive` that task becomes the connection's reader (decision 0521, "Reader task"): it reads the transport without the lock, applies each frame under it, and wakes the calls waiting for a frame; each blocked call (`receive`, `send` waiting for credit, window or outcome, `new_sender`/`new_receiver`, link and session close, `begin`, `end_session`, `close`) waits on its own channel outside the lock with its own deadline (`receive(timeout_ms)`), so a receive that waits does not stop a send, a lock renewal or another receiver on the same connection. A send holds its session's send turn from its first frame to its last, so deliveries stay in order. `recv` (raw frames) is not available while the reader task runs. Calls stay cancellation points while they wait.
+
+### 64.3 Messages (stage 2c)
+
+```
+struct Header { durable: Bool = false, priority: Int = 4, ttl_ms: Int = 0, first_acquirer: Bool = false, delivery_count: Int = 0 }
+struct Properties { message_id: Value = Value.Null, user_id: Bytes = b"", to: Str? = None, subject: Str? = None, reply_to: Str? = None,
+                    correlation_id: Value = Value.Null, content_type: Str? = None, content_encoding: Str? = None,
+                    absolute_expiry_ms: Int? = None, creation_ms: Int? = None, group_id: Str? = None,
+                    group_sequence: Int? = None, reply_to_group_id: Str? = None }
+enum Body { Empty, Data(sections: List[Bytes]), Sequence(sections: List[List[Value]]), Value(v: Value) }
+struct Message { header: Header? = None, delivery_annotations: List[(Value, Value)]? = None, annotations: List[(Value, Value)]? = None,
+                 properties: Properties? = None, app_properties: List[(Str, Value)]? = None, body: Body = Body.Empty,
+                 footer: List[(Value, Value)]? = None }
+pub fn encode_message(m: Message) -> Bytes ! AmqpErr
+pub fn decode_message(b: Bytes) -> Message ! AmqpErr
+```
+
+- `encode_message` writes go-amqp's `Message.MarshalBinary` bytes: the sections in the order header, delivery
+  annotations, annotations, properties, application properties, body, footer; a `None` section is not written and
+  a `Some` one is, even when empty; a header always has its durable field, and omits priority 4, zero ttl and
+  delivery count and a false first-acquirer; a properties section omits absent fields and trailing nulls.
+- `decode_message` accepts the sections in any order and refuses a repeated header, properties or body kind mix, a
+  section that is not described, and an unknown section code.
+- The corpus (`MESSAGES`) is go-amqp's encoder on 22 messages and its decoder's values; Xo decodes each to the same
+  message and encodes it back to the same bytes.
+
+### 64.4 Links (stage 3)
+
+```
+struct SenderOptions { name: Str = "", settle_mode: SenderSettleMode? = None, source: Str = "", max_message_size: Int = 0,
+                       properties: List[(Str, Value)] = [], capabilities: List[Str] = [], target_capabilities: List[Str] = [] }
+struct ReceiverOptions { name: Str = "", credit: Int = 1, settle_mode: ReceiverSettleMode? = None, target: Str = "",
+                         filters: List[(Str, Value)] = [], max_message_size: Int = 0, properties: List[(Str, Value)] = [],
+                         capabilities: List[Str] = [], source_capabilities: List[Str] = [] }
+struct Sender { conn: Connection, id: Int, name: Str, target: Str }       // handles over the connection
+struct Receiver { conn: Connection, id: Int, name: Str, source: Str }
+struct Delivery { message: Message, id: Int, tag: Bytes, settled: Bool, link: Int }
+fn (c: Connection) new_sender(s: Session, target: Str, opts: SenderOptions = SenderOptions{}) -> Sender ! AmqpErr uses net.dial
+fn (c: Connection) new_receiver(s: Session, source: Str, opts: ReceiverOptions = ReceiverOptions{}) -> Receiver ! AmqpErr uses net.dial
+fn (x: Sender) send(m: Message, settled: Bool = false) -> DeliveryState? ! AmqpErr uses net.dial
+fn (x: Sender) close(error: WireError? = None) -> () ! AmqpErr uses net.dial
+fn (r: Receiver) receive() -> Delivery ! AmqpErr uses net.dial
+fn (r: Receiver) accept(d: Delivery) / reject(d, error) / release(d) / modify(d, delivery_failed, undeliverable_here)
+fn (r: Receiver) close(error: WireError? = None) -> () ! AmqpErr uses net.dial
+```
+
+- Links share the connection's single read loop: any call that waits (credit, window, an outcome, a delivery) reads frames
+  and applies them to every session and link, so a sender and a receiver can be used from one task in turn. A background
+  reader task is the optional keeper of 64.2.
+- `send` waits for link credit (the peer's Flow: delivery-count + link-credit - ours) and the session's remote incoming
+  window, splits the message into transfer frames no larger than the peer's `max_frame_size` (the delivery id and tag only
+  on the first, `more` on all but the last), counts the window per frame, and returns the peer's terminal outcome
+  (`Accepted`, `Rejected`, `Released`, `Modified`) once its Disposition settles the delivery; `settled: true` sends
+  pre-settled and returns `None`. A message larger than the peer's `max_message_size` is an `Encode` error.
+- `receive` tops the credit up to `ReceiverOptions.credit` (a Flow) when it falls to half, assembles multi-frame
+  deliveries, and returns a `Delivery`; an aborted delivery is dropped; `accept`, `reject`, `release` and `modify` send a
+  settling Disposition (nothing for a delivery the sender pre-settled). The session's incoming window is restored with a
+  Flow when it falls below half.
+- `send(m, settled, message_format)`: `message_format` is the Transfer's message-format (0 for an AMQP message; Azure
+  Service Bus batches are one transfer of format 0x80013700, 2147563264, whose data sections are encoded messages).
+- Manual credit: `ReceiverOptions.credit: 0` grants nothing and `receive` never tops up; `r.issue_credit(n)` raises the link
+  credit by `n` (a Flow); `r.drain(timeout_ms)` sends a Flow with `drain` set, waits for the peer's answering Flow and returns
+  every delivery that arrived before it, leaving the link with no credit (Go's ReceiveMessages: credit, collect, drain).
+- Settle mode Second (`ReceiverOptions.settle_mode`): `accept`, `reject`, `release` and `modify` send the outcome unsettled
+  and wait for the peer's settling Disposition; a Rejected state with an error is returned as `Peer(error)` (Service Bus's
+  `com.microsoft:message-lock-lost`). `modify(d, delivery_failed, undeliverable_here, annotations)` carries message
+  annotations (symbol keys), Go's properties to modify.
+- `remote_attach()` on a `Sender` or `Receiver` is the peer's Attach for the link (None before it arrives): its source
+  filters (Service Bus echoes `com.microsoft:session-filter` with the chosen session), target and properties
+  (`com.microsoft:locked-until-utc`).
+- A peer Detach (with an error: `Peer(error)`) or End makes later calls on the link fail; `close` sends Detach and waits
+  for the peer's.
+
+### 64.5 Claims based security (stage 4)
+
+```
+fn cbs_put_token(c: Connection, s: Session, audience: Str, token: Str, token_type: Str = "servicebus.windows.net:sastoken", expiry_ms: Int = 0) -> () ! AmqpErr uses net.dial
+```
+
+Azure's token authorization: a request message (`operation: put-token`, `type`, `name: audience`, optional
+`expiration`, the token as the body, `to: $cbs`, `reply-to: cbs`) sent on a sender to `$cbs`, the answer read on a receiver
+from `$cbs` with target `cbs`; a `status-code` outside 200 to 299 is `Peer` with the condition
+`amqp:unauthorized-access`. The test is an in-process peer; the smoke test against a real namespace is run by the owner
+only (decision 0521).
+
+### 64.6 The test broker (std/amqptest)
+
+```
+use std/amqptest
+fn amqptest.new(clock: Clock) -> Broker
+fn (b: Broker) serve(g: task.Group, l: Listener) uses (net.listen, clock)
+fn (b: Broker) queue(name: Str, opts: QueueOptions = QueueOptions{})      // QueueOptions{sessions, lock_ms, max_delivery_count}
+fn (b: Broker) topic(name: Str)
+fn (b: Broker) event_hub(name: Str, partitions: Int, consumer_groups: List[Str] = ["$Default"])
+fn (b: Broker) events(hub: Str, partition: Int) -> List[amqp.Message]
+fn (b: Broker) subscription(topic: Str, name: Str, opts: QueueOptions = QueueOptions{})
+fn (b: Broker) put(queue: Str, m: amqp.Message)
+fn (b: Broker) ready(queue: Str) -> List[amqp.Message]
+fn (b: Broker) locked(queue: Str) -> Int
+fn (b: Broker) dead_letters(queue: Str) -> List[amqp.Message]
+fn (b: Broker) scheduled(queue: Str) -> List[amqp.Message]
+fn (b: Broker) deferred(queue: Str) -> List[amqp.Message]
+fn (b: Broker) tokens() -> List[(Str, Str)]
+fn (b: Broker) reject_token(token: Str)
+fn (b: Broker) require_token(on: Bool)
+fn (b: Broker) session_state(queue: Str, session: Str) -> Bytes
+fn (b: Broker) fail_next(op: Str, status: Int, condition: Str, description: Str)
+fn (b: Broker) fail(op: Str, status: Int, condition: Str, description: Str)
+fn (b: Broker) clear_failures()
+fn (b: Broker) slow_management(ms: Int)
+fn (b: Broker) detach_links(queue: Str, error: amqp.WireError)
+fn (b: Broker) disconnect_all(error: amqp.WireError? = None)
+```
+
+An in-process AMQP 1.0 broker that behaves like Azure Service Bus for what a client library uses, for tests
+(decision 0521; Go's `net/http/httptest` is the model). `serve` accepts connections on any `Listener` (the test world's
+in memory listeners, or a loopback one) and serves each in a task of `g`; clients dial it with `amqp.dial`. It speaks
+SASL (any mechanism is accepted) or none.
+
+- Entities are queues, topics and subscriptions (`topic/Subscriptions/name`); a link to an undeclared entity is refused with
+  `amqp:not-found`, a send to a topic is copied to every subscription, and `put` creates a queue it does not know.
+- `$cbs`: a `put-token` request is answered with `status-code` 202 (401 and `amqp:unauthorized-access` for a token given to
+  `reject_token`); a later put-token for the same audience replaces the earlier one (the client's refresh). `tokens()` lists
+  the accepted `(audience, token)` pairs. With `require_token(true)` a link to an entity is refused with
+  `amqp:unauthorized-access` unless an accepted, unexpired token's audience ends with the entity's name.
+- Sending: a transfer is stored (sequence number and enqueue time are added as `x-opt-sequence-number` and
+  `x-opt-enqueued-time`) and answered `Accepted` unless settled by the sender; a session enabled queue refuses a message
+  without a session id (`properties.group_id`).
+- Receiving is peek lock: a delivery is locked for `lock_ms`, its delivery tag is the 16 byte lock token (also
+  `x-opt-lock-token`, with `x-opt-locked-until`), and the header's delivery count is the number of earlier deliveries.
+  `Accepted` completes; `Released` and `Modified` give the message back (`Modified` with `undeliverable-here` defers it);
+  `Rejected` dead letters it; past `max_delivery_count` a message is dead lettered with `MaxDeliveryCountExceeded`. A
+  disposition for a lock that ran out or is not the connection's is answered `Rejected` with
+  `com.microsoft:message-lock-lost`. A receiver that asks for settled transfers (`ReceiverOptions.sender_settle_mode`)
+  deletes on receive. Both receiver settle modes are answered. `<queue>/$DeadLetterQueue` delivers the dead letters
+  (removing them as it sends).
+- `<entity>/$management` answers (reply `statusCode`, `statusDescription`, `errorCondition`, correlation id = the request's
+  message id) `renew-lock`, `peek-message`, `schedule-message` (the message carries `x-opt-scheduled-enqueue-time`),
+  `cancel-scheduled-message`, `receive-by-sequence-number` (deferred messages), `update-disposition`
+  (`completed`, `abandoned`, `suspended`, `defered`), `renew-session-lock`, `get-session-state`, `set-session-state` and `get-message-sessions`; any
+  other operation is 501.
+- Sessions: a receiver on a session enabled queue gives the `com.microsoft:session-filter` (a session id, or null for the
+  next available one); the broker locks that session (or the first with a deliverable message) to the connection, echoes
+  the chosen id in the attach reply's filter and adds `com.microsoft:locked-until-utc` to the reply's properties; a session
+  locked by another connection, or none available, is refused with `com.microsoft:timeout`.
+- Batches and drain: a transfer with message format 0x80013700 is a batch, each data section of its body one encoded message,
+  and all are stored under one `Accepted`. A flow with credit makes the broker send up to the credit; a flow with `drain` set
+  gets what is deliverable, then a flow from the link with `drain` and `link-credit` 0 whose delivery count has advanced by
+  the credit left.
+- Event Hubs: `event_hub(name, partitions, groups)` declares a hub whose partitions are "0", "1", .... A send to `hub` picks a
+  partition by `x-opt-partition-key` (a fixed hash), else round robin; a send to `hub/Partitions/id` goes to that one. Each
+  stored event gets the annotations `x-opt-sequence-number` (Long, from 0 per partition), `x-opt-offset` (Str, increasing) and
+  `x-opt-enqueued-time` (Timestamp); the partition key stays. A receiver at `hub/ConsumerGroups/cg/Partitions/id` has its own
+  position and gets pre-settled deliveries (reading removes nothing), starting where its `apache.org:selector-filter:string`
+  says (`amqp.annotation.x-opt-offset > '-1'` or `'@latest'` or `'N'`, `>=`, `x-opt-sequence-number`, `x-opt-enqueued-time`);
+  events sent later keep flowing. The attach property `com.microsoft:epoch` makes a receiver the owner: a higher epoch
+  detaches the holders with a lower one with `amqp:link:stolen`, and a lower epoch (or none) against a higher holder is refused
+  with `amqp:link:stolen`. An unknown partition is `com.microsoft:argument-out-of-range`, an unknown hub or group
+  `amqp:not-found`. The namespace `$management` link answers operation READ with `type` `com.microsoft:eventhub`
+  (name, created_at, partition_count, partition_ids) and `com.microsoft:partition` (name, partition, begin_sequence_number,
+  last_enqueued_sequence_number, last_enqueued_offset, last_enqueued_time_utc, is_partition_empty), reply keys `status-code`
+  and `status-description`. `events` lists a partition's events; `detach_links` takes a hub name or a receiver path.
+- Faults: `fail_next`/`fail` make the operation `attach`, `transfer`, `disposition`, `put-token` or a management operation
+  (its name without `com.microsoft:`) fail with `condition`, `status` and `description` (an attach, transfer or
+  disposition is refused or rejected with the condition; a management reply carries `status` and the condition);
+  `slow_management(ms)` delays management replies; `detach_links` detaches every link to an entity with an error;
+  `disconnect_all` closes every connection, with the error in a Close frame when given.
+- Time: locks, scheduled messages, session locks and token expiry use the clock given to `new`; an expired lock is noticed
+  when the next operation looks at the message, not by a timer.
+
+The client side of a refused attach: `new_sender` and `new_receiver` return the link's `Peer` error when the answering
+Attach has no target (sender) or no source (receiver) and a Detach with an error follows (decision 0521).
