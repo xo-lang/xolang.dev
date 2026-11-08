@@ -1,0 +1,76 @@
+enum ParseErr {
+  Empty
+  NotANumber(text: Str)
+}
+
+fn (e: ParseErr) display() -> Str {
+  match e {
+    Empty => "empty input"
+    NotANumber(text) => "not a number: ${text}"
+  }
+}
+
+enum RangeErr {
+  TooSmall(n: Int, min: Int)
+  TooBig(n: Int, max: Int)
+}
+
+fn (e: RangeErr) display() -> Str {
+  match e {
+    TooSmall(n, min) => "${n} is below ${min}"
+    TooBig(n, max) => "${n} is above ${max}"
+  }
+}
+
+/// The error of `port`: either layer's error converts into it, because of `from`.
+enum PortErr {
+  Parse(from ParseErr)
+  Range(from RangeErr)
+}
+
+fn (e: PortErr) display() -> Str {
+  match e {
+    Parse(p) => "bad port text: ${p.display()}"
+    Range(r) => "bad port number: ${r.display()}"
+  }
+}
+
+fn parse(text: Str) -> Int ! ParseErr {
+  if text.trim() == "" {
+    return Err(ParseErr.Empty)
+  }
+  Int.parse(text.trim()).or_err(ParseErr.NotANumber(text))?
+}
+
+fn check_range(n: Int) -> Int ! RangeErr {
+  if n < 1024 {
+    return Err(RangeErr.TooSmall(n: n, min: 1024))
+  }
+  if n > 65535 {
+    return Err(RangeErr.TooBig(n: n, max: 65535))
+  }
+  n
+}
+
+/// Each `?` returns early with the error converted to `PortErr`.
+fn port(text: Str) -> Int ! PortErr {
+  let n = parse(text)?
+  check_range(n)?
+}
+
+fn main(os: Os) {
+  for text in ["8080", "", "http", "80", "70000"] {
+    match port(text) {
+      Ok(p) => os.stdio.println("port ${p}")
+      Err(e) => os.stdio.println("error: ${e.display()}")
+    }
+  }
+}
+
+test "the error says which layer failed" {
+  match port("80") {
+    Ok(_) => fault("expected an error")
+    Err(Range(TooSmall(n, _))) => expect(n) == 80
+    Err(e) => fault("unexpected: ${e.display()}")
+  }
+}

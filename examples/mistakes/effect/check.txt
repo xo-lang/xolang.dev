@@ -1,3 +1,5 @@
 main.xo:1:8: error XO0701: `greet` is pub with no `uses` clause, so it is pure, but performs `stdio`
+  note: declare them: `uses stdio` (`xo fix` writes it)
   note: main.xo:2:3: `Stdio.println` uses `stdio` here
+  fix: add the clause `uses stdio`
 1 module(s), 1 error(s), 0 warning(s)

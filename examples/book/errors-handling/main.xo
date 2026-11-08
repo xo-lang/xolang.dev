@@ -1,0 +1,44 @@
+fn lookup(env: Map[Str, Str], key: Str) -> Str? {
+  env.get(key)
+}
+
+/// `??` takes the value, or the right side when there is none.
+fn port_or_default(env: Map[Str, Str]) -> Int {
+  let text = lookup(env, "PORT") ?? return 8080
+  Int.parse(text) ?? 8080
+}
+
+/// Turn a missing value into an error with `or_err`, and pass errors up with `?`.
+fn strict_port(env: Map[Str, Str]) -> Int ! Error {
+  let text = lookup(env, "PORT").or_err("PORT is not set")?
+  Int.parse(text).or_err("PORT is not a number: ${text}")?
+}
+
+/// `r ?? e => body` handles the error and gives the fallback.
+fn port_logged(out: Stdio, env: Map[Str, Str]) -> Int uses stdio {
+  strict_port(env) ?? e => {
+    out.println("falling back: ${e.display()}")
+    8080
+  }
+}
+
+fn main(os: Os) {
+  let cases: List[Map[Str, Str]] = [{"PORT": "9000"}, {"PORT": "x"}, {}]
+  for env in cases {
+    os.stdio.println("default: ${port_or_default(env)}")
+    os.stdio.println("logged: ${port_logged(os.stdio, env)}")
+    match strict_port(env) {
+      Ok(p) => os.stdio.println("strict: ${p}")
+      Err(e) => os.stdio.println("strict failed: ${e.display()}")
+    }
+    if let Some(p) = lookup(env, "PORT") {
+      os.stdio.println("PORT is set to ${p}")
+    }
+  }
+}
+
+test "the fallback only applies on an error" {
+  expect(port_or_default({"PORT": "9000"})) == 9000
+  expect(port_or_default({"PORT": "x"})) == 8080
+  expect(port_or_default({})) == 8080
+}

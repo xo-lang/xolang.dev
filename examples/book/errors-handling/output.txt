@@ -1,0 +1,13 @@
+default: 9000
+logged: 9000
+strict: 9000
+PORT is set to 9000
+default: 8080
+falling back: PORT is not a number: x
+logged: 8080
+strict failed: PORT is not a number: x
+PORT is set to x
+default: 8080
+falling back: PORT is not set
+logged: 8080
+strict failed: PORT is not set

@@ -1,0 +1,3 @@
+nth: 20
+error: index 7 out of range for 3 items
+fault caught: requires failed: i >= 0 && i < xs.len()

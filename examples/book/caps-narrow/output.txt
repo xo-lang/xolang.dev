@@ -1,0 +1,1 @@
+refused: xo-book-demo.txt: permission denied

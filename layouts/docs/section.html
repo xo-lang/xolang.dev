@@ -4,7 +4,7 @@
   <article class="prose">
     <h1>{{ .Title }}</h1>
     {{ .Content }}
-    {{- if eq .Path "/docs/tour" }}
+    {{- if or (eq .Path "/docs/tour") (eq .Path "/docs/book") }}
     <ol class="steps">
       {{- range .RegularPages }}
       <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>: {{ .Description }}</li>

@@ -2,7 +2,7 @@
 # Check, run, and test every example the docs show, and record the outputs the
 # pages print next to them. Needs the xo binary: XO=path/to/xo, or xo on PATH.
 #
-#   examples/tour/<name>/      must check, run, and pass `xo test`;
+#   examples/tour/<name>/      and examples/book/<name>/ must check, run, and pass `xo test`;
 #                              writes output.txt (what `xo run` printed)
 #   examples/mistakes/<name>/  must fail `xo check`; writes check.txt
 #
@@ -11,14 +11,14 @@ set -eu
 cd "$(dirname "$0")/.."
 XO=${XO:-xo}
 fail=0
-for d in examples/tour/*/; do
+for d in examples/tour/*/ examples/book/*/; do
   name=$(basename "$d")
-  if ! (cd "$d" && "$XO" check . >/dev/null 2>&1); then
-    echo "FAIL check $name"; (cd "$d" && "$XO" check . 2>&1 | head -20) || true; fail=1; continue
-  fi
   # use go needs the Go backend (the default is native, decision 0248)
   be=""
   case $name in gointerop) be=--backend=go ;; esac
+  if ! (cd "$d" && "$XO" check $be . >/dev/null 2>&1); then
+    echo "FAIL check $name"; (cd "$d" && "$XO" check $be . 2>&1 | head -20) || true; fail=1; continue
+  fi
   case $name in
     webservice) printf '%s\n' '(serves on :8080; try GET /todos and GET /todos/1)' > "$d/output.txt" ;;
     *) (cd "$d" && "$XO" run $be . > output.txt 2>&1) || { echo "FAIL run $name"; fail=1; } ;;

@@ -43,5 +43,20 @@ if [ "$ptag" != "$tag" ]; then
   echo "check-facts: data/release.toml tag $tag, but the newest release page $newest says $ptag"
   fail=1
 fi
+# the std reference: one page per module, the index lists exactly those pages, and no page names the release
+if [ -d content/docs/stdlib ]; then
+  idx=content/docs/stdlib/_index.md
+  for p in content/docs/stdlib/*.md; do
+    n=$(basename "$p" .md)
+    [ "$n" = "_index" ] && continue
+    grep -q "]($n/)" "$idx" || { echo "check-facts: $idx has no row for $p"; fail=1; }
+  done
+  for n in $(grep -o '^| \[`std/[^`]*`\]([^/)]*/)' "$idx" | sed 's|.*\](||; s|/)||'); do
+    [ -f "content/docs/stdlib/$n.md" ] || { echo "check-facts: $idx lists $n, but content/docs/stdlib/$n.md is missing"; fail=1; }
+  done
+  if grep -lE "(^|[^0-9.])v?$tag([^0-9]|$)" content/docs/stdlib/*.md >/dev/null 2>&1; then
+    echo "check-facts: a std reference page names the release $tag"; fail=1
+  fi
+fi
 [ "$fail" = 0 ] && echo "check-facts: ok (release $tag, newest page $newest)"
 exit "$fail"

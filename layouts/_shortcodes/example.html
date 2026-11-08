@@ -1,14 +1,18 @@
-{{- /* Usage: {{% example "basics" %}}: the checked program and what it prints. */ -}}
-{{- $dir := printf "examples/tour/%s" (.Get 0) -}}
+{{- /* Usage: {{% example "basics" %}} (examples/tour/basics) or {{% example "book/caps-basics" %}} (examples/book/caps-basics): the checked program and what it prints. */ -}}
+{{- $name := .Get 0 -}}
+{{- $dir := printf "examples/tour/%s" $name -}}
+{{- $tour := true -}}
+{{- if strings.Contains $name "/" }}{{ $dir = printf "examples/%s" $name }}{{ $tour = false }}{{ end -}}
 {{- $out := printf "%s/output.txt" $dir -}}
-`{{ (.Get 0) }}/main.xo`
+`{{ path.Base $name }}/main.xo`
 
 ```xo
 {{ readFile (printf "%s/main.xo" $dir) | strings.TrimRight "\n" | safeHTML }}
 ```
-
-[Run it in the playground](/play/#example=tour/{{ .Get 0 }})
+{{ if $tour }}
+[Run it in the playground](/play/#example=tour/{{ $name }})
 {.play-link}
+{{ end }}
 {{ if fileExists $out }}
 Output:
 

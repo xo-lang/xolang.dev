@@ -1,0 +1,31 @@
+use std/task
+
+/// A bad index is a bug in the caller, not an error to handle: it is a fault.
+fn nth(xs: List[Int], i: Int) -> Int
+  requires i >= 0 && i < xs.len()
+{
+  xs[i]
+}
+
+/// Bad input from outside is an error: the caller decides what to do.
+fn nth_checked(xs: List[Int], i: Int) -> Int ! Error {
+  if i < 0 || i >= xs.len() {
+    return Err("index ${i} out of range for ${xs.len()} items")
+  }
+  xs[i]
+}
+
+fn main(os: Os) {
+  let xs = [10, 20, 30]
+  os.stdio.println("nth: ${nth(xs, 1)}")
+  match nth_checked(xs, 7) {
+    Ok(v) => os.stdio.println("got ${v}")
+    Err(e) => os.stdio.println("error: ${e.display()}")
+  }
+  // `task.isolate` runs code in its own scope and turns a fault into a value
+  match task.isolate(fn() -> Int ! Error { Ok(nth(xs, 7)) }) {
+    Ok(v) => os.stdio.println("got ${v}")
+    Err(Faulted(f)) => os.stdio.println("fault caught: ${f.msg}")
+    Err(Failed(e)) => os.stdio.println("error: ${e.display()}")
+  }
+}

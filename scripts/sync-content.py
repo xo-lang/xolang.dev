@@ -107,6 +107,61 @@ def xo_binary():
     return out, None
 
 
+def escape_prose(md):
+    """Escape `<` outside code (a doc comment's <placeholder> would be dropped as raw HTML) and Hugo shortcode openers."""
+    out, fenced = [], False
+    for line in md.split("\n"):
+        if line.startswith("```"):
+            fenced = not fenced
+            out.append(line)
+            continue
+        if fenced:
+            out.append(line.replace("{{<", "{ {<").replace("{{%", "{ {%"))
+            continue
+        parts = line.split("`")
+        for i in range(0, len(parts), 2):
+            parts[i] = parts[i].replace("<", "\\<").replace("{{<", "{ {<").replace("{{%", "{ {%")
+        out.append("`".join(parts))
+    return "\n".join(out)
+
+
+def stdlib():
+    """One page per std module from `xo doc std/NAME`, and an index from `xo doc --json std`."""
+    xo, tmp = xo_binary()
+    run = lambda *a: subprocess.run([xo, *a], check=True, capture_output=True, text=True, cwd=REPO).stdout
+    mods = json.loads(run("doc", "--json", "std"))
+    out_dir = os.path.join(SITE, "content/docs/stdlib")
+    shutil.rmtree(out_dir, ignore_errors=True)
+    rows = ["| Module | What it is |", "|---|---|"]
+    for m in mods:
+        name = m["module"]
+        short = name.split("/", 1)[1]
+        summary = m["summary"].strip()
+        body = run("doc", name)
+        body = re.sub(r"\A# Module `[^`]*`\n+", "", body)
+        body = re.sub(r"^Defined at (std/[\w/]+\.xo):(\d+):\d+\.$",
+                      lambda g: f"[Source: `{g.group(1)}:{g.group(2)}`]({SOURCE}{g.group(1)}#L{g.group(2)})", body, flags=re.M)
+        rows.append(f"| [`{name}`]({short}/) | {md_text(summary)} |")
+        write(f"content/docs/stdlib/{short}.md", front(
+            title=name, linkTitle=short, description=summary, toc=True, module=name,
+            source=SOURCE + name + ".xo",
+            generated="scripts/sync-content.py from `xo doc " + name + "`; edit the doc comments in the Xo repo, not this file",
+        ) + escape_prose(body))
+    write("content/docs/stdlib/_index.md", front(
+        title="Standard library reference", linkTitle="Std reference",
+        description="Every std module with its types, functions, methods, signatures and doc comments, generated from `xo doc`.",
+        weight=25, generated="scripts/sync-content.py from `xo doc std`; edit the Xo repo, not this file",
+    ) + "\n".join([
+        "One page per `std` module, generated from the doc comments and signatures with `xo doc std/NAME`",
+        "(run it in a terminal for the same text). Import a module with `use std/NAME`. The prelude's methods on",
+        "`Str`, `List`, `Map` and the other builtin types are in the [standard library specification](../spec/std/);",
+        "what each module follows in Go's standard library is in the [coverage table](../std-coverage/).",
+        "",
+    ] + rows) + "\n")
+    if tmp:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def diagnostics():
     """One page per XOnnnn code: the spec's table row plus `xo explain --json`."""
     spec = read("spec/core.md")
@@ -155,4 +210,5 @@ if __name__ == "__main__":
         sys.exit(f"no spec/core.md under {REPO}; pass the xo repo path or set XO_REPO")
     spec()
     diagnostics()
+    stdlib()
     no_release_posts()

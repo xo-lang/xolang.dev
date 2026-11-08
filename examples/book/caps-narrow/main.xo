@@ -1,0 +1,41 @@
+/// A report writer should only be able to write under one directory.
+pub fn save_report(out: Fs, name: Str, body: Str) -> () ! FsErr uses fs.write {
+  out.write("${name}.txt", body.bytes())?
+}
+
+/// A previewer should only read.
+pub fn preview(src: Fs, name: Str) -> Str ! FsErr uses fs.read {
+  src.read_text("${name}.txt")?
+}
+
+fn main(os: Os) {
+  let reports = os.fs.sub("/tmp").read_only()
+  match save_report(reports, "xo-book-demo", "hello") {
+    Ok(_) => os.stdio.println("saved")
+    Err(e) => os.stdio.println("refused: ${e.display()}")
+  }
+}
+
+test "a read only capability refuses a write" {
+  let reports = os.fs.sub("/reports").read_only()
+  match save_report(reports, "q1", "numbers") {
+    Ok(_) => fault("the write should have been denied")
+    Err(e) => expect(e.display()) == "q1.txt: permission denied"
+  }
+}
+
+test "the same function writes through a writable one" {
+  os.fs.create_dir_all("/reports")?
+  let reports = os.fs.sub("/reports")
+  save_report(reports, "q1", "numbers")?
+  expect(preview(reports.read_only(), "q1")?) == "numbers"
+}
+
+test "paths cannot leave the sub capability" {
+  let reports = os.fs.sub("/reports")
+  match reports.read_text("../etc/passwd") {
+    Ok(_) => fault("escaped")
+    Err(Denied(_)) => ()
+    Err(e) => fault("unexpected: ${e.display()}")
+  }
+}

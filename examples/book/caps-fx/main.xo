@@ -1,0 +1,20 @@
+/// Runs `f` twice. The effect variable `fx` is whatever `f` does, so `twice` does the same.
+pub fn twice[fx: Effects](f: fn() -> () uses fx) -> () uses fx {
+  f()
+  f()
+}
+
+fn shout(out: Stdio, word: Str) uses stdio {
+  out.println("${word.to_upper()}!")
+}
+
+fn main(os: Os) {
+  // `twice` of a pure closure is pure; `twice` of a printing closure prints
+  twice(fn() { let _ = "x".to_upper() })
+  twice(fn() { shout(os.stdio, "hi") })
+}
+
+test "twice passes the effects through" {
+  twice(fn() { shout(os.stdio, "go") })
+  expect(os.stdio.output()) == "GO!\nGO!\n"
+}

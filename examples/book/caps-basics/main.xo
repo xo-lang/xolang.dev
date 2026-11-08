@@ -1,0 +1,40 @@
+/// Pure: no `uses` clause, so it cannot touch the outside world.
+pub fn parse_pair(line: Str) -> (Str, Str)? {
+  let (k, v) = line.cut("=")?
+  (k.trim(), v.trim())
+}
+
+/// Reads one file: the signature says so, and the caller must hand over an `Fs`.
+pub fn count_keys(fs: Fs, path: Str) -> Int ! FsErr uses fs.read {
+  let text = fs.read_text(path)?
+  var n = 0
+  for line in text.lines() {
+    if parse_pair(line) is Some(_) {
+      n += 1
+    }
+  }
+  n
+}
+
+/// Reads the clock and prints: both effects are in the signature.
+pub fn stamp(clock: Clock, out: Stdio, msg: Str) uses (clock, stdio) {
+  out.println("${clock.now().unix()}: ${msg}")
+}
+
+fn main(os: Os) {
+  os.stdio.println("pure: ${parse_pair("port = 8080"):?}")
+  match count_keys(os.fs, "no-such-file.conf") {
+    Ok(n) => os.stdio.println("keys: ${n}")
+    Err(e) => os.stdio.println("could not read: ${e.display()}")
+  }
+}
+
+test "count_keys reads the fake file system" {
+  os.fs.write("app.conf", b"a = 1\nb = 2\nnot a pair\n")?
+  expect(count_keys(os.fs, "app.conf")?) == 2
+}
+
+test "stamp reads the virtual clock" {
+  stamp(os.clock, os.stdio, "hello")
+  expect(os.stdio.output()) == "1767225600: hello\n"
+}

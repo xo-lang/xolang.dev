@@ -21,6 +21,17 @@
     </ul>
   </div>
   {{- end }}
+  {{- with site.GetPage "/docs/book" }}
+  <div class="group">
+    <h4>Book</h4>
+    <ul>
+      <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
+      {{- range $i, $p := .RegularPages }}
+      <li><a href="{{ $p.RelPermalink }}"{{ if eq $cur $p }} class="active"{{ end }}>{{ add $i 1 }}. {{ $p.LinkTitle }}</a></li>
+      {{- end }}
+    </ul>
+  </div>
+  {{- end }}
   <div class="group">
     <h4>Reference</h4>
     <ul>
@@ -29,6 +40,9 @@
       {{- range .RegularPages }}
       <li><a href="{{ .RelPermalink }}"{{ if eq $cur . }} class="active"{{ end }}>{{ .LinkTitle }}</a></li>
       {{- end }}
+      {{- end }}
+      {{- with site.GetPage "/docs/stdlib" }}
+      <li><a href="{{ .RelPermalink }}"{{ if or (eq $cur .) (eq $cur.Parent .) }} class="active"{{ end }}>Std reference</a></li>
       {{- end }}
       {{- with site.GetPage "/docs/diagnostics" }}
       <li><a href="{{ .RelPermalink }}"{{ if or (eq $cur .) (eq $cur.Parent .) }} class="active"{{ end }}>Diagnostic codes</a></li>
