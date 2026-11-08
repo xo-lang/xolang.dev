@@ -22,7 +22,7 @@ prints the explanation below in a terminal.
 | [`XO0156`](xo0156/) | error | lexer | `${` without a matching `}` in the same string |
 | [`XO0157`](xo0157/) | error | lexer | `${}` with no expression |
 | [`XO0158`](xo0158/) | error | lexer | `use` not followed by a valid import path |
-| [`XO0160`](xo0160/) | error | parser | a token that does not fit the grammar here |
+| [`XO0160`](xo0160/) | error | parser, checker | a token that does not fit the grammar here; the checker reports a struct literal's field written `name` alone or its `..`, or a list literal's `..`, which only a destructuring assignment's target takes (decision 0538) |
 | [`XO0161`](xo0161/) | error | parser | list element followed by a newline instead of a comma (core 1.3) |
 | [`XO0162`](xo0162/) | error | parser | `else` must be on the line of the closing brace (core 1.3) |
 | [`XO0163`](xo0163/) | error | parser | unparenthesized struct literal in a condition (core 1.4) |
@@ -53,7 +53,7 @@ prints the explanation below in a terminal.
 | [`XO0209`](xo0209/) | error | checker | an expression statement discards the result of a call that only computes it, such as `xs.reverse()` (core 2.6) |
 | [`XO0301`](xo0301/) | error | checker | match does not cover every case (core 2.3) |
 | [`XO0302`](xo0302/) | error | checker | pattern does not fit the type of the matched value (core 3.5) |
-| [`XO0303`](xo0303/) | error | checker | refutable pattern where an irrefutable one is required (core 3.5) |
+| [`XO0303`](xo0303/) | error | checker | refutable pattern where an irrefutable one is required (core 3.5), and an assignment's list target other than `[..]` (core 5.2, decision 0538) |
 | [`XO0304`](xo0304/) | error | checker | alternatives of an or pattern bind different names or types (core 3.5) |
 | [`XO0305`](xo0305/) | warning | checker | `_` arm hides variants of an enum declared in this module (core 3.5) |
 | [`XO0401`](xo0401/) | error | checker | value of the wrong type; only three implicit conversions exist (core 2.10) |
@@ -68,13 +68,13 @@ prints the explanation below in a terminal.
 | [`XO0410`](xo0410/) | error | checker | reading a Map by index; use `get` or `get_or_fault` (core 3.6) |
 | [`XO0411`](xo0411/) | error | checker | two fields have one wire key under a derive the struct has (core 2.2, decision 0277) |
 | [`XO0412`](xo0412/) | error | checker | empty wire name, `as ""` (core 2.2) |
-| [`XO0413`](xo0413/) | error | checker | unknown derive argument or `case:` value, or an argument on a derive that takes none (core 2.2) |
+| [`XO0413`](xo0413/) | error | checker | unknown derive argument or `case:` or `match:` value, or an argument on a derive that takes none (core 2.2) |
 | [`XO0414`](xo0414/) | warning | checker | a wire name on a struct with no derive that maps fields to keys (core 2.2) |
 | [`XO0415`](xo0415/) | error | checker | a top-level constant's initializer performs an effect (core 3.1, decision 0332) |
 | [`XO0416`](xo0416/) | error | checker | a constant's value holds a handle (`Mutex`, `Chan`, `Atomic`, `Task`, a file) (core 3.1, decision 0332) |
 | [`XO0420`](xo0420/) | error | checker | constant std/time layout is invalid: unknown field, bad field form, or stray brace (std.md 13.3) |
 | [`XO0421`](xo0421/) | error | checker | integer literal does not fit the integer type it takes in context (1.6) |
-| [`XO0422`](xo0422/) | error | checker | unknown wire name option; the only one is `omitempty` (core 2.2, decision 0309) |
+| [`XO0422`](xo0422/) | error | checker | unknown or repeated wire name option; the options are `omitempty` and `string` (core 2.2, decisions 0309, 0555); for `derive Proto`, a bad field number, a repeated number or an unknown option (decision 0530) |
 | [`XO0423`](xo0423/) | error | checker | a field has two wire strings for one format (`json "a" json "b"`) (core 2.2, decision 0315) |
 | [`XO0424`](xo0424/) | error | checker | a format's wire string (`json`, `sql`, `xml`) on a struct that does not derive that format (core 2.2, decision 0315) |
 | [`XO0425`](xo0425/) | error | checker | a field type, a type parameter list, or a nested struct that `derive Xml` cannot map (core 2.9, decision 0315) |
@@ -89,6 +89,8 @@ prints the explanation below in a terminal.
 | [`XO0434`](xo0434/) | error | checker | a variant with fields in a valued enum that is not its catch-all: the catch-all is the last variant, with one field of the value type and no value (core 2.3, decision 0493) |
 | [`XO0435`](xo0435/) | error | checker | a valued enum's catch-all built from a constant that a named variant has (`StorageClass.Unknown("STANDARD")`): a second spelling of that variant, unequal to it (core 2.3, decision 0493) |
 | [`XO0436`](xo0436/) | error | checker | `for` over a type with `next()` whose `?` does not match it: `for x in v` where `next()` can fail (write `for x? in v`), `for x? in v` where it cannot or over a builtin iteration, or a `next()` that does not return `T?` (core 3.5, decision 0494) |
+| [`XO0437`](xo0437/) | error | checker | the `string` wire option on a field that is not a Bool, integer, float or Str, or an Option of one (core 2.2, decision 0555) |
+| [`XO0438`](xo0438/) | warning | checker | an argument of a `log.debug`, `log.info`, `log.warn` or `log.error` call (or a Logger's) performs an effect other than `log`; it runs only when the record is at or above the configured level (decision 0558, std.md 6) |
 | [`XO0501`](xo0501/) | error | checker | var method called on a non var binding (core 3.4) |
 | [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | [`XO0503`](xo0503/) | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -102,6 +104,7 @@ prints the explanation below in a terminal.
 | [`XO0536`](xo0536/) | note | vet | a collection copied out of a list element, changed, and stored back, so its first change copies all of it; change the element in place (core 5.1, decision 0294) |
 | [`XO0537`](xo0537/) | warning | vet | retired, never reported; was: a by value receiver read before an argument that changes it; decision 0326 defines that order, so the check is gone (the code stays reserved) |
 | [`XO0538`](xo0538/) | warning | vet | a `var` local written after a closure that reads it was created and before the closure is used: the closure keeps the value from its creation (core 5.1) |
+| [`XO0539`](xo0539/) | error | checker | a destructuring assignment names the same place twice (core 5.2, decision 0536) |
 | [`XO0540`](xo0540/) | warning | checker | a `Mutex.with` closure writes its `var` value, then a path returns `Err`, which undoes the write (core 5.4) |
 | [`XO0601`](xo0601/) | error | checker | name does not resolve (core 4.3) |
 | [`XO0602`](xo0602/) | error | checker | import path does not yield a valid local name (core 4.1) |
@@ -178,11 +181,12 @@ prints the explanation below in a terminal.
 | [`XO1507`](xo1507/) | error | checker | an `embed` path leaves the module: absolute, `..`, `.`, an empty segment, or a symbolic link (decision 0304) |
 | [`XO1508`](xo1508/) | error | checker | a `Str` embed constant's file is not valid UTF-8; declare it `Bytes` (decision 0304) |
 | [`XO1509`](xo1509/) | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
-| [`XO1510`](xo1510/) | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise); rebuild with `XO_BACKEND_CACHE=off` and report it |
+| [`XO1510`](xo1510/) | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise, or, when it repeats with the cache off, a code generator bug such as a call resolved to the wrong method); rebuild with `XO_BACKEND_CACHE=off` and report it |
 | [`XO1511`](xo1511/) | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
 | [`XO1512`](xo1512/) | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
 | [`XO1513`](xo1513/) | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
 | [`XO1514`](xo1514/) | error | build | a program that calls `http.serve_component` built for wasip1/wasm, which `--backend=wasm` alone is; it builds with `--targets=wasip2/wasm` (decision 0447) |
 | [`XO1515`](xo1515/) | error | build | a program built for wasip2/wasm reaches what its world does not have: processes, or files or sockets in a `wasi:http` component (a command has `wasi:filesystem` since 2026-11-02 and `wasi:sockets` since 2026-11-03); the message names the call and how it is reached (decision 0447); on wasip3/wasm also a program that is not a `wasi:http` component (stage 5) |
 | [`XO1516`](xo1516/) | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447); no longer reported since stage 3 (2026-11-02), when such a program became a `wasi:cli/command` component |
+| [`XO1517`](xo1517/) | error | build | a windows program's resource input that cannot be used: the `--versioninfo` JSON cannot be read or parsed, an `--icon` file cannot be read or is not an icon, a `--manifest` file cannot be read; the message carries goversioninfo's text (decision 0560) |
 {.codes}

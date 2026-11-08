@@ -6,12 +6,12 @@ description: "Syntax and semantics of Xo: types, errors, concurrency, effects, m
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/core.md"
-status: "draft 0.42 (2026-11-06; 0.41 released as toolchain v0.41.0, decision 0089)"
+status: "draft 0.45 (2026-11-08; 0.44 released as toolchain v0.44.0, decision 0089)"
 generated: "scripts/sync-content.py from spec/core.md; edit the source, not this file"
 ---
 # Xo Language Specification (Core)
 
-Status: draft 0.42 (2026-11-06; 0.41 released as toolchain v0.41.0, decision 0089)
+Status: draft 0.45 (2026-11-08; 0.44 released as toolchain v0.44.0, decision 0089)
 Edition: preview (the only edition before 1.0, decision 0155)
 Companion: `spec/std.md` (prelude methods and standard library surface)
 
@@ -20,6 +20,30 @@ web services. It keeps what makes Go productive (few keywords, one obvious way,
 fast builds, static binaries, a strong standard library, a compatibility
 promise) and is designed so that an AI agent can write, check, build, and debug
 programs for any OS with fast, structured, unambiguous feedback.
+
+## Changes in 0.45
+
+None yet.
+
+## Changes in 0.44
+
+- `derive Json(match: fold)` (decision 0550, 2.2): a type's decoder matches
+  keys as Go's encoding/json does (an exact key, else the first declared
+  field whose key folds equal; the last selecting member wins; errors in
+  Go's document order). `match` is accepted as a derive argument name.
+
+## Changes in 0.43
+
+- **Destructuring assignment** (5.2, decision 0536): `(a, b) = (b, a)`
+  and `(q, r) = divmod(x, y)` assign a tuple's elements to existing
+  places, the value first, then each place left to right; `XO0539` for a
+  place named twice.
+- **Struct targets** (5.2, decision 0538): `P{x, y} = p`,
+  `P{x: st.lo, y: xs[i], ..} = p` and `(P{x, y}, n) = (p, 3)` store a
+  struct's fields into existing places by the rules of `let`'s struct
+  pattern. List targets follow `let`'s list patterns (owner,
+  2026-11-06): `[a, b] = xs` is `XO0303`, and `[..] = xs` only
+  evaluates `xs`.
 
 ## Changes in 0.42
 
@@ -749,8 +773,19 @@ pub struct User {
   field out when its value is empty as Go defines it: `None`, `false`, a
   zero number, `""`, or an empty `List`, `Map`, `Set`, or `Bytes`. A
   struct or an enum value is never empty. Decoding is unchanged: a
-  missing key takes the field's default. Another option is `XO0422`.
-  Unlike Go, `as "-"` is the key `-`, not a skipped field.
+  missing key takes the field's default. Another option, or a repeated
+  one, is `XO0422`. Unlike Go, `as "-"` is the key `-`, not a skipped
+  field.
+- The option `string` (decision 0555), `n as "n,omitempty,string": Int?`
+  or `as ",string"`, makes `derive Json` write a scalar field as a JSON
+  string holding the value's literal (`5` as `"5"`, `true` as `"true"`,
+  a `Str` quoted twice as Go does) and read it back the same way: the
+  JSON value must be a string or `null`, and its text exactly a JSON
+  literal of the field's type (an unquoted number is an error, as in
+  Go). `None` is `null`; `omitempty` is decided before quoting. It
+  applies to `Bool`, the integers, `Float`, `Float32`, `Str` and an
+  `Option` of one; on any other field type it is `XO0437` (Go ignores
+  it there).
 - A field may override the shared wire name for one format (decision
   0315), after its name or its `as` string: `json "..."`, `sql "..."`,
   `xml "..."` (`json`, `sql`, and `xml` are contextual words, not
@@ -761,7 +796,7 @@ pub struct User {
   - Examples: `created_at as "createdAt" sql "created": Int?` has the JSON
     key `createdAt` and the column `created`; `note json "memo,omitempty"
     sql "note": Str?` names each format alone.
-  - A `json` string takes `omitempty`. A `sql` string takes no options
+  - A `json` string takes `omitempty` and `string`. A `sql` string takes no options
     (`XO0422` for one). An `xml` string is Go's tag text, for `derive Xml`
     (decision 0315; below, 2.9).
   - A format given twice on a field is `XO0423`. A string for a format the
@@ -773,6 +808,28 @@ pub struct User {
   wins. An unknown argument or case is `XO0413`; two fields with one key
   under a derive the struct has are `XO0411`; a wire name on a struct
   with neither derive is the warning `XO0414`.
+- `derive Json(match: fold)` (decision 0550; `match: exact`, the default,
+  may be written) decodes keys as Go's encoding/json does, on a struct or
+  on an enum for its variants' fields: each member, in document order,
+  selects the field whose key (its name, `as "key"` or `case:` spelling)
+  equals it, else the first declared field whose key folds equal to it
+  (Go's foldName: each rune through `unicode.ToLower` then
+  `unicode.ToUpper`, so `"MAJOR"` and `"major"` select `Major`, the
+  Kelvin sign selects `k`, and `ß` stays `ß`); the last member that
+  selects a field wins. Its errors come in Go's order: every selected
+  member decodes, and the error is the first in document order, a via
+  type's (Go's UnmarshalJSON) before any type error, a missing field's
+  after both. The option is per type: a field's own struct type folds
+  only when it says so. Encoding is unchanged. An unknown `match:` value
+  is `XO0413`.
+
+  ```
+  struct Version {
+    major: Int = 0
+    minor: Int = 0
+  } derive Json(case: pascal, match: fold)
+  // {"major": 1, "MINOR": 2} decodes to Version{major: 1, minor: 2}
+  ```
 
 ### 2.3 Enums (sum types)
 
@@ -914,6 +971,17 @@ pub interface Store {
   interface with its signature (`display` of `Display` or `Error`, `debug`
   of `Debug`), which is callable by name wherever the type is (decision
   0496); other interfaces' methods need `pub`.
+- A `debug` or `display` method with another signature (parameters, an
+  error, another result: a generated client's `debug(project, zone,
+  ...)`) is an ordinary method and implements neither interface: `${x:?}`,
+  `${x}`, a frame and a generic `T: Debug` call give the type's automatic
+  or derived text, and the method is called by name as any other.
+- A method whose parameter type leaves its effect arguments out (`next:
+  Next`, an implicit effect variable, section 6.2) satisfies an interface
+  method whose parameter type writes them (`next: Next[fx]`): the variable
+  takes the interface's argument, as a call instantiates it from its
+  argument, and the method's effects are checked against the interface's
+  `uses` with it (decision 0540).
 - Every derivable name (`Display`, `Ord`, `Json`, ...) is also an interface and
   may be used as a constraint: `fn reply[T: Json](v: T)`.
 
@@ -1135,10 +1203,25 @@ pub struct User { ... } derive Display, Ord, Json, OpenApi
   their `Debug` keeps the variant form.
 - `Json`, `OpenApi`, and `Proto` derives generate codecs and schemas from the
   same declaration so wire formats and docs cannot drift. JSON rules are in
-  `spec/std.md`. **[after 1.0]** `OpenApi` and `Proto` are planned for
-  after 1.0 (owner, 2026-10-09; additive, so not a 1.0 blocker): the
-  derives are reserved, accepted only when every field derives them too
-  (no builtin type implements them yet), and nothing is generated.
+  `spec/std.md`. **[after 1.0]** `OpenApi` is planned for after 1.0 (owner,
+  2026-10-09; additive, so not a 1.0 blocker): the derive is reserved,
+  accepted only when every field derives it too, and nothing is generated.
+- `derive Proto` (decision 0530, accepted 2026-11-06) generates the Protocol
+  Buffers wire codec, read through `protobuf.marshal` and `protobuf.unmarshal`.
+  Every field carries its number as a `proto` tag, `name proto "N": T`, with
+  the options `zigzag` (sint32, sint64) and `fixed` (fixed and sfixed types)
+  after a comma. A field of type Int, Int32, UInt32, UInt64, Float, Float32,
+  Bool, Str, Bytes, an Int valued enum of the same file, or a struct that
+  derives Proto maps to the scalar or message of that name; an Option is a
+  field with explicit presence, a List is repeated (numbers and Bool packed,
+  the reader accepts both forms), and a Map keyed by Int, Str or Bool is a
+  map field. An enum with one payload field per variant (`Circle as "2"(r: Int)`)
+  is a oneof, held in a field tagged `proto "oneof"` of type `Enum?`. One
+  `Bytes` field tagged `proto "unknown"` keeps the fields the reader did not
+  know. Output is wire identical to Go's `proto.Marshal` with deterministic
+  map order; a wire type that does not match a field is read as unknown, as
+  in Go. `XO0422` is a missing, repeated or reserved number or an unknown
+  option, `XO0425` a field type the derive cannot map.
 - `SqlRow` (structs only) generates a decoder from a std/sql row: each field
   is read from the column of the same name, or of its wire name or
   `case:` rule (2.2; `spec/std.md` 10.4).
@@ -1480,8 +1563,9 @@ warning names at most 8 hidden variants, then how many more (decision 0080).
 An `UpperCamel` name in a pattern always refers to a variant; bindings are
 `snake_case` (1.5), so the two never collide.
 `let` requires an irrefutable pattern (`let (a, b) = pair`), and so does
-`var` with a pattern (`var (a, b) = pair`, `var [first, ..] = xs`,
-`var Point{x, y} = p`; decision 0384): every name it binds is mutable,
+`var` with a pattern (`var (a, b) = pair`, `var Point{x, y} = p`;
+decision 0384; a list pattern other than `[..]` can fail, `[]` not
+matching, so it is `XO0303` here): every name it binds is mutable,
 as one `var` per name would be.
 
 ### 3.6 Indexing and slicing
@@ -2182,8 +2266,12 @@ fn main(os: Os) {
   parameter is a `Str` (copied and NUL terminated) and a `const char *`
   result a `Str` (copied; NULL is ""); a const byte pointer followed by an
   integer length parameter is one `Str` (`const char *`) or `Bytes`
-  parameter; a struct of such scalars passed or returned by value is an Xo
-  struct with the same fields, copied; a pointer to a struct the header
+  parameter; a struct of exactly a const byte pointer then an integer
+  (`struct buf { const void *p; int64_t n; }`) returned by value is a
+  `Bytes` result (the n bytes at p copied, NUL bytes kept; a NULL p is
+  empty), since a `const char *` result stops at its first NUL; a struct
+  of such scalars passed or returned by value is an Xo struct with the
+  same fields, copied; a pointer to a struct the header
   declares but does not define is an opaque handle type (a result is
   `T?`, None for NULL). Handles are not comparable (2.9) and Xo never frees
   them: call the library's free function. Anything else (output
@@ -2274,6 +2362,38 @@ never depend on it, but the time does:
   (`+=`, `-=`, ...) reads the target's old value after the value, so
   `t.n += t.bump()` keeps what `bump` changed in `t`, `n` included
   (decision 0159).
+- **Destructuring assignment** (decision 0536): `(a, b) = v` stores the
+  elements of the tuple `v` into the places `a` and `b`, which may be
+  bindings, fields, list and map elements, nested tuples of places, or `_`
+  (the element is dropped). `v` is evaluated first and in full, then each
+  place's indexes are evaluated and its element stored, left to right
+  (Python's order), so `(a, b) = (b, a)` swaps and
+  `(xs[i], ys[i]) = bump(i)` with a `var i` changed by `bump` stores at
+  the new `i`. Each place follows the rules of a single assignment
+  (`XO0502` per place); the value is checked against the tuple of the
+  places' types, so `(n, s) = (0, "")` with `n: Int32` types `0` as
+  `Int32`. Naming the same place twice (`(a, a) = ...`, `(p.x, p.x)`,
+  `(xs[i], xs[i])`) is `XO0539`. Compound assignment takes one target.
+- **Struct targets** (decision 0538): `P{x, y} = p` stores the fields of
+  the struct value `p` into places, by the rules of `let`'s struct
+  pattern (3.5): each field is `name: place`, `name` alone (the binding
+  `name`), `name: _`, or a nested tuple or struct target, every field is
+  named unless the target ends in `..`, and `P` must be the value's type
+  (`XO0302` for a type that is not a struct or a field not named,
+  `XO0401` for a value of another type or a field whose type does not fit
+  its place). The value is evaluated first, then each named field is
+  stored left to right, as for a tuple: `P{x: y, y: x} = P{x: x, y: y}`
+  swaps. The shorthand `name` and `..` belong to targets and patterns
+  only: in a struct literal they are `XO0160`.
+- **List targets** (decision 0538, owner 2026-11-06): a list shaped
+  target follows the rule of `let`'s list patterns (3.5), which must
+  match every value: a list's length is not known until it runs, so
+  `[a, b] = xs`, `[a, ..] = xs` and `[] = xs` are `XO0303`, alone or
+  nested in a tuple or struct target. `[..] = v` matches every list: it
+  evaluates `v`, in order with the target's other places, and stores
+  nothing. A list of a given length is matched with `if let [a, b] = xs`
+  or `match`, or its elements assigned by index. A trailing `..` in a
+  list literal is `XO0160`.
 - A call evaluates the place of a `var` receiver or `var` argument, then
   every argument in order, then reads those places (decision 0142):
   `t.get(t.add(v))` on a `var t` sees the item `add` pushed, and
@@ -2538,7 +2658,13 @@ pub fn sync(src: Fs, out: Stdio) -> () ! SyncErr uses fs.read, stdio { ... }
   - In a local binding they are inferred from the value.
   - In parameter and receiver types they become implicit effect variables of
     the function. These count as declared: the function may perform them
-    without naming them in `uses`.
+    without naming them in `uses`. When a method is checked against an
+    interface, they take the interface method's arguments (section 2.4).
+    Such a variable is abstract, so a closure capturing the value cannot
+    have a function type that fixes its effects (`fn(...) uses net.dial`):
+    XO0701 then names the parameter, and `xo fix` writes the argument as
+    no effects (`sql.Db[()]`, what a value performing none has), then on
+    each caller passing the value along.
   - In result and error types they are inferred from the function body, so a
     constructor `fn new_cache(...) -> Cache[Int, Item]` returns the effects of
     the loader it was given.
@@ -3243,7 +3369,7 @@ without `--no-gc` until then) or *impossible* (code from a `use go` package
 needs Go's runtime). A program the check accepts builds; the check is
 derived from the native code generator itself, so the two cannot disagree.
 `xo check` runs the same check without building, by default (decision
-0523; every function of the named modules, a library's too). Native builds have their own
+0523; every function and test block of the named modules, a library's too). Native builds have their own
 deterministic scheduler for `--seed` and `--explore` (7.4, decision 0350);
 recording (`--record`) is the Go backend's only (decision 0083). `xo test --no-gc` builds a
 native test binary and runs each test in a process of its own against the
@@ -3468,7 +3594,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0156` | error | lexer | `${` without a matching `}` in the same string |
 | `XO0157` | error | lexer | `${}` with no expression |
 | `XO0158` | error | lexer | `use` not followed by a valid import path |
-| `XO0160` | error | parser | a token that does not fit the grammar here |
+| `XO0160` | error | parser, checker | a token that does not fit the grammar here; the checker reports a struct literal's field written `name` alone or its `..`, or a list literal's `..`, which only a destructuring assignment's target takes (decision 0538) |
 | `XO0161` | error | parser | list element followed by a newline instead of a comma (core 1.3) |
 | `XO0162` | error | parser | `else` must be on the line of the closing brace (core 1.3) |
 | `XO0163` | error | parser | unparenthesized struct literal in a condition (core 1.4) |
@@ -3499,7 +3625,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0209` | error | checker | an expression statement discards the result of a call that only computes it, such as `xs.reverse()` (core 2.6) |
 | `XO0301` | error | checker | match does not cover every case (core 2.3) |
 | `XO0302` | error | checker | pattern does not fit the type of the matched value (core 3.5) |
-| `XO0303` | error | checker | refutable pattern where an irrefutable one is required (core 3.5) |
+| `XO0303` | error | checker | refutable pattern where an irrefutable one is required (core 3.5), and an assignment's list target other than `[..]` (core 5.2, decision 0538) |
 | `XO0304` | error | checker | alternatives of an or pattern bind different names or types (core 3.5) |
 | `XO0305` | warning | checker | `_` arm hides variants of an enum declared in this module (core 3.5) |
 | `XO0401` | error | checker | value of the wrong type; only three implicit conversions exist (core 2.10) |
@@ -3514,13 +3640,13 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0410` | error | checker | reading a Map by index; use `get` or `get_or_fault` (core 3.6) |
 | `XO0411` | error | checker | two fields have one wire key under a derive the struct has (core 2.2, decision 0277) |
 | `XO0412` | error | checker | empty wire name, `as ""` (core 2.2) |
-| `XO0413` | error | checker | unknown derive argument or `case:` value, or an argument on a derive that takes none (core 2.2) |
+| `XO0413` | error | checker | unknown derive argument or `case:` or `match:` value, or an argument on a derive that takes none (core 2.2) |
 | `XO0414` | warning | checker | a wire name on a struct with no derive that maps fields to keys (core 2.2) |
 | `XO0415` | error | checker | a top-level constant's initializer performs an effect (core 3.1, decision 0332) |
 | `XO0416` | error | checker | a constant's value holds a handle (`Mutex`, `Chan`, `Atomic`, `Task`, a file) (core 3.1, decision 0332) |
 | `XO0420` | error | checker | constant std/time layout is invalid: unknown field, bad field form, or stray brace (std.md 13.3) |
 | `XO0421` | error | checker | integer literal does not fit the integer type it takes in context (1.6) |
-| `XO0422` | error | checker | unknown wire name option; the only one is `omitempty` (core 2.2, decision 0309) |
+| `XO0422` | error | checker | unknown or repeated wire name option; the options are `omitempty` and `string` (core 2.2, decisions 0309, 0555); for `derive Proto`, a bad field number, a repeated number or an unknown option (decision 0530) |
 | `XO0423` | error | checker | a field has two wire strings for one format (`json "a" json "b"`) (core 2.2, decision 0315) |
 | `XO0424` | error | checker | a format's wire string (`json`, `sql`, `xml`) on a struct that does not derive that format (core 2.2, decision 0315) |
 | `XO0425` | error | checker | a field type, a type parameter list, or a nested struct that `derive Xml` cannot map (core 2.9, decision 0315) |
@@ -3535,6 +3661,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0434` | error | checker | a variant with fields in a valued enum that is not its catch-all: the catch-all is the last variant, with one field of the value type and no value (core 2.3, decision 0493) |
 | `XO0435` | error | checker | a valued enum's catch-all built from a constant that a named variant has (`StorageClass.Unknown("STANDARD")`): a second spelling of that variant, unequal to it (core 2.3, decision 0493) |
 | `XO0436` | error | checker | `for` over a type with `next()` whose `?` does not match it: `for x in v` where `next()` can fail (write `for x? in v`), `for x? in v` where it cannot or over a builtin iteration, or a `next()` that does not return `T?` (core 3.5, decision 0494) |
+| `XO0437` | error | checker | the `string` wire option on a field that is not a Bool, integer, float or Str, or an Option of one (core 2.2, decision 0555) |
+| `XO0438` | warning | checker | an argument of a `log.debug`, `log.info`, `log.warn` or `log.error` call (or a Logger's) performs an effect other than `log`; it runs only when the record is at or above the configured level (decision 0558, std.md 6) |
 | `XO0501` | error | checker | var method called on a non var binding (core 3.4) |
 | `XO0502` | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
 | `XO0503` | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
@@ -3548,6 +3676,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0536` | note | vet | a collection copied out of a list element, changed, and stored back, so its first change copies all of it; change the element in place (core 5.1, decision 0294) |
 | `XO0537` | warning | vet | retired, never reported; was: a by value receiver read before an argument that changes it; decision 0326 defines that order, so the check is gone (the code stays reserved) |
 | `XO0538` | warning | vet | a `var` local written after a closure that reads it was created and before the closure is used: the closure keeps the value from its creation (core 5.1) |
+| `XO0539` | error | checker | a destructuring assignment names the same place twice (core 5.2, decision 0536) |
 | `XO0540` | warning | checker | a `Mutex.with` closure writes its `var` value, then a path returns `Err`, which undoes the write (core 5.4) |
 | `XO0601` | error | checker | name does not resolve (core 4.3) |
 | `XO0602` | error | checker | import path does not yield a valid local name (core 4.1) |
@@ -3624,13 +3753,14 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1507` | error | checker | an `embed` path leaves the module: absolute, `..`, `.`, an empty segment, or a symbolic link (decision 0304) |
 | `XO1508` | error | checker | a `Str` embed constant's file is not valid UTF-8; declare it `Bytes` (decision 0304) |
 | `XO1509` | error | checker | `embed` used other than as the initializer of a constant typed `Str`, `Bytes`, or `embed.Dir`, with one plain string literal (decision 0304) |
-| `XO1510` | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise); rebuild with `XO_BACKEND_CACHE=off` and report it |
+| `XO1510` | error | build | a function the native backends are about to generate disagrees with this build's definitions: a call's argument or result types, a closure, or a field or payload access do not match the callee or type (decision 0342: a stale cached piece, such as a front end body naming a helper this build defines otherwise, or, when it repeats with the cache off, a code generator bug such as a call resolved to the wrong method); rebuild with `XO_BACKEND_CACHE=off` and report it |
 | `XO1511` | warning | checker | `read`, `read_text`, or `contains` on an `embed.Dir` constant, or a literal `.sub` of one, with a literal path it holds no file at; a key ending in the path is offered as a fix (decision 0304) |
 | `XO1512` | error | build | under `XO_BACKEND_CACHE=verify`, a build, run, or test the run cache would have served differs from its rebuild, in the binary or in what the build printed: an input the entry does not list, or a build that is not reproducible (decision 0360) |
 | `XO1513` | error | build | a command the WASI build of xo (`xo` built for wasip1/wasm) does not offer: it needs a process, a socket or a system tool that WASI preview1 does not have (`run`, `test`, `serve`, `get`, `build --backend=llvm`, ...); printed as `xo: COMMAND is not available in the WASI build`, exit status 2 (decision 0405) |
 | `XO1514` | error | build | a program that calls `http.serve_component` built for wasip1/wasm, which `--backend=wasm` alone is; it builds with `--targets=wasip2/wasm` (decision 0447) |
 | `XO1515` | error | build | a program built for wasip2/wasm reaches what its world does not have: processes, or files or sockets in a `wasi:http` component (a command has `wasi:filesystem` since 2026-11-02 and `wasi:sockets` since 2026-11-03); the message names the call and how it is reached (decision 0447); on wasip3/wasm also a program that is not a `wasi:http` component (stage 5) |
 | `XO1516` | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447); no longer reported since stage 3 (2026-11-02), when such a program became a `wasi:cli/command` component |
+| `XO1517` | error | build | a windows program's resource input that cannot be used: the `--versioninfo` JSON cannot be read or parsed, an `--icon` file cannot be read or is not an icon, a `--manifest` file cannot be read; the message carries goversioninfo's text (decision 0560) |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.

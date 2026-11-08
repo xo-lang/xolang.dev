@@ -6,12 +6,12 @@ description: "Prelude methods and the standard library surface."
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/std.md"
-status: "draft 0.42 (2026-11-06; the same draft number as `spec/core.md`, decision 0089)"
+status: "draft 0.45 (2026-11-08; the same draft number as `spec/core.md`, decision 0089)"
 generated: "scripts/sync-content.py from spec/std.md; edit the source, not this file"
 ---
 # Xo Standard Library and Prelude
 
-Status: draft 0.42 (2026-11-06; the same draft number as `spec/core.md`, decision 0089)
+Status: draft 0.45 (2026-11-08; the same draft number as `spec/core.md`, decision 0089)
 Companion to `spec/core.md`.
 
 Signatures are written in Xo syntax. `[var]` before a receiver means the method
@@ -496,6 +496,7 @@ struct DurationErr { input: Str }  // displays as `invalid duration "1x": expect
 Time.UNIX_EPOCH: Time
 Time.from_unix(secs: Int) -> Time
 Time.from_unix_millis(ms: Int) -> Time
+Time.rfc3339_offset(s: Str) -> Duration?   // the offset the text carries (Go's Zone() of time.Parse; Z is zero), None when parse_rfc3339 is None
 Time.parse_rfc3339(s: Str) -> Time?   // None for text that is not RFC 3339 or a time outside Time's range (1677-09-21 to 2262-04-11, int64 nanoseconds since 1970; decision 0364)
 fn (t: Time) unix() -> Int
 fn (t: Time) unix_millis() -> Int
@@ -582,6 +583,9 @@ write); `peek` and `find` copy when the bytes they cover span pieces. A count `n
 first (`put_le`) or highest first (`put_be`), the rest of `v` dropped. `n` is
 1, 2, 4 or 8 and the range must lie within `len()`; any other `n`, or a range
 outside, is a fault. The length does not change and nothing is copied.
+`write_le` and `write_be` (decision 0561) append the low `n` bytes of `v`
+instead (Go's `binary.LittleEndian.AppendUint64` cut to `n`), lowest or
+highest first; `n` is 0 to 8, any other is a fault.
 
 A fault that unwinds out of a `with` closure poisons the mutex (core 5.4,
 decision 0482): from then on `with` and `with_read` fault with `XO-F010`.
@@ -836,6 +840,7 @@ test binary's MemFs has all of them, as on the Go backend, since
 fn (f: Fs) open(path: Str) -> File ! FsErr        uses fs.read   // read as a stream
 fn (f: Fs) create(path: Str) -> File ! FsErr      uses fs.write  // write; created or truncated
 fn (f: Fs) open_append(path: Str) -> File ! FsErr uses fs.write  // write at the end; created if missing
+fn (f: Fs) open_rw(path: Str) -> File ! FsErr     uses fs.write  // read and write; created if missing, not truncated (Go's O_RDWR|O_CREATE)
 fn (f: Fs) create_new(path: Str) -> File ! FsErr  uses fs.write  // write a new file: Exists(path) if anything is there (O_EXCL; a symbolic link counts)
 fn (f: Fs) append(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 fn (f: Fs) copy(from: Str, to: Str) -> () ! FsErr uses fs        // contents and permission bits
@@ -852,6 +857,9 @@ fn (f: File) read(max: Int) -> Bytes? ! FsErr     uses fs.read   // None at the 
 fn (f: File) read_line() -> Str? ! FsErr          uses fs.read   // without \n or \r\n
 fn (f: File) read_at(offset: Int, max: Int) -> Bytes? ! FsErr uses fs.read   // decision 0479: Go's ReadAt once; position untouched; None at the end
 fn (f: File) write(data: Bytes) -> () ! FsErr     uses fs.write
+fn (f: File) write_at(offset: Int, data: Bytes) -> () ! FsErr uses fs.write   // Go's WriteAt: every byte, position untouched, a gap reads as zeros; an open_append file is an error
+fn (f: File) truncate(size: Int) -> () ! FsErr    uses fs.write   // Go's Truncate: cut or zero padded, position unchanged
+fn (f: File) stat() -> FileInfo ! FsErr           uses fs.read    // Go's File.Stat: from the handle
 fn (f: File) sync() -> () ! FsErr                 uses fs.write   // fsync (F_FULLFSYNC on macOS)
 fn (f: File) close() -> () ! FsErr                               // closing again does nothing
 struct FileLock {}                                // handle
@@ -875,7 +883,12 @@ fn count_errors(fs: Fs, path: Str) -> Int ! FsErr uses fs.read {
 - A `File` is opened for reading (`open`) or writing (`create`,
   `open_append`); the other kind of operation is `Io(path, "file is open
   for reading")` (or writing). `read` returns at most `max` bytes (at
-  most 1 MiB), `None` at the end. Operations after `close` are `Io(path,
+  most 1 MiB), `None` at the end. `open_rw` opens for both: its reads are
+  not buffered, so `read`, `read_line` and `write` share one position as
+  Go's `os.File` (a wasm build buffers reads, so there a read after a
+  write on one handle should be a `read_at`); on MemFs its reads see the
+  file's current contents. A custom `Fs` implements `open_rw` too.
+  Operations after `close` are `Io(path,
   "file already closed")`. Writes are not buffered by Xo: each `write`
   reaches the OS. Handles are not recorded by record and replay yet.
 - `open` of a directory is `IsDir`. `create` and `open_append` do not
@@ -1025,7 +1038,11 @@ there) and `None` at the end of the stream; `write` returns when every
 byte is written. All three are cancellation points that report
 cancellation as `Canceled` (core 7.2). `close` is idempotent and makes a
 waiting `accept`, `read`, or `write` on the same listener or connection
-fail with `Io`. A refused `dial` is `Refused`. `dial` gives up after 30
+fail with `Io`. A connection or listener dropped open (its last use
+passed, core 5.5) is closed at the drop natively, so its peer reads the
+end of the stream; on the Go backend only when it is collected (a
+FakeNet one never). Keep the value used, or `close` it, while the peer
+should see it open. A refused `dial` is `Refused`. `dial` gives up after 30
 seconds with `Io` (`dial tcp ADDR: i/o timeout`); `dial_timeout(addr, d)`
 gives up after `d`, over the lookup and the connect, with `Timeout`
 (decision 0406).
@@ -1045,9 +1062,11 @@ Deadlines (decision 0430) are Go's net.Conn deadlines.
 - Deadlines never cancel: cancellation stays `Canceled` (core 7.2), and
   a `task.with_timeout` around the call still cancels it.
 - On FakeNet's in-memory connections, a deadline already passed fails at
-  once, and a waiting read is woken by its deadline (the virtual clock
-  moves to it; 2026-11-05, it deadlocked before); a waiting write is not
-  woken by one.
+  once, and a waiting read or write is woken by its deadline, on every
+  backend: the test's virtual clock moves to it (native reads since
+  2026-11-05; Go backend reads and writes and native writes since
+  2026-11-07, which before deadlocked with "no timer is pending" or never
+  woke).
 - They are on the concrete types, not on `Stream` (decision 0430).
 
 Names (decision 0406): `lookup_host(host)` returns host's addresses as
@@ -1670,6 +1689,7 @@ struct TlsState {                             // Go's tls.ConnectionState
 fn (r: Request) raw_query() -> Str            // Go's URL.RawQuery
 fn (r: Request) escaped_path() -> Str         // Go's URL.EscapedPath
 pub fn redirect(req: Request, url: Str, status: Int) -> Response   // Go's Redirect: Location resolved against the path, an HTML body on GET
+pub fn status_text(code: Int) -> Str   // Go's http.StatusText: `Not Found` for 404; empty for a code Go does not name
 pub fn error_page(status: Int, msg: Str) -> Response                // Go's Error: text/plain, nosniff, msg and a newline
 pub fn error_html(status: Int, title: Str, detail: Str) -> Response   // text/html (nosniff): the title in <title> and <h1>, the detail in <p>, both escaped
 pub fn not_found() -> Response                                      // Go's NotFound   // every field of name, in order (decision 0288); found the way header is
@@ -2139,7 +2159,28 @@ fn (s: Server) with_tls(certs: List[TlsCert]) -> Server
 fn (s: Server) with_client_auth(mode: tls.ClientAuth, roots: tls.Roots? = None) -> Server
 fn (c: Client) with_roots(pem: Bytes) -> Client ! TlsErr
 fn (c: Client) with_cert(cert: TlsCert) -> Client
+fn (c: Client) with_server_name(name: Str) -> Client
+fn (c: Client) with_verify_conn(f: fn(List[x509.Certificate]) -> () ! Str) -> Client
+fn (c: Client) with_verify(v: tls.Verify) -> Client
+struct TlsOptions { server_name: Str, verify_conn: Bool, custom_roots: Bool, client_cert: Bool, verify: tls.Verify }
+fn (c: Client) tls_options() -> TlsOptions
+fn (r: Request) with_host(host: Str) -> Request
 ```
+
+`with_server_name(name)` is Go's `tls.Config.ServerName`: the SNI and the name the certificate is verified against, in
+place of the URL's host ("" keeps the URL's). `with_verify_conn(f)` is `tls.Config.VerifyConnection`: `f` gets the server's
+certificates (leaf first) after the handshake and the verification mode's own check, before any request byte; an `Err`
+text fails the connection with that text; it runs once per new connection. A client with a server name or hook is its own
+pool key. `Request.with_host(host)` is Go's `Request.Host`: the Host of HTTP/1.1 and the `:authority` of HTTP/2 for the
+first host's requests, while the connection and the TLS name stay the URL's (decision 0541).
+
+`with_verify(v)` selects how https checks the server's certificate (Go's `InsecureSkipVerify` for `Verify.None`;
+`Verify.ChainOnly` checks the chain against the roots but not the name; the default is `Verify.Full`). It is UNSAFE
+alone: `Verify.None` accepts any certificate, so a request on a `Verify.None` client without a `with_verify_conn` fails
+("tls: Verify.None needs a verify_conn (an unverified connection must be pinned)"); pair it with a pin
+(`tls.pin_sha256`, `tls.pin_sha1`) for a self signed server whose certificate is known only by its digest. A client with a
+mode has its own pool key; `with_roots` keeps the server name, hook and mode, so the call order of the four does not
+matter. A wasi:http component's host does TLS, so there `with_verify` has no effect.
 
 ```
 fn serve_https(os: Os, r: http.Router) -> () ! Error uses (fs.read, net.listen) {
@@ -2316,7 +2357,7 @@ pub fn decode[T: Json](data: Bytes) -> T ! DecodeErr
 pub fn decode_str[T: Json](s: Str) -> T ! DecodeErr
 pub fn encode_indent[T: Json](v: T, prefix: Str = "", indent: Str = "  ") -> Bytes      // Go's MarshalIndent
 pub fn encode_indent_str[T: Json](v: T, prefix: Str = "", indent: Str = "  ") -> Str
-pub fn indent(text: Str, prefix: Str = "", indent: Str = "  ") -> Str ! DecodeErr      // Go's Indent over a text
+pub fn indent(text: Str, prefix: Str = "", indent: Str = "  ") -> Str ! DecodeErr      // Go's Indent over a text (the whitespace after the value is kept)
 pub fn compact(text: Str) -> Str ! DecodeErr                                            // Go's Compact
 
 struct DecodeErr { path: Str, msg: Str }    // displays as "at $.user.email: expected string"
@@ -2331,6 +2372,7 @@ fn (p: Patch[T]) apply_opt(current: T?) -> T? // Absent keeps, Null clears, Valu
 | Xo | JSON |
 |---|---|
 | struct | object, keys are field names, or a field's wire name (`kind as "type": Str`), or the `derive Json(case: camel \| pascal \| kebab \| snake)` rule (core 2.2, decision 0277) |
+| `derive Json(match: fold)` struct or enum | keys matched as Go's encoding/json does: an exact key, else the first declared field whose key folds equal; the last selecting member wins; errors in Go's document order (core 2.2, decision 0550) |
 | newtype (`type Email struct(Str)`) | its underlying value's JSON (core 2.8) |
 | `T?` field | missing key or `null` decodes to `None`; `None` encodes as `null` |
 | field with a default | missing key decodes to the default |
@@ -2340,7 +2382,7 @@ fn (p: Patch[T]) apply_opt(current: T?) -> T? // Absent keeps, Null clears, Valu
 | `Int`, `Float`, `Bool`, `Str` | number, number, boolean, string |
 | `Int8`, `Int16`, `Int32`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Float32` | number; decoding refuses a number out of the type's range (`expected integer` for a signed type, `expected non negative integer` for an unsigned one, `cannot unmarshal number 1e39 into Float32` for a Float32 past its largest value, Go's words with Xo's type), on every backend |
 | `List[T]`, `Set[T]` | array |
-| `Map[Str, V]` | object |
+| `Map[Str, V]` | object, keys sorted by their bytes as Go's encoding/json writes them (decision 0543; a `json.Value` object keeps its order) |
 | valued enum (`enum E: Int` or `enum E: Str`, decision 0269) | the variant's value: a number or a string; decoding refuses a value no variant has (`unknown value 7 of enum Weekday`), or, with a catch-all variant (`Unknown(value: Str)`, decision 0493), keeps it there and writes it back unchanged |
 | enum unit variant | string `"Variant"` (its wire name: `as "name"` or `case:`, decision 0478, core 2.3) |
 | enum variant with fields | object `{"Variant": {fields}}`, the name and the fields' keys as above |
@@ -2428,6 +2470,19 @@ pub fn from_value[T: Json](v: Value) -> T ! DecodeErr
 - `derive Json` fields marked `as "key,omitempty"` (core 2.2) are left
   out of `encode`'s output when empty.
 - Goldens `json_stream` and `json_omitempty` (every backend).
+- The wire option `string` (decision 0555, core 2.2), `as "n,string"`,
+  writes a scalar field (`Bool`, an integer, `Float`, `Float32`, `Str`,
+  or an `Option` of one) as a JSON string holding its literal, as Go's
+  `json:",string"` does: `5` as `"5"`, `true` as `"true"`, a `Str` quoted
+  twice (`"\"abc\""`), `None` as `null`. `omitempty` is decided before
+  quoting. Decoding wants a JSON string or `null`: its text, with no
+  space around it, must be exactly a JSON literal of the field's type;
+  otherwise `DecodeErr` with `invalid use of ,string struct tag, trying to
+  unmarshal "TEXT" into T` (an unquoted value: `... unquoted value into
+  T`), a number out of range keeping its own message. `null`, or the
+  string `"null"`, goes to the field's own decoder as `null` does (an
+  `Option` becomes `None`). `to_value` and `from_value` follow.
+  Golden `json_string` (every backend).
 
 ### 5.3 Tokens (decision 0495)
 
@@ -2501,6 +2556,15 @@ struct Record { level: Level, msg: Str, fields: Map[Str, Str], module: Str }   /
 ```
 log.info("listening", {"addr": addr, "port": port})
 ```
+
+`enabled(level: Level) -> Bool` (decision 0558) says whether a record of
+`level` would be written under the configured level. A call to `debug`,
+`info`, `warn` or `error` (and the same methods of a `Logger`) is compiled
+as `if enabled(level) { call }`: below the configured level its arguments
+(the message, the fields and everything inside them) are not evaluated,
+so an argument's side effect does not run, unlike Go's `log/slog`. A call
+through a function value is not guarded (the callee's own check drops the
+record). Golden `log_lazy` (every backend).
 
 A `Logger` carries fields onto every record it writes (decision 0413,
 log/slog's `Logger.With`):
@@ -2689,12 +2753,22 @@ library given `os.net.only([...])` fails with `Denied` elsewhere.
 fn (n: FakeNet) handle(pattern: Str, h: fn(http.Request) -> http.Response)
     // pattern: "[METHOD ]<absolute url pattern>", e.g. "GET https://api.test/users/{id}"
     // a second handle with the same method, URL prefix and path pattern replaces the first (last wins; Go's ServeMux panics)
+fn (n: FakeNet) handle_tls(pattern: Str, cert: tls.TlsCert, h: fn(http.Request) -> http.Response)
+    // handle for https with the server's certificate: the client's checks run first (decision 0544)
 fn (n: FakeNet) fail(pattern: Str, err: http.ClientErr)       // every matching request, until clear_failures
 fn (n: FakeNet) fail_next(pattern: Str, err: http.ClientErr)  // the next matching request only
 fn (n: FakeNet) clear_failures()
 fn (n: FakeNet) requests() -> List[http.Request]     // every request seen, including failed ones
 ```
 
+- `handle_tls` runs, for an `https` request it matches, the checks of a real handshake for the client against `cert`
+  before the handler: the chain against the client's roots (`with_roots`, else the system's) and the name against the
+  leaf (the URL's host, or `with_server_name`), as `with_verify` allows (`Verify.None` skips both and needs a
+  `with_verify_conn`, `ChainOnly` skips the name), then `with_verify_conn`. A refusal fails the request with
+  `ClientErr.Connect` and the handshake's text before the handler runs. The handler's `req.tls_state()` is `Some` with
+  version "TLS 1.3", the cipher suite and `server_name` (the SNI the client sent, "" for an IP address); a plain `handle`
+  on an `https` URL is not checked. A FakeNet handler's `req.host()` is the request's own (`with_host`), else the URL's
+  host and port as written (Go's `Request.Host`; decision 0544).
 - `http.client(os.net)` calls registered handlers in process. Unhandled
   requests fail with `ClientErr.Connect("no fake handler for GET ...")`.
 - `os.net.listen(":0")` gives an in memory listener, so a real `http.server`
@@ -2704,15 +2778,18 @@ fn (n: FakeNet) requests() -> List[http.Request]     // every request seen, incl
   a real socket's backlog (a test that never serves it reports a deadlock
   naming the wait); after `serve` returns, requests fail with
   `ClientErr.Connect`.
-- A request reaches a handler or a served router as one call, and the
-  whole response comes back. `Client.open` of a request whose body is a
-  source (`http.pipe`, `with_body_reader`) is full duplex (2026-11-04): the
-  handler runs in its own task with the source as its request body, the
-  head comes back when the handler returns its response, and a streamed
-  response's writes reach `read` as they are made, so a test can write,
-  read the answer and write again before it closes the pipe. Only tasks and
-  channels carry it, so the test scheduler's seed and replay hold. A
-  FakeNet handler (`handle`) takes the request whole, as before.
+- `Client.send` reaches a handler or a served router as one call, and
+  the whole response comes back, an `http.stream` body made in full
+  (2026-11-07: a `handle` handler's stream came back empty natively).
+  `Client.open` runs the handler in its own task (2026-11-07 for every
+  request; from 2026-11-04 for one whose body is a source, `http.pipe` or
+  `with_body_reader`, which is then full duplex): the request body is the
+  source or the whole body, the head comes back when the handler returns
+  its response, and a streamed response's writes reach `read` as they are
+  flushed, so a test can read one server-sent event before the handler
+  writes the next, or write, read the answer and write again before it
+  closes the pipe. Only tasks and channels carry it, so the test
+  scheduler's seed and replay hold.
 - Raw connections (decision 0292): `os.net.dial(addr)` connects to the
   open in memory listener at `addr` and returns at once, the connection
   waiting in the listener's backlog until `accept()` returns its other
@@ -3118,6 +3195,11 @@ NOT EXISTS]` (types `INT`/`INTEGER`/`BIGINT`, `TEXT`/`VARCHAR`, `REAL`/`FLOAT`,
 (`JsonText` values), and an array of any of them written `TYPE[]` (`Array`
 values whose elements are of TYPE or NULL); `PRIMARY KEY` on a single integer column
 auto-assigns keys; `NOT NULL`, `UNIQUE`, `DEFAULT literal`), `DROP TABLE`,
+`CREATE INDEX [IF NOT EXISTS] [name] ON table (column)` (one column; unnamed
+it is `table_column_idx`; a `WHERE column = value` on an `INT` or `TEXT`
+column then looks the rows up instead of scanning, in the scan's order;
+`CREATE UNIQUE INDEX` is not supported, declare the column `UNIQUE`),
+`DROP INDEX [IF EXISTS] name`,
 `INSERT ... VALUES` (several tuples), `SELECT` of `*`, expressions with `AS`,
 or `COUNT(*)` from one table with `WHERE`, `ORDER BY` (several keys, `ASC`/`DESC`),
 `LIMIT`/`OFFSET`, `UPDATE ... SET ... WHERE`, and `DELETE ... WHERE`.
@@ -3138,27 +3220,40 @@ Status: implemented natively and on the Go backend (decision 0278 stage
 B, 2026-10-20); the Postgres driver (10.8) uses it.
 
 ```
-interface Driver {
-  fn connect(self, net: Net, dsn: Str) -> DriverConn ! SqlErr uses net.dial
+interface Driver[fx: Effects] {
+  fn connect(self, net: Net, dsn: Str) -> DriverConn[fx] ! SqlErr uses (net.dial, fx)
 }
-interface DriverConn {
-  fn query(self, q: Str, args: List[SqlValue]) -> DriverRows ! SqlErr uses net.dial
-  fn exec(self, q: Str, args: List[SqlValue]) -> ExecResult ! SqlErr uses net.dial
-  fn begin(self) -> () ! SqlErr uses net.dial      // also commit, rollback, ping
-  fn copy_from(self, table: Str, columns: List[Str], rows: fn() -> List[SqlValue]? ! SqlErr) -> Int ! SqlErr uses net.dial
-  fn close(self)
+interface DriverConn[fx: Effects] {
+  fn query(self, q: Str, args: List[SqlValue]) -> DriverRows[fx] ! SqlErr uses (net.dial, fx)
+  fn exec(self, q: Str, args: List[SqlValue]) -> ExecResult ! SqlErr uses (net.dial, fx)
+  fn begin(self) -> () ! SqlErr uses (net.dial, fx)      // also commit, rollback, ping
+  fn copy_from(self, table: Str, columns: List[Str], rows: fn() -> List[SqlValue]? ! SqlErr) -> Int ! SqlErr uses (net.dial, fx)
+  fn close(self) uses (net.dial, fx)
   fn is_broken(self) -> Bool                       // dropped from the pool when true
 }
-struct DriverRows { columns: List[Str], rows: List[List[SqlValue]], cursor: DriverCursor? = None }
-interface DriverCursor {                         // the rest of a result on the connection (decision 0479)
-  fn next(self) -> List[SqlValue]? ! SqlErr uses net.dial   // None after the last row
-  fn rest(self) -> List[List[SqlValue]] ! SqlErr uses net.dial
-  fn close(self) uses net.dial                   // reads and discards the remaining rows
+struct DriverRows[fx: Effects] { columns: List[Str], rows: List[List[SqlValue]], cursor: DriverCursor[fx]? = None }
+interface DriverCursor[fx: Effects] {            // the rest of a result on the connection (decision 0479)
+  fn next(self) -> List[SqlValue]? ! SqlErr uses (net.dial, fx)   // None after the last row
+  fn rest(self) -> List[List[SqlValue]] ! SqlErr uses (net.dial, fx)
+  fn close(self) uses (net.dial, fx)             // reads and discards the remaining rows
 }
 
-pub fn open_driver(net: Net, d: Driver, dsn: Str, max_open: Int = 10, max_idle: Int = 2,
-                   max_lifetime: Duration = 30m) -> Db ! SqlErr uses net.dial
+pub fn open_driver[fx: Effects](net: Net, d: Driver[fx], dsn: Str, max_open: Int = 10, max_idle: Int = 2,
+                   max_lifetime: Duration = 30m) -> Db[fx] ! SqlErr uses (net.dial, fx)
 ```
+
+- The effect parameter (decision 0534): a driver's operations may perform
+  effects beyond `net.dial`, named by its `fx`, and `Db`, `Tx` and `Rows`
+  carry them: std/sqlite's driver is a `Driver[fs]`, so its Db's
+  operations perform fs. The Postgres driver and the in memory one add
+  none (`Db[()]`). A `sql.Db` written without the argument is an implicit
+  effect variable (core 6.2), so most code is unchanged; a function that
+  captures a Db in a closure whose type fixes its effects (a handler or
+  middleware returned as `fn(...) uses net.dial`) names the argument,
+  `sql.Db[()]` for Postgres or `memory`, and so do the functions that
+  pass that Db along (stability/notes). An interface's effect argument is
+  not inferred from the struct that implements it, so a driver's
+  constructor returns `sql.Driver[fx]` with its effects written.
 
 - A driver is a value passed to `open_driver`; there is no registry of
   names (a package global). std/sql gives it the pool: `max_open`
@@ -3765,7 +3860,8 @@ without padding, `{month:short}` `Jan`, `{month:name}` `January`; `{day}`
 01 to 31, `{day:1}`; `{weekday:short}` `Mon`, `{weekday:name}` `Monday`;
 `{hour}` 00 to 23, `{hour12}` 01 to 12 with `{ampm}` AM or PM; `{minute}`;
 `{second}`; `{frac}` a fraction with as many digits as needed (none when
-zero), `{frac:3}` exactly three (1 to 9); `{offset}` `Z` or `+02:00`,
+zero), `{frac:3}` exactly three (1 to 9), both with their leading `.`
+(write `{second}{frac:3}`); `{offset}` `Z` or `+02:00`,
 `{offset:compact}` `+0200`; `{zone}` the zone abbreviation. A literal
 brace is written `{lbrace}` or `{rbrace}`. A layout that is a constant is
 checked at compile time: an unknown field is an error with a did you mean
@@ -3852,8 +3948,8 @@ Settled while implementing; examples are in the goldens
   digit year, has none).
 - **Parsing.** Numeric fields have exactly their width (`{day:1}` and
   `{month:1}` take one or two digits). Fields missing from the layout
-  default to 1970-01-01 and 00:00:00. A parsed weekday must match the
-  date. Without `{offset}`, `{zone}` picks the instant whose abbreviation
+  default to 1970-01-01 and 00:00:00. A parsed weekday is read but not
+  checked against the date (Go's time.Parse ignores it). Without `{offset}`, `{zone}` picks the instant whose abbreviation
   in `z` matches (`UTC` and `GMT` also mean +00:00), and a civil time in a
   gap or overlap with neither is a `ParseErr` (no silent choice).
 - **HTTP dates.** `RFC1123` formatted in `utc()` ends in `UTC`, while
@@ -3910,9 +4006,10 @@ struct Flag {}
 struct Arg {}
 
 pub fn command(name: Str, help: Str, flags: List[Flag] = [], args: List[Arg] = [],
-               commands: List[Command] = [], version: Str = "") -> Command
+               commands: List[Command] = [], version: Str = "",
+               single_dash_long: Bool = false, stop_at_positional: Bool = false) -> Command
 
-pub fn bool_flag(name: Str, help: Str, short: Str = "", env: Str = "") -> Flag
+pub fn bool_flag(name: Str, help: Str, short: Str = "", env: Str = "", default: Bool = false) -> Flag
 pub fn str_flag(name: Str, help: Str, short: Str = "", default: Str = "", env: Str = "",
                 required: Bool = false, value: Str = "str") -> Flag
 pub fn int_flag(name: Str, help: Str, short: Str = "", default: Int = 0, env: Str = "",
@@ -3957,6 +4054,11 @@ fn app() -> cli.Command {
   of a command above it; sibling subcommands may share names).
 - Positional arguments: required ones first, then optional ones, then at
   most one `rest`, last.
+- A `bool_flag` is true when given (`--name`, `-s`) and takes `=false`
+  or `=0` to turn it off; when it is not given (nor its `env` variable)
+  `Parsed.bool` is its `default`, and the help shows `[default: true]`
+  for a flag that defaults to true (2026-11-07, for Go flags such as
+  goversioninfo's `-64` whose default depends on the host).
 - `env` names a variable read when the flag is not on the command line
   (an empty value counts as unset; a `strs_flag` variable is split on
   `,`). Variables are read through the `Env` given to `parse`, so an
@@ -4012,6 +4114,26 @@ Rules, in order:
   `strs_flag`, which collects every value in order.
 - `--` ends the flags: every later argument is positional. `-` alone is
   positional.
+- `single_dash_long: true` (decision 0547; for ports of Go tools, whose
+  users write `-icon=x.ico -64`) also reads `-name`, `-name=value` and
+  `-name value` as the `--` forms when `name` is a declared long flag of
+  the path (or `help`, or `version` when the root has one); otherwise the
+  argument is a short cluster as above, and a word of more than one
+  letter that is neither is `unknown flag -name` (with a did you mean of
+  `-` form). It applies to the command that sets it and every
+  subcommand under it. Under it, a long flag whose name also reads as a
+  cluster of the path's short flags (`--output` beside `-o` taking a
+  value, `--vq` beside bool `-v` and `-q`) is a declaration fault, except
+  a one letter long flag whose short is that letter. Flags still come
+  before or after positional arguments (Go's flag package stops at the
+  first one; see `stop_at_positional`). Help text keeps the `--` forms.
+- `stop_at_positional: true` (decision 0556; Go's flag package): the
+  first positional argument (a lone `-` included) ends the flags, so it
+  and every later argument are positional as written, `-64` included. A
+  `--` before it ends the flags and is dropped; one after it is an
+  argument. It applies to the command that sets it and every subcommand
+  under it (a subcommand's name is not a positional), and `--help` says
+  so under the usage line. Independent of `single_dash_long`.
 - Flags may come before or after positional arguments. A subcommand is
   selected by the first positional argument of a command with
   subcommands; after it, the flags of every command on the path are
@@ -4421,7 +4543,7 @@ fn load(fs: Fs) -> Config ! Error uses fs.read {
   when it has no fraction. v is read through `json.to_value`, so a None
   field is left out, a `Time` or `Duration` is its JSON string (Go writes
   a `time.Time` as a bare date-time), a `Float` without a fraction is an
-  integer, and a map's keys come in its JSON order (Go sorts them);
+  integer, and a map's keys come in its JSON order (sorted, as Go);
   `decode` reads each back. A root that is not a record or a map, and a
   None inside a list (Go writes a nil pointer's zero value), are
   `TomlErr` with line 0: `toml: cannot encode an Int as a document
@@ -4765,7 +4887,9 @@ struct TlsCert {}                                  // handle: a certificate chai
 fn cert(cert_pem: Bytes, key_pem: Bytes) -> TlsCert ! TlsErr
 enum ClientAuth { None, Request, RequireAny, VerifyIfGiven, RequireAndVerify }
 struct TlsConn {}                                  // handle
-fn client(c: Conn, host: Str, roots: Roots? = None, verify: Verify = Verify.Full, alpn: List[Str] = [], cert: TlsCert? = None) -> TlsConn ! NetErr uses net.dial
+fn client(c: Conn, host: Str, roots: Roots? = None, verify: Verify = Verify.Full, alpn: List[Str] = [], cert: TlsCert? = None, verify_conn: (fn(List[x509.Certificate]) -> () ! Str)? = None) -> TlsConn ! NetErr uses net.dial
+fn pin_sha1(pin: Str) -> (fn(List[x509.Certificate]) -> () ! Str) ! Str
+fn pin_sha256(pin: Str) -> (fn(List[x509.Certificate]) -> () ! Str) ! Str
 fn (t: TlsConn) read(max: Int) -> Bytes? ! NetErr  uses net.dial
 fn (t: TlsConn) write(data: Bytes) -> () ! NetErr  uses net.dial
 fn (t: TlsConn) close()
@@ -5285,7 +5409,7 @@ Every function and method of std/prelude.xo, by type, as declared there
 `static` receiver is a function on the type (`Int.parse(s)`); one with an
 UPPER_SNAKE name and no parameters is a constant, read without a call
 (`Time.UNIX_EPOCH`).
-513 declarations.
+520 declarations.
 
 ### Range
 
@@ -5724,6 +5848,7 @@ fn (static: Time) UNIX_EPOCH() -> Time
 fn (static: Time) from_unix(secs: Int) -> Time
 fn (static: Time) from_unix_millis(ms: Int) -> Time
 fn (static: Time) parse_rfc3339(s: Str) -> Time?
+fn (static: Time) rfc3339_offset(s: Str) -> Duration?
 fn (t: Time) unix() -> Int
 fn (t: Time) unix_millis() -> Int
 fn (t: Time) format_rfc3339() -> Str
@@ -5807,6 +5932,8 @@ fn (var b: BytesBuilder) write_str(s: Str)
 fn (var b: BytesBuilder) write_rune(r: Rune)
 fn (var b: BytesBuilder) put_le(at: Int, v: Int, n: Int)
 fn (var b: BytesBuilder) put_be(at: Int, v: Int, n: Int)
+fn (var b: BytesBuilder) write_le(v: Int, n: Int)
+fn (var b: BytesBuilder) write_be(v: Int, n: Int)
 fn (b: BytesBuilder) len() -> Int
 fn (b: BytesBuilder) freeze() -> Bytes
 ```
@@ -5864,6 +5991,7 @@ fn set_modified(self, path: Str, t: Time) -> () ! FsErr uses fs.write
 fn open(self, path: Str) -> File ! FsErr uses fs.read
 fn create(self, path: Str) -> File ! FsErr uses fs.write
 fn open_append(self, path: Str) -> File ! FsErr uses fs.write
+fn open_rw(self, path: Str) -> File ! FsErr uses fs.write
 fn create_new(self, path: Str) -> File ! FsErr uses fs.write
 fn append(self, path: Str, data: Bytes) -> () ! FsErr uses fs.write
 fn copy(self, from: Str, to: Str) -> () ! FsErr uses fs
@@ -5889,6 +6017,9 @@ fn (f: File) read(max: Int) -> Bytes? ! FsErr uses fs.read
 fn (f: File) read_at(offset: Int, max: Int) -> Bytes? ! FsErr uses fs.read
 fn (f: File) read_line() -> Str? ! FsErr uses fs.read
 fn (f: File) write(data: Bytes) -> () ! FsErr uses fs.write
+fn (f: File) write_at(offset: Int, data: Bytes) -> () ! FsErr uses fs.write
+fn (f: File) truncate(size: Int) -> () ! FsErr uses fs.write
+fn (f: File) stat() -> FileInfo ! FsErr uses fs.read
 fn (f: File) sync() -> () ! FsErr uses fs.write
 fn (f: File) close() -> () ! FsErr
 ```
@@ -6303,7 +6434,12 @@ fn mem_trim()
   switch, which may come after `mem_trim` returns. The pages come back on
   the next use (a page fault each), and the next such large block maps
   anew. Nothing on the Go backend, whose runtime's scavenger does this
-  itself.
+  itself. Without a call, a program with worker threads gives back the
+  same blocks once they stay free long enough (decision 0533, Linux and
+  darwin): about every 30 s an idle worker marks the free blocks of 16
+  KiB and over it finds, and a block still free and marked at the next
+  pass, 30 to 60 s unused, goes back; so a server's memory falls after a
+  burst ends, and blocks a busy program reuses keep their pages.
 
 ## 37. std/metrics
 
@@ -7044,7 +7180,12 @@ fn from_json(j: json.Value) -> Value
   - `marshal` writes a map of the fields (keys sorted when `deterministic`),
     Float in the shortest form, Time as integer seconds or, with a fraction,
     a float (fxamacker's TimeUnixDynamic), Duration as integer nanoseconds,
-    None as null.
+    None as null. Its generated code writes the encoding directly, with no
+    `Value` tree (decision 0559), through std/cbor's helpers for generated
+    code: `put_head(out, major, n)`, `put_int`, `put_float`, `put_text`,
+    `put_bytes` (each appends one item to a `BytesBuilder`), `put_value(out,
+    v, deterministic)` (a `Value` field, as `encode` writes it) and
+    `det_keys(keys)` (text keys in the deterministic order).
   - `unmarshal` matches a text key exactly, then ignoring case, and the first
     key to reach a field wins; a `keyasint` field also takes its number as
     text. Null leaves a field alone; tags are transparent after fxamacker's
@@ -7566,10 +7707,11 @@ pub fn decode_message(b: Bytes) -> Message ! AmqpErr
 
 ```
 struct SenderOptions { name: Str = "", settle_mode: SenderSettleMode? = None, source: Str = "", max_message_size: Int = 0,
-                       properties: List[(Str, Value)] = [], capabilities: List[Str] = [], target_capabilities: List[Str] = [] }
+                       properties: List[(Str, Value)] = [], capabilities: List[Str] = [], target_capabilities: List[Str] = [],
+                       desired_capabilities: List[Str] = [] }
 struct ReceiverOptions { name: Str = "", credit: Int = 1, settle_mode: ReceiverSettleMode? = None, target: Str = "",
                          filters: List[(Str, Value)] = [], max_message_size: Int = 0, properties: List[(Str, Value)] = [],
-                         capabilities: List[Str] = [], source_capabilities: List[Str] = [] }
+                         capabilities: List[Str] = [], source_capabilities: List[Str] = [], desired_capabilities: List[Str] = [] }
 struct Sender { conn: Connection, id: Int, name: Str, target: Str }       // handles over the connection
 struct Receiver { conn: Connection, id: Int, name: Str, source: Str }
 struct Delivery { message: Message, id: Int, tag: Bytes, settled: Bool, link: Int }
@@ -7594,6 +7736,9 @@ fn (r: Receiver) close(error: WireError? = None) -> () ! AmqpErr uses net.dial
   deliveries, and returns a `Delivery`; an aborted delivery is dropped; `accept`, `reject`, `release` and `modify` send a
   settling Disposition (nothing for a delivery the sender pre-settled). The session's incoming window is restored with a
   Flow when it falls below half.
+- Capabilities: a sender's `capabilities` are its Source's and `target_capabilities` its Target's; a receiver's
+  `capabilities` are its Target's and `source_capabilities` its Source's; `desired_capabilities` (either) is the Attach
+  frame's desired-capabilities, the link's own (Event Hubs' `com.microsoft:georeplication`).
 - `send(m, settled, message_format)`: `message_format` is the Transfer's message-format (0 for an AMQP message; Azure
   Service Bus batches are one transfer of format 0x80013700, 2147563264, whose data sections are encoded messages).
 - Manual credit: `ReceiverOptions.credit: 0` grants nothing and `receive` never tops up; `r.issue_credit(n)` raises the link
@@ -7630,6 +7775,7 @@ fn (b: Broker) serve(g: task.Group, l: Listener) uses (net.listen, clock)
 fn (b: Broker) queue(name: Str, opts: QueueOptions = QueueOptions{})      // QueueOptions{sessions, lock_ms, max_delivery_count}
 fn (b: Broker) topic(name: Str)
 fn (b: Broker) event_hub(name: Str, partitions: Int, consumer_groups: List[Str] = ["$Default"])
+fn (b: Broker) event_hub_geo_factor(hub: Str, factor: Int)
 fn (b: Broker) events(hub: Str, partition: Int) -> List[amqp.Message]
 fn (b: Broker) subscription(topic: Str, name: Str, opts: QueueOptions = QueueOptions{})
 fn (b: Broker) put(queue: Str, m: amqp.Message)
@@ -7639,6 +7785,7 @@ fn (b: Broker) dead_letters(queue: Str) -> List[amqp.Message]
 fn (b: Broker) scheduled(queue: Str) -> List[amqp.Message]
 fn (b: Broker) deferred(queue: Str) -> List[amqp.Message]
 fn (b: Broker) tokens() -> List[(Str, Str)]
+fn (b: Broker) attaches() -> List[(Str, Str, List[Str])]
 fn (b: Broker) reject_token(token: Str)
 fn (b: Broker) require_token(on: Bool)
 fn (b: Broker) session_state(queue: Str, session: Str) -> Bytes
@@ -7695,16 +7842,344 @@ SASL (any mechanism is accepted) or none.
   detaches the holders with a lower one with `amqp:link:stolen`, and a lower epoch (or none) against a higher holder is refused
   with `amqp:link:stolen`. An unknown partition is `com.microsoft:argument-out-of-range`, an unknown hub or group
   `amqp:not-found`. The namespace `$management` link answers operation READ with `type` `com.microsoft:eventhub`
-  (name, created_at, partition_count, partition_ids) and `com.microsoft:partition` (name, partition, begin_sequence_number,
+  (name, created_at, partition_count, partition_ids, georeplication_factor: a Long, 1 unless `event_hub_geo_factor` set
+  it; above 1 means geo-replication, as Event Hubs v2 reads it) and `com.microsoft:partition` (name, partition, begin_sequence_number,
   last_enqueued_sequence_number, last_enqueued_offset, last_enqueued_time_utc, is_partition_empty), reply keys `status-code`
   and `status-description`. `events` lists a partition's events; `detach_links` takes a hub name or a receiver path.
+- `attaches` lists every link a client attached, in order: its address (a sender's target, a receiver's source), the
+  client's role (`"sender"` or `"receiver"`) and the Attach's desired capabilities (`com.microsoft:georeplication`).
 - Faults: `fail_next`/`fail` make the operation `attach`, `transfer`, `disposition`, `put-token` or a management operation
   (its name without `com.microsoft:`) fail with `condition`, `status` and `description` (an attach, transfer or
   disposition is refused or rejected with the condition; a management reply carries `status` and the condition);
   `slow_management(ms)` delays management replies; `detach_links` detaches every link to an entity with an error;
-  `disconnect_all` closes every connection, with the error in a Close frame when given.
+  `disconnect_all` closes every connection, with the error in a Close frame when given. Both take effect before any frame a
+  client sends after the call returns is handled.
 - Time: locks, scheduled messages, session locks and token expiry use the clock given to `new`; an expired lock is noticed
   when the next operation looks at the message, not by a timer.
 
 The client side of a refused attach: `new_sender` and `new_receiver` return the link's `Peer` error when the answering
 Attach has no target (sender) or no source (receiver) and a Detach with an error follows (decision 0521).
+
+## 65. std/protobuf
+
+The Protocol Buffers wire format and the runtime of `derive Proto` (decision 0530; core 2.9), with Go's
+`google.golang.org/protobuf` (protowire, proto) as the reference. Pure.
+
+```xo
+enum ProtoErr { Truncated, Overflow, BadTag, BadWire(wire: Int), EndGroup, Recursion, BadLength, Utf8 }
+fn marshal[T: Proto](v: T) -> Bytes                     // rewritten to the generated proto_marshal__T
+fn unmarshal[T: Proto](data: Bytes) -> T ! ProtoErr     // as proto.Unmarshal: scalars last wins, messages merge
+fn append_varint(b: Bytes, v: UInt64) -> Bytes          // the wire functions of protowire, by the same names
+fn append_tag(b: Bytes, num: Int, wire: Int) -> Bytes
+fn append_fixed32(b: Bytes, v: UInt32) -> Bytes
+fn append_fixed64(b: Bytes, v: UInt64) -> Bytes
+fn append_bytes(b: Bytes, data: Bytes) -> Bytes
+fn size_varint(v: UInt64) -> Int
+fn encode_zigzag(v: Int) -> UInt64
+fn decode_zigzag(v: UInt64) -> Int
+fn read_varint(b: Bytes, at: Int) -> (UInt64, Int) ! ProtoErr
+fn read_tag(b: Bytes, at: Int) -> (Int, Int, Int) ! ProtoErr
+fn read_fixed32(b: Bytes, at: Int) -> (UInt32, Int) ! ProtoErr
+fn read_fixed64(b: Bytes, at: Int) -> (UInt64, Int) ! ProtoErr
+fn read_bytes(b: Bytes, at: Int) -> (Bytes, Int) ! ProtoErr
+fn skip_field(b: Bytes, at: Int, num: Int, wire: Int) -> Int ! ProtoErr   // groups to MAX_GROUP_DEPTH
+```
+
+- Reads return the value and the offset after it. A field number above 536870911 is `BadTag` in the generated
+  reader; `read_tag` itself accepts what protowire accepts.
+- A struct with `derive Proto` writes its fields in field number order, then oneofs, then unknown fields. A plain
+  nested struct is always written (use an Option for presence); a scalar equal to its zero value is omitted.
+- Not yet: proto2, well known types (Timestamp, Duration, Any, Struct), JSON mapping, the `.proto` generator.
+
+## 66. std/sqlite
+
+A SQLite driver for std/sql's `open_driver` (decision 0534) over the SQLite library (3.54.1, public domain),
+compiled from the amalgamation vendored in std/native/sqlite and linked through `use c`: native backends only
+(`XO1201` on the Go backend; wasm has no C). Stage 1: the driver on a checkout's C compiler; the release's
+prebuilt object per target follows.
+
+```
+struct SqliteDriver {}
+struct Config { path: Str, uri: Bool, keys: List[Str], busy_ms: Int, pragmas: List[Str] }
+fn driver(fs: Fs) -> sql.Driver[fs]                     // performs fs (decision 0534)
+fn config(dsn: Str) -> Config ! sql.SqlErr               // the DSN's parts, as connect reads them
+fn version() -> Str uses net.dial                       // "3.54.1"
+```
+
+```
+let db = sql.open_driver(os.net, sqlite.driver(os.fs), "file:app.db?_busy_timeout=5000&_journal_mode=wal")?
+```
+
+- DSN as mattn/go-sqlite3 reads it: `:memory:`, a path, or `file:PATH?k=v&...`. SQLite's own URI keys
+  (`mode=ro|rw|rwc|memory`, `cache=shared|private`) pass to SQLite; the driver's keys are `_busy_timeout`
+  (`_timeout`, milliseconds, default 5000), `_journal_mode` (`_journal`: DELETE, TRUNCATE, PERSIST, MEMORY,
+  WAL, OFF), `_foreign_keys` (`_fk`) and `_synchronous` (`_sync`), run as PRAGMAs after the open. An unknown
+  `_` key or a bad value is `Param` (mattn ignores an unknown key).
+- The file is opened through the driver's Fs: a sub Fs (`Fs.sub`) roots the path, and a path that is absolute
+  or holds `..` is `Conn`; a read only Fs opens it read only; a write only Fs is `Conn`. SQLite keeps its
+  journal and WAL files beside the database.
+- Placeholders bind by position: `$1` and `?1` name argument 1, a bare `?` is its position among the
+  placeholders; a named one (`:a`, `@a`) is `Param`, as is a count that does not match the arguments.
+- Values: an INTEGER column's value is `Integer`, REAL `Real`, TEXT `Text` (invalid UTF-8 replaced by U+FFFD),
+  BLOB `Blob`, NULL `Null`. `Flag` binds as 0 or 1, `At` as RFC 3339 text, `JsonText` as text; `Array` is
+  `Param`.
+- Errors: a UNIQUE or PRIMARY KEY violation is `Constraint(code: "23505")`, FOREIGN KEY "23503", NOT NULL
+  "23502", CHECK "23514" (the memory driver's and Postgres's codes, with SQLite's message); a missing table is
+  `NoTable`, a parse error `Syntax`, anything else `Server(code: the extended result code's name, such as
+  "SQLITE_BUSY", msg)`. After an I/O error or a corrupt file the connection is dropped by the pool.
+- A text of several statements runs them in order; arguments bind to the last, whose rows and changes are
+  the result. `exec`'s `last_insert_id` is `sqlite3_last_insert_rowid`.
+- Transactions are SQLite's (BEGIN, COMMIT, ROLLBACK; serializable); a read only transaction runs with
+  `PRAGMA query_only` until it ends. `copy_from` runs one prepared INSERT per row.
+- Effects: each call is a database call, `uses net.dial` as std/sql's Db names every driver's work; the files
+  are reached through the Fs given to `driver` (decision 0534 records this for the owner).
+
+## 67. std/timego
+
+Go's time layouts (`2006-01-02T15:04:05Z07:00`) for code ported from Go (decision 0537); the core time API keeps
+its named fields (decision 0087). Go's own layout scanner (`nextStdChunk`), formatter and parser run over core time's
+civil functions, with Go's rules. Pure. Reference: Go's `time.Format` and `time.Parse`.
+
+```xo
+struct Layout { text: Str, ... }                          // a Go layout scanned once; use it in hot code
+fn layout(go_layout: Str) -> Layout                       // every string is a layout: text that is no element is literal
+fn (l: Layout) format(t: Time, z: time.Zone) -> Str
+fn (l: Layout) parse(s: Str, z: time.Zone) -> Time ! time.ParseErr
+fn format(t: Time, z: time.Zone, go_layout: Str) -> Str
+fn parse(s: Str, go_layout: Str, z: time.Zone) -> Time ! time.ParseErr
+const ANSIC, UNIX_DATE, RUBY_DATE, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z, RFC3339, RFC3339_NANO, KITCHEN,
+      STAMP, STAMP_MILLI, STAMP_MICRO, STAMP_NANO, DATE_TIME, DATE_ONLY, TIME_ONLY: Str
+```
+
+- Every element of Go's layout language: `2006 06 01 1 Jan January 02 2 _2 002 __2 Mon Monday 15 03 3 04 4 05 5 PM pm
+  MST Z07:00 Z0700 Z07 Z070000 Z07:00:00 -07:00 -0700 -07 -070000 -07:00:00`, and `.000`, `,000`, `.999` runs (a fraction
+  is an element only when no digit follows it, as in Go).
+- Format is Go's: `Z` for a zero offset in the `Z...` elements (`-07:00` prints `+00:00`), a zone without an abbreviation
+  prints `-hhmm` for `MST`, `.999` drops trailing zeros and the separator when the fraction is zero.
+- Parse is Go's `time.ParseInLocation` with `z` as the zone of a text without an offset: `15` and the other numeric
+  fields accept one digit where Go does, the weekday text is not checked against the date, a fraction after the seconds is
+  accepted when the layout has no fractional element, offsets accept hour 24 and minute and second 60 as Go does, a zone
+  name is the zone's own offset when `z` had that abbreviation at that instant and otherwise a fixed offset (`GMT+3` reads
+  its hour, any other unknown name is zero), `Z` is accepted for the `Z...` elements, the day of year and the month and
+  day must agree. The result is an instant: the zone name or offset of the text is not kept.
+- Differences from Go: a `Time` spans 1677 to 2262, so a text outside it, and a text without a year (Go reads year 0),
+  is a `ParseErr`; a civil time in a daylight saving gap or overlap is the earlier one (Go leaves it unspecified); a
+  zone name `z` does not know is never looked up among all of `z`'s zones, only at that instant; `ParseErr` text is
+  core's, not Go's `parsing time ...` wording.
+- `layout` plus `RFC3339` and `RFC3339_NANO` texts take Go's fast path in `parse`.
+
+## 68. std/grpc
+
+gRPC over std/http's HTTP/2 (decision 0535): the wire protocol of grpc-go, interoperable with it in both directions
+(TestGrpcInterop). Messages are `Bytes`; a message type that derives `Proto` (std/protobuf) is marshalled by the caller,
+or by the stubs `xo proto gen` writes. A server runs on `http.server` with HTTP/2 (`http.Protocol.UnencryptedHttp2`, or
+TLS and ALPN `h2`); a client is an `http.Client`. Reference: grpc-go's wire behavior (PROTOCOL-HTTP2.md).
+
+```xo
+enum Code { Ok, Canceled, Unknown, InvalidArgument, DeadlineExceeded, NotFound, AlreadyExists, PermissionDenied,
+            ResourceExhausted, FailedPrecondition, Aborted, OutOfRange, Unimplemented, Internal, Unavailable, DataLoss,
+            Unauthenticated }
+fn (c: Code) number() -> Int
+fn code_from(n: Int) -> Code?
+struct Status { code: Code, message: Str, details: Bytes }      // the error of every call; displays as grpc-go's text
+// the wire pieces
+fn frame(payload: Bytes, compressed: Bool = false) -> Bytes
+fn unframe(data: Bytes, at: Int, max_len: Int = 4194304) -> (Bool, Bytes, Int) ! FrameErr
+fn encode_timeout(ns: Int) -> Str
+fn decode_timeout(s: Str) -> Int?
+fn encode_message(s: Str) -> Str
+fn decode_message(s: Str) -> Str
+fn encode_message_bytes(b: Bytes) -> Str
+fn decode_message_bytes(s: Str) -> Bytes
+fn (c: Client) with_gzip() -> Client          // sends gzip compressed messages (`grpc-encoding: gzip`); compressed messages from the peer are always read; a server answers compressed when the request was
+fn bin_encode(data: Bytes) -> Str            // a `-bin` metadata value: unpadded standard base64
+fn bin_decode(value: Str) -> Bytes?          // padded or not; None when it is not base64
+// the server
+struct Call { method: Str, metadata: Map[Str, Str], timeout: Duration? }
+fn server(clock: Clock) -> Server
+fn (var s: Server) unary(method: Str, f: fn(Call, Bytes) -> Bytes ! Status)
+fn (var s: Server) stream(method: Str, f: fn(Call, Recv, Send) -> () ! Status)
+fn (s: Server) router() -> http.Router
+fn (r: Recv) next() -> Bytes? ! Status
+fn (s: Send) send(msg: Bytes) -> () ! Status
+fn (s: Send) set_trailer(name: Str, value: Str)
+// the client
+fn client(c: http.Client, base: Str) -> Client
+fn (c: Client) unary(method: Str, req: Bytes, metadata = {}, timeout: Duration? = None) -> Bytes ! Status
+fn (c: Client) call[R](method: Str, metadata: Map[Str, Str], timeout: Duration?, f: fn(ClientCall) -> R ! Status) -> R ! Status
+fn (c: ClientCall) send(msg: Bytes) -> () ! Status
+fn (c: ClientCall) close_send()
+fn (c: ClientCall) recv() -> Bytes? ! Status
+```
+
+- One call is one HTTP/2 stream: `application/grpc`, `te: trailers`, 5 byte frames, the status in the `grpc-status` and
+  `grpc-message` trailers (percent encoded as grpc-go does, any byte), `grpc-timeout` as grpc-go encodes it (at most 8
+  digits, the unit that keeps them). A method nobody registered, and a path no service has, answer `Unimplemented` in
+  the trailers of a 200 response with grpc-go's texts; a request without `application/grpc` is 415.
+- `unary` is `stream` with one message each way. A handler reads `Recv.next` until None (the client finished sending)
+  and writes with `Send.send`; returning Ok ends the call with OK, an error with its status. Server streaming,
+  client streaming and bidirectional calls differ only in how the handler and the `ClientCall` use them.
+- A deadline: the client sends its `timeout` as `grpc-timeout` and stops waiting at it (`DeadlineExceeded`); the
+  server cancels a handler still running at the deadline the client sent (the task unwinds at its next blocking
+  call; `defer` blocks still run) and ends the call with `DeadlineExceeded`.
+- A message above `max_recv` (4 MiB, `with_max_recv`) is `ResourceExhausted`; a bad frame, a stream cut inside a
+  message, or a missing status is `Internal`; a connection that cannot be made is `Unavailable`; a non gRPC response
+  maps its HTTP status to a code as grpc-go does.
+- Not yet: compression (`grpc-encoding`), binary metadata (`-bin`), response headers and trailers other than the
+  status, `grpc-status-details-bin`, the typed stubs of `xo proto gen`, a TLS example.
+
+## 69. std/otlp
+
+OTLP export of std/trace spans and std/metrics registries (decision 0539): the opentelemetry-proto 1.x messages
+`ExportTraceServiceRequest` and `ExportMetricsServiceRequest` written straight onto std/protobuf's builder (no message
+tree), the body of OTLP/HTTP's `POST /v1/traces` and `/v1/metrics` with `Content-Type: application/x-protobuf`. The bytes
+are checked against protobuf-go marshaling the same messages (testdata/corpus/otlp).
+
+```xo
+struct Resource { service: Str, attributes: List[(Str, Str)] = [], scope: Str = "std/trace", version: Str = "" }
+fn encode_traces(res: Resource, spans: List[trace.Span]) -> Bytes
+fn encode_metrics(res: Resource, reg: metrics.Registry, start_ms: Int, now_ms: Int) -> Bytes
+enum ExportErr { Transport(msg: Str), Rejected(status: Int, body: Str), GaveUp(status: Int, tries: Int) }
+fn (e: ExportErr) display() -> Str
+struct Exporter { client: http.Client, endpoint: Str, resource: Resource, headers: Map[Str, Str] = {}, backoff: backoff.Backoff = backoff.Backoff{max_tries: 5}, clock: Clock, rand: Rand }
+fn exporter(client: http.Client, endpoint: Str, res: Resource, clock: Clock, rand: Rand) -> Exporter
+fn (e: Exporter) with_headers(h: Map[Str, Str]) -> Exporter
+fn (e: Exporter) with_backoff(b: backoff.Backoff) -> Exporter
+fn (e: Exporter) send_traces(spans: List[trace.Span]) -> () ! ExportErr uses net.dial, clock, rand
+fn (e: Exporter) send_metrics(reg: metrics.Registry, start_ms: Int) -> () ! ExportErr uses net.dial, clock, rand
+```
+
+`Exporter` posts `{endpoint}/v1/traces` and `/v1/metrics` as `application/x-protobuf` over OTLP/HTTP. 429, 502, 503 and 504 (and a
+transport failure) are retried on the schedule of `backoff`, waiting at least the `Retry-After` seconds the collector asks for;
+any other non 2xx status is `Rejected` and not retried, as the OTLP specification says; retries that run out are `GaveUp`.
+`send_traces` of an empty list sends nothing. (The HTTP date form of `Retry-After` and partial success answers are not read yet.)
+
+`encode_traces`: one ResourceSpans and one ScopeSpans. A span's trace id is its request id when that is 32 hex digits,
+else the first 16 bytes of the SHA-256 of the id; the `request` span of an id is a server span (the id's root), its other
+spans are internal spans whose parent is that root; span ids are the first 8 bytes of a SHA-256 of the span's request id,
+name and start, so a retried export names the same spans. A `request` span's status becomes the attribute
+`http.response.status_code` and the span status (500 and above is an error).
+
+`encode_metrics`: a counter is a monotonic cumulative Sum, a gauge a Gauge, a histogram a cumulative Histogram (bucket
+counts per bucket, with the explicit bounds), a summary a Summary with its count and sum; labels are string attributes.
+
+## 70. std/protoparse
+
+A parser for `.proto` files and a generator of `derive Proto` structs, for `xo proto gen` (decision 0530). Pure.
+
+```xo
+struct ParseErr { line: Int, col: Int, msg: Str }              // 1 based; displays as `line:col: msg`
+fn tokens(src: Str) -> List[Token] ! ParseErr
+fn parse(src: Str) -> File ! ParseErr
+fn gen(f: File) -> Str ! ParseErr
+// File { syntax, package, imports, messages: List[Message], enums: List[Enum], services: List[Service] }
+// Message { name, fields: List[Field], oneofs: List[Str], nested: List[Message], enums: List[Enum] }
+// Field { name, num, typ, key, repeated, optional, required, oneof }   Rpc { name, req, resp, client_stream, server_stream }
+```
+
+- The lexer reads identifiers (dots inside), integers (a `0x` prefix is lexed), floats, string literals (escapes decoded)
+  and single symbol characters; `//` and `/* */` comments are dropped.
+- `parse` reads proto3 and proto2: `package`, `import`, messages with fields, `repeated`, `optional`, `map<K, V>`,
+  `oneof`, nested messages and enums, top level enums, `service` with `rpc` and `stream`. Options, `reserved`,
+  `extensions`, field options (`default` included) and `extend` blocks are read and dropped. In a proto2 file every
+  field outside a oneof needs a label (`required`, `optional` or `repeated`, else an error), and `required` and
+  `group` are accepted: a group is a nested message plus a field of that type named in lower case. A proto3 file
+  rejects `required` and `group`. `gen` maps `required` to a plain field and proto2 `optional` to an Option;
+  proto2 repeated numeric fields are unpacked on the wire but `derive Proto` writes them packed (the reader takes
+  both), so a generated proto2 message is not byte identical to protoc's output for those fields.
+- `gen` writes Xo source: a nested type `Inner` of `Outer` is `OuterInner`, a oneof is an enum held in an optional
+  field marked `proto "oneof"`, an enum is an open `Int` enum with a catch-all variant. Services are not generated
+  here (the stubs of std/grpc come with `xo proto gen`).
+
+## 71. std/htmltok
+
+The HTML5 tokenizer of golang.org/x/net/html (decision 0548; token.go and the unescape of escape.go, BSD license): a text
+in memory becomes a stream of tokens with Go's rules for raw text elements, comments, doctypes, attributes, entities
+and the buffer limit. There is no tree builder. The token streams are checked against x/net v0.62.0's Tokenizer
+(testdata/corpus/htmltok: curated and seeded random inputs in plain, AllowCDATA and fragment modes, and with buffer
+limits). The entity tables are shared with std/html through `std/htmlent` (`entity_of(name)` and `entity2_of(name)`, "" for none;
+internal, use std/html for escaping).
+
+```xo
+enum TokenType { Error, Text, StartTag, EndTag, SelfClosingTag, Comment, Doctype }
+struct Attribute { key: Str, val: Str }
+struct Token { typ: TokenType, data: Str, attrs: List[Attribute] }
+struct Tokenizer {}
+fn tokenizer(text: Str) -> Tokenizer
+fn tokenizer_fragment(text: Str, context_tag: Str) -> Tokenizer
+fn (var z: Tokenizer) next() -> TokenType
+fn (var z: Tokenizer) token() -> Token
+fn (z: Tokenizer) raw() -> Str
+fn (z: Tokenizer) err() -> Str?
+fn (var z: Tokenizer) allow_cdata(allow: Bool)
+fn (var z: Tokenizer) next_is_not_raw_text()
+fn (var z: Tokenizer) set_max_buf(n: Int)
+fn (z: Tokenizer) buffered() -> Str
+```
+
+`next` is Go's Next: the type of the next token, `Error` at the end (`err` is `EOF`) or past the limit set by
+`set_max_buf` (`max buffer exceeded`). `token` is Go's Token and consumes the token's data, so call it once per `next`:
+a tag's `data` is its lower cased name (NUL as U+FFFD), a text, comment or doctype's is unescaped with newlines
+converted; `attrs` keep the order, lower case the keys, unescape the values (a legacy reference without its semicolon
+stays literal in a value when an `=` or a letter follows, as the HTML5 attribute rule says) and drop empty and duplicate
+keys. `raw` is the unmodified text of the current token: the raw texts partition the input up to the Error token.
+`script`, `style`, `textarea`, `title`, `iframe`, `noembed`, `noframes`, `noscript`, `plaintext` and `xmp` make the next
+token raw text (RCDATA for `textarea` and `title`: entities are still read); `next_is_not_raw_text` and
+`allow_cdata` are the caller's tools for foreign content, as in Go. Differences from Go: the input is a `Str` (valid
+UTF-8, held in memory) rather than an `io.Reader`, so there is no read error, and `tag_name`, `tag_attr` and `text`
+(the allocation free accessors) are not offered: `token` is the one accessor.
+
+## 72. std/protodesc
+
+The descriptors of protobuf's `google/protobuf/descriptor.proto` as Xo values (decision 0546 item 1): `FileDesc` with
+`MessageDesc`, `FieldDesc`, `EnumDesc`, `EnumValueDesc`, `ServiceDesc`, `MethodDesc`, `OneofDesc` and the range types, the
+`LABEL_*` and `TYPE_*` constants, and a hand written wire codec over std/protobuf (derive Proto does not expand in std,
+decision 0549, which converts this module to generated code). Options messages are kept as their wire bytes and unknown
+fields of a `FieldDesc` as theirs, so a descriptor made by protoc or protobuf-go decodes and encodes back to the same
+bytes (checked on descriptor.proto, the well known types and grpc-go's health, reflection and test files: testdata/corpus/
+protodesc, byte for byte against protobuf-go).
+
+```xo
+fn encode(f: FileDesc) -> Bytes
+fn decode(data: Bytes) -> FileDesc ! protobuf.ProtoErr
+```
+
+`encode` writes fields in field number order, the order protobuf-go's Deterministic marshaling uses; a proto2 file has an
+empty `syntax`. Unknown fields other than a `FieldDesc`'s are dropped.
+
+## 73. std/protowkt
+
+The well known types of `google/protobuf/*.proto` as Xo values with hand written codecs (decision 0546 item 2):
+`Timestamp`, `Duration`, `Empty`, `FieldMask`, `Any`, the wrappers `DoubleValue`, `FloatValue`, `Int64Value`,
+`UInt64Value`, `Int32Value`, `UInt32Value`, `BoolValue`, `StringValue`, `BytesValue`, and `Struct`, `Value`, `ListValue`
+(`Value` is an enum: `Unset`, `Null`, `Number`, `Text`, `Flag`, `Object`, `Array`). Each type has
+`encode_NAME(m) -> Bytes` and `decode_NAME(b) -> NAME ! protobuf.ProtoErr` (`encode_timestamp`, `decode_field_mask`,
+`encode_value`, ...). Encoding is proto3: a zero scalar is not written, a `Value`'s member is, and a `Struct`'s entries
+are written in key order (protobuf-go's Deterministic marshaling); decoding keeps the last value of a field and skips
+unknown ones. Checked against protobuf-go's types marshaled for fixed and seeded random values (testdata/corpus/protowkt,
+byte for byte, and the decoded values). Decision 0549 converts the module to generated code.
+
+## 74. std/protojson
+
+Protocol Buffers' canonical JSON mapping (decision 0546 item 2) as protobuf-go's `encoding/protojson`, driven by descriptors
+(std/protodesc) instead of generated code: a message is converted between its wire bytes and compact JSON text.
+
+```xo
+struct JsonErr { text: Str }
+struct Opts { proto_names: Bool = false, emit_defaults: Bool = false, enum_numbers: Bool = false, discard_unknown: Bool = false }
+fn registry(files: List[protodesc.FileDesc]) -> Registry
+fn registry_from_set(set: Bytes) -> Registry ! protobuf.ProtoErr
+fn marshal(r: Registry, name: Str, wire: Bytes, o: Opts = Opts{}) -> Str ! JsonErr
+fn unmarshal(r: Registry, name: Str, json: Str, o: Opts = Opts{}) -> Bytes ! JsonErr
+```
+
+`marshal` writes fields in descriptor order with lowerCamelCase `json_name`s (`proto_names` writes the proto names), 64 bit
+integers as strings, bytes as standard base64, enums by name (`enum_numbers` writes numbers), `NaN` and `Infinity` as
+strings, maps with sorted keys, only the set member of a oneof, and nothing for an unset or default field unless
+`emit_defaults` (implicit presence scalars, `[]` and `{}`). `Timestamp` and `Duration` are strings, `FieldMask` one
+comma separated string, `Struct`, `Value` and `ListValue` plain JSON, the wrappers their value, `Any` its message with a
+leading `@type` (the type must be in the registry). `unmarshal` accepts both names, numbers or strings for integers (integer
+valued forms such as `1e2` and `1.0`), base64 with or without padding in the standard or URL alphabet, enum names or
+numbers, rejects unknown fields (skipped with `discard_unknown`), duplicate fields and a second member of a oneof, treats
+`null` as unset (except for `Value` and `NullValue`), and writes the wire fields in protobuf-go's order (fields by number,
+then oneofs), maps in key order. Checked against protobuf-go's `protojson` (testdata/corpus/protojson).
