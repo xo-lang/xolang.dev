@@ -266,11 +266,16 @@ the number of reps, and the file gives every rep. TLS, HTTP/2,
 WebSocket, and HTTP/1.1 rows run natively on macOS; the CRUD row runs in
 linux/arm64 Docker on the same Mac
 ([net-vs-go-2026-10-23.md, lines 7 to 30](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L7-L30)).
-The 0.38.1 release comparison adds an HTTP server pair on the
-linux/arm64 offload host (bench/perf/jitter): Xo's /alloc served 6.01
-and 3.15 times Go's requests a second at 32 and 256 connections, and
-/hello 1.29 and 1.83 times
-([release-vs-go-v0.38.1.md, lines 441 to 507](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.38.1.md#L441-L507)).
+An HTTP server pair on the linux/arm64 offload host (bench/perf/jitter,
+0.44.0, 2026-11-09) compares Go at its defaults and Go tuned with
+`GOGC=off GOMEMLIMIT=1GiB`. Xo's /alloc (a JSON page) served 5.74 times
+default Go's requests a second at 32 connections and 1.21 times tuned
+Go's, at 5,664 KB of peak memory against tuned Go's 1,013,192 KB (about
+1/180); at 256 connections 3.10 and 1.26 times. /hello served 1.29 and
+1.15 times at 32 connections, 1.83 and 1.22 at 256. Default Go trails
+on /alloc because its collector runs about 1,000 times a second on this
+small live heap; the memory limit trades that for a gigabyte of memory
+([release-vs-go-v0.44.0-http-gotuned.md, lines 30 to 71 and 77 to 93](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.44.0-http-gotuned.md#L30-L93)).
 
 | workload | Xo / Go (median) | reps | source |
 |---|---|---|---|
