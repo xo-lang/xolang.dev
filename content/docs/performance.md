@@ -136,6 +136,25 @@ Xo over Go, requests a second (from the same file's ratio lines):
   connections) all three serve the rate; Xo's p99 is 110 and 143 µs, Go's
   386 and 651 µs, tuned Go's 128 and 152 µs.
 
+
+### The 0.46.0 cycle, against Go and 0.44.0
+
+The same server and host on 2026-11-10, Xo from main a67d277d6 (the
+0.46.0 cycle), 12 rounds a row, with the released 0.44.0 as a third
+server ([release-vs-go-a67d277d6-linux-arm64-http.md lines 20-64](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64-http.md#L20-L64)):
+
+| row | Xo req/s | 0.44.0 req/s | Go req/s | Go tuned req/s | Xo peak RSS KB | Go peak RSS KB |
+|---|---|---|---|---|---|---|
+| /alloc c32 | 170,708 | 160,828 | 28,270 | 134,609 | 4,548 | 19,768 |
+| /alloc c256 | 192,669 | 176,798 | 57,088 | 139,783 | 11,066 | 40,548 |
+| /hello c32 | 349,973 | 352,247 | 271,626 | 304,420 | 3,334 | 17,868 |
+| /hello c256 | 867,203 | 875,940 | 476,093 | 707,965 | 6,768 | 23,980 |
+
+Against 0.44.0, built at four code alignments so that placement cannot
+decide it ([lines 66-93](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64-http.md#L66-L93)): `/alloc` is 6.4% (c32) and 9.3%
+(c256) faster, at about 8% less CPU per request; `/hello` is 0.6% (c32)
+and 1.0% (c256) slower, a small difference whose ranges do not overlap.
+
 ## Compile time, binary size and build memory
 
 Darwin arm64, one build each, wall milliseconds and the build's peak
