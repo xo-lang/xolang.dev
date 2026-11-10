@@ -41,8 +41,7 @@ named next to it.
 
 ## Azure
 
-[github.com/xo-lang/azure](https://github.com/xo-lang/azure). Unreleased:
-use the main branch.
+[github.com/xo-lang/azure](https://github.com/xo-lang/azure), released as v0.1.0.
 
 - **Coverage** (`docs/reports/azure-go-coverage.md`):
   - All 307 management-plane (ARM) modules are generated and Go-verified.
@@ -54,49 +53,35 @@ use the main branch.
 - **Verified by:** a Go program per module runs Go's own SDK against a fake
   transport (no network). The Xo tests replay the same calls and must match
   Go's requests and results line for line.
-- **Install:** there is no tagged release yet, so `xo get` cannot fetch it.
-  Clone the main branch next to your module, then add the root module and
-  each module your program uses (here azidentity and azblob) to your
-  workspace:
+- **Install** (the core and the modules your program uses, each tagged
+  v0.1.0):
 
   ```sh
-  git clone https://github.com/xo-lang/azure.git ../azure
+  xo get github.com/xo-lang/azure@v0.1.0
+  xo get github.com/xo-lang/azure/azidentity@v0.1.0
+  xo get github.com/xo-lang/azure/storage/azblob@v0.1.0
   ```
 
-  ```
-  # xo.work
-  xo preview
-  use .
-  use ../azure
-  use ../azure/azidentity
-  use ../azure/storage/azblob
-  ```
+- **Release notes:** [docs/releases/v0.1.0.md](https://github.com/xo-lang/azure/blob/main/docs/releases/v0.1.0.md).
 
 ## Google Cloud
 
-[github.com/xo-lang/gcp](https://github.com/xo-lang/gcp). Unreleased: use
-the main branch.
+[github.com/xo-lang/gcp](https://github.com/xo-lang/gcp), released as v0.1.0.
 
 - **Coverage:** every API version that google.golang.org/api v0.311.0
   ships, 667 modules, all Go-verified (`docs/reports/gcp-go-coverage.md`).
 - **Verified by:** every method is called in Go and in Xo with the same
   arguments. The tests compare the request, the response served and the
   result (`docs/reports/gcp-go-coverage.md`).
-- **Install:** as for Azure, clone the main branch and add the root module
-  and each API version your program uses (here Cloud Storage v1) to your
-  `xo.work`:
+- **Install** (the core and the API versions your program uses, each
+  tagged v0.1.0):
 
   ```sh
-  git clone https://github.com/xo-lang/gcp.git ../gcp
+  xo get github.com/xo-lang/gcp@v0.1.0
+  xo get github.com/xo-lang/gcp/storage/v1@v0.1.0
   ```
 
-  ```
-  # xo.work
-  xo preview
-  use .
-  use ../gcp
-  use ../gcp/storage/v1
-  ```
+- **Release notes:** [docs/releases/v0.1.0.md](https://github.com/xo-lang/gcp/blob/main/docs/releases/v0.1.0.md).
 
 ## No real cloud calls in the tests
 
