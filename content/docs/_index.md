@@ -10,6 +10,7 @@ programs with fast, structured feedback.
 - [Why Xo? (FAQ)](faq/): what Xo is for, how it relates to Go, and what experimental means.
 - [Xo and Go](xo-and-go/): how they relate, where each is the better choice, and measured numbers with sources.
 - [Xo and Rust](xo-and-rust/), [Xo and TypeScript](xo-and-typescript/), [Xo and Python](xo-and-python/): the same comparison against each, with the rows where Xo is slower.
+- [Performance](performance/): measured speed, memory, compile time and binary size against Go, each figure linked to its results file, with the rows where Xo is behind.
 - [Getting started](getting-started/): build the toolchain and run a first program.
 - [A tour of Xo](tour/): twelve short steps through the language.
 - [Dependencies and capabilities](dependencies/): limit what a dependency can do, with ceilings, the effect lock, vouches, and `xo audit`.
