@@ -212,12 +212,25 @@ against Go's 2.39 to 2.40 MB group binaries, and its cold builds take
 
 ## Where Xo is behind or even
 
-- **Warm rebuilds of a larger program**: `coll` rebuilds unchanged in
-  100 ms against Go's 50 ms, at twice Go's warm memory (52 against 26 MB).
+- **Warm rebuilds of a larger program**: with the whole-build cache off,
+  `coll` rebuilds unchanged in 100 ms against Go's 50 ms, at twice Go's
+  warm memory (52 against 26 MB). With that cache on, the default, an
+  unchanged rebuild takes 13 to 14 ms and 14 MB on linux/arm64
+  ([lines 9-14](https://github.com/xo-lang/xo/blob/main/bench/results/perf-gaps-2026-11-10.md#L9-L14)).
+  Most of the 100 ms was code generation repeated on every build: a
+  program under 256 functions skipped the code cache. The fix, in the
+  release after 0.46.0, halves coll's warm rebuild (110 to 53 ms on
+  linux/arm64,
+  [lines 19-37](https://github.com/xo-lang/xo/blob/main/bench/results/perf-gaps-2026-11-10.md#L19-L37)).
 - **Test builds use more memory**: `xo test` of the base64 and json
   ports runs in 0.35 to 0.65 of `go test`'s wall time, but at 1.10 to
   1.82 times its peak memory
   ([lines 363-425](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.40.0.md#L363-L425)).
+  After an edit it peaks at 202 to 233 MB against `go test`'s 106 to 158
+  MB on linux/arm64. The peak is the compiler's own heap, not the test
+  binary: parse trees, and every std module that imports the edited one
+  checked again
+  ([lines 41-60](https://github.com/xo-lang/xo/blob/main/bench/results/perf-gaps-2026-11-10.md#L41-L60)).
 - **nbody** (floating point): 1.026, above.
 - **Standard library ports** still slower than Go's packages in the
   2026-11-07 survey of 387 cases (geometric mean 0.724, 65 cases more than
