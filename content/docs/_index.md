@@ -14,6 +14,7 @@ programs with fast, structured feedback.
 - [Getting started](getting-started/): build the toolchain and run a first program.
 - [A tour of Xo](tour/): twelve short steps through the language.
 - [Dependencies and capabilities](dependencies/): limit what a dependency can do, with ceilings, the effect lock, vouches, and `xo audit`.
+- [Cloud SDKs](sdks/): community SDKs for AWS, Azure and Google Cloud, checked against their Go SDKs.
 - [Diagnostic codes](diagnostics/): every error code, with an example and a fix.
 - [Roadmap](/roadmap/): what is done, in progress, and next on the way to 1.0.
 - [Core language specification](spec/core/): the source of truth for syntax and semantics.

@@ -1,6 +1,9 @@
 ---
 title: "Cloud SDKs"
+linkTitle: "Cloud SDKs"
 description: "Community SDKs for AWS, Azure and Google Cloud, written in Xo and checked against the providers' own Go SDKs and test suites."
+weight: 16
+toc: true
 ---
 
 Three community SDKs let Xo programs call AWS, Azure and Google Cloud. Each
