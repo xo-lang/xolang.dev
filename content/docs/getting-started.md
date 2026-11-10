@@ -20,57 +20,84 @@ GitHub. The current one is
 
 {{% release-archives %}}
 
-Each archive unpacks into one directory, `xo-{{< release "tag" >}}-<os>-<arch>`, that
-holds `bin/xo` (`bin\xo.exe` on Windows), the toolchain, and `lib/xo/std`,
-the standard library. Keep `bin` and `lib` together: `xo` finds its
-standard library at `../lib/xo`. Check the download against the
-release's `SHA256SUMS`, unpack it, and put `bin` on your `PATH`.
+Each archive holds `bin/xo` (`bin\xo.exe` on Windows), the toolchain,
+and `lib/xo/std`, the standard library, under one directory,
+`xo-{{< release "tag" >}}-<os>-<arch>`. Keep `bin` and `lib` together: `xo` finds its
+standard library at `../lib/xo`. The steps below unpack it into `~/xo`
+without the versioned directory, so the `PATH` line stays the same when
+you upgrade; any directory works.
 
-macOS (on Intel, use `darwin-amd64`):
+1. Download the archive and `SHA256SUMS`, and check the archive.
+2. Unpack it into `~/xo`. To upgrade later, remove `~/xo` first, so no
+   file of the old standard library stays behind, then repeat steps 1
+   and 2.
+3. Add `~/xo/bin` to your `PATH` for good: the command appends the line
+   to your shell's startup file (`~/.zshrc` for zsh, the macOS default;
+   `~/.bashrc` for bash). Run it once.
+4. Open a new terminal and run `xo version`.
+
+macOS (on Intel, use `darwin-amd64`; with bash, write `~/.bashrc` for
+`~/.zshrc`):
 
 ```
 curl -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-darwin-arm64.tar.gz
 curl -LO {{< release "download_base" >}}/SHA256SUMS
 shasum -a 256 -c --ignore-missing SHA256SUMS
-tar -xzf xo-{{< release "tag" >}}-darwin-arm64.tar.gz
-export PATH="$PWD/xo-{{< release "tag" >}}-darwin-arm64/bin:$PATH"
-xo version
+mkdir -p ~/xo
+tar -xzf xo-{{< release "tag" >}}-darwin-arm64.tar.gz -C ~/xo --strip-components=1
+echo 'export PATH="$HOME/xo/bin:$PATH"' >> ~/.zshrc
 ```
 
-Linux (on x86-64, use `linux-amd64`):
+Linux (on x86-64, use `linux-amd64`; with zsh, write `~/.zshrc` for
+`~/.bashrc`):
 
 ```
 curl -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-linux-arm64.tar.gz
 curl -LO {{< release "download_base" >}}/SHA256SUMS
 sha256sum -c --ignore-missing SHA256SUMS
-tar -xzf xo-{{< release "tag" >}}-linux-arm64.tar.gz
-export PATH="$PWD/xo-{{< release "tag" >}}-linux-arm64/bin:$PATH"
+mkdir -p ~/xo
+tar -xzf xo-{{< release "tag" >}}-linux-arm64.tar.gz -C ~/xo --strip-components=1
+echo 'export PATH="$HOME/xo/bin:$PATH"' >> ~/.bashrc
+```
+
+Then, in a new terminal:
+
+```
 xo version
 ```
 
-Windows, in PowerShell (`tar` ships with Windows 10 and later):
+Windows, in PowerShell (`tar` ships with Windows 10 and later). Step 3
+adds `~\xo\bin` to your user `Path`, which every new terminal and
+program sees, VS Code included; a line in the PowerShell profile
+(`$PROFILE`) would reach PowerShell only:
 
 ```
 curl.exe -LO {{< release "download_base" >}}/xo-{{< release "tag" >}}-windows-amd64.tar.gz
 curl.exe -LO {{< release "download_base" >}}/SHA256SUMS
 (Get-FileHash xo-{{< release "tag" >}}-windows-amd64.tar.gz -Algorithm SHA256).Hash
 Select-String windows-amd64 SHA256SUMS
-tar -xzf xo-{{< release "tag" >}}-windows-amd64.tar.gz
-$env:Path = "$PWD\xo-{{< release "tag" >}}-windows-amd64\bin;$env:Path"
+New-Item -ItemType Directory -Force "$HOME\xo" | Out-Null
+tar -xzf xo-{{< release "tag" >}}-windows-amd64.tar.gz -C "$HOME\xo" --strip-components=1
+[Environment]::SetEnvironmentVariable("Path", "$HOME\xo\bin;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
+```
+
+Then, in a new PowerShell window:
+
+```
 xo version
 ```
 
 On Windows, compare the two hashes by eye: `Get-FileHash` prints
 upper case and `SHA256SUMS` lower case. `xo version` prints
 `xo {{< release "version" >}}` and the platform; `xo version -v` also names the commit
-the release was built from. Add the `PATH` line to your shell profile
-to keep it.
+the release was built from. A terminal or editor that was already
+open keeps the `PATH` it started with: open a new one.
 
 - **macOS:** the binaries are signed with a Developer ID and notarized.
   Gatekeeper checks the notarization online the first time a binary
   runs. If macOS still refuses a binary from a browser download, clear
   the download's quarantine flag:
-  `xattr -dr com.apple.quarantine xo-{{< release "tag" >}}-darwin-arm64`.
+  `xattr -dr com.apple.quarantine ~/xo`.
 - **Windows:** `xo.exe` and `xo-gobind.exe` are Authenticode signed
   (since 0.26.0). PowerShell's `Get-AuthenticodeSignature bin\xo.exe`
   shows the signature and its timestamp.
@@ -87,6 +114,12 @@ references, rename, and formatting. Install it from the
 editors that use it, from [Open VSX](https://open-vsx.org/extension/xo-lang/xo), or search for "Xo Language"
 in the editor's Extensions view. Debugging from the editor (F5 on a
 `.xo` file) runs `xo debug --dap`, which arrives in the next release.
+VS Code reads `PATH` when it starts: after changing `PATH`, quit and
+restart VS Code (every window), or set `xo.path` to the binary (for
+example `~/xo/bin/xo`). The Xo output channel names the `xo` the
+extension runs and its version; when there is no `xo` on `PATH`, it may
+pick up an older `bin/xo` from an Xo checkout in the workspace, so set
+`xo.path` if the diagnostics look wrong for your code.
 Its source is [xo-lang/vscode](https://github.com/xo-lang/vscode). Any
 other editor with a Language Server Protocol client can run `xo lsp`
 directly.
