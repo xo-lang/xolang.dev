@@ -26,6 +26,7 @@ const CHROME = process.env.CHROME || "/Applications/Google Chrome.app/Contents/M
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css", ".gz": "application/gzip", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml" };
 
 let failures = 0;
+const BEACON = /cloudflareinsights\.com/;
 const fail = (name, msg) => { failures++; console.log(`FAIL ${name}: ${msg}`); };
 const pass = (name, msg = "") => console.log(`ok   ${name}${msg ? ": " + msg : ""}`);
 
@@ -70,7 +71,9 @@ async function browser() {
     const d = JSON.parse(m.data);
     if (d.id && waits.has(d.id)) { waits.get(d.id)(d); waits.delete(d.id); }
     else if (d.method === "Runtime.exceptionThrown") logs.push("exception: " + (d.params.exceptionDetails.exception?.description || d.params.exceptionDetails.text));
-    else if (d.method === "Log.entryAdded" && d.params.entry.level === "error") logs.push("error: " + d.params.entry.text);
+    // Cloudflare's analytics beacon runs only on xolang.dev (baseof.html);
+    // its reports can fail in a headless browser, which is not the page's fault
+    else if (d.method === "Log.entryAdded" && d.params.entry.level === "error" && !BEACON.test((d.params.entry.url || "") + " " + d.params.entry.text)) logs.push("error: " + d.params.entry.text);
   };
   const send = (method, params = {}) => new Promise((r) => { const i = ++id; waits.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
   await send("Runtime.enable");
@@ -80,7 +83,9 @@ async function browser() {
     logs,
     async go(url) {
       await send("Page.navigate", { url });
-      await this.until("document.readyState === 'complete' && document.getElementById('play-code')");
+      // the page's module script has run: its ready flag, or (before the flag
+      // was deployed) the problems list its start fills
+      await this.until("document.readyState === 'complete' && document.getElementById('play-code') && (document.documentElement.dataset.playReady === '1' || document.getElementById('play-problems').childElementCount > 0)");
     },
     async eval(expr) {
       const r = await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true });

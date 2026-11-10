@@ -696,4 +696,7 @@ window.addEventListener("hashchange", () => location.reload());
     setSource(saved || examples.find((x) => x.name === "basics").source);
   }
   check();
+  // set up: the notice, the source and the first check are in place (the
+  // browser test waits for this before its first look)
+  document.documentElement.dataset.playReady = "1";
 })();
