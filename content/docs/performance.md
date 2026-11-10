@@ -74,6 +74,44 @@ Wall time and peak memory (max RSS), Xo over Go:
   code is in general.
 - fib, sieve, nbody and pmap are within 3% of Go.
 
+
+### The 0.46.0 cycle on linux/arm64
+
+The same workloads on the linux/arm64 offload host (12 CPUs) on
+2026-11-10, Xo from main a67d277d6, Go 1.26.1, 3 rounds
+([release-vs-go-a67d277d6-linux-arm64.md lines 53-333](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64.md#L53-L333)):
+
+| workload | wall | max RSS |
+|---|---|---|
+| fib | 0.892 | 0.343 |
+| **sieve** | **1.191 (slower)** | 0.371 |
+| **nbody** | **1.02 (slower)** | 0.343 |
+| sort | 0.775 | 0.209 |
+| interp | 0.316 | 0.343 |
+| collatz | 0.894 | 0.222 |
+| strings | 0.288 | 0.586 |
+| coll putget | 0.615 | 0.676 |
+| coll get | 0.508 | 0.635 |
+| coll push | 0.704 | 0.421 |
+| coll update | 0.592 | 0.537 |
+| coll iter | 0.181 | 0.634 |
+| coll copymut | 0.691 | 0.483 |
+| coll branch | 0.009 | 0.34 |
+| conc spawn | 0.388 | 0.201 |
+| conc fanout | 0.485 | 0.193 |
+| conc pingpong | 0.904 | 0.221 |
+| conc mutex | 0.318 | 0.221 |
+| **conc rwmutex** | **1.127 (slower)** | 0.216 |
+| **conc pmap** | **1.06 (slower)** | 0.241 |
+
+- Four rows are slower than Go here: sieve (1.191), rwmutex (1.127),
+  pmap (1.06) and nbody (1.02). Sieve and rwmutex were within noise or
+  faster on darwin in 0.40.0, so these two are open items for the next
+  release, not settled differences.
+- `xo test` of std's base64 and json takes 0.793 and 0.462 of `go test`'s
+  wall time cold, 0.893 and 0.241 after an edit
+  ([lines 340-399](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64.md#L340-L399)).
+
 ## HTTP server: Go at its defaults and tuned
 
 The same JSON server in both languages (`bench/perf/jitter`), on the
