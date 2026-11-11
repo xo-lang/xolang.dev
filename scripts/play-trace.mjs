@@ -12,6 +12,11 @@
 // `use` lines, and the page fetches the rest of std when a build names a
 // module it does not have (toolchain.js).
 //
+// It fails (exit 1) when a module's build names a std module the bundle
+// does not have: the bundle lost a file the compiler reads (merged.txt,
+// decision 0588 in the xo repo: without it every merged module's
+// `use native/rt` was not found).
+//
 // Usage: node scripts/play-trace.mjs XOC_WASM STD_BUNDLE STD_REC OUT_JSON [CORPUS]
 // (scripts/build-playground.py runs it.)
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
@@ -51,7 +56,9 @@ const rec = new File(new Uint8Array(readFileSync(recPath)), { readonly: true });
 const xoc = await WebAssembly.compile(readFileSync(xocPath));
 const text = (s) => new File(new TextEncoder().encode(s));
 
-// opened returns the std files (bundle names) the compiler opens building source
+// opened returns the std files (bundle names) the compiler opens building
+// source; missing collects the modules a build reported not found.
+const missing = [];
 async function opened(source) {
   const w = new Directory(new Map([
     ["std", tree()],
@@ -61,7 +68,7 @@ async function opened(source) {
   ]));
   const fds = [
     new OpenFile(new File([])),
-    new ConsoleStdout(() => {}),
+    new ConsoleStdout((b) => { out += new TextDecoder().decode(b); }),
     new ConsoleStdout(() => {}),
     new PreopenDirectory(".", w.contents),
     new PreopenDirectory("/", new Map([["w", w]])),
@@ -70,6 +77,7 @@ async function opened(source) {
     ["HOME=/w", "PWD=/w", "XO_PLAY_RECORD=/w/std.rec"], fds, { debug: false });
   const seen = new Set();
   let inst = null;
+  let out = "";
   const imports = { ...wasi.wasiImport };
   const open = wasi.wasiImport.path_open;
   imports.path_open = (...a) => {
@@ -80,6 +88,15 @@ async function opened(source) {
   };
   inst = await WebAssembly.instantiate(xoc, { wasi_snapshot_preview1: imports });
   try { wasi.start(inst); } catch (e) {}
+  try {
+    for (const d of JSON.parse(out).diagnostics || []) {
+      // a std or native module std's own files name (not a `use c`
+      // library, which the playground does not build, nor std/internal,
+      // which a program may not import)
+      const m = d.code === "XO0601" && /^module `((?:std|native)\/[^`]+)` not found/.exec(d.message);
+      if (m && d.span && /^std\//.test(d.span.file || "")) missing.push(source.split("\n")[0] + ": " + d.message + " (" + (d.span && d.span.file) + ")");
+    }
+  } catch (e) {}
   return [...seen].sort();
 }
 
@@ -106,4 +123,8 @@ for (const name of [...names].sort()) {
 }
 writeFileSync(outPath, JSON.stringify({ core: [...core].sort(), mods }, null, 1) + "\n");
 const per = Object.values(mods).map((l) => l.length);
+if (missing.length) {
+  console.error("play-trace: a std module is not found in the bundle:\n" + missing.join("\n"));
+  process.exit(1);
+}
 console.log(`play-trace: core ${core.size} files (${progs} corpus programs), ${Object.keys(mods).length} modules (most ${Math.max(...per)} files beyond core)`);
