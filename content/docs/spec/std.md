@@ -6,12 +6,12 @@ description: "Prelude methods and the standard library surface."
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/std.md"
-status: "draft 0.47 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)"
+status: "draft 0.49 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)"
 generated: "scripts/sync-content.py from spec/std.md; edit the source, not this file"
 ---
 # Xo Standard Library and Prelude
 
-Status: draft 0.47 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)
+Status: draft 0.49 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)
 Companion to `spec/core.md`.
 
 Signatures are written in Xo syntax. `[var]` before a receiver means the method
@@ -177,9 +177,16 @@ multiply and an add (golden float_no_fma). A fused multiply-add is asked
 for by name: `x.fma(y, z)` is `x * y + z` computed exactly and rounded
 once (IEEE 754 fusedMultiplyAdd, Go's `math.FMA`), the same bits on every
 backend (decision 0385, golden float_fma). Special values are Go's:
-`(-1.0).log()` is NaN, `(0.0).log()` is -Inf, `x.pow(0.0)` is 1.0. Float
-constants (`Float.PI`, `Float.INF`) are a later step; `Float.parse("inf")`
-gives infinity.
+`(-1.0).log()` is NaN, `(0.0).log()` is -Inf, `x.pow(0.0)` is 1.0.
+`Float.parse("inf")` gives infinity.
+
+Float's type constants (decision 0592), as the integer bounds below:
+`Float.inf` (positive infinity; `-Float.inf` is negative), `Float.nan` (a
+NaN, unequal to every Float, itself too: test with `is_nan`), `Float.pi`,
+`Float.e`, `Float.max` (the largest finite Float), `Float.min`
+(`-Float.max`) and `Float.smallest_nonzero` (the smallest positive
+subnormal), Go's math.Inf(1), NaN(), Pi, E, MaxFloat64 and
+SmallestNonzeroFloat64.
 
 The integer bounds `Int.max`, `Int.min`, `Int8.max` ... `UInt64.max` are
 type constants (decision 0587): written without parentheses, constant
@@ -369,6 +376,11 @@ fn (xs: List[T]) sort_by_desc[K: Ord](key: fn(T) -> K) -> List[T]   // greatest 
 fn (xs: List[T]) sort_with(cmp: fn(T, T) -> Ordering) -> List[T]     // stable (decision 0586)
 fn (xs: List[T]) group_by[K: Hash](key: fn(T) -> K) -> List[(K, List[T])]   // keys in first appearance order, each group in input order
 fn (xs: List[T]) reverse() -> List[T]
+fn (xs: List[T]) clone() -> List[T]          // decision 0592: a buffer of its own (slices.Clone)
+List.concat(lists: List[List[T]]) -> List[T] // slices.Concat, sized once
+fn (xs: List[T]) binary_search(x: T) -> (Int, Bool) // T Ord, xs sorted: the first index not below x, and whether x is there
+fn (xs: List[T]) max() -> T?                 // T Ord; None when empty; the first of equals; a NaN is the result (slices.Max)
+fn (xs: List[T]) min() -> T?                 // as max (slices.Min)
 fn (xs: List[T]) to_set() -> Set[T]
 (0..n).to_list()                             // Range[Int] to List[Int]
 fn (xs: List[Str]) join(sep: Str) -> Str
@@ -441,9 +453,19 @@ without growing it; `n` below 0 counts as 0. Capacity is not observable
 when its elements are over 256 bytes (decision 0452's addendum: a list of
 one connection's state held four).
 
+Decision 0595 adds `Rune.max` (U+10FFFF) and `Rune.max_ascii` (U+007F) as
+type constants, `r.simple_fold()` (unicode.SimpleFold), `n.bit_len()`
+(bits.Len64), and `n.add_carry(m, c)` / `n.sub_borrow(m, b)` returning the
+word and the carry or borrow (bits.Add64, bits.Sub64).
+
 ### 2.4 Map[K, V] and Set[T]
 
 Insertion ordered. `put` on an existing key keeps its position.
+`m.extend(other)` puts every entry of other into m (Go's maps.Copy):
+other's value wins, a key m had keeps its position, new keys follow in
+other's order. `m.clone()` is a copy with a table of its own (maps.Clone);
+assignment already copies a Map, shared until one is written (core 5.1),
+so clone only gives the copy its storage at once (decision 0592).
 
 ```
 fn (m: Map[K, V]) len() -> Int
@@ -532,10 +554,15 @@ struct DurationErr { input: Str }  // displays as `invalid duration "1x": expect
 Time.UNIX_EPOCH: Time
 Time.from_unix(secs: Int) -> Time
 Time.from_unix_millis(ms: Int) -> Time
+Time.from_unix_micros(us: Int) -> Time        // decision 0595
+Time.from_unix_nanos(ns: Int) -> Time         // decision 0595
 Time.rfc3339_offset(s: Str) -> Duration?   // the offset the text carries (Go's Zone() of time.Parse; Z is zero), None when parse_rfc3339 is None
 Time.parse_rfc3339(s: Str) -> Time?   // None for text that is not RFC 3339 or a time outside Time's range (1677-09-21 to 2262-04-11, int64 nanoseconds since 1970; decision 0364)
 fn (t: Time) unix() -> Int
 fn (t: Time) unix_millis() -> Int
+fn (t: Time) unix_micros() -> Int             // decision 0595: rounded down (UnixMicro)
+fn (t: Time) unix_nanos() -> Int              // UnixNano
+fn (t: Time) nanosecond() -> Int              // 0 to 999999999, the same in every zone
 fn (t: Time) format_rfc3339() -> Str
 ```
 
@@ -590,6 +617,8 @@ fn ([var] b: BytesBuilder) write_rune(r: Rune) // its UTF-8 encoding
 fn ([var] b: BytesBuilder) put_le(at: Int, v: Int, n: Int) // overwrite n (1, 2, 4, 8) bytes in place; put_be too
 fn (b: BytesBuilder) len() -> Int            // also on StrBuilder
 fn (b: BytesBuilder) freeze() -> Bytes       // moves b
+Replacer.new(pairs: List[(Str, Str)]) -> Replacer // decision 0594: Go's strings.NewReplacer
+fn (r: Replacer) replace(s: Str) -> Str      // one pass: at each position the first pair whose old starts there; s itself when nothing changes
 ByteBuffer.new() -> ByteBuffer               // also with_capacity(n); move only
 fn ([var] b: ByteBuffer) write(data: Bytes)  // appended at the back
 fn (b: ByteBuffer) len() -> Int              // the unread bytes
@@ -901,6 +930,10 @@ fn (f: File) truncate(size: Int) -> () ! FsErr    uses fs.write   // Go's Trunca
 fn (f: File) stat() -> FileInfo ! FsErr           uses fs.read    // Go's File.Stat: from the handle
 fn (f: File) sync() -> () ! FsErr                 uses fs.write   // fsync (F_FULLFSYNC on macOS)
 fn (f: File) close() -> () ! FsErr                               // closing again does nothing
+fn (f: File) copy_to(dst: Stream) -> Int ! CopyErr[FsErr, NetErr] uses (fs.read, net)
+    // from the position to the end into dst, 32 KiB reads (io.Copy); the bytes copied
+fn (f: File) copy_from(src: Stream) -> Int ! CopyErr[NetErr, FsErr] uses (fs.write, net)
+    // src until it ends into the file at its position; the bytes copied
 struct FileLock {}                                // handle
 fn (l: FileLock) unlock()                                        // unlocking again does nothing
 ```
@@ -1015,6 +1048,12 @@ interface Stream {                                 // either kind of connection
   fn write(self, data: Bytes) -> () ! NetErr uses net
   fn close(self)
 }
+enum CopyErr[R, W] {                               // decision 0593: the side that failed
+  Read(err: R)                                     // reading the source
+  Write(err: W)                                    // writing the destination
+} derive Display
+fn copy_stream(dst: Stream, src: Stream) -> Int ! CopyErr[NetErr, NetErr] uses net
+    // Go's io.Copy: src until it ends into dst, 32 KiB reads, each written in full; the bytes copied
 interface NetConn {                                // decision 0481: Go's net.Conn
   fn read(self, max: Int) -> Bytes? ! NetErr uses net
   fn write(self, data: Bytes) -> () ! NetErr uses net
@@ -1250,7 +1289,14 @@ fn (e: Env) only(names: List[Str]) -> Env   // attenuation (below)
 fn (e: Env) config_dir() -> Str ! EnvErr     // where configuration goes (below)
 fn (e: Env) cache_dir() -> Str ! EnvErr
 fn (e: Env) hostname() -> Str              // Go's os.Hostname; "" where the system cannot say (WASI)
+fn (e: Env) local_app_data() -> Str ! EnvErr // Windows' FOLDERID_LocalAppData (below)
 ```
+
+`local_app_data()` (decision 0584) is Windows' local application data
+folder from SHGetKnownFolderPath(FOLDERID_LocalAppData), as Go's
+`windows.KnownFolderPath`, not the `%LOCALAPPDATA%` variable, with `/`
+separators; `Missing("LocalAppData")` on other OSes. `only` does not narrow
+it (it is not a variable); a FakeEnv answers its `LOCALAPPDATA`.
 
 `program()` is the name the program was started with (argv[0]), and
 `home()` the home directory (`HOME`; on Windows `USERPROFILE`, read when
@@ -1341,6 +1387,55 @@ Terminals (decision 0162), on every backend:
   of `read_line` and `read_all`, so text and binary reads can be mixed.
 - Targets without terminal support (wasip1, js, plan9, Linux on mips and
   ppc) report no terminal and read secrets with echo on.
+
+### 3.6a Secrets (`uses secrets.read` / `secrets.write`)
+
+`os.secrets` is the user's secret stores (decision 0584), one member per
+OS store, `None` on an OS without it:
+
+```
+interface Secrets {
+  fn keyring(self) -> Keyring?                // the Linux kernel keyring
+  fn keychain(self) -> Keychain?              // the macOS login keychain
+  fn dpapi(self) -> Dpapi?                    // Windows' Data Protection API
+  fn only(self, stores: List[Str]) -> Secrets // keep the named stores
+}
+```
+
+`only(["keyring"])` keeps the keyring, `only(["keychain"])` the keychain,
+`only(["dpapi"])` DPAPI; an `Os` literal without `secrets`
+holds `only([])`, so every store is `None` (decision 0585).
+
+`Keyring` (keyrings(7)) names keyrings and keys by serial number:
+`user_persistent()` is the keyring Go's azidentity uses (the persistent
+keyring linked to the user keyring, else the user keyring);
+`add(ring, kind, desc, payload)` adds or updates a key and returns its id;
+`search(ring, kind, desc)` finds one; `read(id)` is its payload;
+`unlink(id, ring)` removes it from the ring. Errors are `KeyErr`:
+`NotFound` (ENOKEY, ENOENT), `Expired`, `Revoked`, `Denied` (EACCES,
+EPERM), `Io(msg)`. A container whose seccomp profile blocks keyctl reports
+`Denied` or `Io`.
+
+`Keychain` (macOS, Security.framework's SecItem calls, as Go's
+keybase/go-keychain) holds generic passwords by service and account:
+`get_generic(service, account)` is the data or `None`;
+`set_generic(service, account, data)` updates the item's data, or adds the
+item when there is none; `delete_generic(service, account)` removes it (a
+missing item or keychain is not an error). Errors are
+`KeychainErr { status, msg }`: the OSStatus and SecCopyErrorMessageString's
+text, displayed as `keychain: MSG (STATUS)`. It is `None` off macOS and on
+the Go backend (no cgo). The framework is loaded at the first call, so a
+program that reads no keychain does not load it.
+
+`Dpapi` (Windows, crypt32's CryptProtectData and CryptUnprotectData for
+the current user, no description, no prompt, CRYPTPROTECT_UI_FORBIDDEN, as
+Go's callers of golang.org/x/sys/windows) protects blobs the caller keeps:
+`protect(data, entropy = b"")` is the blob, `unprotect(blob, entropy =
+b"")` the data, which only the same user on the same machine can recover,
+with the same entropy. Errors are `DpapiErr { code, msg }`: the Win32 error
+(GetLastError) and its system text, displayed as `dpapi: MSG (CODE)`. It is
+`None` off Windows; the Go backend calls the same functions through
+syscall's lazy DLLs.
 
 ### 3.7 Proc (`uses proc`)
 
@@ -2819,6 +2914,7 @@ struct TestOs {
   env: FakeEnv
   stdio: FakeStdio
   proc: FakeProc
+  secrets: Secrets    // an in-memory keyring on every OS (decision 0584)
   tasks: task.Group   // lives for the test; cancelled when the test ends
 }
 ```
@@ -2827,6 +2923,19 @@ Each fake satisfies its capability interface and adds control methods.
 `only` on `FakeNet`, `FakeEnv`, and `FakeProc` attenuates the fake as
 on the real capability (3.2, 3.5, 3.7): a test can check that a
 library given `os.net.only([...])` fails with `Denied` elsewhere.
+
+A test's `os.secrets.keyring()` is `Some` on every OS: an in-memory
+keyring, empty when each test starts, whose `user_persistent()` is ring 7
+and whose keys behave as the kernel's (an `add` of an existing ring, kind
+and description replaces the payload; `search`, `read` and `unlink` of a
+missing key fail with `NotFound`). `testing.run_main`'s Os shares it.
+`only([])` drops it as on the real Secrets. `os.secrets.keychain()` is
+`Some` on every OS too, an in-memory keychain kept with the test's keys
+(apart from every keyring), with the real keychain's semantics.
+`os.secrets.dpapi()` is `Some` on every OS: not encryption, a reversible
+wrap (a prefix, the entropy, the data XOR 0x5A) whose `unprotect` fails
+with code 13 (ERROR_INVALID_DATA) for a blob it did not make or another
+entropy.
 
 ### 8.1 FakeNet
 
@@ -4917,11 +5026,12 @@ pub fn compose(from: Address, to: List[Address], subject: Str, text: Str,
 ## 26. std/multipart
 
 Status: implemented on every backend (decision 0282, 2026-10-20): Go's
-mime/multipart over a body in memory, with net/textproto's header reader
-and mime/quotedprintable's decoder, ported natively
-(`std/native/multipart.xo`: Go's results on 1,400 generated bodies in
-`multipart_test.xo`) and through mime/multipart on the Go backend;
-golden `multipart_basic`. Pure except `random_boundary`.
+mime/multipart, with net/textproto's header reader and
+mime/quotedprintable's decoder, ported to Xo in `std/multipart.xo` (Go's
+results on 1,400 generated bodies in `multipart_test.xo`), which every
+backend runs (on the Go backend generated into std/rt, decision 0597);
+golden `multipart_basic`. A streamed body is read with `Reader`
+(2026-11-10, decision 0597). Pure except `random_boundary`.
 
 ```
 struct Part { name: Str, filename: Str?, headers: Map[Str, Str], data: Bytes }
@@ -4933,6 +5043,13 @@ pub fn parse_form(body: Bytes, boundary: Str, max_parts: Int = 1000) -> Form ! M
 pub fn write(parts: List[Part], boundary: Str) -> Bytes
 pub fn form_data_content_type(boundary: Str) -> Str
 pub fn random_boundary(r: Rand) -> Str uses rand
+
+struct PartHead { name: Str, filename: Str?, headers: Map[Str, Str] }
+pub fn (h: PartHead) header_values(name: Str) -> List[Str]
+struct Reader[fx: Effects]
+pub fn reader[fx: Effects](src: fn() -> Bytes? ! Str uses fx, boundary: Str) -> Reader[fx]
+pub fn (var r: Reader[fx]) next_part() -> PartHead? ! MultipartErr uses fx
+pub fn (var r: Reader[fx]) read(max: Int = 32768) -> Bytes? ! MultipartErr uses fx
 ```
 
 - `parse` is `Reader.NextPart` with each part read whole: the preamble
@@ -4958,7 +5075,17 @@ pub fn random_boundary(r: Rand) -> Str uses rand
   `filename` (Go's `CreateFormField` and `CreateFormFile`, with
   `Content-Type: application/octet-stream` for a file) when the part has
   none. The boundary is used as given.
-- Streaming parts waits for a streaming request body.
+- `reader` is Go's `NewReader` over a body read as it arrives: each call
+  of `src` gives the body's next bytes, None at its end, or its read
+  error's text. `next_part` is `NextPart`: the next part's head (`name`
+  and `filename` as in `parse`, `headers` the first value of each
+  header, `header_values` all of one header's), None after the last
+  part; the open part's unread data is read and dropped first. `read`
+  is `Part.Read`: at most `max` bytes of the open part's data (decoded
+  when quoted-printable), None at its end; `max` below 1 is a fault.
+  Errors are `parse`'s and the source's text, and stick. The reader
+  keeps one part's head and Go's 4096 byte line buffer, not the body;
+  `http.BodyReader.multipart` is this reader over a request body.
 ## 27. std/tls
 
 A TLS client on a connection the program dialed (decision 0281): the
@@ -5500,7 +5627,7 @@ Every function and method of std/prelude.xo, by type, as declared there
 `static` receiver is a function on the type (`Int.parse(s)`); one with an
 UPPER_SNAKE name and no parameters is a constant, read without a call
 (`Time.UNIX_EPOCH`).
-527 declarations.
+566 declarations.
 
 ### Range
 
@@ -5554,6 +5681,9 @@ fn (n: Int) mul_hi_unsigned(m: Int) -> Int
 fn (n: Int) lt_unsigned(m: Int) -> Bool
 fn (n: Int) le_unsigned(m: Int) -> Bool
 fn (n: Int) leading_zeros() -> Int
+fn (n: Int) bit_len() -> Int
+fn (n: Int) add_carry(m: Int, carry: Int) -> (Int, Int)
+fn (n: Int) sub_borrow(m: Int, borrow: Int) -> (Int, Int)
 fn (n: Int) trailing_zeros() -> Int
 fn (n: Int) ones_count() -> Int
 fn (n: Int) saturating_add(m: Int) -> Int
@@ -5694,6 +5824,7 @@ fn (r: Rune) is_symbol() -> Bool
 fn (r: Rune) is_number() -> Bool
 fn (r: Rune) to_lower() -> Rune
 fn (r: Rune) to_upper() -> Rune
+fn (r: Rune) simple_fold() -> Rune
 fn (r: Rune) to_title() -> Rune
 fn (r: Rune) utf8_len() -> Int
 fn (r: Rune) is_print() -> Bool
@@ -5840,6 +5971,11 @@ fn (var xs: List[T]) sort_in_place_with[E, fx: Effects](cmp: fn(T, T) -> Orderin
 fn (xs: List[T]) sort_by_desc[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[T] ! E uses fx
 fn (var xs: List[T]) sort_in_place_by_desc[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> () ! E uses fx
 fn (xs: List[T]) group_by[K: Hash, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[(K, List[T])] ! E uses fx
+fn (xs: List[T]) clone() -> List[T]
+fn (static: List[T]) concat(lists: List[List[T]]) -> List[T]
+fn (xs: List[T]) binary_search(x: T) -> (Int, Bool)
+fn (xs: List[T]) max() -> T?
+fn (xs: List[T]) min() -> T?
 fn (xs: List[T]) reverse() -> List[T]
 fn (xs: List[T]) to_set() -> Set[T]
 fn (xs: List[Str]) join(sep: Str) -> Str
@@ -5871,6 +6007,8 @@ fn (m: Map[K, V]) map[U, E, fx: Effects](f: fn(K, V) -> U ! E uses fx) -> Map[K,
 fn (m: Map[K, V]) any[E, fx: Effects](f: fn(K, V) -> Bool ! E uses fx) -> Bool ! E uses fx
 fn (m: Map[K, V]) all[E, fx: Effects](f: fn(K, V) -> Bool ! E uses fx) -> Bool ! E uses fx
 fn (var m: Map[K, V]) put(k: K, v: V)
+fn (var m: Map[K, V]) extend(other: Map[K, V])
+fn (m: Map[K, V]) clone() -> Map[K, V]
 fn (var m: Map[K, V]) remove(k: K) -> V?
 fn (var m: Map[K, V]) update[R, E, fx: Effects](k: K, init: V, f: fn(var V) -> R ! E uses fx) -> R ! E uses fx
 ```
@@ -5949,10 +6087,15 @@ fn (e: DurationErr) display() -> Str
 fn (static: Time) UNIX_EPOCH() -> Time
 fn (static: Time) from_unix(secs: Int) -> Time
 fn (static: Time) from_unix_millis(ms: Int) -> Time
+fn (static: Time) from_unix_micros(us: Int) -> Time
+fn (static: Time) from_unix_nanos(ns: Int) -> Time
 fn (static: Time) parse_rfc3339(s: Str) -> Time?
 fn (static: Time) rfc3339_offset(s: Str) -> Duration?
 fn (t: Time) unix() -> Int
 fn (t: Time) unix_millis() -> Int
+fn (t: Time) unix_micros() -> Int
+fn (t: Time) unix_nanos() -> Int
+fn (t: Time) nanosecond() -> Int
 fn (t: Time) format_rfc3339() -> Str
 ```
 
@@ -6040,6 +6183,13 @@ fn (b: BytesBuilder) len() -> Int
 fn (b: BytesBuilder) freeze() -> Bytes
 ```
 
+### Replacer
+
+```
+fn (static: Replacer) new(pairs: List[(Str, Str)]) -> Replacer
+fn (r: Replacer) replace(s: Str) -> Str
+```
+
 ### ByteBuffer
 
 ```
@@ -6124,6 +6274,8 @@ fn (f: File) truncate(size: Int) -> () ! FsErr uses fs.write
 fn (f: File) stat() -> FileInfo ! FsErr uses fs.read
 fn (f: File) sync() -> () ! FsErr uses fs.write
 fn (f: File) close() -> () ! FsErr
+fn (f: File) copy_to(dst: Stream) -> Int ! CopyErr[FsErr, NetErr] uses (fs.read, net)
+fn (f: File) copy_from(src: Stream) -> Int ! CopyErr[NetErr, FsErr] uses (fs.write, net)
 ```
 
 ### FileLock
@@ -6241,6 +6393,7 @@ fn only(self, names: List[Str]) -> Env
 fn config_dir(self) -> Str ! EnvErr uses env
 fn cache_dir(self) -> Str ! EnvErr uses env
 fn hostname(self) -> Str uses env
+fn local_app_data(self) -> Str ! EnvErr uses env
 ```
 
 ### IoErr
@@ -6268,6 +6421,58 @@ fn read_secret(self, prompt: Str) -> Str? ! IoErr uses stdio
 fn raw_input(self, on: Bool) -> Bool uses stdio
 fn read_bytes(self, max: Int) -> Bytes? ! IoErr uses stdio
 fn read_all_bytes(self) -> Bytes ! IoErr uses stdio
+```
+
+### KeyErr
+
+```
+fn (e: KeyErr) display() -> Str
+```
+
+### Keyring
+
+```
+fn user_persistent(self) -> Int ! KeyErr uses secrets.read
+fn add(self, ring: Int, kind: Str, desc: Str, payload: Bytes) -> Int ! KeyErr uses secrets.write
+fn search(self, ring: Int, kind: Str, desc: Str) -> Int ! KeyErr uses secrets.read
+fn read(self, id: Int) -> Bytes ! KeyErr uses secrets.read
+fn unlink(self, id: Int, ring: Int) -> () ! KeyErr uses secrets.write
+```
+
+### KeychainErr
+
+```
+fn (e: KeychainErr) display() -> Str
+```
+
+### Keychain
+
+```
+fn get_generic(self, service: Str, account: Str) -> Bytes? ! KeychainErr uses secrets.read
+fn set_generic(self, service: Str, account: Str, data: Bytes) -> () ! KeychainErr uses secrets.write
+fn delete_generic(self, service: Str, account: Str) -> () ! KeychainErr uses secrets.write
+```
+
+### DpapiErr
+
+```
+fn (e: DpapiErr) display() -> Str
+```
+
+### Dpapi
+
+```
+fn protect(self, data: Bytes, entropy: Bytes = b"") -> Bytes ! DpapiErr uses secrets.write
+fn unprotect(self, blob: Bytes, entropy: Bytes = b"") -> Bytes ! DpapiErr uses secrets.read
+```
+
+### Secrets
+
+```
+fn keyring(self) -> Keyring?
+fn keychain(self) -> Keychain?
+fn dpapi(self) -> Dpapi?
+fn only(self, stores: List[Str]) -> Secrets
 ```
 
 ### ProcErr
@@ -6337,6 +6542,7 @@ fn read_text_or(fs: Fs, path: Str, default: Str) -> Str ! FsErr uses fs.read
 fn read_or(fs: Fs, path: Str, default: Bytes) -> Bytes ! FsErr uses fs.read
 fn read_mapped(fs: Fs, path: Str) -> Bytes ! FsErr uses fs.read
 fn write_atomic(fs: Fs, path: Str, data: Bytes) -> () ! FsErr uses fs
+fn copy_stream(dst: Stream, src: Stream) -> Int ! CopyErr[NetErr, NetErr] uses net
 ```
 
 <!-- END prelude index -->
@@ -7904,15 +8110,15 @@ fn amqptest.new(clock: Clock) -> Broker
 fn (b: Broker) serve(g: task.Group, l: Listener) uses (net.listen, clock)
 fn (b: Broker) queue(name: Str, opts: QueueOptions = QueueOptions{})      // QueueOptions{sessions, lock_ms, max_delivery_count}
 fn (b: Broker) topic(name: Str)
-fn (b: Broker) event_hub(name: Str, partitions: Int, consumer_groups: List[Str] = ["$Default"])
+fn (b: Broker) event_hub(name: Str, partitions: Int, consumer_groups: List[Str] = ["$Default"]) uses clock
 fn (b: Broker) event_hub_geo_factor(hub: Str, factor: Int)
 fn (b: Broker) events(hub: Str, partition: Int) -> List[amqp.Message]
 fn (b: Broker) subscription(topic: Str, name: Str, opts: QueueOptions = QueueOptions{})
-fn (b: Broker) put(queue: Str, m: amqp.Message)
-fn (b: Broker) ready(queue: Str) -> List[amqp.Message]
-fn (b: Broker) locked(queue: Str) -> Int
+fn (b: Broker) put(queue: Str, m: amqp.Message) uses clock
+fn (b: Broker) ready(queue: Str) -> List[amqp.Message] uses clock
+fn (b: Broker) locked(queue: Str) -> Int uses clock
 fn (b: Broker) dead_letters(queue: Str) -> List[amqp.Message]
-fn (b: Broker) scheduled(queue: Str) -> List[amqp.Message]
+fn (b: Broker) scheduled(queue: Str) -> List[amqp.Message] uses clock
 fn (b: Broker) deferred(queue: Str) -> List[amqp.Message]
 fn (b: Broker) tokens() -> List[(Str, Str)]
 fn (b: Broker) attaches() -> List[(Str, Str, List[Str])]

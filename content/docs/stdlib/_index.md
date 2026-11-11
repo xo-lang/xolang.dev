@@ -14,8 +14,8 @@ The same reference, searchable and with each module's source, is at [pkg.xolang.
 | Module | What it is |
 |---|---|
 | [`std/adler32`](adler32/) | Go's hash/adler32: the checksum of zlib (RFC 1950). |
-| [`std/amqp`](amqp/) | std/amqp: AMQP 1.0 (ISO/IEC 19464, OASIS), a port of github.com/Azure/go-amqp v1.7.0 (MIT, Copyri... |
-| [`std/amqptest`](amqptest/) | Serve it on a listener (the test world's in memory listeners work) and dial it with std/amqp. |
+| [`std/amqp`](amqp/) | AMQP 1.0 (ISO/IEC 19464, OASIS), a port of github.com/Azure/go-amqp v1.7.0 (MIT, Copyright 2017 K... |
+| [`std/amqptest`](amqptest/) | an in-process AMQP 1.0 broker that behaves like Azure Service Bus for the parts a client library ... |
 | [`std/archive`](archive/) | gzip compression and tar and zip archives, in memory and pure: read and write the bytes with Fs. |
 | [`std/backoff`](backoff/) | Exponential backoff with jitter and a retry loop, cenkalti/backoff v4's ExponentialBackOff and Re... |
 | [`std/base32`](base32/) | Go's encoding/base32: the alphabets of RFC 4648. |
@@ -40,11 +40,11 @@ The same reference, searchable and with each module's source, is at [pkg.xolang.
 | [`std/embed`](embed/) | A Dir is the files a constant embeds at build time: `const SITE: embed.Dir = embed("static")`. |
 | [`std/fnv`](fnv/) | Go's hash/fnv: the Fowler-Noll-Vo hashes FNV-1 and FNV-1a, 32, 64 and 128 bits. |
 | [`std/gif`](gif/) | Go's image/gif over whole buffers: Decode, DecodeAll, DecodeConfig, Encode and EncodeAll, with Go... |
-| [`std/go`](go/) | Bindings written by `xo bind` (internal/gobind) import this module for `go.Error`; user code need... |
-| [`std/grpc`](grpc/) | std/grpc (decision 0535): gRPC over std/http's HTTP/2. |
+| [`std/go`](go/) | values that cross the Go interop boundary (decision 0041, prototype 2026-10-08). |
+| [`std/grpc`](grpc/) | gRPC over std/http's HTTP/2. |
 | [`std/heap`](heap/) | A binary heap ordered by a comparison the caller gives, after Go's container/heap (heap.go: Init,... |
 | [`std/html`](html/) | Go's html package: the five HTML special characters escaped, and entities (named, including the l... |
-| [`std/htmlent`](htmlent/) | A declaration file so the Go backend compiles the lookups from std/native/htmlent.xo. |
+| [`std/htmlent`](htmlent/) | the HTML entity tables std/html and std/htmltok share (internal; use std/html's escape_string and... |
 | [`std/htmlparse`](htmlparse/) | golang.org/x/net/html's tree builder (parse.go, node.go, const.go, foreign.go, doctype.go, render... |
 | [`std/htmltok`](htmltok/) | golang.org/x/net/html's Tokenizer (token.go, BSD license, Copyright 2010 The Go Authors): the HTM... |
 | [`std/http`](http/) | see spec/std.md 4 |
@@ -57,17 +57,17 @@ The same reference, searchable and with each module's source, is at [pkg.xolang.
 | [`std/mail`](mail/) | Go's net/mail addresses (RFC 5322 with RFC 2047 encoded words). |
 | [`std/metrics`](metrics/) | Counters, gauges and histograms with label values, and their Prometheus text exposition (format v... |
 | [`std/mime`](mime/) | Go's mime: media types (RFC 2045, 2231), the extension table (Go's builtin one only, the same on ... |
-| [`std/multipart`](multipart/) | Go's mime/multipart in memory: the body is a request's, already capped by the server. |
+| [`std/multipart`](multipart/) | Go's mime/multipart: a body in memory (parse, parse_form), or streamed (Reader, decision 0597). |
 | [`std/netip`](netip/) | Go's net/netip: IP addresses and prefixes as values. |
 | [`std/norm`](norm/) | Unicode normalization of golang.org/x/text/unicode/norm: the four forms of UAX #15 (NFC, NFD, NFK... |
-| [`std/otlp`](otlp/) | see decision 0539): OTLP export of std/trace spans and std/metrics registries, as the opentelemetry-proto 1.x messages (ExportTraceServiceRequest, ExportMetricsServiceRequest) written straight onto std/protobuf's builder, the body of OTLP/HTTP's POST /v1/traces and /v1/metrics (Content-Type application/x-protobuf |
+| [`std/otlp`](otlp/) | OTLP export of std/trace spans and std/metrics registries, as the opentelemetry-proto 1.x message... |
 | [`std/otp`](otp/) | One time passwords: HOTP (RFC 4226), TOTP (RFC 6238) and the otpauth:// URI an authenticator app ... |
 | [`std/path`](path/) | Pure helpers for `/` separated paths, the form every Fs capability uses on every OS (std.md 3.1). |
 | [`std/png`](png/) | Go's image/png, Decode, DecodeConfig and Encode, over whole buffers: the image Go decodes to for ... |
-| [`std/protobuf`](protobuf/) | std/protobuf (decision 0530): the Protocol Buffers wire format, as Go's google.golang.org/protobu... |
+| [`std/protobuf`](protobuf/) | the Protocol Buffers wire format, as Go's google.golang.org/protobuf/encoding/protowire. |
 | [`std/protodesc`](protodesc/) | The descriptors of google/protobuf/ descriptor.proto that reflection, ProtoJSON and Any resolve n... |
 | [`std/protojson`](protojson/) | Protocol Buffers' canonical JSON mapping as protobuf-go's encoding/protojson: a message is conver... |
-| [`std/protoparse`](protoparse/) | std/protoparse (decision 0530): a parser for `.proto` files (proto3), for `xo proto gen`. |
+| [`std/protoparse`](protoparse/) | a parser for `.proto` files (proto3), for `xo proto gen`. |
 | [`std/protowkt`](protowkt/) | The well known types of protobuf's google/protobuf/*.proto as Xo values with their wire codecs wr... |
 | [`std/rate`](rate/) | A token bucket rate limiter, golang.org/x/time/rate's Limiter: limit tokens a second fill a bucke... |
 | [`std/regexp`](regexp/) | Regular expressions with RE2 syntax and guarantees (Go's regexp): matching takes time linear in t... |
@@ -80,7 +80,7 @@ The same reference, searchable and with each module's source, is at [pkg.xolang.
 | [`std/term`](term/) | Colors for terminal output that follow the user's settings: NO_COLOR, FORCE_COLOR, TERM=dumb, and... |
 | [`std/testing`](testing/) | see spec/std.md 8, core 9.2 |
 | [`std/time`](time/) | Instants, durations, and RFC 3339 in UTC are in the prelude (std.md 2.6); this module adds zones,... |
-| [`std/timego`](timego/) | Pure. |
+| [`std/timego`](timego/) | Go's time layouts ("2006-01-02T15:04:05Z07:00") for code ported from Go: Go's own layout scanner,... |
 | [`std/tls`](tls/) | A TLS client on a connection the program dialed itself (the STARTTLS shape: Postgres's SSLRequest... |
 | [`std/toml`](toml/) | TOML 1.0 configuration files decoded into the same types as JSON (`derive Json`, std.md 5): a tab... |
 | [`std/trace`](trace/) | Request ids and a bounded ring of spans (what took how long inside a request), with no exporter: ... |

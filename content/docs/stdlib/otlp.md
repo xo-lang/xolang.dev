@@ -1,7 +1,7 @@
 ---
 title: "std/otlp"
 linkTitle: "otlp"
-description: "see decision 0539): OTLP export of std/trace spans and std/metrics registries, as the opentelemetry-proto 1.x messages (ExportTraceServiceRequest, ExportMetricsServiceRequest) written straight onto std/protobuf's builder, the body of OTLP/HTTP's POST /v1/traces and /v1/metrics (Content-Type application/x-protobuf"
+description: "OTLP export of std/trace spans and std/metrics registries, as the opentelemetry-proto 1.x message..."
 toc: true
 module: "std/otlp"
 source: "https://github.com/xo-lang/xo/blob/main/std/otlp.xo"

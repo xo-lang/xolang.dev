@@ -116,6 +116,7 @@ prints the explanation below in a terminal.
 | [`XO0606`](xo0606/) | error | checker | method declared outside the module of its type (core 3.4) |
 | [`XO0607`](xo0607/) | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
 | [`XO0608`](xo0608/) | error | checker | two C ABI export modules of the native std (std/native/llrt/cabi*.xo) define the same function name, one symbol `xo_x_<name>` (decision 0207) |
+| [`XO0609`](xo0609/) | error | checker | a merged std module calls an intrinsic of native/rt that is not portable (decision 0597: only `rt.cast`) |
 | [`XO0701`](xo0701/) | error | checker | effect performed outside the declared set (core 6.2) |
 | [`XO0702`](xo0702/) | error | checker | unknown effect label (core 6.1) |
 | [`XO0703`](xo0703/) | warning | vet | effect declared in `uses` is never performed (core 6.2) |

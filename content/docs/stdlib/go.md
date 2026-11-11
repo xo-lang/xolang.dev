@@ -1,7 +1,7 @@
 ---
 title: "std/go"
 linkTitle: "go"
-description: "Bindings written by `xo bind` (internal/gobind) import this module for `go.Error`; user code need..."
+description: "values that cross the Go interop boundary (decision 0041, prototype 2026-10-08)."
 toc: true
 module: "std/go"
 source: "https://github.com/xo-lang/xo/blob/main/std/go.xo"

@@ -9,18 +9,60 @@ generated: "scripts/sync-content.py from `xo doc std/base32`; edit the doc comme
 ---
 ## Index
 
+- const [`STD`](#STD)
+- const [`HEX`](#HEX)
+- const [`DEC_STD`](#DEC_STD)
+- const [`DEC_HEX`](#DEC_HEX)
 - type [`Base32`](#Base32)
 - type [`DecodeErr`](#DecodeErr)
   - method [`DecodeErr.display`](#DecodeErr.display)
+- fn [`alphabet`](#alphabet)
+- fn [`padded`](#padded)
 - fn [`encode`](#encode)
 - fn [`decode`](#decode)
+
+## Constants
+
+### STD {#STD}
+
+```xo
+const STD: Str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+```
+
+[Source: `std/base32.xo:25`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L25)
+
+### HEX {#HEX}
+
+```xo
+const HEX: Str = "0123456789ABCDEFGHIJKLMNOPQRSTUV"
+```
+
+[Source: `std/base32.xo:26`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L26)
+
+### DEC_STD {#DEC_STD}
+
+```xo
+const DEC_STD: Bytes = b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x1a\x1b\x1c\x1d\x1e\x1f\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+```
+
+The value of each byte in the alphabet, or 255 (also for `=`).
+
+[Source: `std/base32.xo:40`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L40)
+
+### DEC_HEX {#DEC_HEX}
+
+```xo
+const DEC_HEX: Bytes = b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\xff\xff\xff\xff\xff\xff\xff\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+```
+
+[Source: `std/base32.xo:41`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L41)
 
 ## Types
 
 ### Base32 {#Base32}
 
 ```xo
-enum Base32 {
+pub enum Base32 {
   Std
   Hex
   RawStd
@@ -31,46 +73,62 @@ enum Base32 {
 RFC 4648 section 6 (`Std`, `A-Z2-7`) and section 7 (`Hex`,
 `0-9A-V`); the Raw forms write and read no `=` padding.
 
-[Source: `std/base32.xo:7`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L7)
+[Source: `std/base32.xo:10`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L10)
 
 ### DecodeErr {#DecodeErr}
 
 ```xo
-struct DecodeErr {
-  at: Int
+pub struct DecodeErr {
+  pub at: Int
 }
 ```
 
 Displays as Go's CorruptInputError: `illegal base32 data at input byte 4`.
 
-[Source: `std/base32.xo:15`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L15)
+[Source: `std/base32.xo:18`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L18)
 
 #### DecodeErr.display {#DecodeErr.display}
 
 ```xo
-fn (e: DecodeErr) display() -> Str
+pub fn (e: DecodeErr) display() -> Str
 ```
 
-[Source: `std/base32.xo:19`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L19)
+[Source: `std/base32.xo:23`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L23)
 
 ## Functions
+
+### alphabet {#alphabet}
+
+```xo
+fn alphabet(enc: Base32) -> Bytes
+```
+
+[Source: `std/base32.xo:28`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L28)
+
+### padded {#padded}
+
+```xo
+fn padded(enc: Base32) -> Bool
+```
+
+[Source: `std/base32.xo:37`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L37)
 
 ### encode {#encode}
 
 ```xo
-fn encode(data: Bytes, enc: Base32 = Base32.Std) -> Str
+pub fn encode(data: Bytes, enc: Base32 = Base32.Std) -> Str
 ```
 
-[Source: `std/base32.xo:21`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L21)
+[Source: `std/base32.xo:43`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L43)
 
 ### decode {#decode}
 
 ```xo
-fn decode(s: Str, enc: Base32 = Base32.Std) -> Bytes ! DecodeErr
+pub fn decode(s: Str, enc: Base32 = Base32.Std) -> Bytes ! DecodeErr
 ```
 
 `\r` and `\n` are removed first; anything else outside the alphabet,
 or padding where the encoding has none, is DecodeErr at its byte
 offset in the input without them.
 
-[Source: `std/base32.xo:25`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L25)
+[Source: `std/base32.xo:88`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L88)

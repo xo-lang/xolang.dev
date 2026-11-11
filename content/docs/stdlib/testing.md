@@ -82,6 +82,7 @@ generated: "scripts/sync-content.py from `xo doc std/testing`; edit the doc comm
   - method [`FakeEnv.config_dir`](#FakeEnv.config_dir)
   - method [`FakeEnv.cache_dir`](#FakeEnv.cache_dir)
   - method [`FakeEnv.hostname`](#FakeEnv.hostname)
+  - method [`FakeEnv.local_app_data`](#FakeEnv.local_app_data)
   - method [`FakeEnv.set`](#FakeEnv.set)
   - method [`FakeEnv.set_args`](#FakeEnv.set_args)
 - type [`FakeStdio`](#FakeStdio)
@@ -145,6 +146,7 @@ struct TestOs {
   env: FakeEnv
   stdio: FakeStdio
   proc: FakeProc
+  secrets: Secrets
   tasks: task.Group
 }
 ```
@@ -157,7 +159,7 @@ struct TestOs {
 struct Expect[T] {}
 ```
 
-[Source: `std/testing.xo:29`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L29)
+[Source: `std/testing.xo:32`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L32)
 
 ### FakeNet {#FakeNet}
 
@@ -165,7 +167,7 @@ struct Expect[T] {}
 struct FakeNet {}
 ```
 
-[Source: `std/testing.xo:41`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L41)
+[Source: `std/testing.xo:44`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L44)
 
 #### FakeNet.listen {#FakeNet.listen}
 
@@ -173,7 +175,7 @@ struct FakeNet {}
 fn (n: FakeNet) listen(addr: Str) -> Listener ! NetErr uses net.listen
 ```
 
-[Source: `std/testing.xo:42`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L42)
+[Source: `std/testing.xo:45`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L45)
 
 #### FakeNet.dial {#FakeNet.dial}
 
@@ -181,7 +183,7 @@ fn (n: FakeNet) listen(addr: Str) -> Listener ! NetErr uses net.listen
 fn (n: FakeNet) dial(addr: Str) -> Conn ! NetErr uses net.dial
 ```
 
-[Source: `std/testing.xo:43`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L43)
+[Source: `std/testing.xo:46`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L46)
 
 #### FakeNet.dial_timeout {#FakeNet.dial_timeout}
 
@@ -189,7 +191,7 @@ fn (n: FakeNet) dial(addr: Str) -> Conn ! NetErr uses net.dial
 fn (n: FakeNet) dial_timeout(addr: Str, d: Duration) -> Conn ! NetErr uses net.dial
 ```
 
-[Source: `std/testing.xo:44`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L44)
+[Source: `std/testing.xo:47`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L47)
 
 #### FakeNet.lookup_host {#FakeNet.lookup_host}
 
@@ -197,7 +199,7 @@ fn (n: FakeNet) dial_timeout(addr: Str, d: Duration) -> Conn ! NetErr uses net.d
 fn (n: FakeNet) lookup_host(host: Str) -> List[Str] ! NetErr uses net.dial
 ```
 
-[Source: `std/testing.xo:45`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L45)
+[Source: `std/testing.xo:48`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L48)
 
 #### FakeNet.interfaces {#FakeNet.interfaces}
 
@@ -205,7 +207,7 @@ fn (n: FakeNet) lookup_host(host: Str) -> List[Str] ! NetErr uses net.dial
 fn (n: FakeNet) interfaces() -> List[NetInterface] ! NetErr uses net.listen
 ```
 
-[Source: `std/testing.xo:46`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L46)
+[Source: `std/testing.xo:49`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L49)
 
 #### FakeNet.only {#FakeNet.only}
 
@@ -213,7 +215,7 @@ fn (n: FakeNet) interfaces() -> List[NetInterface] ! NetErr uses net.listen
 fn (n: FakeNet) only(hosts: List[Str]) -> Net
 ```
 
-[Source: `std/testing.xo:47`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L47)
+[Source: `std/testing.xo:50`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L50)
 
 #### FakeNet.handle {#FakeNet.handle}
 
@@ -221,7 +223,7 @@ fn (n: FakeNet) only(hosts: List[Str]) -> Net
 fn (n: FakeNet) handle(pattern: Str, h: fn(http.Request) -> http.Response)
 ```
 
-[Source: `std/testing.xo:48`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L48)
+[Source: `std/testing.xo:51`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L51)
 
 #### FakeNet.handle_tls {#FakeNet.handle_tls}
 
@@ -234,7 +236,7 @@ client's checks against `cert` as a real handshake would (the roots, the server 
 `with_verify_conn`, with the handshake's error texts) and fails before the handler when one refuses; the handler's
 `tls_state()` reports the server name the client sent (decision 0544).
 
-[Source: `std/testing.xo:53`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L53)
+[Source: `std/testing.xo:56`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L56)
 
 #### FakeNet.fail {#FakeNet.fail}
 
@@ -245,7 +247,7 @@ fn (n: FakeNet) fail(pattern: Str, err: http.ClientErr)
 Every matching request fails with err, until clear_failures. The handler is skipped, so it never sees the
 request: use requests() to see what was sent.
 
-[Source: `std/testing.xo:56`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L56)
+[Source: `std/testing.xo:59`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L59)
 
 #### FakeNet.fail_next {#FakeNet.fail_next}
 
@@ -255,7 +257,7 @@ fn (n: FakeNet) fail_next(pattern: Str, err: http.ClientErr)
 
 The next matching request fails with err, once; like fail, it skips the handler and requests() still lists it.
 
-[Source: `std/testing.xo:58`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L58)
+[Source: `std/testing.xo:61`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L61)
 
 #### FakeNet.clear_failures {#FakeNet.clear_failures}
 
@@ -263,7 +265,7 @@ The next matching request fails with err, once; like fail, it skips the handler 
 fn (n: FakeNet) clear_failures()
 ```
 
-[Source: `std/testing.xo:59`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L59)
+[Source: `std/testing.xo:62`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L62)
 
 #### FakeNet.requests {#FakeNet.requests}
 
@@ -271,7 +273,7 @@ fn (n: FakeNet) clear_failures()
 fn (n: FakeNet) requests() -> List[http.Request]
 ```
 
-[Source: `std/testing.xo:60`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L60)
+[Source: `std/testing.xo:63`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L63)
 
 ### FakeClock {#FakeClock}
 
@@ -279,7 +281,7 @@ fn (n: FakeNet) requests() -> List[http.Request]
 struct FakeClock {}
 ```
 
-[Source: `std/testing.xo:63`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L63)
+[Source: `std/testing.xo:66`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L66)
 
 #### FakeClock.now {#FakeClock.now}
 
@@ -287,7 +289,7 @@ struct FakeClock {}
 fn (c: FakeClock) now() -> Time uses clock
 ```
 
-[Source: `std/testing.xo:64`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L64)
+[Source: `std/testing.xo:67`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L67)
 
 #### FakeClock.sleep {#FakeClock.sleep}
 
@@ -295,7 +297,7 @@ fn (c: FakeClock) now() -> Time uses clock
 fn (c: FakeClock) sleep(d: Duration) uses clock
 ```
 
-[Source: `std/testing.xo:65`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L65)
+[Source: `std/testing.xo:68`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L68)
 
 #### FakeClock.sleep_or_cancel {#FakeClock.sleep_or_cancel}
 
@@ -303,7 +305,7 @@ fn (c: FakeClock) sleep(d: Duration) uses clock
 fn (c: FakeClock) sleep_or_cancel(d: Duration) -> () ! ClockErr uses clock
 ```
 
-[Source: `std/testing.xo:66`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L66)
+[Source: `std/testing.xo:69`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L69)
 
 #### FakeClock.since {#FakeClock.since}
 
@@ -311,7 +313,7 @@ fn (c: FakeClock) sleep_or_cancel(d: Duration) -> () ! ClockErr uses clock
 fn (c: FakeClock) since(t: Time) -> Duration uses clock
 ```
 
-[Source: `std/testing.xo:67`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L67)
+[Source: `std/testing.xo:70`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L70)
 
 #### FakeClock.advance {#FakeClock.advance}
 
@@ -319,7 +321,7 @@ fn (c: FakeClock) since(t: Time) -> Duration uses clock
 fn (c: FakeClock) advance(d: Duration)
 ```
 
-[Source: `std/testing.xo:68`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L68)
+[Source: `std/testing.xo:71`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L71)
 
 #### FakeClock.set {#FakeClock.set}
 
@@ -327,7 +329,7 @@ fn (c: FakeClock) advance(d: Duration)
 fn (c: FakeClock) set(t: Time)
 ```
 
-[Source: `std/testing.xo:69`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L69)
+[Source: `std/testing.xo:72`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L72)
 
 #### FakeClock.sleeps {#FakeClock.sleeps}
 
@@ -335,7 +337,7 @@ fn (c: FakeClock) set(t: Time)
 fn (c: FakeClock) sleeps() -> List[Duration]
 ```
 
-[Source: `std/testing.xo:70`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L70)
+[Source: `std/testing.xo:73`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L73)
 
 ### FsOp {#FsOp}
 
@@ -350,7 +352,7 @@ enum FsOp {
 }
 ```
 
-[Source: `std/testing.xo:73`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L73)
+[Source: `std/testing.xo:76`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L76)
 
 ### MemFs {#MemFs}
 
@@ -358,7 +360,7 @@ enum FsOp {
 struct MemFs {}
 ```
 
-[Source: `std/testing.xo:82`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L82)
+[Source: `std/testing.xo:85`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L85)
 
 #### MemFs.sub {#MemFs.sub}
 
@@ -366,7 +368,7 @@ struct MemFs {}
 fn (f: MemFs) sub(dir: Str) -> Fs
 ```
 
-[Source: `std/testing.xo:83`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L83)
+[Source: `std/testing.xo:86`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L86)
 
 #### MemFs.cwd {#MemFs.cwd}
 
@@ -374,7 +376,7 @@ fn (f: MemFs) sub(dir: Str) -> Fs
 fn (f: MemFs) cwd() -> Fs
 ```
 
-[Source: `std/testing.xo:84`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L84)
+[Source: `std/testing.xo:87`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L87)
 
 #### MemFs.cwd_path {#MemFs.cwd_path}
 
@@ -382,7 +384,7 @@ fn (f: MemFs) cwd() -> Fs
 fn (f: MemFs) cwd_path() -> Str ! FsErr
 ```
 
-[Source: `std/testing.xo:85`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L85)
+[Source: `std/testing.xo:88`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L88)
 
 #### MemFs.read_only {#MemFs.read_only}
 
@@ -390,7 +392,7 @@ fn (f: MemFs) cwd_path() -> Str ! FsErr
 fn (f: MemFs) read_only() -> Fs
 ```
 
-[Source: `std/testing.xo:86`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L86)
+[Source: `std/testing.xo:89`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L89)
 
 #### MemFs.write_only {#MemFs.write_only}
 
@@ -398,7 +400,7 @@ fn (f: MemFs) read_only() -> Fs
 fn (f: MemFs) write_only() -> Fs
 ```
 
-[Source: `std/testing.xo:87`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L87)
+[Source: `std/testing.xo:90`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L90)
 
 #### MemFs.case_sensitive {#MemFs.case_sensitive}
 
@@ -406,7 +408,7 @@ fn (f: MemFs) write_only() -> Fs
 fn (f: MemFs) case_sensitive() -> Bool
 ```
 
-[Source: `std/testing.xo:88`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L88)
+[Source: `std/testing.xo:91`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L91)
 
 #### MemFs.stat {#MemFs.stat}
 
@@ -414,7 +416,7 @@ fn (f: MemFs) case_sensitive() -> Bool
 fn (f: MemFs) stat(path: Str) -> FileInfo? ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:89`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L89)
+[Source: `std/testing.xo:92`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L92)
 
 #### MemFs.exists {#MemFs.exists}
 
@@ -422,7 +424,7 @@ fn (f: MemFs) stat(path: Str) -> FileInfo? ! FsErr uses fs.read
 fn (f: MemFs) exists(path: Str) -> Bool ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:90`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L90)
+[Source: `std/testing.xo:93`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L93)
 
 #### MemFs.disk_usage {#MemFs.disk_usage}
 
@@ -430,7 +432,7 @@ fn (f: MemFs) exists(path: Str) -> Bool ! FsErr uses fs.read
 fn (f: MemFs) disk_usage(path: Str) -> DiskUsage ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:91`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L91)
+[Source: `std/testing.xo:94`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L94)
 
 #### MemFs.read {#MemFs.read}
 
@@ -438,7 +440,7 @@ fn (f: MemFs) disk_usage(path: Str) -> DiskUsage ! FsErr uses fs.read
 fn (f: MemFs) read(path: Str) -> Bytes ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:92`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L92)
+[Source: `std/testing.xo:95`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L95)
 
 #### MemFs.read_text {#MemFs.read_text}
 
@@ -446,7 +448,7 @@ fn (f: MemFs) read(path: Str) -> Bytes ! FsErr uses fs.read
 fn (f: MemFs) read_text(path: Str) -> Str ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:93`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L93)
+[Source: `std/testing.xo:96`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L96)
 
 #### MemFs.read_dir {#MemFs.read_dir}
 
@@ -454,7 +456,7 @@ fn (f: MemFs) read_text(path: Str) -> Str ! FsErr uses fs.read
 fn (f: MemFs) read_dir(dir: Str) -> List[FileInfo] ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:94`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L94)
+[Source: `std/testing.xo:97`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L97)
 
 #### MemFs.walk {#MemFs.walk}
 
@@ -462,7 +464,7 @@ fn (f: MemFs) read_dir(dir: Str) -> List[FileInfo] ! FsErr uses fs.read
 fn (f: MemFs) walk(dir: Str) -> List[FileInfo] ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:95`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L95)
+[Source: `std/testing.xo:98`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L98)
 
 #### MemFs.write {#MemFs.write}
 
@@ -470,7 +472,7 @@ fn (f: MemFs) walk(dir: Str) -> List[FileInfo] ! FsErr uses fs.read
 fn (f: MemFs) write(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:96`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L96)
+[Source: `std/testing.xo:99`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L99)
 
 #### MemFs.create_temp {#MemFs.create_temp}
 
@@ -478,7 +480,7 @@ fn (f: MemFs) write(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 fn (f: MemFs) create_temp(dir: Str, prefix: Str) -> Str ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:97`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L97)
+[Source: `std/testing.xo:100`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L100)
 
 #### MemFs.rename {#MemFs.rename}
 
@@ -486,7 +488,7 @@ fn (f: MemFs) create_temp(dir: Str, prefix: Str) -> Str ! FsErr uses fs.write
 fn (f: MemFs) rename(from: Str, to: Str) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:98`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L98)
+[Source: `std/testing.xo:101`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L101)
 
 #### MemFs.remove {#MemFs.remove}
 
@@ -494,7 +496,7 @@ fn (f: MemFs) rename(from: Str, to: Str) -> () ! FsErr uses fs.write
 fn (f: MemFs) remove(path: Str) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:99`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L99)
+[Source: `std/testing.xo:102`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L102)
 
 #### MemFs.remove_all {#MemFs.remove_all}
 
@@ -502,7 +504,7 @@ fn (f: MemFs) remove(path: Str) -> () ! FsErr uses fs.write
 fn (f: MemFs) remove_all(path: Str) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:100`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L100)
+[Source: `std/testing.xo:103`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L103)
 
 #### MemFs.create_dir_all {#MemFs.create_dir_all}
 
@@ -510,7 +512,7 @@ fn (f: MemFs) remove_all(path: Str) -> () ! FsErr uses fs.write
 fn (f: MemFs) create_dir_all(dir: Str) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:101`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L101)
+[Source: `std/testing.xo:104`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L104)
 
 #### MemFs.set_modified {#MemFs.set_modified}
 
@@ -518,7 +520,7 @@ fn (f: MemFs) create_dir_all(dir: Str) -> () ! FsErr uses fs.write
 fn (f: MemFs) set_modified(path: Str, t: Time) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:102`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L102)
+[Source: `std/testing.xo:105`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L105)
 
 #### MemFs.open {#MemFs.open}
 
@@ -526,7 +528,7 @@ fn (f: MemFs) set_modified(path: Str, t: Time) -> () ! FsErr uses fs.write
 fn (f: MemFs) open(path: Str) -> File ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:103`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L103)
+[Source: `std/testing.xo:106`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L106)
 
 #### MemFs.create {#MemFs.create}
 
@@ -534,7 +536,7 @@ fn (f: MemFs) open(path: Str) -> File ! FsErr uses fs.read
 fn (f: MemFs) create(path: Str) -> File ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:104`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L104)
+[Source: `std/testing.xo:107`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L107)
 
 #### MemFs.open_append {#MemFs.open_append}
 
@@ -542,7 +544,7 @@ fn (f: MemFs) create(path: Str) -> File ! FsErr uses fs.write
 fn (f: MemFs) open_append(path: Str) -> File ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:105`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L105)
+[Source: `std/testing.xo:108`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L108)
 
 #### MemFs.open_rw {#MemFs.open_rw}
 
@@ -552,7 +554,7 @@ fn (f: MemFs) open_rw(path: Str) -> File ! FsErr uses fs.write
 
 Like `Fs.open_rw`.
 
-[Source: `std/testing.xo:107`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L107)
+[Source: `std/testing.xo:110`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L110)
 
 #### MemFs.create_new {#MemFs.create_new}
 
@@ -560,7 +562,7 @@ Like `Fs.open_rw`.
 fn (f: MemFs) create_new(path: Str) -> File ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:108`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L108)
+[Source: `std/testing.xo:111`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L111)
 
 #### MemFs.append {#MemFs.append}
 
@@ -568,7 +570,7 @@ fn (f: MemFs) create_new(path: Str) -> File ! FsErr uses fs.write
 fn (f: MemFs) append(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:109`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L109)
+[Source: `std/testing.xo:112`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L112)
 
 #### MemFs.copy {#MemFs.copy}
 
@@ -576,7 +578,7 @@ fn (f: MemFs) append(path: Str, data: Bytes) -> () ! FsErr uses fs.write
 fn (f: MemFs) copy(from: Str, to: Str) -> () ! FsErr uses fs
 ```
 
-[Source: `std/testing.xo:110`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L110)
+[Source: `std/testing.xo:113`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L113)
 
 #### MemFs.mode {#MemFs.mode}
 
@@ -584,7 +586,7 @@ fn (f: MemFs) copy(from: Str, to: Str) -> () ! FsErr uses fs
 fn (f: MemFs) mode(path: Str) -> Int ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:111`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L111)
+[Source: `std/testing.xo:114`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L114)
 
 #### MemFs.set_mode {#MemFs.set_mode}
 
@@ -592,7 +594,7 @@ fn (f: MemFs) mode(path: Str) -> Int ! FsErr uses fs.read
 fn (f: MemFs) set_mode(path: Str, mode: Int) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:112`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L112)
+[Source: `std/testing.xo:115`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L115)
 
 #### MemFs.symlink {#MemFs.symlink}
 
@@ -600,7 +602,7 @@ fn (f: MemFs) set_mode(path: Str, mode: Int) -> () ! FsErr uses fs.write
 fn (f: MemFs) symlink(target: Str, link: Str) -> () ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:113`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L113)
+[Source: `std/testing.xo:116`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L116)
 
 #### MemFs.read_link {#MemFs.read_link}
 
@@ -608,7 +610,7 @@ fn (f: MemFs) symlink(target: Str, link: Str) -> () ! FsErr uses fs.write
 fn (f: MemFs) read_link(path: Str) -> Str? ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:114`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L114)
+[Source: `std/testing.xo:117`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L117)
 
 #### MemFs.glob {#MemFs.glob}
 
@@ -616,7 +618,7 @@ fn (f: MemFs) read_link(path: Str) -> Str? ! FsErr uses fs.read
 fn (f: MemFs) glob(pattern: Str) -> List[Str] ! FsErr uses fs.read
 ```
 
-[Source: `std/testing.xo:115`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L115)
+[Source: `std/testing.xo:118`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L118)
 
 #### MemFs.lock {#MemFs.lock}
 
@@ -624,7 +626,7 @@ fn (f: MemFs) glob(pattern: Str) -> List[Str] ! FsErr uses fs.read
 fn (f: MemFs) lock(path: Str) -> FileLock ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:116`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L116)
+[Source: `std/testing.xo:119`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L119)
 
 #### MemFs.try_lock {#MemFs.try_lock}
 
@@ -632,7 +634,7 @@ fn (f: MemFs) lock(path: Str) -> FileLock ! FsErr uses fs.write
 fn (f: MemFs) try_lock(path: Str) -> FileLock? ! FsErr uses fs.write
 ```
 
-[Source: `std/testing.xo:117`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L117)
+[Source: `std/testing.xo:120`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L120)
 
 #### MemFs.fail_next {#MemFs.fail_next}
 
@@ -640,7 +642,7 @@ fn (f: MemFs) try_lock(path: Str) -> FileLock? ! FsErr uses fs.write
 fn (f: MemFs) fail_next(op: FsOp, path: Str, err: FsErr)
 ```
 
-[Source: `std/testing.xo:118`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L118)
+[Source: `std/testing.xo:121`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L121)
 
 #### MemFs.set_case_sensitive {#MemFs.set_case_sensitive}
 
@@ -648,7 +650,7 @@ fn (f: MemFs) fail_next(op: FsOp, path: Str, err: FsErr)
 fn (f: MemFs) set_case_sensitive(on: Bool)
 ```
 
-[Source: `std/testing.xo:119`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L119)
+[Source: `std/testing.xo:122`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L122)
 
 #### MemFs.set_disk_usage {#MemFs.set_disk_usage}
 
@@ -658,7 +660,7 @@ fn (f: MemFs) set_disk_usage(u: DiskUsage)
 
 What disk_usage answers for every path that exists (decision 0426).
 
-[Source: `std/testing.xo:121`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L121)
+[Source: `std/testing.xo:124`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L124)
 
 #### MemFs.files {#MemFs.files}
 
@@ -666,7 +668,7 @@ What disk_usage answers for every path that exists (decision 0426).
 fn (f: MemFs) files() -> Map[Str, Bytes]
 ```
 
-[Source: `std/testing.xo:122`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L122)
+[Source: `std/testing.xo:125`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L125)
 
 ### FakeEnv {#FakeEnv}
 
@@ -674,7 +676,7 @@ fn (f: MemFs) files() -> Map[Str, Bytes]
 struct FakeEnv {}
 ```
 
-[Source: `std/testing.xo:125`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L125)
+[Source: `std/testing.xo:128`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L128)
 
 #### FakeEnv.get {#FakeEnv.get}
 
@@ -682,7 +684,7 @@ struct FakeEnv {}
 fn (e: FakeEnv) get(name: Str) -> Str? uses env
 ```
 
-[Source: `std/testing.xo:126`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L126)
+[Source: `std/testing.xo:129`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L129)
 
 #### FakeEnv.vars {#FakeEnv.vars}
 
@@ -690,7 +692,7 @@ fn (e: FakeEnv) get(name: Str) -> Str? uses env
 fn (e: FakeEnv) vars() -> Map[Str, Str] uses env
 ```
 
-[Source: `std/testing.xo:127`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L127)
+[Source: `std/testing.xo:130`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L130)
 
 #### FakeEnv.args {#FakeEnv.args}
 
@@ -698,7 +700,7 @@ fn (e: FakeEnv) vars() -> Map[Str, Str] uses env
 fn (e: FakeEnv) args() -> List[Str] uses env
 ```
 
-[Source: `std/testing.xo:128`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L128)
+[Source: `std/testing.xo:131`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L131)
 
 #### FakeEnv.program {#FakeEnv.program}
 
@@ -706,7 +708,7 @@ fn (e: FakeEnv) args() -> List[Str] uses env
 fn (e: FakeEnv) program() -> Str uses env
 ```
 
-[Source: `std/testing.xo:129`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L129)
+[Source: `std/testing.xo:132`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L132)
 
 #### FakeEnv.home {#FakeEnv.home}
 
@@ -714,7 +716,7 @@ fn (e: FakeEnv) program() -> Str uses env
 fn (e: FakeEnv) home() -> Str ! EnvErr uses env
 ```
 
-[Source: `std/testing.xo:130`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L130)
+[Source: `std/testing.xo:133`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L133)
 
 #### FakeEnv.only {#FakeEnv.only}
 
@@ -722,7 +724,7 @@ fn (e: FakeEnv) home() -> Str ! EnvErr uses env
 fn (e: FakeEnv) only(names: List[Str]) -> Env
 ```
 
-[Source: `std/testing.xo:131`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L131)
+[Source: `std/testing.xo:134`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L134)
 
 #### FakeEnv.config_dir {#FakeEnv.config_dir}
 
@@ -730,7 +732,7 @@ fn (e: FakeEnv) only(names: List[Str]) -> Env
 fn (e: FakeEnv) config_dir() -> Str ! EnvErr uses env
 ```
 
-[Source: `std/testing.xo:132`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L132)
+[Source: `std/testing.xo:135`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L135)
 
 #### FakeEnv.cache_dir {#FakeEnv.cache_dir}
 
@@ -738,7 +740,7 @@ fn (e: FakeEnv) config_dir() -> Str ! EnvErr uses env
 fn (e: FakeEnv) cache_dir() -> Str ! EnvErr uses env
 ```
 
-[Source: `std/testing.xo:133`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L133)
+[Source: `std/testing.xo:136`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L136)
 
 #### FakeEnv.hostname {#FakeEnv.hostname}
 
@@ -748,7 +750,18 @@ fn (e: FakeEnv) hostname() -> Str uses env
 
 "test", or the value of HOSTNAME when the FakeEnv has one.
 
-[Source: `std/testing.xo:135`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L135)
+[Source: `std/testing.xo:138`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L138)
+
+#### FakeEnv.local_app_data {#FakeEnv.local_app_data}
+
+```xo
+fn (e: FakeEnv) local_app_data() -> Str ! EnvErr uses env
+```
+
+The value of LOCALAPPDATA when the FakeEnv has one, else
+`Missing("LocalAppData")`.
+
+[Source: `std/testing.xo:141`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L141)
 
 #### FakeEnv.set {#FakeEnv.set}
 
@@ -756,7 +769,7 @@ fn (e: FakeEnv) hostname() -> Str uses env
 fn (e: FakeEnv) set(name: Str, value: Str)
 ```
 
-[Source: `std/testing.xo:136`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L136)
+[Source: `std/testing.xo:142`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L142)
 
 #### FakeEnv.set_args {#FakeEnv.set_args}
 
@@ -764,7 +777,7 @@ fn (e: FakeEnv) set(name: Str, value: Str)
 fn (e: FakeEnv) set_args(args: List[Str])
 ```
 
-[Source: `std/testing.xo:137`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L137)
+[Source: `std/testing.xo:143`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L143)
 
 ### FakeStdio {#FakeStdio}
 
@@ -772,7 +785,7 @@ fn (e: FakeEnv) set_args(args: List[Str])
 struct FakeStdio {}
 ```
 
-[Source: `std/testing.xo:139`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L139)
+[Source: `std/testing.xo:145`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L145)
 
 #### FakeStdio.print {#FakeStdio.print}
 
@@ -780,7 +793,7 @@ struct FakeStdio {}
 fn (s: FakeStdio) print(text: Str) uses stdio
 ```
 
-[Source: `std/testing.xo:140`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L140)
+[Source: `std/testing.xo:146`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L146)
 
 #### FakeStdio.println {#FakeStdio.println}
 
@@ -788,7 +801,7 @@ fn (s: FakeStdio) print(text: Str) uses stdio
 fn (s: FakeStdio) println(text: Str) uses stdio
 ```
 
-[Source: `std/testing.xo:141`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L141)
+[Source: `std/testing.xo:147`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L147)
 
 #### FakeStdio.eprint {#FakeStdio.eprint}
 
@@ -796,7 +809,7 @@ fn (s: FakeStdio) println(text: Str) uses stdio
 fn (s: FakeStdio) eprint(text: Str) uses stdio
 ```
 
-[Source: `std/testing.xo:142`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L142)
+[Source: `std/testing.xo:148`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L148)
 
 #### FakeStdio.eprintln {#FakeStdio.eprintln}
 
@@ -804,7 +817,7 @@ fn (s: FakeStdio) eprint(text: Str) uses stdio
 fn (s: FakeStdio) eprintln(text: Str) uses stdio
 ```
 
-[Source: `std/testing.xo:143`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L143)
+[Source: `std/testing.xo:149`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L149)
 
 #### FakeStdio.write {#FakeStdio.write}
 
@@ -812,7 +825,7 @@ fn (s: FakeStdio) eprintln(text: Str) uses stdio
 fn (s: FakeStdio) write(data: Bytes) -> () ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:144`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L144)
+[Source: `std/testing.xo:150`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L150)
 
 #### FakeStdio.read_line {#FakeStdio.read_line}
 
@@ -820,7 +833,7 @@ fn (s: FakeStdio) write(data: Bytes) -> () ! IoErr uses stdio
 fn (s: FakeStdio) read_line() -> Str? ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:145`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L145)
+[Source: `std/testing.xo:151`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L151)
 
 #### FakeStdio.read_all {#FakeStdio.read_all}
 
@@ -828,7 +841,7 @@ fn (s: FakeStdio) read_line() -> Str? ! IoErr uses stdio
 fn (s: FakeStdio) read_all() -> Str ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:146`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L146)
+[Source: `std/testing.xo:152`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L152)
 
 #### FakeStdio.lines {#FakeStdio.lines}
 
@@ -836,7 +849,7 @@ fn (s: FakeStdio) read_all() -> Str ! IoErr uses stdio
 fn (s: FakeStdio) lines() -> List[Str] ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:147`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L147)
+[Source: `std/testing.xo:153`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L153)
 
 #### FakeStdio.stdin_is_tty {#FakeStdio.stdin_is_tty}
 
@@ -844,7 +857,7 @@ fn (s: FakeStdio) lines() -> List[Str] ! IoErr uses stdio
 fn (s: FakeStdio) stdin_is_tty() -> Bool uses stdio
 ```
 
-[Source: `std/testing.xo:148`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L148)
+[Source: `std/testing.xo:154`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L154)
 
 #### FakeStdio.stdout_is_tty {#FakeStdio.stdout_is_tty}
 
@@ -852,7 +865,7 @@ fn (s: FakeStdio) stdin_is_tty() -> Bool uses stdio
 fn (s: FakeStdio) stdout_is_tty() -> Bool uses stdio
 ```
 
-[Source: `std/testing.xo:149`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L149)
+[Source: `std/testing.xo:155`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L155)
 
 #### FakeStdio.stderr_is_tty {#FakeStdio.stderr_is_tty}
 
@@ -860,7 +873,7 @@ fn (s: FakeStdio) stdout_is_tty() -> Bool uses stdio
 fn (s: FakeStdio) stderr_is_tty() -> Bool uses stdio
 ```
 
-[Source: `std/testing.xo:150`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L150)
+[Source: `std/testing.xo:156`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L156)
 
 #### FakeStdio.width {#FakeStdio.width}
 
@@ -868,7 +881,7 @@ fn (s: FakeStdio) stderr_is_tty() -> Bool uses stdio
 fn (s: FakeStdio) width() -> Int? uses stdio
 ```
 
-[Source: `std/testing.xo:151`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L151)
+[Source: `std/testing.xo:157`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L157)
 
 #### FakeStdio.read_secret {#FakeStdio.read_secret}
 
@@ -876,7 +889,7 @@ fn (s: FakeStdio) width() -> Int? uses stdio
 fn (s: FakeStdio) read_secret(prompt: Str) -> Str? ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:152`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L152)
+[Source: `std/testing.xo:158`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L158)
 
 #### FakeStdio.raw_input {#FakeStdio.raw_input}
 
@@ -884,7 +897,7 @@ fn (s: FakeStdio) read_secret(prompt: Str) -> Str? ! IoErr uses stdio
 fn (s: FakeStdio) raw_input(on: Bool) -> Bool uses stdio
 ```
 
-[Source: `std/testing.xo:153`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L153)
+[Source: `std/testing.xo:159`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L159)
 
 #### FakeStdio.read_bytes {#FakeStdio.read_bytes}
 
@@ -892,7 +905,7 @@ fn (s: FakeStdio) raw_input(on: Bool) -> Bool uses stdio
 fn (s: FakeStdio) read_bytes(max: Int) -> Bytes? ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:154`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L154)
+[Source: `std/testing.xo:160`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L160)
 
 #### FakeStdio.read_all_bytes {#FakeStdio.read_all_bytes}
 
@@ -900,7 +913,7 @@ fn (s: FakeStdio) read_bytes(max: Int) -> Bytes? ! IoErr uses stdio
 fn (s: FakeStdio) read_all_bytes() -> Bytes ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:155`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L155)
+[Source: `std/testing.xo:161`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L161)
 
 #### FakeStdio.set_input {#FakeStdio.set_input}
 
@@ -908,7 +921,7 @@ fn (s: FakeStdio) read_all_bytes() -> Bytes ! IoErr uses stdio
 fn (s: FakeStdio) set_input(text: Str)
 ```
 
-[Source: `std/testing.xo:156`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L156)
+[Source: `std/testing.xo:162`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L162)
 
 #### FakeStdio.set_tty {#FakeStdio.set_tty}
 
@@ -919,7 +932,7 @@ fn (s: FakeStdio) set_tty(width: Int)
 The streams are terminals of `width` columns (0: not terminals, the
 default), for code that checks `stdout_is_tty` or `width`.
 
-[Source: `std/testing.xo:159`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L159)
+[Source: `std/testing.xo:165`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L165)
 
 #### FakeStdio.set_input_bytes {#FakeStdio.set_input_bytes}
 
@@ -929,7 +942,7 @@ fn (s: FakeStdio) set_input_bytes(data: Bytes)
 
 Standard input holds these bytes (any bytes, for `read_bytes`).
 
-[Source: `std/testing.xo:161`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L161)
+[Source: `std/testing.xo:167`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L167)
 
 #### FakeStdio.output {#FakeStdio.output}
 
@@ -937,7 +950,7 @@ Standard input holds these bytes (any bytes, for `read_bytes`).
 fn (s: FakeStdio) output() -> Str
 ```
 
-[Source: `std/testing.xo:162`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L162)
+[Source: `std/testing.xo:168`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L168)
 
 #### FakeStdio.errors {#FakeStdio.errors}
 
@@ -945,7 +958,7 @@ fn (s: FakeStdio) output() -> Str
 fn (s: FakeStdio) errors() -> Str
 ```
 
-[Source: `std/testing.xo:163`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L163)
+[Source: `std/testing.xo:169`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L169)
 
 ### FakeProc {#FakeProc}
 
@@ -953,7 +966,7 @@ fn (s: FakeStdio) errors() -> Str
 struct FakeProc {}
 ```
 
-[Source: `std/testing.xo:165`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L165)
+[Source: `std/testing.xo:171`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L171)
 
 #### FakeProc.exit {#FakeProc.exit}
 
@@ -961,7 +974,7 @@ struct FakeProc {}
 fn (p: FakeProc) exit(code: Int) -> Never uses proc
 ```
 
-[Source: `std/testing.xo:166`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L166)
+[Source: `std/testing.xo:172`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L172)
 
 #### FakeProc.set_grace {#FakeProc.set_grace}
 
@@ -969,7 +982,7 @@ fn (p: FakeProc) exit(code: Int) -> Never uses proc
 fn (p: FakeProc) set_grace(d: Duration) uses proc
 ```
 
-[Source: `std/testing.xo:167`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L167)
+[Source: `std/testing.xo:173`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L173)
 
 #### FakeProc.run {#FakeProc.run}
 
@@ -977,7 +990,7 @@ fn (p: FakeProc) set_grace(d: Duration) uses proc
 fn (p: FakeProc) run(cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses proc
 ```
 
-[Source: `std/testing.xo:168`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L168)
+[Source: `std/testing.xo:174`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L174)
 
 #### FakeProc.only {#FakeProc.only}
 
@@ -985,7 +998,7 @@ fn (p: FakeProc) run(cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses pro
 fn (p: FakeProc) only(cmds: List[Str]) -> Proc
 ```
 
-[Source: `std/testing.xo:169`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L169)
+[Source: `std/testing.xo:175`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L175)
 
 #### FakeProc.cmd {#FakeProc.cmd}
 
@@ -993,7 +1006,7 @@ fn (p: FakeProc) only(cmds: List[Str]) -> Proc
 fn (p: FakeProc) cmd(name: Str, args: List[Str] = []) -> Cmd
 ```
 
-[Source: `std/testing.xo:170`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L170)
+[Source: `std/testing.xo:176`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L176)
 
 #### FakeProc.pipeline {#FakeProc.pipeline}
 
@@ -1001,7 +1014,7 @@ fn (p: FakeProc) cmd(name: Str, args: List[Str] = []) -> Cmd
 fn (p: FakeProc) pipeline(cmds: List[Cmd]) -> ProcOutput ! ProcErr uses proc
 ```
 
-[Source: `std/testing.xo:171`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L171)
+[Source: `std/testing.xo:177`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L177)
 
 #### FakeProc.exit_code {#FakeProc.exit_code}
 
@@ -1009,7 +1022,7 @@ fn (p: FakeProc) pipeline(cmds: List[Cmd]) -> ProcOutput ! ProcErr uses proc
 fn (p: FakeProc) exit_code() -> Int?
 ```
 
-[Source: `std/testing.xo:172`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L172)
+[Source: `std/testing.xo:178`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L178)
 
 #### FakeProc.signal_after {#FakeProc.signal_after}
 
@@ -1017,7 +1030,7 @@ fn (p: FakeProc) exit_code() -> Int?
 fn (p: FakeProc) signal_after(d: Duration)
 ```
 
-[Source: `std/testing.xo:173`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L173)
+[Source: `std/testing.xo:179`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L179)
 
 #### FakeProc.on_run {#FakeProc.on_run}
 
@@ -1025,7 +1038,7 @@ fn (p: FakeProc) signal_after(d: Duration)
 fn (p: FakeProc) on_run(cmd: Str, out: ProcOutput)
 ```
 
-[Source: `std/testing.xo:174`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L174)
+[Source: `std/testing.xo:180`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L180)
 
 #### FakeProc.kill {#FakeProc.kill}
 
@@ -1035,7 +1048,7 @@ fn (p: FakeProc) kill(pid: Int, signal: Str = "TERM") -> () ! ProcErr uses proc
 
 Records the signal; nothing is sent (decision 0190).
 
-[Source: `std/testing.xo:176`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L176)
+[Source: `std/testing.xo:182`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L182)
 
 #### FakeProc.notify {#FakeProc.notify}
 
@@ -1043,7 +1056,7 @@ Records the signal; nothing is sent (decision 0190).
 fn (p: FakeProc) notify(signals: List[Signal]) -> Chan[Signal] uses proc
 ```
 
-[Source: `std/testing.xo:177`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L177)
+[Source: `std/testing.xo:183`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L183)
 
 #### FakeProc.stop_notify {#FakeProc.stop_notify}
 
@@ -1051,7 +1064,7 @@ fn (p: FakeProc) notify(signals: List[Signal]) -> Chan[Signal] uses proc
 fn (p: FakeProc) stop_notify(c: Chan[Signal]) uses proc
 ```
 
-[Source: `std/testing.xo:178`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L178)
+[Source: `std/testing.xo:184`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L184)
 
 #### FakeProc.request_stop {#FakeProc.request_stop}
 
@@ -1059,7 +1072,7 @@ fn (p: FakeProc) stop_notify(c: Chan[Signal]) uses proc
 fn (p: FakeProc) request_stop() uses proc
 ```
 
-[Source: `std/testing.xo:179`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L179)
+[Source: `std/testing.xo:185`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L185)
 
 #### FakeProc.pid {#FakeProc.pid}
 
@@ -1067,7 +1080,7 @@ fn (p: FakeProc) request_stop() uses proc
 fn (p: FakeProc) pid() -> Int uses proc
 ```
 
-[Source: `std/testing.xo:180`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L180)
+[Source: `std/testing.xo:186`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L186)
 
 #### FakeProc.ppid {#FakeProc.ppid}
 
@@ -1075,7 +1088,7 @@ fn (p: FakeProc) pid() -> Int uses proc
 fn (p: FakeProc) ppid() -> Int uses proc
 ```
 
-[Source: `std/testing.xo:181`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L181)
+[Source: `std/testing.xo:187`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L187)
 
 #### FakeProc.usage {#FakeProc.usage}
 
@@ -1083,7 +1096,7 @@ fn (p: FakeProc) ppid() -> Int uses proc
 fn (p: FakeProc) usage() -> ProcUsage uses proc
 ```
 
-[Source: `std/testing.xo:182`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L182)
+[Source: `std/testing.xo:188`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L188)
 
 #### FakeProc.children_usage {#FakeProc.children_usage}
 
@@ -1091,7 +1104,7 @@ fn (p: FakeProc) usage() -> ProcUsage uses proc
 fn (p: FakeProc) children_usage() -> ProcUsage uses proc
 ```
 
-[Source: `std/testing.xo:183`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L183)
+[Source: `std/testing.xo:189`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L189)
 
 #### FakeProc.killed {#FakeProc.killed}
 
@@ -1101,7 +1114,7 @@ fn (p: FakeProc) killed() -> List[Str]
 
 The signals kill recorded, as "NAME PID", oldest first.
 
-[Source: `std/testing.xo:185`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L185)
+[Source: `std/testing.xo:191`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L191)
 
 #### FakeProc.runs {#FakeProc.runs}
 
@@ -1113,7 +1126,7 @@ The commands the test's code asked to run (`run`, a `Cmd`, a pipeline), oldest f
 is listed and answers NotFound). Each entry is the program and then each argument after a space; an empty program or argument,
 or one with a space or that Go's strconv.Quote writes differently, is written as strconv.Quote does (`"my sub"`, `"a\"b"`).
 
-[Source: `std/testing.xo:189`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L189)
+[Source: `std/testing.xo:195`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L195)
 
 ## Functions
 
@@ -1123,7 +1136,7 @@ or one with a space or that Go's strconv.Quote writes differently, is written as
 fn expect[T](x: T) -> Expect[T]
 ```
 
-[Source: `std/testing.xo:30`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L30)
+[Source: `std/testing.xo:33`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L33)
 
 ### gen {#gen}
 
@@ -1131,7 +1144,7 @@ fn expect[T](x: T) -> Expect[T]
 fn gen[T](seed: Int) -> T
 ```
 
-[Source: `std/testing.xo:32`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L32)
+[Source: `std/testing.xo:35`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L35)
 
 ### logs {#logs}
 
@@ -1141,7 +1154,7 @@ fn logs() -> List[log.Record]
 
 The records logged so far in the current test, oldest first (std.md 8.6).
 
-[Source: `std/testing.xo:35`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L35)
+[Source: `std/testing.xo:38`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L38)
 
 ### fake_db {#fake_db}
 
@@ -1151,7 +1164,7 @@ fn fake_db(schema: Str) -> sql.Db ! sql.SqlErr
 
 An in memory database created from `schema` (std.md 10.6); same as `sql.memory`.
 
-[Source: `std/testing.xo:38`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L38)
+[Source: `std/testing.xo:41`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L41)
 
 ### run_main {#run_main}
 
@@ -1165,4 +1178,4 @@ std.md writes `main: fn(Os) -> () ! Error` without effects; a main
 performs effects on its `os`, so the effects pass through an effect
 variable here (a pure function type would reject every real main).
 
-[Source: `std/testing.xo:196`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L196)
+[Source: `std/testing.xo:202`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L202)

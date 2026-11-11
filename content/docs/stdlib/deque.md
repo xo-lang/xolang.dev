@@ -20,6 +20,7 @@ generated: "scripts/sync-content.py from `xo doc std/deque`; edit the doc commen
   - method [`Deque.len`](#Deque.len)
   - method [`Deque.is_empty`](#Deque.is_empty)
   - method [`Deque.to_list`](#Deque.to_list)
+  - method [`Deque.grow`](#Deque.grow)
 - fn [`new`](#new)
 
 ## Types
@@ -27,108 +28,122 @@ generated: "scripts/sync-content.py from `xo doc std/deque`; edit the doc commen
 ### Deque {#Deque}
 
 ```xo
-struct Deque[T] {}
+pub struct Deque[T] {
+  ring: List[T?]
+  head: Int
+  n: Int
+}
 ```
 
 A double ended queue. A value, as List: a copy shares the elements
 until one of them is written, which then copies the ring once (O(n)).
 
-[Source: `std/deque.xo:10`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L10)
+[Source: `std/deque.xo:14`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L14)
 
 #### Deque.push_back {#Deque.push_back}
 
 ```xo
-fn (var d: Deque[T]) push_back(x: T)
+pub fn (var d: Deque[T]) push_back(x: T)
 ```
 
-[Source: `std/deque.xo:13`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L13)
+[Source: `std/deque.xo:32`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L32)
 
 #### Deque.push_front {#Deque.push_front}
 
 ```xo
-fn (var d: Deque[T]) push_front(x: T)
+pub fn (var d: Deque[T]) push_front(x: T)
 ```
 
-[Source: `std/deque.xo:14`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L14)
+[Source: `std/deque.xo:40`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L40)
 
 #### Deque.pop_front {#Deque.pop_front}
 
 ```xo
-fn (var d: Deque[T]) pop_front() -> T?
+pub fn (var d: Deque[T]) pop_front() -> T?
 ```
 
 The first element, removed; None when empty.
 
-[Source: `std/deque.xo:16`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L16)
+[Source: `std/deque.xo:51`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L51)
 
 #### Deque.pop_back {#Deque.pop_back}
 
 ```xo
-fn (var d: Deque[T]) pop_back() -> T?
+pub fn (var d: Deque[T]) pop_back() -> T?
 ```
 
 The last element, removed; None when empty.
 
-[Source: `std/deque.xo:18`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L18)
+[Source: `std/deque.xo:63`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L63)
 
 #### Deque.front {#Deque.front}
 
 ```xo
-fn (d: Deque[T]) front() -> T?
+pub fn (d: Deque[T]) front() -> T?
 ```
 
-[Source: `std/deque.xo:19`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L19)
+[Source: `std/deque.xo:74`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L74)
 
 #### Deque.back {#Deque.back}
 
 ```xo
-fn (d: Deque[T]) back() -> T?
+pub fn (d: Deque[T]) back() -> T?
 ```
 
-[Source: `std/deque.xo:20`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L20)
+[Source: `std/deque.xo:76`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L76)
 
 #### Deque.get {#Deque.get}
 
 ```xo
-fn (d: Deque[T]) get(i: Int) -> T?
+pub fn (d: Deque[T]) get(i: Int) -> T?
 ```
 
 Element i from the front; None out of range.
 
-[Source: `std/deque.xo:22`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L22)
+[Source: `std/deque.xo:79`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L79)
 
 #### Deque.len {#Deque.len}
 
 ```xo
-fn (d: Deque[T]) len() -> Int
+pub fn (d: Deque[T]) len() -> Int
 ```
 
-[Source: `std/deque.xo:23`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L23)
+[Source: `std/deque.xo:86`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L86)
 
 #### Deque.is_empty {#Deque.is_empty}
 
 ```xo
-fn (d: Deque[T]) is_empty() -> Bool
+pub fn (d: Deque[T]) is_empty() -> Bool
 ```
 
-[Source: `std/deque.xo:24`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L24)
+[Source: `std/deque.xo:88`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L88)
 
 #### Deque.to_list {#Deque.to_list}
 
 ```xo
-fn (d: Deque[T]) to_list() -> List[T]
+pub fn (d: Deque[T]) to_list() -> List[T]
 ```
 
 The elements front to back (iterate with `for x in d.to_list()`).
 
-[Source: `std/deque.xo:26`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L26)
+[Source: `std/deque.xo:91`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L91)
+
+#### Deque.grow {#Deque.grow}
+
+```xo
+fn (var d: Deque[T]) grow()
+```
+
+The ring in order from the front, twice as large (at least 8 slots).
+
+[Source: `std/deque.xo:102`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L102)
 
 ## Functions
 
 ### new {#new}
 
 ```xo
-fn new[T](cap: Int = 0) -> Deque[T]
+pub fn new[T](cap: Int = 0) -> Deque[T]
 ```
 
-[Source: `std/deque.xo:12`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L12)
+[Source: `std/deque.xo:22`](https://github.com/xo-lang/xo/blob/main/std/deque.xo#L22)

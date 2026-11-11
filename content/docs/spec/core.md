@@ -6,12 +6,12 @@ description: "Syntax and semantics of Xo: types, errors, concurrency, effects, m
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/core.md"
-status: "draft 0.47 (2026-11-10; 0.46 released as toolchain v0.46.0, decision 0089)"
+status: "draft 0.49 (2026-11-10; 0.48 tagged as toolchain v0.48.0, decision 0089)"
 generated: "scripts/sync-content.py from spec/core.md; edit the source, not this file"
 ---
 # Xo Language Specification (Core)
 
-Status: draft 0.47 (2026-11-10; 0.46 released as toolchain v0.46.0, decision 0089)
+Status: draft 0.49 (2026-11-10; 0.48 tagged as toolchain v0.48.0, decision 0089)
 Edition: preview (the only edition before 1.0, decision 0155)
 Companion: `spec/std.md` (prelude methods and standard library surface)
 
@@ -20,6 +20,14 @@ web services. It keeps what makes Go productive (few keywords, one obvious way,
 fast builds, static binaries, a strong standard library, a compatibility
 promise) and is designed so that an AI agent can write, check, build, and debug
 programs for any OS with fast, structured, unambiguous feedback.
+
+## Changes in 0.49
+
+None yet.
+
+## Changes in 0.48
+
+None yet.
 
 ## Changes in 0.47
 
@@ -1411,10 +1419,13 @@ pub fn fetch_user(db: Db, id: Int) -> User ! LoadErr
   parameters of the same type: `transfer(from: a, to: b, amt: 5)`. Positional
   arguments must come before named ones.
 - Default parameter values are allowed: `fn listen(addr: Str, backlog: Int = 128)`.
+  A call through an interface (an interface value or a constrained type
+  parameter) that omits an argument uses the interface method's default.
 - No variadic functions. Pass a `List` or `Map`.
 - **C exports** (decision 0574): a top
   level `pub fn` of the root package with the clause `as c "name"` is the C
-  function `name` of a library built with `xo build --lib=shared`:
+  function `name` of a library built with `xo build --lib=shared` (or
+  `--lib=static`; the native backends and LLVM):
   `pub fn add(a: Int, b: Int) -> Int as c "geo_add" { a + b }`. Its
   parameters are `Int` (C `int64_t`), `Float` (`double`), `Bytes`
   (`XoBytes {const uint8_t *p; int64_t n}`) or `Str` (`XoStr
@@ -1423,12 +1434,16 @@ pub fn fetch_user(db: Db, id: Int) -> User ! LoadErr
   as U+FFFD per byte of an invalid sequence), or a value of any other type but `Bool` and
   function types, which C holds as an `XoHandle` (a `uint64_t` the
   library's table keeps the value under until `xo_release(h)`; using a
-  released handle, or one holding another type, faults), at most 8
-  integer words (a `Bytes` takes 2); its result is `Int`, `Float`, a
+  released handle, or one holding another type, faults; an `Option[T]`
+  of such a T is 0 for `None`, else T's handle, while an Option of
+  `Int`, `Float`, `Str` or `Bytes` is a handle of the Option), at most 8
+  integer words (a `Bytes` takes 2); its result is `Int`, `Float`,
+  `Bytes` or `Str` (C's `XoBytes` or `XoStr`: a copy in C's malloc with a
+  NUL past its n bytes, which the caller frees with `xo_free(p)`), a
   value held by an `XoHandle`, or none, with or without an error type: a
   function that can fail (`-> T ! E`) takes a last C parameter
   `int32_t *err`, set to 0 on success and to 1 on failure (NULL: not
-  set), returns 0 on failure, and leaves the error's text (its `Display`)
+  set), returns 0 on failure (`{NULL, 0}` for `Bytes` or `Str`), and leaves the error's text (its `Display`)
   for `xo_last_error()`, the calling thread's last error (a NUL terminated
   string the thread's next error replaces). The name is a C identifier
   outside the `xo_` names. It is not a method, generic, or a function with
@@ -1437,7 +1452,17 @@ pub fn fetch_user(db: Db, id: Int) -> User ! LoadErr
   a C caller may also call; a second call does nothing). `--lib` writes the
   header `NAME.h` beside the library, and a package with `fn main` is not
   a library. A fault in an export aborts the process. A program build
-  ignores the clause.
+  ignores the clause. On windows/amd64 and windows/arm64 `--lib=shared`
+  writes a DLL (Xo's PE linker; `-o NAME.dll`, header `NAME.h`, import
+  library `NAME.lib` for MSVC's link and lld-link) that
+  exports `xo_init`, `xo_last_error`, `xo_release`, `xo_free` and the
+  `as c` functions by name; it runs nothing while it loads (DllMain runs
+  under the loader lock), so the runtime starts on the first call of
+  `xo_init` or of an export, and a thread's runtime state is released
+  when the thread exits. The header's types are the C ABI's own: Win64
+  passes and returns `XoBytes` and `XoStr` through pointers, which a C
+  compiler does from the header. `--lib=static` is not yet available
+  for windows.
 
 ### 3.3 Closures
 
@@ -2700,6 +2725,7 @@ The builtin effects are:
 | `env` | | Environment variables, args |
 | `proc` | | Spawn processes, signals, exit |
 | `stdio` | | Standard input, output, error |
+| `secrets` | `secrets.read`, `secrets.write` | The user's OS secret stores: Linux keyring, macOS Keychain, Windows DPAPI (decision 0584) |
 | `ffi` | | Calls into C through `use c` (4.5, native builds) |
 | `log` | | Writing a `std/log` record (`debug`, `info`, `warn`, `error`) |
 
@@ -2845,7 +2871,8 @@ A program narrows what code may do by building an `Os` with a literal
 (decision 0307). A field the literal leaves out is that capability's
 no-access value (decision 0585): `fs` denies every read and write
 (`read_only().write_only()`), `net`, `env` and `proc` admit nothing
-(`only([])`), and `stdio` drops output and has no input and no terminal.
+(`only([])`), `secrets` holds no store (`Secrets.only([])`, decision 0584: every
+store answers `None`), and `stdio` drops output and has no input and no terminal.
 `clock`, `rand` and `tasks` have no no-access value and must be written
 (`XO0403` otherwise). A written field is the value given, so leaving a
 field out can only take authority away; adding a field to `Os` never
@@ -3847,6 +3874,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0606` | error | checker | method declared outside the module of its type (core 3.4) |
 | `XO0607` | error | checker | `break` or `continue` outside a loop, or an unknown label (core 3.5) |
 | `XO0608` | error | checker | two C ABI export modules of the native std (std/native/llrt/cabi*.xo) define the same function name, one symbol `xo_x_<name>` (decision 0207) |
+| `XO0609` | error | checker | a merged std module calls an intrinsic of native/rt that is not portable (decision 0597: only `rt.cast`) |
 | `XO0701` | error | checker | effect performed outside the declared set (core 6.2) |
 | `XO0702` | error | checker | unknown effect label (core 6.1) |
 | `XO0703` | warning | vet | effect declared in `uses` is never performed (core 6.2) |
@@ -4227,8 +4255,10 @@ that is not a command), and `ok`. With `ok` false the object has `error`
   step or next that reached its line) or `"finish"` with `thread` and
   `frame`; `"breakpoint"` with `id`, `thread` and
   `frame` (the innermost, as in `backtrace`); `"exception"` with
-  `exception`, `code`, `subcode` (the Mach exception's), `thread` and
-  `frame`; `"exited"` with `status`; `"signaled"` with `signal`;
+  `exception`, `code`, `subcode` (the Mach exception's; on Windows the
+  faulting instruction's address), `slide` (the executable's load address
+  less its linked one, so `subcode - slide` is the address in its
+  disassembly), `thread` and `frame`; `"exited"` with `status`; `"signaled"` with `signal`;
   `"timeout"` with `ms` (`--timeout`: no stop within it, the program
   ended or, attached, detached and left running);
   `"ended"` (an attached program's end).
@@ -4309,8 +4339,15 @@ traces, `XO_PROF` and asynchronous preemption work as on linux/arm64
 Xo's ELF linker, from any host (decision 0573). A `use c` binding's C is
 compiled freestanding by clang against FreeBSD's headers (`XO_FREEBSDSYSROOT`)
 and linked with no C library: it may call the part of the C library Xo's
-runtime defines (malloc, free, memcpy, strlen and the like); other C library
-functions (printf's family, calloc) do not link for FreeBSD yet, and a
+runtime defines (malloc, calloc, realloc, free, the mem and str functions,
+strtol, atoi and the like) and C the compiler adds beside the binding:
+printf's family (printf, fprintf to stdout and stderr, snprintf, sprintf,
+vsnprintf, puts, putchar, fputs; the d, i, u, x, X, o, c, s, p and f
+conversions with their flags, width, precision and length modifiers) and
+`<ctype.h>` for the C locale; and what std/sqlite's unix VFS calls
+(pthread's mutexes, fstat, fsync, ftruncate, lseek and the like), so
+std/sqlite works on FreeBSD (its `localtime` is UTC). Other C library
+functions do not link (the link names each missing function), and a
 binding's `link` libraries are an error. Programs run on FreeBSD 14 (decision 0573 stages 2 and
 3; every LLVM golden that builds passes in FreeBSD 14.5 VMs on both
 architectures): threads, the poller (kqueue), signals, time, the file

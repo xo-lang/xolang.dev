@@ -1,7 +1,7 @@
 ---
 title: "std/amqp"
 linkTitle: "amqp"
-description: "std/amqp: AMQP 1.0 (ISO/IEC 19464, OASIS), a port of github.com/Azure/go-amqp v1.7.0 (MIT, Copyri..."
+description: "AMQP 1.0 (ISO/IEC 19464, OASIS), a port of github.com/Azure/go-amqp v1.7.0 (MIT, Copyright 2017 K..."
 toc: true
 module: "std/amqp"
 source: "https://github.com/xo-lang/xo/blob/main/std/amqp.xo"

@@ -1,7 +1,7 @@
 ---
 title: "std/protobuf"
 linkTitle: "protobuf"
-description: "std/protobuf (decision 0530): the Protocol Buffers wire format, as Go's google.golang.org/protobu..."
+description: "the Protocol Buffers wire format, as Go's google.golang.org/protobuf/encoding/protowire."
 toc: true
 module: "std/protobuf"
 source: "https://github.com/xo-lang/xo/blob/main/std/protobuf.xo"
