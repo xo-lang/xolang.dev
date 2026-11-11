@@ -1,20 +1,1538 @@
 {
-  "xo": "aab17fd1",
+  "xo": "7df1367d",
   "files": {
     "xoc": {
-      "path": "assets/xoc-392b685bb05d.brotli",
-      "size": 57919726,
-      "compressed": 4454796
+      "path": "assets/xoc-38cd94df4b05.brotli",
+      "size": 22584796,
+      "compressed": 2753347
     },
     "std": {
-      "path": "assets/std-ae077a375fc5.brotli",
-      "size": 8512452,
-      "compressed": 1680097
+      "path": "assets/std-ea26611ff7f1.brotli",
+      "size": 2177293,
+      "compressed": 430805
     },
     "rec": {
-      "path": "assets/rec-fcb6b11dfcc0.brotli",
-      "size": 1235756,
-      "compressed": 240883
+      "path": "assets/rec-0e7302a71821.brotli",
+      "size": 1240387,
+      "compressed": 240650
+    },
+    "stdp0": {
+      "path": "assets/stdp0-e29ce5b2075b.brotli",
+      "size": 2031,
+      "compressed": 797
+    },
+    "stdp1": {
+      "path": "assets/stdp1-29c795c7e326.brotli",
+      "size": 122199,
+      "compressed": 24596
+    },
+    "stdp2": {
+      "path": "assets/stdp2-da00f2a71426.brotli",
+      "size": 5753,
+      "compressed": 1929
+    },
+    "stdp3": {
+      "path": "assets/stdp3-021afe3847da.brotli",
+      "size": 104346,
+      "compressed": 26288
+    },
+    "stdp4": {
+      "path": "assets/stdp4-090e3faf1de9.brotli",
+      "size": 28115,
+      "compressed": 7097
+    },
+    "stdp5": {
+      "path": "assets/stdp5-835940da683a.brotli",
+      "size": 4654,
+      "compressed": 1613
+    },
+    "stdp6": {
+      "path": "assets/stdp6-52829c9bd134.brotli",
+      "size": 2655,
+      "compressed": 1104
+    },
+    "stdp7": {
+      "path": "assets/stdp7-62ffc635ce73.brotli",
+      "size": 2021,
+      "compressed": 764
+    },
+    "stdp8": {
+      "path": "assets/stdp8-dd2a7dc2f5c8.brotli",
+      "size": 42960,
+      "compressed": 11858
+    },
+    "stdp9": {
+      "path": "assets/stdp9-e009ce082139.brotli",
+      "size": 7487,
+      "compressed": 1910
+    },
+    "stdp10": {
+      "path": "assets/stdp10-cbcb8e741d0b.brotli",
+      "size": 50720,
+      "compressed": 13043
+    },
+    "stdp11": {
+      "path": "assets/stdp11-1b46d04b0506.brotli",
+      "size": 44232,
+      "compressed": 10934
+    },
+    "stdp12": {
+      "path": "assets/stdp12-dbfdcada06e8.brotli",
+      "size": 772159,
+      "compressed": 187062
+    },
+    "stdp13": {
+      "path": "assets/stdp13-4bc59da7e051.brotli",
+      "size": 83431,
+      "compressed": 20618
+    },
+    "stdp14": {
+      "path": "assets/stdp14-2697d0587cbe.brotli",
+      "size": 15196,
+      "compressed": 4851
+    },
+    "stdp15": {
+      "path": "assets/stdp15-07bbc9e533b4.brotli",
+      "size": 86395,
+      "compressed": 21639
+    },
+    "stdp16": {
+      "path": "assets/stdp16-8ba3e920972e.brotli",
+      "size": 25441,
+      "compressed": 6547
+    },
+    "stdp17": {
+      "path": "assets/stdp17-8f791de123cd.brotli",
+      "size": 263758,
+      "compressed": 52177
+    },
+    "stdp18": {
+      "path": "assets/stdp18-cea1cb5e929c.brotli",
+      "size": 134921,
+      "compressed": 30034
+    },
+    "stdp19": {
+      "path": "assets/stdp19-9d626d1ae29c.brotli",
+      "size": 106881,
+      "compressed": 25956
+    },
+    "stdp20": {
+      "path": "assets/stdp20-6a3d2c960dd8.brotli",
+      "size": 62830,
+      "compressed": 16068
+    },
+    "stdp21": {
+      "path": "assets/stdp21-aaebd659929c.brotli",
+      "size": 76364,
+      "compressed": 16312
+    },
+    "stdp22": {
+      "path": "assets/stdp22-a7b2d678219e.brotli",
+      "size": 91618,
+      "compressed": 26121
+    },
+    "stdp23": {
+      "path": "assets/stdp23-9ac85d4b7a8d.brotli",
+      "size": 59167,
+      "compressed": 14754
+    },
+    "stdp24": {
+      "path": "assets/stdp24-cf2fc1885a49.brotli",
+      "size": 23134,
+      "compressed": 6278
+    },
+    "stdp25": {
+      "path": "assets/stdp25-3b917853a416.brotli",
+      "size": 80089,
+      "compressed": 19800
+    },
+    "stdp26": {
+      "path": "assets/stdp26-bfd93468301a.brotli",
+      "size": 12891,
+      "compressed": 3490
+    },
+    "stdp27": {
+      "path": "assets/stdp27-0426783ccdbc.brotli",
+      "size": 71169,
+      "compressed": 15861
+    },
+    "stdp28": {
+      "path": "assets/stdp28-f77cf810f2a0.brotli",
+      "size": 4417,
+      "compressed": 1509
+    },
+    "stdp29": {
+      "path": "assets/stdp29-09a017a4bc61.brotli",
+      "size": 7477,
+      "compressed": 1997
+    },
+    "stdp30": {
+      "path": "assets/stdp30-8539386bf8eb.brotli",
+      "size": 24638,
+      "compressed": 9143
+    },
+    "stdp31": {
+      "path": "assets/stdp31-7c148fcf9e86.brotli",
+      "size": 4367,
+      "compressed": 1402
+    },
+    "stdp32": {
+      "path": "assets/stdp32-5d8d5c78d0d5.brotli",
+      "size": 7084,
+      "compressed": 2287
+    },
+    "stdp33": {
+      "path": "assets/stdp33-1b5b89f3dd17.brotli",
+      "size": 41780,
+      "compressed": 9883
+    },
+    "stdp34": {
+      "path": "assets/stdp34-354f04dd2a80.brotli",
+      "size": 39506,
+      "compressed": 8724
+    },
+    "stdp35": {
+      "path": "assets/stdp35-090f1ffb5a97.brotli",
+      "size": 23860,
+      "compressed": 6267
+    },
+    "stdp36": {
+      "path": "assets/stdp36-614cee8586a7.brotli",
+      "size": 10650,
+      "compressed": 3281
+    },
+    "stdp37": {
+      "path": "assets/stdp37-5fc9e0c97156.brotli",
+      "size": 3123,
+      "compressed": 1152
+    },
+    "stdp38": {
+      "path": "assets/stdp38-57c663e7084f.brotli",
+      "size": 7463,
+      "compressed": 2146
+    },
+    "stdp39": {
+      "path": "assets/stdp39-2dc32f71af69.brotli",
+      "size": 17172,
+      "compressed": 4626
+    },
+    "stdp40": {
+      "path": "assets/stdp40-1abcb4d7da39.brotli",
+      "size": 25210,
+      "compressed": 6690
+    },
+    "stdp41": {
+      "path": "assets/stdp41-3daad8946e51.brotli",
+      "size": 13230,
+      "compressed": 3720
+    },
+    "stdp42": {
+      "path": "assets/stdp42-51c5d4fb93d9.brotli",
+      "size": 31311,
+      "compressed": 8242
+    },
+    "stdp43": {
+      "path": "assets/stdp43-f0a40ed0921e.brotli",
+      "size": 2101,
+      "compressed": 707
+    },
+    "stdp44": {
+      "path": "assets/stdp44-cedbf2d44284.brotli",
+      "size": 670841,
+      "compressed": 145261
+    },
+    "stdp45": {
+      "path": "assets/stdp45-e42967b39c95.brotli",
+      "size": 53401,
+      "compressed": 21522
+    },
+    "stdp46": {
+      "path": "assets/stdp46-325ead0c7c24.brotli",
+      "size": 201970,
+      "compressed": 41102
+    },
+    "stdp47": {
+      "path": "assets/stdp47-f25b6ffb3537.brotli",
+      "size": 12300,
+      "compressed": 3727
+    },
+    "stdp48": {
+      "path": "assets/stdp48-1109e7d43170.brotli",
+      "size": 15203,
+      "compressed": 4289
+    },
+    "stdp49": {
+      "path": "assets/stdp49-1ef2ef21d3f6.brotli",
+      "size": 10817,
+      "compressed": 3688
+    },
+    "stdp50": {
+      "path": "assets/stdp50-95b86432afda.brotli",
+      "size": 160318,
+      "compressed": 40051
+    },
+    "stdp51": {
+      "path": "assets/stdp51-da46b017bd64.brotli",
+      "size": 2922,
+      "compressed": 1019
+    },
+    "stdp52": {
+      "path": "assets/stdp52-684b070110e3.brotli",
+      "size": 9480,
+      "compressed": 2818
+    },
+    "stdp53": {
+      "path": "assets/stdp53-4374d8b6b43a.brotli",
+      "size": 10915,
+      "compressed": 2890
+    },
+    "stdp54": {
+      "path": "assets/stdp54-7f31379c12f2.brotli",
+      "size": 6082,
+      "compressed": 1847
+    },
+    "stdp55": {
+      "path": "assets/stdp55-b58639f1da57.brotli",
+      "size": 4467,
+      "compressed": 1517
+    },
+    "stdp56": {
+      "path": "assets/stdp56-b63e2e218c6c.brotli",
+      "size": 17837,
+      "compressed": 4802
+    },
+    "stdp57": {
+      "path": "assets/stdp57-889b9272d98e.brotli",
+      "size": 55800,
+      "compressed": 13066
+    },
+    "stdp58": {
+      "path": "assets/stdp58-03f0830d406f.brotli",
+      "size": 62348,
+      "compressed": 13296
+    },
+    "stdp59": {
+      "path": "assets/stdp59-56806f8edf63.brotli",
+      "size": 42218,
+      "compressed": 9748
+    },
+    "stdp60": {
+      "path": "assets/stdp60-d11e9515e647.brotli",
+      "size": 3979,
+      "compressed": 1494
+    },
+    "stdp61": {
+      "path": "assets/stdp61-8d35b380770b.brotli",
+      "size": 23914,
+      "compressed": 6557
+    },
+    "stdp62": {
+      "path": "assets/stdp62-58b0cf686635.brotli",
+      "size": 4062,
+      "compressed": 1351
+    },
+    "stdp63": {
+      "path": "assets/stdp63-0671fff958c2.brotli",
+      "size": 52176,
+      "compressed": 11246
+    },
+    "stdp64": {
+      "path": "assets/stdp64-dd5a4ca71b28.brotli",
+      "size": 11224,
+      "compressed": 3048
+    },
+    "stdp65": {
+      "path": "assets/stdp65-b1839592f1d0.brotli",
+      "size": 81792,
+      "compressed": 14416
+    },
+    "stdp66": {
+      "path": "assets/stdp66-092acd768bb0.brotli",
+      "size": 28318,
+      "compressed": 6095
+    },
+    "stdp67": {
+      "path": "assets/stdp67-a0e20b985075.brotli",
+      "size": 261917,
+      "compressed": 29470
+    },
+    "stdp68": {
+      "path": "assets/stdp68-15701e9223c1.brotli",
+      "size": 263532,
+      "compressed": 28449
+    },
+    "stdp69": {
+      "path": "assets/stdp69-f172ab9b1336.brotli",
+      "size": 56403,
+      "compressed": 15783
+    },
+    "stdp70": {
+      "path": "assets/stdp70-cd2de8244f9f.brotli",
+      "size": 116759,
+      "compressed": 27323
+    },
+    "stdp71": {
+      "path": "assets/stdp71-3e42b532bd25.brotli",
+      "size": 17755,
+      "compressed": 5014
+    },
+    "stdp72": {
+      "path": "assets/stdp72-752b3d94ef02.brotli",
+      "size": 34803,
+      "compressed": 9119
+    },
+    "stdp73": {
+      "path": "assets/stdp73-4b080298d080.brotli",
+      "size": 29823,
+      "compressed": 8350
+    },
+    "stdp74": {
+      "path": "assets/stdp74-c3ac67666398.brotli",
+      "size": 20162,
+      "compressed": 5327
+    },
+    "stdp75": {
+      "path": "assets/stdp75-31bcdea1104c.brotli",
+      "size": 9321,
+      "compressed": 2296
+    },
+    "stdp76": {
+      "path": "assets/stdp76-ef14bc88f460.brotli",
+      "size": 10784,
+      "compressed": 3598
+    },
+    "stdp77": {
+      "path": "assets/stdp77-4d4eade07492.brotli",
+      "size": 4603,
+      "compressed": 1728
+    },
+    "stdp78": {
+      "path": "assets/stdp78-16163dcd2a3d.brotli",
+      "size": 12489,
+      "compressed": 3434
+    },
+    "stdp79": {
+      "path": "assets/stdp79-7cedac60a129.brotli",
+      "size": 226284,
+      "compressed": 54928
+    },
+    "stdp80": {
+      "path": "assets/stdp80-bfd4013b4745.brotli",
+      "size": 15736,
+      "compressed": 2851
+    },
+    "stdp81": {
+      "path": "assets/stdp81-9653200d6309.brotli",
+      "size": 3788,
+      "compressed": 1193
+    },
+    "stdp82": {
+      "path": "assets/stdp82-69860829891b.brotli",
+      "size": 64738,
+      "compressed": 14031
+    },
+    "stdp83": {
+      "path": "assets/stdp83-f110dc867530.brotli",
+      "size": 9906,
+      "compressed": 2125
+    },
+    "stdp84": {
+      "path": "assets/stdp84-c6644a5b6c10.brotli",
+      "size": 19355,
+      "compressed": 4791
+    },
+    "stdp85": {
+      "path": "assets/stdp85-a3d8a2169465.brotli",
+      "size": 10035,
+      "compressed": 2878
+    },
+    "stdp86": {
+      "path": "assets/stdp86-c679980bb270.brotli",
+      "size": 86595,
+      "compressed": 20034
+    },
+    "stdp87": {
+      "path": "assets/stdp87-0e83520f69fb.brotli",
+      "size": 188166,
+      "compressed": 16147
+    },
+    "stdp88": {
+      "path": "assets/stdp88-2cded1cd78ad.brotli",
+      "size": 11584,
+      "compressed": 3800
+    },
+    "stdp89": {
+      "path": "assets/stdp89-3dcc0b225574.brotli",
+      "size": 143905,
+      "compressed": 32932
+    },
+    "stdp90": {
+      "path": "assets/stdp90-2486ae3e17fd.brotli",
+      "size": 17892,
+      "compressed": 5388
+    },
+    "stdp91": {
+      "path": "assets/stdp91-5b77d34ef8b1.brotli",
+      "size": 10926,
+      "compressed": 3252
+    },
+    "stdp92": {
+      "path": "assets/stdp92-51bed999f4d7.brotli",
+      "size": 171242,
+      "compressed": 37744
+    },
+    "stdp93": {
+      "path": "assets/stdp93-a51babc72519.brotli",
+      "size": 2844,
+      "compressed": 1007
+    },
+    "stdp94": {
+      "path": "assets/stdp94-8161b832d48e.brotli",
+      "size": 54010,
+      "compressed": 11200
+    },
+    "stdp95": {
+      "path": "assets/stdp95-532bc33b44d3.brotli",
+      "size": 33948,
+      "compressed": 7824
+    },
+    "stdp96": {
+      "path": "assets/stdp96-6b5b245af0d1.brotli",
+      "size": 35972,
+      "compressed": 8276
+    },
+    "stdp97": {
+      "path": "assets/stdp97-9b04332614bc.brotli",
+      "size": 4832,
+      "compressed": 1390
+    },
+    "stdp98": {
+      "path": "assets/stdp98-af18729e703e.brotli",
+      "size": 4506,
+      "compressed": 1719
+    },
+    "stdp99": {
+      "path": "assets/stdp99-b074541f8773.brotli",
+      "size": 33719,
+      "compressed": 9280
+    },
+    "stdp100": {
+      "path": "assets/stdp100-da1740b859c9.brotli",
+      "size": 54243,
+      "compressed": 12896
+    },
+    "stdp101": {
+      "path": "assets/stdp101-4ada5b498e46.brotli",
+      "size": 14381,
+      "compressed": 4058
+    },
+    "stdp102": {
+      "path": "assets/stdp102-4f442cf88475.brotli",
+      "size": 180030,
+      "compressed": 32927
+    },
+    "stdp103": {
+      "path": "assets/stdp103-ea8bfee3d2d1.brotli",
+      "size": 1807,
+      "compressed": 675
     }
+  },
+  "stdpacks": [
+    "stdp0",
+    "stdp1",
+    "stdp2",
+    "stdp3",
+    "stdp4",
+    "stdp5",
+    "stdp6",
+    "stdp7",
+    "stdp8",
+    "stdp9",
+    "stdp10",
+    "stdp11",
+    "stdp12",
+    "stdp13",
+    "stdp14",
+    "stdp15",
+    "stdp16",
+    "stdp17",
+    "stdp18",
+    "stdp19",
+    "stdp20",
+    "stdp21",
+    "stdp22",
+    "stdp23",
+    "stdp24",
+    "stdp25",
+    "stdp26",
+    "stdp27",
+    "stdp28",
+    "stdp29",
+    "stdp30",
+    "stdp31",
+    "stdp32",
+    "stdp33",
+    "stdp34",
+    "stdp35",
+    "stdp36",
+    "stdp37",
+    "stdp38",
+    "stdp39",
+    "stdp40",
+    "stdp41",
+    "stdp42",
+    "stdp43",
+    "stdp44",
+    "stdp45",
+    "stdp46",
+    "stdp47",
+    "stdp48",
+    "stdp49",
+    "stdp50",
+    "stdp51",
+    "stdp52",
+    "stdp53",
+    "stdp54",
+    "stdp55",
+    "stdp56",
+    "stdp57",
+    "stdp58",
+    "stdp59",
+    "stdp60",
+    "stdp61",
+    "stdp62",
+    "stdp63",
+    "stdp64",
+    "stdp65",
+    "stdp66",
+    "stdp67",
+    "stdp68",
+    "stdp69",
+    "stdp70",
+    "stdp71",
+    "stdp72",
+    "stdp73",
+    "stdp74",
+    "stdp75",
+    "stdp76",
+    "stdp77",
+    "stdp78",
+    "stdp79",
+    "stdp80",
+    "stdp81",
+    "stdp82",
+    "stdp83",
+    "stdp84",
+    "stdp85",
+    "stdp86",
+    "stdp87",
+    "stdp88",
+    "stdp89",
+    "stdp90",
+    "stdp91",
+    "stdp92",
+    "stdp93",
+    "stdp94",
+    "stdp95",
+    "stdp96",
+    "stdp97",
+    "stdp98",
+    "stdp99",
+    "stdp100",
+    "stdp101",
+    "stdp102",
+    "stdp103"
+  ],
+  "stdmods": {
+    "std/adler32": [
+      "stdp0"
+    ],
+    "std/amqp": [
+      "stdp1",
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20"
+    ],
+    "std/amqptest": [
+      "stdp1",
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp21"
+    ],
+    "std/archive": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp23"
+    ],
+    "std/asn1": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp24",
+      "stdp25",
+      "stdp26",
+      "stdp27"
+    ],
+    "std/big": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp25"
+    ],
+    "std/cbor": [
+      "stdp2",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp31",
+      "stdp33"
+    ],
+    "std/cli": [
+      "stdp2",
+      "stdp34"
+    ],
+    "std/compress": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp35"
+    ],
+    "std/cookiejar": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp36",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44"
+    ],
+    "std/crc32": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp45"
+    ],
+    "std/cron": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp27",
+      "stdp47"
+    ],
+    "std/crypto": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13"
+    ],
+    "std/csv": [
+      "stdp2",
+      "stdp48"
+    ],
+    "std/debug": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp49",
+      "stdp50"
+    ],
+    "std/dns": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp14",
+      "stdp15",
+      "stdp52"
+    ],
+    "std/embed": [
+      "stdp2",
+      "stdp53",
+      "stdp54"
+    ],
+    "std/gif": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp31",
+      "stdp35",
+      "stdp45",
+      "stdp56",
+      "stdp57",
+      "stdp58",
+      "stdp59"
+    ],
+    "std/grpc": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp61"
+    ],
+    "std/http": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44"
+    ],
+    "std/image": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp31",
+      "stdp35",
+      "stdp45",
+      "stdp57",
+      "stdp58",
+      "stdp59"
+    ],
+    "std/internal": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp12",
+      "stdp14",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp50",
+      "stdp69",
+      "stdp70"
+    ],
+    "std/json": [
+      "stdp2",
+      "stdp10",
+      "stdp11"
+    ],
+    "std/jwt": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp71"
+    ],
+    "std/log": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp10",
+      "stdp11",
+      "stdp37",
+      "stdp38"
+    ],
+    "std/mail": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp27",
+      "stdp39",
+      "stdp72"
+    ],
+    "std/metrics": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp73"
+    ],
+    "std/otlp": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp28",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp73",
+      "stdp74",
+      "stdp75",
+      "stdp76"
+    ],
+    "std/otp": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp29",
+      "stdp41",
+      "stdp77"
+    ],
+    "std/png": [
+      "stdp2",
+      "stdp3",
+      "stdp22",
+      "stdp31",
+      "stdp35",
+      "stdp45",
+      "stdp59"
+    ],
+    "std/prelude": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp10",
+      "stdp14",
+      "stdp15",
+      "stdp37",
+      "stdp43",
+      "stdp50",
+      "stdp69",
+      "stdp79"
+    ],
+    "std/protojson": [
+      "stdp2",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp75",
+      "stdp80",
+      "stdp81",
+      "stdp82",
+      "stdp83"
+    ],
+    "std/smtp": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp39",
+      "stdp88"
+    ],
+    "std/sql": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp89"
+    ],
+    "std/sqlite": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp89",
+      "stdp90"
+    ],
+    "std/template": [
+      "stdp2",
+      "stdp10",
+      "stdp11",
+      "stdp41",
+      "stdp63",
+      "stdp64",
+      "stdp92"
+    ],
+    "std/testing": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp54",
+      "stdp78",
+      "stdp89",
+      "stdp94"
+    ],
+    "std/time": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp27"
+    ],
+    "std/timego": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp27",
+      "stdp95"
+    ],
+    "std/tls": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20"
+    ],
+    "std/toml": [
+      "stdp2",
+      "stdp10",
+      "stdp11",
+      "stdp96"
+    ],
+    "std/trace": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp76"
+    ],
+    "std/udp": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp14",
+      "stdp15",
+      "stdp97"
+    ],
+    "std/uuid": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp12",
+      "stdp14",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp50",
+      "stdp69",
+      "stdp70",
+      "stdp98"
+    ],
+    "std/websocket": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp22",
+      "stdp23",
+      "stdp27",
+      "stdp35",
+      "stdp37",
+      "stdp38",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp99"
+    ],
+    "std/x509": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp16",
+      "stdp18",
+      "stdp20"
+    ],
+    "std/xml": [
+      "stdp2",
+      "stdp100"
+    ],
+    "std/xmlcodec": [
+      "stdp2",
+      "stdp100",
+      "stdp101"
+    ],
+    "std/yaml": [
+      "stdp2",
+      "stdp3",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp10",
+      "stdp11",
+      "stdp27",
+      "stdp102"
+    ],
+    "std/base64": [
+      "stdp9"
+    ],
+    "std/bcrypt": [
+      "stdp9",
+      "stdp30"
+    ],
+    "std/netip": [
+      "stdp16"
+    ],
+    "std/charset": [
+      "stdp26"
+    ],
+    "std/backoff": [
+      "stdp28"
+    ],
+    "std/base32": [
+      "stdp29"
+    ],
+    "std/binary": [
+      "stdp31"
+    ],
+    "std/bufio": [
+      "stdp32"
+    ],
+    "std/multipart": [
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42"
+    ],
+    "std/textproto": [
+      "stdp39"
+    ],
+    "std/mime": [
+      "stdp40"
+    ],
+    "std/url": [
+      "stdp41"
+    ],
+    "std/crc64": [
+      "stdp46"
+    ],
+    "std/deque": [
+      "stdp51"
+    ],
+    "std/fnv": [
+      "stdp55"
+    ],
+    "std/jpeg": [
+      "stdp58"
+    ],
+    "std/go": [
+      "stdp60"
+    ],
+    "std/heap": [
+      "stdp62"
+    ],
+    "std/html": [
+      "stdp63",
+      "stdp64"
+    ],
+    "std/htmlent": [
+      "stdp63"
+    ],
+    "std/htmlparse": [
+      "stdp63",
+      "stdp65",
+      "stdp66"
+    ],
+    "std/htmltok": [
+      "stdp63",
+      "stdp66"
+    ],
+    "std/idna": [
+      "stdp67",
+      "stdp68"
+    ],
+    "std/norm": [
+      "stdp68"
+    ],
+    "std/protobuf": [
+      "stdp75"
+    ],
+    "std/protodesc": [
+      "stdp75",
+      "stdp80",
+      "stdp81"
+    ],
+    "std/protowire": [
+      "stdp75",
+      "stdp81"
+    ],
+    "std/protowkt": [
+      "stdp75",
+      "stdp81",
+      "stdp83"
+    ],
+    "std/path": [
+      "stdp78"
+    ],
+    "std/protoparse": [
+      "stdp84"
+    ],
+    "std/rate": [
+      "stdp85"
+    ],
+    "std/regexp": [
+      "stdp86",
+      "stdp87"
+    ],
+    "std/uniclass": [
+      "stdp87"
+    ],
+    "std/tabwriter": [
+      "stdp91"
+    ],
+    "std/term": [
+      "stdp93"
+    ]
   }
 }
