@@ -9,7 +9,9 @@
 // must report the code in examples/mistakes/*/check.txt; `use go` and a
 // server are refused) with its run times, and the safety limits, and
 // checks the download notice, example links, share links, highlighting,
-// squiggles and their tooltips, the refusal of tests (for now), the layout
+// squiggles and their tooltips, the refusal of tests (for now), the REPL
+// page's walkthrough (every entry of data/repl.json typed by its button
+// and run, its output as the step expects), the layout
 // at phone width of the playground and the home page (SHOTS=dir saves
 // screenshots of it), and the section highlight of the docs index.
 // CHROME_FLAGS adds browser flags
@@ -85,7 +87,7 @@ async function browser() {
       await send("Page.navigate", { url });
       // the page's module script has run: its ready flag, or (before the flag
       // was deployed) the problems list its start fills
-      await this.until("document.readyState === 'complete' && document.getElementById('play-code') && (document.documentElement.dataset.playReady === '1' || document.getElementById('play-problems').childElementCount > 0)");
+      await this.until("document.readyState === 'complete' && (document.getElementById('play-code') || document.getElementById('repl')) && (document.documentElement.dataset.playReady === '1' || document.getElementById('play-problems').childElementCount > 0)");
     },
     async eval(expr) {
       const r = await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true });
@@ -161,6 +163,65 @@ const SAFETY = [
   ["use go is refused", "use go \"os/exec\"\n\nfn main(os: Os) {\n}\n", (r) => /`use go` is not supported in the playground/.test(r.out)],
   ["sleep works", "fn main(os: Os) {\n  os.stdio.println(\"a\")\n  os.clock.sleep(200ms)\n  os.stdio.println(\"b\")\n}\n", (r) => /a\nb\n/.test(r.out)],
 ];
+
+// replPage runs the REPL page's walkthrough (see main).
+async function replPage(b, base) {
+  const steps = JSON.parse(readFileSync(join(SITE, "data", "repl.json"), "utf8")).steps;
+  await b.go(base + "/repl/");
+  if (!(await b.eval(`typeof WebAssembly.Suspending === 'function'`))) {
+    pass("repl page skipped: no JSPI in this browser");
+    return;
+  }
+  const n = () => b.eval(`Number(document.getElementById('repl').dataset.replDone || 0)`);
+  const typed = () => b.eval(`Number(document.getElementById('repl').dataset.typed || 0)`);
+  // the button types the entry a character at a time: part of it shows
+  // first, then all of it
+  await b.eval(`document.querySelector('#repl-step [data-try="0"]').click(); true`);
+  const part = await b.eval(`new Promise((r) => setTimeout(() => r(document.getElementById('play-repl-in').value), 30))`);
+  await b.until(`Number(document.getElementById('repl').dataset.typed || 0) >= 1`, 15000);
+  const whole = await b.eval(`document.getElementById('play-repl-in').value`);
+  if (whole === steps[0].tries[0].src && part.length < whole.length) pass("repl page: type it types the entry", JSON.stringify(part) + " then " + JSON.stringify(whole));
+  else fail("repl page: type it", JSON.stringify({ part, whole }));
+  await b.eval(`document.getElementById('play-repl-in').value = ''; true`);
+  const t0 = Date.now();
+  let entries = 0;
+  for (const [k, s] of steps.entries()) {
+    await b.eval(`document.querySelectorAll('#repl-progress button')[${k}].click(); true`);
+    const bad = [];
+    for (const [j, t] of s.tries.entries()) {
+      const before = await b.eval(`document.getElementById('play-repl-log').innerText`);
+      const errs = await b.eval(`document.querySelectorAll('#play-repl-log .play-err').length`);
+      const done = await n(), ty = await typed();
+      await b.eval(`document.querySelector('#repl-step [data-try="${j}"]').click(); true`);
+      await b.until(`Number(document.getElementById('repl').dataset.typed || 0) > ${ty}`, 15000);
+      // Enter, as the visitor presses it
+      await b.eval(`document.getElementById('play-repl-in').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })); true`);
+      await b.until(`Number(document.getElementById('repl').dataset.replDone || 0) > ${done}`, 120000);
+      entries++;
+      const after = await b.eval(`document.getElementById('play-repl-log').innerText`);
+      // the reply: what the entry added after its own echo
+      // (a value's type, which a compiler with 99bc271e2 prints after it, is
+      // not part of what the step expects)
+      const out = after.slice(before.length).split("\n").slice(t.src.split("\n").length).map((l) => l.replace(/ {2}: .*$/, "")).join("\n").trim();
+      const newErrs = (await b.eval(`document.querySelectorAll('#play-repl-log .play-err').length`)) - errs;
+      const ok = t.expect === "" ? newErrs === 0 : new RegExp(t.expect, "m").test(out);
+      if (!ok) bad.push(JSON.stringify(t.src) + " printed " + JSON.stringify(out.slice(0, 300)) + ", want " + (t.expect === "" ? "no error" : "/" + t.expect + "/"));
+    }
+    if (bad.length) fail("repl page step " + (k + 1) + " (" + s.title + ")", bad.join("\n  "));
+    else pass("repl page step " + (k + 1) + " (" + s.title + "): " + s.tries.length + " entries");
+    if (k === 4) await b.shot("repl-desktop");
+    // every code card shows its whole entry: long lines wrap, never clip
+    const clipped = await b.eval(`[...document.querySelectorAll('.repl-try pre, #play-repl-in')].filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent.slice(0, 30))`);
+    if (clipped.length) fail("repl page step " + (k + 1) + ": code cards clipped", clipped.join(", "));
+  }
+  pass("repl page: " + entries + " entries", ((Date.now() - t0) / 1000).toFixed(1) + " s");
+  // the step reached survives a reload
+  await b.eval(`document.querySelectorAll('#repl-progress button')[3].click(); true`);
+  await b.go(base + "/repl/");
+  const kept = await b.eval(`document.getElementById('repl').dataset.step`);
+  if (kept === "3") pass("repl page: the step reached survives a reload");
+  else fail("repl page: step after a reload", kept);
+}
 
 async function main() {
   const server = process.argv[2] ? null : await serve();
@@ -308,7 +369,7 @@ async function main() {
       // a std module the first load does not have: its pack is fetched
       await replRun("use std/path");
       const log = await replRun("path.base(\"/a/b.txt\")");
-      const want = [/› 1 \+ 2\n3\n/, /› sq\(xs\.len\(\)\)\n9\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/, /› path\.base\("\/a\/b\.txt"\)\n"?b\.txt"?/];
+      const want = [/› 1 \+ 2\n3( {2}: Int)?\n/, /› sq\(xs\.len\(\)\)\n9( {2}: Int)?\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/, /› path\.base\("\/a\/b\.txt"\)\n"?b\.txt"?/];
       const miss = want.filter((r) => !r.test(log));
       if (miss.length) fail("repl", miss.join(" ") + "\n" + log.slice(-800));
       else pass("repl keeps definitions, values, errors, output", `first ${first} ms, later ${later} ms, compiler memory ${await b.eval(`document.getElementById('play').dataset.replMem`)} MB`);
@@ -318,6 +379,11 @@ async function main() {
       else fail("repl without JSPI", msg);
     }
     await b.eval(`document.querySelector('[data-tab=output]').click(); true`);
+
+    // the REPL page (/repl/): each walkthrough step's entries, typed by
+    // their buttons and run with Enter, print what data/repl.json expects
+    // (an empty expect: no error); the step reached survives a reload
+    await replPage(b, base);
 
     // phones: nothing is wider than the screen, the toolbar, test options,
     // tooltip, and Go tab fit, and the editor is above the output
@@ -365,6 +431,35 @@ async function main() {
     await b.shot("phone-home-supply");
     if (homeOver.length) fail("phone: home page", homeOver.join(", "));
     else pass("phone: home page fits 390 px");
+    // the REPL page at phone width, mid-walkthrough
+    await b.go(base + "/repl/");
+    await b.eval(`document.querySelectorAll('#repl-progress button')[4].click(); true`);
+    await b.eval(`document.querySelector('#repl-step [data-try="1"]').click(); true`);
+    await b.until(`!document.getElementById('play-repl-in').classList.contains('typing')`, 15000);
+    const replOver = await b.eval(`[...${fits(".repl-page > *, .repl-term, .repl-guide, .repl-try, .repl-nav, .repl-cmds, .play-repl-form")}, ...(document.documentElement.scrollWidth > innerWidth ? ['page ' + document.documentElement.scrollWidth] : []), ...(scrollX ? ['scrolled sideways ' + scrollX] : [])]`);
+    await b.shot("phone-repl");
+    // the bar under the input types the step's next entry, with the input
+    // (and the bar) in view, without going to the step card
+    const barWant = await b.eval(`(() => { const b = document.getElementById('repl-bar-type'); return b.hidden ? null : JSON.parse(document.getElementById('repl-steps').textContent)[4].tries[Number(b.dataset.try)].src; })()`);
+    await b.eval(`document.getElementById('repl-bar-type').click(); true`);
+    await b.until(`!document.getElementById('play-repl-in').classList.contains('typing')`, 15000);
+    await new Promise((r) => setTimeout(r, 600));
+    const barSeen = await b.eval(`(() => {
+      const inView = (e) => { const r = e.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; };
+      return [document.getElementById('play-repl-in').value, inView(document.getElementById('play-repl-in')), inView(document.getElementById('repl-bar'))];
+    })()`);
+    await b.shot("phone-repl-bar");
+    if (barWant && barSeen[0] === barWant && barSeen[1] && barSeen[2]) pass("phone: the step bar types the next entry, input in view");
+    else fail("phone: step bar", JSON.stringify({ want: barWant, got: barSeen }));
+    // the header's nav wraps below the title instead of crowding it
+    const navBelow = await b.eval(`document.querySelector('header nav ul').getBoundingClientRect().top >= document.querySelector('.brand').getBoundingClientRect().bottom - 2`);
+    if (navBelow) pass("phone: the nav wraps below the title");
+    else fail("phone header", "the nav shares the title's line");
+    await b.eval(`document.getElementById('repl-step').scrollIntoView(); true`);
+    await b.shot("phone-repl-step");
+    const clipped = await b.eval(`[...document.querySelectorAll('.repl-try pre, #play-repl-in')].filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent.slice(0, 30))`);
+    if (replOver.length || clipped.length) fail("phone: REPL page", [...replOver, ...clipped.map((c) => "clipped " + c)].join(", "));
+    else pass("phone: REPL page fits 390 px, no code card clipped");
     await b.viewport(1300, 900, false);
 
     // on a tall desktop window the playground leaves room for the footer

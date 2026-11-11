@@ -6,7 +6,7 @@
 {{- block "head" . }}{{ end }}
 <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
 <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ site.Params.description }}{{ end }}">
-{{- if not (hasPrefix .RelPermalink "/play/") }}{{ partial "seo.html" . }}{{ else }}<link rel="canonical" href="{{ .Permalink }}">{{ end }}
+{{- if not (or (hasPrefix .RelPermalink "/play/") (hasPrefix .RelPermalink "/repl/")) }}{{ partial "seo.html" . }}{{ else }}<link rel="canonical" href="{{ .Permalink }}">{{ end }}
 <link rel="icon" href="{{ "favicon.png" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
 {{- range .AlternativeOutputFormats }}
@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{- end }}
 {{- /* Cloudflare Web Analytics: no cookies; empty token = off (hugo.toml params.cfBeaconToken) */}}
-{{- with site.Params.cfBeaconToken }}{{ if not (hasPrefix $.RelPermalink "/play/") }}
+{{- with site.Params.cfBeaconToken }}{{ if not (or (hasPrefix $.RelPermalink "/play/") (hasPrefix $.RelPermalink "/repl/")) }}
 {{- /* only on the live host: a local preview or the CI browser check would send beacons that Cloudflare's CORS rejects (console errors) */}}
 <script>if(location.hostname==="xolang.dev"){var s=document.createElement("script");s.type="module";s.src="https://static.cloudflareinsights.com/beacon.min.js";s.setAttribute("data-cf-beacon",'{"token": "{{ . }}"}');document.head.appendChild(s)}</script>
 {{- end }}{{ end }}

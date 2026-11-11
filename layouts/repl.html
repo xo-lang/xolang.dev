@@ -1,0 +1,63 @@
+{{ define "head" }}
+{{- /* Like the playground (play.html): it runs visitors' code in WebAssembly
+  workers, so scripts come only from this site and nothing reaches the
+  network but this site. */}}
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+{{ end }}
+{{ define "main" }}
+{{- $toolchain := resources.Get "js/play/toolchain.js" | fingerprint }}
+{{- $runner := resources.Get "js/play/runner.js" | fingerprint }}
+{{- $page := resources.Get "js/play/replpage.js" | js.Build (dict "format" "esm" "minify" true) | fingerprint }}
+{{- $data := hugo.Data.repl }}
+<div class="repl-page" id="repl" data-toolchain="{{ $toolchain.RelPermalink }}" data-manifest="/play/manifest.json" data-runner="{{ $runner.RelPermalink }}">
+  <div class="repl-head">
+    <h1>REPL</h1>
+    <p>Type Xo one entry at a time: each is checked, compiled, and run in this tab, and the session keeps what it defines. New to Xo? Follow the steps beside it. For whole programs, use the <a href="{{ "play/" | relURL }}">playground</a>.</p>
+  </div>
+  <div class="play-consent" id="play-consent" hidden>
+    <p><b>This page runs Xo's own compiler in your browser</b>, with its WebAssembly backend. Starting it downloads the compiler and the standard library once (<span data-size="check">3 MB</span>), cached per browser and version; standard library modules you <code>use</code> download when you first use them. Nothing is uploaded.</p>
+    <button class="btn primary" id="play-consent-ok" type="button">download and start</button>
+  </div>
+  <div class="repl-grid">
+    <div class="repl-term" role="region" aria-label="REPL">
+      <div class="play-tabs"><b>xo repl</b><span class="play-status" id="play-status" aria-live="polite"></span></div>
+      <pre id="play-repl-log" aria-live="polite"><span class="play-sys">Type an expression, a statement, or a declaration and press Enter. Shift+Enter starts a new line, Up and Down recall earlier entries, and :help lists the commands.</span>
+</pre>
+      <form class="play-repl-form" id="play-repl-form" autocomplete="off">
+        <span class="play-repl-prompt" aria-hidden="true">›</span>
+        <textarea id="play-repl-in" rows="1" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="REPL entry" placeholder="1 + 2"></textarea>
+        <button class="btn ghost" id="play-repl-run" type="submit" title="Run the entry (Enter)">run</button>
+      </form>
+      <div class="repl-bar" id="repl-bar">
+        <span class="t" id="repl-bar-t"></span>
+        <button class="btn ghost" id="repl-bar-type" type="button">type it</button>
+        <button class="btn primary" id="repl-bar-next" type="button">next</button>
+      </div>
+    </div>
+    <aside class="repl-guide" aria-label="Walkthrough">
+      <ol class="repl-progress" id="repl-progress" aria-label="Steps"></ol>
+      <div class="repl-step" id="repl-step" aria-live="polite"></div>
+      <div class="repl-nav">
+        <button class="btn ghost" id="repl-prev" type="button">back</button>
+        <span class="grow"></span>
+        <small id="repl-count"></small>
+        <button class="btn primary" id="repl-next" type="button">next</button>
+      </div>
+      <div class="repl-cmds">
+        <h2>Commands</h2>
+        <dl>
+          {{- range $data.commands }}
+          <dt><code>{{ .cmd }}</code></dt><dd>{{ .desc }}</dd>
+          {{- end }}
+          {{- range $data.keys }}
+          <dt><code>{{ .key }}</code></dt><dd>{{ .desc }}</dd>
+          {{- end }}
+        </dl>
+      </div>
+    </aside>
+  </div>
+</div>
+<script type="application/json" id="repl-steps">{{ $data.steps | jsonify | safeJS }}</script>
+<script type="module" src="{{ $page.RelPermalink }}" integrity="{{ $page.Data.Integrity }}"></script>
+{{ end }}

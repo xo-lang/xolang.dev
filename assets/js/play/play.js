@@ -3,6 +3,9 @@
 // fresh runner worker that is terminated when it finishes or times out.
 // Everything shown from code or its output goes through textContent.
 
+import { client, el, consented, agree, sizes as showSizes } from "./client.js";
+import { mountRepl, RUN_LIMIT_MS } from "./repl.js";
+
 const root = document.getElementById("play");
 const code = document.getElementById("play-code");
 const lines = document.getElementById("play-lines");
@@ -21,11 +24,8 @@ const select = document.getElementById("play-example");
 const consentBox = document.getElementById("play-consent");
 const consentBtn = document.getElementById("play-consent-ok");
 
-const RUN_LIMIT_MS = 10000; // wall clock time a program may run
-const TOOL_LIMIT_MS = 120000; // a toolchain request (includes the download)
 const MAX_SOURCE = 64 << 10; // bytes of source accepted from a shared link
 const STORE = "xo-play-source";
-const CONSENT = "xo-play-download-ok";
 
 const examples = JSON.parse(document.getElementById("play-examples").textContent);
 const hl = document.getElementById("play-hl");
@@ -33,56 +33,7 @@ const { render, goTokens } = await import(root.dataset.highlight);
 
 // ---- toolchain worker -------------------------------------------------
 
-let worker = null;
-let nextId = 1;
-const pending = new Map();
-
-function startWorker() {
-  worker = new Worker(root.dataset.toolchain, { type: "module" });
-  worker.onmessage = (e) => {
-    const p = pending.get(e.data.id);
-    if (!p) return;
-    if (e.data.progress) return p.onProgress(e.data.progress);
-    if (e.data.status) return p.onStatus(e.data.status);
-    pending.delete(e.data.id);
-    clearTimeout(p.timer);
-    if (e.data.error) p.reject(new Error(e.data.error));
-    else p.resolve(e.data.result);
-  };
-  worker.onerror = (e) => {
-    for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error(e.message || "the toolchain stopped")); }
-    pending.clear();
-    worker.terminate();
-    worker = null;
-  };
-}
-
-function request(cmd, source, onStatus = () => {}) {
-  if (!worker) startWorker();
-  const id = nextId++;
-  const downloads = {};
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      // a hung compiler: drop the worker; the next request starts a new one
-      pending.delete(id);
-      worker.terminate();
-      worker = null;
-      for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error("the toolchain was restarted")); }
-      pending.clear();
-      reject(new Error("the toolchain took longer than " + TOOL_LIMIT_MS / 1000 + " s and was stopped"));
-    }, TOOL_LIMIT_MS);
-    pending.set(id, {
-      resolve, reject, timer, onStatus,
-      onProgress: ({ name, got, total }) => {
-        downloads[name] = [got, total];
-        let g = 0, t = 0;
-        for (const [a, b] of Object.values(downloads)) { g += a; t += b; }
-        setStatus("Downloading the toolchain: " + (g / 1048576).toFixed(1) + " of " + (t / 1048576).toFixed(1) + " MB (only the first time)");
-      },
-    });
-    worker.postMessage({ id, cmd, source });
-  });
-}
+const request = client(root.dataset.toolchain, (s) => setStatus(s));
 
 // ---- editor -----------------------------------------------------------
 
@@ -207,13 +158,6 @@ function showTab(name) {
   for (const p of root.querySelectorAll("[data-pane]")) p.hidden = p.dataset.pane !== name;
 }
 for (const b of root.querySelectorAll("[data-tab]")) b.addEventListener("click", () => showTab(b.dataset.tab));
-
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
 
 function file(f) { return String(f || "").replace(/^(\/w\/)?src\//, ""); }
 
@@ -548,110 +492,17 @@ function testArgs() {
 
 // ---- REPL -------------------------------------------------------------
 
-// The REPL tab sends each entry to the toolchain worker's long-lived
-// compiler (toolchain.js replStep); an entry that builds runs here in its
-// own runner worker, under the same limits as a program, and its output
-// goes back to the compiler, which keeps the session's definitions.
-const replLog = document.getElementById("play-repl-log");
-const replIn = document.getElementById("play-repl-in");
-const replReset = document.getElementById("play-repl-reset");
-const replHistory = [];
-let replAt = 0;
-let replBusy = false;
-const replOK = typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
-
-if (!replOK) {
-  replLog.replaceChildren(el("span", "play-sys", "The REPL needs WebAssembly JavaScript Promise Integration (JSPI), which this browser does not have yet (Chrome and Edge have it since version 137). Run, format, and the problems tab work here as usual.\n"));
-  replIn.disabled = replReset.disabled = true;
-  replIn.placeholder = "not available in this browser";
-}
-
-// runEntry runs a built entry and returns its output (stdout and stderr
-// together, as the compiler reads them) and exit status.
-function runEntry(wasm) {
-  return new Promise((resolve) => {
-    let out = "";
-    const w = new Worker(root.dataset.runner, { type: "module" });
-    const end = (code, extra) => { clearTimeout(timer); w.terminate(); resolve({ ran: out + (extra || ""), code }); };
-    const timer = setTimeout(() => end(124, "\n[stopped: the entry ran for more than " + RUN_LIMIT_MS / 1000 + " s]\n"), RUN_LIMIT_MS);
-    w.onmessage = (e) => {
-      const m = e.data;
-      if (m.text != null) out += m.text;
-      else if (m.truncated) out += "\n[output truncated at 1 MB]\n";
-      else if (m.crash) end(1, "\n[the entry could not run: " + m.crash + "]\n");
-      else if ("exit" in m) end(m.exit === null ? 1 : m.exit);
-    };
-    w.onerror = (e) => end(1, "\n[the entry stopped: " + (e.message || "out of memory") + "]\n");
-    w.postMessage({ wasm, args: ["play"] }, [wasm]);
-  });
-}
-
-function replShow(r) {
-  if (r.out) replLog.append(r.out.endsWith("\n") ? r.out : r.out + "\n");
-  for (const d of r.diagnostics || []) {
-    const at = d.span ? (d.span.line + ":" + d.span.col + ": ") : "";
-    replLog.append(el("span", "play-err", at + (d.code ? d.code + " " : "") + d.message + "\n"));
-  }
-  // an entry that does not check says so in its diagnostics and again in
-  // err: the diagnostics, with their positions, are enough
-  if (r.err && !(r.diagnostics || []).length) replLog.append(el("span", r.ok ? "play-sys" : "play-err", r.err.endsWith("\n") ? r.err : r.err + "\n"));
-  if (r.value != null) replLog.append(el("span", "play-repl-val", r.value + (r.typ ? "  " : "")), r.typ ? el("span", "play-sys", ": " + r.typ) : "", "\n");
-}
-
-async function replSend(req) {
-  let r = await request("repl", req, (s) => setStatus(s + "…"));
-  if (r.mem) root.dataset.replMem = String(r.mem);
-  if (r.unsupported) return { ok: false, err: r.unsupported };
-  if (r.run) {
-    setStatus("Running…");
-    const ran = await runEntry(r.run);
-    r = await request("repl", ran);
-    if (r.mem) root.dataset.replMem = String(r.mem);
-  }
-  return r.reply;
-}
-
-async function replEnter(src) {
-  if (!replOK || replBusy || !src.trim()) return;
-  if (!consented()) { askConsent(); return; }
-  replBusy = true;
-  replIn.disabled = true;
-  replHistory.push(src);
-  replAt = replHistory.length;
-  replLog.append(el("span", "play-repl-in", "› " + src + "\n"));
-  try {
-    const t0 = performance.now();
-    replShow(await replSend({ in: src }));
-    root.dataset.replMs = String(Math.round(performance.now() - t0));
-  } catch (e) {
-    replLog.append(el("span", "play-err", e.message + "\n"));
-    if (/restarted|stopped/.test(e.message)) replLog.append(el("span", "play-sys", "The next entry starts a new session.\n"));
-  }
-  setStatus("");
-  replBusy = false;
-  replIn.disabled = false;
-  replIn.value = "";
-  replIn.focus();
-  replLog.scrollTop = replLog.scrollHeight;
-  root.dataset.replDone = String(replHistory.length);
-}
-
-document.getElementById("play-repl-form").addEventListener("submit", (e) => { e.preventDefault(); replEnter(replIn.value); });
-replIn.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp" && replAt > 0) { replIn.value = replHistory[--replAt]; e.preventDefault(); }
-  else if (e.key === "ArrowDown" && replAt < replHistory.length) { replAt++; replIn.value = replHistory[replAt] || ""; e.preventDefault(); }
-});
-replReset.addEventListener("click", async () => {
-  if (!replOK || replBusy || !consented()) return;
-  replBusy = true;
-  try {
-    replShow(await replSend({ cmd: "reset" }));
-    replLog.append(el("span", "play-sys", "[session reset]\n"));
-  } catch (e) {
-    replLog.append(el("span", "play-err", e.message + "\n"));
-  }
-  setStatus("");
-  replBusy = false;
+// the REPL tab (repl.js, shared with the REPL page)
+mountRepl({
+  root,
+  log: document.getElementById("play-repl-log"),
+  form: document.getElementById("play-repl-form"),
+  input: document.getElementById("play-repl-in"),
+  reset: document.getElementById("play-repl-reset"),
+  request,
+  setStatus,
+  ready: consented,
+  ask: askConsent,
 });
 
 runBtn.addEventListener("click", () => run(false));
@@ -661,14 +512,6 @@ fmtBtn.addEventListener("click", format);
 // ---- download notice --------------------------------------------------
 
 // Nothing is downloaded until the visitor agrees, once per browser.
-let agreed = false;
-
-function consented() {
-  if (agreed) return true;
-  try { agreed = localStorage.getItem(CONSENT) === "1"; } catch (e) {}
-  return agreed;
-}
-
 function askConsent() {
   consentBox.hidden = false;
   consentBox.classList.remove("flash");
@@ -678,25 +521,10 @@ function askConsent() {
 }
 
 consentBtn.addEventListener("click", () => {
-  agreed = true;
-  try { localStorage.setItem(CONSENT, "1"); } catch (e) {}
+  agree();
   consentBox.hidden = true;
   check();
 });
-
-// sizes shows the real download sizes from the manifest.
-async function sizes() {
-  try {
-    const m = await (await fetch("/play/manifest.json", { credentials: "omit", cache: "no-cache" })).json();
-    const mb = (n) => Math.max(1, Math.round(n / 1048576)) + " MB";
-    const f = m.files;
-    const set = (k, v) => { const e = consentBox.querySelector('[data-size="' + k + '"]'); if (e) e.textContent = v; };
-    // the compiler and std, for checking and running alike
-    set("check", mb(f.xoc.compressed + f.std.compressed + (f.rec ? f.rec.compressed : 0)));
-  } catch (e) {
-    // keep the sizes written in the page
-  }
-}
 
 // ---- sharing ----------------------------------------------------------
 
@@ -787,7 +615,7 @@ window.addEventListener("hashchange", () => location.reload());
 (async () => {
   if (!consented()) {
     consentBox.hidden = false;
-    sizes();
+    showSizes(consentBox);
     problems.replaceChildren(el("li", "play-sys", "Download the toolchain (above) to check code."));
   }
   const ex = /^#example=(\w+)\/([\w-]+)$/.exec(location.hash);

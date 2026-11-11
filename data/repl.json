@@ -1,0 +1,121 @@
+{
+  "commands": [
+    { "cmd": ":help", "desc": "List the commands and keys." },
+    { "cmd": ":type EXPR", "desc": "Show the type of an expression without running it." },
+    { "cmd": ":defs", "desc": "Show the session so far: its uses, definitions, and bindings." },
+    { "cmd": ":undo", "desc": "Forget the last entry that defined or bound something." },
+    { "cmd": ":reset", "desc": "Forget the whole session and start again." }
+  ],
+  "keys": [
+    { "key": "Enter", "desc": "Run the entry." },
+    { "key": "Shift+Enter", "desc": "Start a new line, for a function or a match over several lines." },
+    { "key": "Up / Down", "desc": "Recall earlier entries." }
+  ],
+  "steps": [
+    {
+      "title": "Values and types",
+      "text": "Type an expression and press Enter. Xo checks it, compiles it to WebAssembly, and runs it, all in this tab, then prints the value. Strings join with `+`, and `:type` shows an expression's type without running it.",
+      "tries": [
+        { "src": "1 + 2", "expect": "^3$" },
+        { "src": "\"Xo\" + \"!\"", "expect": "^\"Xo!\"$" },
+        { "src": ":type 3.5 * 2.0", "expect": "^Float$" }
+      ]
+    },
+    {
+      "title": "let and var",
+      "text": "`let` binds a name that never changes; `var` binds one you can assign again. The session remembers both, so later entries can use them. `${...}` puts a value inside a string.",
+      "tries": [
+        { "src": "let name = \"Finan\"", "expect": "" },
+        { "src": "\"hello, ${name}\"", "expect": "^\"hello, Finan\"$" },
+        { "src": "var count = 0", "expect": "" },
+        { "src": "count += 1", "expect": "" },
+        { "src": "count", "expect": "^1$" }
+      ]
+    },
+    {
+      "title": "Functions",
+      "text": "A function names its parameter and result types. Its last expression is the result, so `x * x` needs no `return`. Functions are values too: pass one to a list's `map`.",
+      "tries": [
+        { "src": "fn square(x: Int) -> Int { x * x }", "expect": "" },
+        { "src": "square(12)", "expect": "^144$" },
+        { "src": "[1, 2, 3].map(square)", "expect": "^\\[1, 4, 9\\]$" }
+      ]
+    },
+    {
+      "title": "Structs",
+      "text": "A struct groups named fields. `derive Display` lets the REPL print one. `with` makes a copy with some fields changed; the original stays as it was.",
+      "tries": [
+        { "src": "struct Point { x: Int, y: Int } derive Display", "expect": "" },
+        { "src": "let p = Point{x: 3, y: 4}", "expect": "" },
+        { "src": "p.x * p.x + p.y * p.y", "expect": "^25$" },
+        { "src": "p with {x: 10}", "expect": "^Point\\{x: 10, y: 4\\}$" }
+      ]
+    },
+    {
+      "title": "Enums and match",
+      "text": "An enum is one of several variants, each with its own fields. `match` takes it apart, and it must cover every variant: leave one out and Xo reports it before anything runs. Entries can span lines: the button types the newlines, and Shift+Enter makes one yourself.",
+      "tries": [
+        { "src": "enum Shape { Circle(radius: Float), Rect(w: Float, h: Float) }", "expect": "" },
+        { "src": "fn area(s: Shape) -> Float {\n  match s {\n    Circle(radius) => 3.14159 * radius * radius\n    Rect(w, h) => w * h\n  }\n}", "expect": "" },
+        { "src": "area(Shape.Rect(w: 2.0, h: 3.0))", "expect": "^6(\\.0)?$" },
+        { "src": "fn name(s: Shape) -> Str {\n  match s {\n    Circle(_) => \"circle\"\n  }\n}", "expect": "XO\\d{4}", "why": "This one fails on purpose: the match forgets `Rect`." }
+      ]
+    },
+    {
+      "title": "Lists and maps",
+      "text": "Lists and maps come with the methods you would expect. `sort`, `map`, and `filter` return new lists; `push` changes a `var` list in place. A map's `get` returns an optional value: `??` gives a default when the key is missing.",
+      "tries": [
+        { "src": "let xs = [3, 1, 2]", "expect": "" },
+        { "src": "xs.sort()", "expect": "^\\[1, 2, 3\\]$" },
+        { "src": "xs.filter(fn(x) { x > 1 })", "expect": "^\\[3, 2\\]$" },
+        { "src": "xs.fold(0, fn(acc, x) { acc + x })", "expect": "^6$" },
+        { "src": "let ages = {\"ada\": 36, \"grace\": 85}", "expect": "" },
+        { "src": "ages.get(\"ada\") ?? 0", "expect": "^36$" },
+        { "src": "ages.get(\"bob\")", "expect": "^None$" },
+        { "src": "var nums = [3, 1, 2]", "expect": "" },
+        { "src": "nums.push(5)", "expect": "" },
+        { "src": "nums", "expect": "^\\[3, 1, 2, 5\\]$" }
+      ]
+    },
+    {
+      "title": "The standard library",
+      "text": "`use std/...` brings in a standard library module. This page downloads only the modules you use, the first time you use them.",
+      "tries": [
+        { "src": "use std/path", "expect": "" },
+        { "src": "path.join(\"photos\", \"fox.jpg\")", "expect": "^\"photos/fox\\.jpg\"$" },
+        { "src": "path.ext(\"fox.jpg\")", "expect": "^\"\\.jpg\"$" },
+        { "src": "use std/json", "expect": "" },
+        { "src": "json.encode([\"a\", \"b\"])", "expect": "\\[\\\\?\"a\\\\?\",\\\\?\"b\\\\?\"\\]" }
+      ]
+    },
+    {
+      "title": "Errors and Result",
+      "text": "A value that may be missing is optional: `Int.parse` returns `Some(n)` or `None`. A function that can fail says so in its type: `Int ! Str` returns an `Int` or an error, and the caller has to handle both. Leaving an error unhandled is a compile error in Xo.",
+      "tries": [
+        { "src": "Int.parse(\"42\")", "expect": "^Some\\(42\\)$" },
+        { "src": "Int.parse(\"forty\") ?? 0", "expect": "^0$" },
+        { "src": "fn half(n: Int) -> Int ! Str {\n  if n % 2 != 0 {\n    return Err(\"odd: ${n}\")\n  }\n  n / 2\n}", "expect": "" },
+        { "src": "match half(7) {\n  Ok(n) => \"half is ${n}\"\n  Err(e) => \"no: ${e}\"\n}", "expect": "^\"no: odd: 7\"$" },
+        { "src": "half(10) ?? 0", "expect": "XO\\d{4}|^5$", "why": "Try it: Xo wants the error handled explicitly." }
+      ]
+    },
+    {
+      "title": "Output",
+      "text": "An entry can print, as a program does. `os` is the program's access to the outside world: here, only standard output.",
+      "tries": [
+        { "src": "os.stdio.println(\"hi from Xo\")", "expect": "^hi from Xo$" }
+      ]
+    },
+    {
+      "title": "The REPL's commands",
+      "text": "Lines that start with `:` are commands to the REPL itself. `:defs` shows what the session holds, `:undo` takes back the last definition, and `:reset` starts over. `:help` lists them all.",
+      "tries": [
+        { "src": ":type half", "expect": "Str" },
+        { "src": ":defs", "expect": "fn square" },
+        { "src": ":undo", "expect": "undid" },
+        { "src": ":help", "expect": ":reset" },
+        { "src": ":reset", "expect": "session reset" }
+      ]
+    }
+  ]
+}

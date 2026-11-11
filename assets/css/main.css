@@ -136,7 +136,8 @@ footer .wrap { display: flex; justify-content: space-between; align-items: cente
   header nav ul { gap: 12px; font-size: 13px; }
   header nav ul a::before { content: none; }
   .brand { font-size: 19px; }
-  header nav ul li.wide { display: none; }
+  header nav { flex-wrap: wrap; row-gap: 8px; }
+  header nav ul { flex: 1 0 100%; flex-wrap: wrap; gap: 4px 18px; }
   .wrap { padding: 0 16px; }
   .rest .sleeper { max-width: 220px; }
   .announce { font-size: 12px; padding: 6px 10px; }
@@ -274,10 +275,13 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-repl pre { flex: 1; overflow: auto; min-height: 0; }
 .play-repl-in { color: #efe3d2; }
 .play-repl-val { color: var(--ok); }
-.play-repl-form { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid #3a3029; background: #29221d; }
-.play-repl-prompt { color: #9c8c7c; font: 13px "JetBrains Mono", monospace; }
-.play-repl-form input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #efe3d2; font: 13px/1.6 "JetBrains Mono", monospace; }
-.play-repl-form input:disabled { color: #9c8c7c; }
+.play-repl-form { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-top: 1px solid #3a3029; background: #29221d; }
+.play-repl-prompt { color: #9c8c7c; font: 13px/1.6 "JetBrains Mono", monospace; padding-top: 4px; }
+.play-repl-form textarea { flex: 1; min-width: 0; resize: none; padding: 4px 0; background: transparent; border: 0; outline: none; color: #efe3d2; font: 13px/1.6 "JetBrains Mono", monospace; font-variant-ligatures: none; caret-color: var(--accent); white-space: pre-wrap; overflow-wrap: anywhere; overflow-y: auto; }
+.play-repl-form textarea:disabled { color: #9c8c7c; }
+.play-repl-form textarea.typing { color: var(--accent-2); }
+.play-repl-more { margin: 0; padding: 8px 16px; border-bottom: 1px solid #3a3029; font: 13px "JetBrains Mono", monospace; }
+.play-repl-more a { color: var(--accent-2); }
 .play-repl-form button:disabled { opacity: .45; cursor: default; }
 .play-problems { list-style: none; margin: 0; padding: 8px 0; font: 13px/1.55 "JetBrains Mono", monospace; }
 .play-problems li { padding: 8px 16px; border-bottom: 1px solid #3a3029; }
@@ -454,3 +458,59 @@ a.level:hover { text-decoration: underline; }
 .post-figure .f-mute { fill: var(--ink-2); opacity: .45; }
 .post-figure .f-band { fill: var(--accent); opacity: .18; }
 .post-figure text { font-family: inherit; font-size: 12px; }
+
+/* the REPL page (/repl/): the REPL fills the height beside the walkthrough */
+.repl-page { max-width: 1280px; margin: 0 auto; padding: 18px 24px 28px; }
+.repl-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.repl-head h1 { font-size: 28px; margin: 0; }
+.repl-head p { margin: 0; color: var(--ink-2); font-size: 14px; flex: 1 1 320px; }
+.repl-grid > * { min-width: 0; }
+.repl-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; height: calc(100vh - 210px); min-height: 480px; margin-top: 12px; }
+.repl-term { display: flex; flex-direction: column; min-height: 0; background: var(--panel); color: #efe3d2; border: 1px solid #3a3029; border-radius: 12px; overflow: hidden; }
+.repl-term .play-tabs { justify-content: space-between; }
+.repl-term .play-tabs b { color: #efe3d2; font: 500 13px "JetBrains Mono", monospace; padding: 6px 10px; }
+.repl-term pre { flex: 1; overflow: auto; min-height: 0; margin: 0; padding: 14px 16px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.repl-term .play-repl-form textarea, .repl-term .play-repl-prompt { font-size: 14px; }
+.repl-guide { display: flex; flex-direction: column; min-height: 0; overflow: auto; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.repl-progress { display: flex; gap: 6px; flex-wrap: wrap; list-style: none; margin: 0 0 12px; padding: 0; }
+.repl-progress button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--ink-2); font: 600 12px "JetBrains Mono", monospace; cursor: pointer; }
+.repl-progress button.done { border-color: var(--ok); color: var(--ok); }
+.repl-progress button[aria-current="step"] { border-color: var(--accent); background: var(--accent); color: #1a120c; }
+.repl-step h2 { font-size: 21px; margin: 0 0 6px; }
+.repl-step .n { color: var(--accent); font: 600 13px "JetBrains Mono", monospace; letter-spacing: .04em; }
+.repl-step p { margin: 0 0 10px; color: var(--ink); font-size: 15px; }
+.repl-step p code, .repl-cmds code { font: 13px "JetBrains Mono", monospace; color: var(--accent-2); }
+.repl-tries { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.repl-try { display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid #3a3029; border-radius: 8px; padding: 8px 10px; }
+.repl-try pre { flex: 1; min-width: 0; margin: 0; color: #efe3d2; font: 13px/1.55 "JetBrains Mono", monospace; font-variant-ligatures: none; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* one source line: a long one wraps with its continuation indented two
+   columns past the line's own indent (replpage.js codeLines sets --in) */
+.repl-try .ln { display: block; padding-left: calc((var(--in, 0) + 2) * 1ch); text-indent: -2ch; }
+.repl-try .btn { flex: none; padding: 5px 10px; font-size: 13px; }
+.repl-try.ran { border-color: rgba(127,191,127,.45); }
+.repl-try .why { display: block; margin-top: 4px; color: #b5a593; font: 12.5px/1.5 "Space Grotesk", system-ui, sans-serif; white-space: normal;  margin-bottom: 0; }
+.repl-try .why code { font-size: 12px; }
+.repl-bar { display: none; }
+.repl-nav { display: flex; gap: 8px; align-items: center; margin: 4px 0 18px; }
+.repl-nav .grow { flex: 1; }
+.repl-nav small { color: var(--ink-2); }
+.repl-cmds h2 { font-size: 17px; margin: 6px 0 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.repl-cmds dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+.repl-cmds dt { margin: 0; }
+.repl-cmds dd { margin: 0; color: var(--ink-2); }
+@media (max-width: 900px) {
+  .repl-page { padding: 14px 16px 24px; }
+  .repl-head h1 { font-size: 23px; }
+  .repl-grid { grid-template-columns: 1fr; height: auto; }
+  .repl-term { height: 62vh; min-height: 340px; }
+  .repl-guide { overflow: visible; }
+  .repl-cmds dl { grid-template-columns: 1fr; gap: 2px; }
+  .repl-cmds dd { margin-bottom: 6px; }
+  /* the step card is far below the REPL here: a compact bar under the
+     input carries the step, its next entry, and the next step */
+  .repl-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid #3a3029; background: #221c18; }
+  .repl-bar .t { flex: 1; min-width: 0; font: 12.5px/1.35 "Space Grotesk", system-ui, sans-serif; color: #c9b9a6; }
+  .repl-bar .t b { display: block; color: #efe3d2; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .repl-bar .t code { font: 12px "JetBrains Mono", monospace; color: var(--accent-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .repl-bar .btn { flex: none; padding: 6px 10px; font-size: 13px; }
+}
