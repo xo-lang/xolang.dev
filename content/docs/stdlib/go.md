@@ -9,36 +9,36 @@ generated: "scripts/sync-content.py from `xo doc std/go`; edit the doc comments 
 ---
 ## Index
 
-- type [`Error`](#error)
-  - method [`Error.display`](#errordisplay)
-  - method [`Error.message`](#errormessage)
-  - method [`Error.go_type`](#errorgo_type)
-- type [`Any`](#any)
-  - method [`Any.display`](#anydisplay)
-  - method [`Any.type_name`](#anytype_name)
-  - method [`Any.is_nil`](#anyis_nil)
-  - method [`Any.as_int`](#anyas_int)
-  - method [`Any.as_float`](#anyas_float)
-  - method [`Any.as_bool`](#anyas_bool)
-  - method [`Any.as_str`](#anyas_str)
-  - method [`Any.as_bytes`](#anyas_bytes)
-  - method [`Any.as_list`](#anyas_list)
-  - method [`Any.as_map`](#anyas_map)
-  - method [`Any.as_handle`](#anyas_handle)
-- type [`Out`](#out)
-  - method [`Out.any`](#outany)
-  - method [`Out.get`](#outget)
-- type [`Recv`](#recv)
-  - method [`Recv.recv`](#recvrecv)
-  - method [`Recv.try_recv`](#recvtry_recv)
-  - method [`Recv.each`](#recveach)
+- type [`Error`](#Error)
+  - method [`Error.display`](#Error.display)
+  - method [`Error.message`](#Error.message)
+  - method [`Error.go_type`](#Error.go_type)
+- type [`Any`](#Any)
+  - method [`Any.display`](#Any.display)
+  - method [`Any.type_name`](#Any.type_name)
+  - method [`Any.is_nil`](#Any.is_nil)
+  - method [`Any.as_int`](#Any.as_int)
+  - method [`Any.as_float`](#Any.as_float)
+  - method [`Any.as_bool`](#Any.as_bool)
+  - method [`Any.as_str`](#Any.as_str)
+  - method [`Any.as_bytes`](#Any.as_bytes)
+  - method [`Any.as_list`](#Any.as_list)
+  - method [`Any.as_map`](#Any.as_map)
+  - method [`Any.as_handle`](#Any.as_handle)
+- type [`Out`](#Out)
+  - method [`Out.any`](#Out.any)
+  - method [`Out.get`](#Out.get)
+- type [`Recv`](#Recv)
+  - method [`Recv.recv`](#Recv.recv)
+  - method [`Recv.try_recv`](#Recv.try_recv)
+  - method [`Recv.each`](#Recv.each)
 - fn [`error`](#error)
 - fn [`any`](#any)
 - fn [`out`](#out)
 
 ## Types
 
-### Error
+### Error {#Error}
 
 ```xo
 struct Error {}
@@ -50,7 +50,7 @@ the boundary, so `display` performs no Go call.
 
 [Source: `std/go.xo:10`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L10)
 
-#### Error.display
+#### Error.display {#Error.display}
 
 ```xo
 fn (e: Error) display() -> Str
@@ -60,7 +60,7 @@ The Go error's `Error()` text.
 
 [Source: `std/go.xo:13`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L13)
 
-#### Error.message
+#### Error.message {#Error.message}
 
 ```xo
 fn (e: Error) message() -> Str
@@ -70,7 +70,7 @@ The Go error's `Error()` text (same as `display`).
 
 [Source: `std/go.xo:16`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L16)
 
-#### Error.go_type
+#### Error.go_type {#Error.go_type}
 
 ```xo
 fn (e: Error) go_type() -> Str
@@ -80,7 +80,7 @@ The Go dynamic type of the error, for example `*url.Error`.
 
 [Source: `std/go.xo:19`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L19)
 
-### Any
+### Any {#Any}
 
 ```xo
 struct Any {}
@@ -95,7 +95,7 @@ only displays, unless its function is `replay rerun` (core 11.3).
 
 [Source: `std/go.xo:33`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L33)
 
-#### Any.display
+#### Any.display {#Any.display}
 
 ```xo
 fn (a: Any) display() -> Str
@@ -105,7 +105,7 @@ The value as Go's `%v`.
 
 [Source: `std/go.xo:36`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L36)
 
-#### Any.type_name
+#### Any.type_name {#Any.type_name}
 
 ```xo
 fn (a: Any) type_name() -> Str
@@ -115,7 +115,7 @@ The value's Go type, as Go's `%T` (`int`, `*sql.Rows`, `<nil>`).
 
 [Source: `std/go.xo:39`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L39)
 
-#### Any.is_nil
+#### Any.is_nil {#Any.is_nil}
 
 ```xo
 fn (a: Any) is_nil() -> Bool
@@ -125,7 +125,7 @@ Whether the value is Go's nil, or a nil pointer, slice or map.
 
 [Source: `std/go.xo:42`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L42)
 
-#### Any.as_int
+#### Any.as_int {#Any.as_int}
 
 ```xo
 fn (a: Any) as_int() -> Int?
@@ -135,7 +135,7 @@ The value as an Int when it is one of Go's integer types and fits.
 
 [Source: `std/go.xo:45`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L45)
 
-#### Any.as_float
+#### Any.as_float {#Any.as_float}
 
 ```xo
 fn (a: Any) as_float() -> Float?
@@ -145,7 +145,7 @@ The value as a Float when it is a float64 or float32.
 
 [Source: `std/go.xo:48`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L48)
 
-#### Any.as_bool
+#### Any.as_bool {#Any.as_bool}
 
 ```xo
 fn (a: Any) as_bool() -> Bool?
@@ -155,7 +155,7 @@ The value as a Bool when it is one.
 
 [Source: `std/go.xo:51`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L51)
 
-#### Any.as_str
+#### Any.as_str {#Any.as_str}
 
 ```xo
 fn (a: Any) as_str() -> Str?
@@ -165,7 +165,7 @@ The value as a Str when its Go kind is string.
 
 [Source: `std/go.xo:54`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L54)
 
-#### Any.as_bytes
+#### Any.as_bytes {#Any.as_bytes}
 
 ```xo
 fn (a: Any) as_bytes() -> Bytes?
@@ -175,7 +175,7 @@ The value as Bytes when it is a []byte (copied).
 
 [Source: `std/go.xo:57`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L57)
 
-#### Any.as_list
+#### Any.as_list {#Any.as_list}
 
 ```xo
 fn (a: Any) as_list() -> List[Any]?
@@ -185,7 +185,7 @@ The elements of a Go slice or array.
 
 [Source: `std/go.xo:60`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L60)
 
-#### Any.as_map
+#### Any.as_map {#Any.as_map}
 
 ```xo
 fn (a: Any) as_map() -> Map[Str, Any]?
@@ -195,7 +195,7 @@ The entries of a Go map with string keys.
 
 [Source: `std/go.xo:63`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L63)
 
-#### Any.as_handle
+#### Any.as_handle {#Any.as_handle}
 
 ```xo
 fn (a: Any) as_handle[T]() -> T?
@@ -206,7 +206,7 @@ Go type is T's.
 
 [Source: `std/go.xo:67`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L67)
 
-### Out
+### Out {#Out}
 
 ```xo
 struct Out[T] {}
@@ -217,7 +217,7 @@ A Go pointer a Go function fills through `any` (`rows.scan`,
 
 [Source: `std/go.xo:77`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L77)
 
-#### Out.any
+#### Out.any {#Out.any}
 
 ```xo
 fn (o: Out[T]) any() -> Any
@@ -227,7 +227,7 @@ The pointer, as the `go.Any` the Go function takes.
 
 [Source: `std/go.xo:84`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L84)
 
-#### Out.get
+#### Out.get {#Out.get}
 
 ```xo
 fn (o: Out[T]) get() -> T
@@ -237,7 +237,7 @@ The value Go wrote; a fault when Go wrote another type.
 
 [Source: `std/go.xo:87`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L87)
 
-### Recv
+### Recv {#Recv}
 
 ```xo
 struct Recv[T] {}
@@ -249,7 +249,7 @@ closing are Go's; a nil Go channel is a closed one.
 
 [Source: `std/go.xo:92`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L92)
 
-#### Recv.recv
+#### Recv.recv {#Recv.recv}
 
 ```xo
 fn (r: Recv[T]) recv() -> T? uses go
@@ -261,7 +261,7 @@ Go: a cancellation point (the task's cancellation or
 
 [Source: `std/go.xo:97`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L97)
 
-#### Recv.try_recv
+#### Recv.try_recv {#Recv.try_recv}
 
 ```xo
 fn (r: Recv[T]) try_recv() -> T?? uses go
@@ -272,7 +272,7 @@ the channel is closed.
 
 [Source: `std/go.xo:101`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L101)
 
-#### Recv.each
+#### Recv.each {#Recv.each}
 
 ```xo
 fn (r: Recv[T]) each[fx: Effects](f: fn(T) uses fx) uses go, fx
@@ -284,7 +284,7 @@ Calls f with each value until the channel is closed.
 
 ## Functions
 
-### error
+### error {#error}
 
 ```xo
 fn error(message: Str) -> Error
@@ -297,7 +297,7 @@ came from Go goes back as that Go error, so Go's `errors.Is` sees it.
 
 [Source: `std/go.xo:25`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L25)
 
-### any
+### any {#any}
 
 ```xo
 fn any[T](x: T) -> Any
@@ -310,7 +310,7 @@ slice, a Map as a map, an Option as its value or nil.
 
 [Source: `std/go.xo:73`](https://github.com/xo-lang/xo/blob/main/std/go.xo#L73)
 
-### out
+### out {#out}
 
 ```xo
 fn out[T]() -> Out[T]

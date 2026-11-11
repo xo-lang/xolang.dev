@@ -9,52 +9,52 @@ generated: "scripts/sync-content.py from `xo doc std/big`; edit the doc comments
 ---
 ## Index
 
-- type [`BigInt`](#bigint)
-  - method [`BigInt.add`](#bigintadd)
-  - method [`BigInt.sub`](#bigintsub)
-  - method [`BigInt.mul`](#bigintmul)
-  - method [`BigInt.quo`](#bigintquo)
-  - method [`BigInt.rem`](#bigintrem)
-  - method [`BigInt.quo_rem`](#bigintquo_rem)
-  - method [`BigInt.div`](#bigintdiv)
-  - method [`BigInt.mod`](#bigintmod)
-  - method [`BigInt.div_mod`](#bigintdiv_mod)
-  - method [`BigInt.exp`](#bigintexp)
-  - method [`BigInt.gcd`](#bigintgcd)
-  - method [`BigInt.mod_inverse`](#bigintmod_inverse)
-  - method [`BigInt.sqrt`](#bigintsqrt)
-  - method [`BigInt.neg`](#bigintneg)
-  - method [`BigInt.abs`](#bigintabs)
-  - method [`BigInt.sign`](#bigintsign)
-  - method [`BigInt.cmp`](#bigintcmp)
-  - method [`BigInt.cmp_abs`](#bigintcmp_abs)
-  - method [`BigInt.lsh`](#bigintlsh)
-  - method [`BigInt.rsh`](#bigintrsh)
-  - method [`BigInt.and`](#bigintand)
-  - method [`BigInt.or`](#bigintor)
-  - method [`BigInt.xor`](#bigintxor)
-  - method [`BigInt.and_not`](#bigintand_not)
-  - method [`BigInt.not`](#bigintnot)
-  - method [`BigInt.bit`](#bigintbit)
-  - method [`BigInt.bit_len`](#bigintbit_len)
-  - method [`BigInt.trailing_zeros`](#biginttrailing_zeros)
-  - method [`BigInt.probably_prime`](#bigintprobably_prime)
-  - method [`BigInt.text`](#biginttext)
-  - method [`BigInt.bytes`](#bigintbytes)
-  - method [`BigInt.fill_bytes`](#bigintfill_bytes)
-  - method [`BigInt.to_int`](#bigintto_int)
-  - method [`BigInt.to_float`](#bigintto_float)
-  - method [`BigInt.display`](#bigintdisplay)
-  - method [`BigInt.debug`](#bigintdebug)
-- type [`BigErr`](#bigerr)
-  - method [`BigErr.display`](#bigerrdisplay)
+- type [`BigInt`](#BigInt)
+  - method [`BigInt.add`](#BigInt.add)
+  - method [`BigInt.sub`](#BigInt.sub)
+  - method [`BigInt.mul`](#BigInt.mul)
+  - method [`BigInt.quo`](#BigInt.quo)
+  - method [`BigInt.rem`](#BigInt.rem)
+  - method [`BigInt.quo_rem`](#BigInt.quo_rem)
+  - method [`BigInt.div`](#BigInt.div)
+  - method [`BigInt.mod`](#BigInt.mod)
+  - method [`BigInt.div_mod`](#BigInt.div_mod)
+  - method [`BigInt.exp`](#BigInt.exp)
+  - method [`BigInt.gcd`](#BigInt.gcd)
+  - method [`BigInt.mod_inverse`](#BigInt.mod_inverse)
+  - method [`BigInt.sqrt`](#BigInt.sqrt)
+  - method [`BigInt.neg`](#BigInt.neg)
+  - method [`BigInt.abs`](#BigInt.abs)
+  - method [`BigInt.sign`](#BigInt.sign)
+  - method [`BigInt.cmp`](#BigInt.cmp)
+  - method [`BigInt.cmp_abs`](#BigInt.cmp_abs)
+  - method [`BigInt.lsh`](#BigInt.lsh)
+  - method [`BigInt.rsh`](#BigInt.rsh)
+  - method [`BigInt.and`](#BigInt.and)
+  - method [`BigInt.or`](#BigInt.or)
+  - method [`BigInt.xor`](#BigInt.xor)
+  - method [`BigInt.and_not`](#BigInt.and_not)
+  - method [`BigInt.not`](#BigInt.not)
+  - method [`BigInt.bit`](#BigInt.bit)
+  - method [`BigInt.bit_len`](#BigInt.bit_len)
+  - method [`BigInt.trailing_zeros`](#BigInt.trailing_zeros)
+  - method [`BigInt.probably_prime`](#BigInt.probably_prime)
+  - method [`BigInt.text`](#BigInt.text)
+  - method [`BigInt.bytes`](#BigInt.bytes)
+  - method [`BigInt.fill_bytes`](#BigInt.fill_bytes)
+  - method [`BigInt.to_int`](#BigInt.to_int)
+  - method [`BigInt.to_float`](#BigInt.to_float)
+  - method [`BigInt.display`](#BigInt.display)
+  - method [`BigInt.debug`](#BigInt.debug)
+- type [`BigErr`](#BigErr)
+  - method [`BigErr.display`](#BigErr.display)
 - fn [`from_int`](#from_int)
 - fn [`parse`](#parse)
 - fn [`from_bytes`](#from_bytes)
 
 ## Types
 
-### BigInt
+### BigInt {#BigInt}
 
 ```xo
 struct BigInt {
@@ -70,7 +70,7 @@ not a literal.
 
 [Source: `std/big.xo:11`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L11)
 
-#### BigInt.add
+#### BigInt.add {#BigInt.add}
 
 ```xo
 fn (x: BigInt) add(y: BigInt) -> BigInt
@@ -78,7 +78,7 @@ fn (x: BigInt) add(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:31`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L31)
 
-#### BigInt.sub
+#### BigInt.sub {#BigInt.sub}
 
 ```xo
 fn (x: BigInt) sub(y: BigInt) -> BigInt
@@ -86,7 +86,7 @@ fn (x: BigInt) sub(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:32`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L32)
 
-#### BigInt.mul
+#### BigInt.mul {#BigInt.mul}
 
 ```xo
 fn (x: BigInt) mul(y: BigInt) -> BigInt
@@ -94,7 +94,7 @@ fn (x: BigInt) mul(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:33`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L33)
 
-#### BigInt.quo
+#### BigInt.quo {#BigInt.quo}
 
 ```xo
 fn (x: BigInt) quo(y: BigInt) -> BigInt
@@ -104,7 +104,7 @@ x / y truncated toward zero (Go's Quo); a fault when y is 0.
 
 [Source: `std/big.xo:35`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L35)
 
-#### BigInt.rem
+#### BigInt.rem {#BigInt.rem}
 
 ```xo
 fn (x: BigInt) rem(y: BigInt) -> BigInt
@@ -114,7 +114,7 @@ x - y * x.quo(y), with x's sign (Go's Rem).
 
 [Source: `std/big.xo:37`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L37)
 
-#### BigInt.quo_rem
+#### BigInt.quo_rem {#BigInt.quo_rem}
 
 ```xo
 fn (x: BigInt) quo_rem(y: BigInt) -> (BigInt, BigInt)
@@ -122,7 +122,7 @@ fn (x: BigInt) quo_rem(y: BigInt) -> (BigInt, BigInt)
 
 [Source: `std/big.xo:38`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L38)
 
-#### BigInt.div
+#### BigInt.div {#BigInt.div}
 
 ```xo
 fn (x: BigInt) div(y: BigInt) -> BigInt
@@ -132,7 +132,7 @@ Euclidean division (Go's Div): the remainder is never negative.
 
 [Source: `std/big.xo:40`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L40)
 
-#### BigInt.mod
+#### BigInt.mod {#BigInt.mod}
 
 ```xo
 fn (x: BigInt) mod(y: BigInt) -> BigInt
@@ -142,7 +142,7 @@ x mod y in 0 to |y| - 1 (Go's Mod).
 
 [Source: `std/big.xo:42`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L42)
 
-#### BigInt.div_mod
+#### BigInt.div_mod {#BigInt.div_mod}
 
 ```xo
 fn (x: BigInt) div_mod(y: BigInt) -> (BigInt, BigInt)
@@ -150,7 +150,7 @@ fn (x: BigInt) div_mod(y: BigInt) -> (BigInt, BigInt)
 
 [Source: `std/big.xo:43`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L43)
 
-#### BigInt.exp
+#### BigInt.exp {#BigInt.exp}
 
 ```xo
 fn (x: BigInt) exp(y: BigInt, m: BigInt? = None) -> BigInt
@@ -162,7 +162,7 @@ there is none (Go returns nil).
 
 [Source: `std/big.xo:47`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L47)
 
-#### BigInt.gcd
+#### BigInt.gcd {#BigInt.gcd}
 
 ```xo
 fn (x: BigInt) gcd(y: BigInt) -> BigInt
@@ -172,7 +172,7 @@ The greatest common divisor of |x| and |y|; 0 when both are 0.
 
 [Source: `std/big.xo:49`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L49)
 
-#### BigInt.mod_inverse
+#### BigInt.mod_inverse {#BigInt.mod_inverse}
 
 ```xo
 fn (x: BigInt) mod_inverse(m: BigInt) -> BigInt?
@@ -182,7 +182,7 @@ x's inverse mod m, None when gcd(x, m) is not 1 (Go's ModInverse).
 
 [Source: `std/big.xo:51`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L51)
 
-#### BigInt.sqrt
+#### BigInt.sqrt {#BigInt.sqrt}
 
 ```xo
 fn (x: BigInt) sqrt() -> BigInt
@@ -192,7 +192,7 @@ The floor of the square root; a fault when x \< 0.
 
 [Source: `std/big.xo:53`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L53)
 
-#### BigInt.neg
+#### BigInt.neg {#BigInt.neg}
 
 ```xo
 fn (x: BigInt) neg() -> BigInt
@@ -200,7 +200,7 @@ fn (x: BigInt) neg() -> BigInt
 
 [Source: `std/big.xo:54`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L54)
 
-#### BigInt.abs
+#### BigInt.abs {#BigInt.abs}
 
 ```xo
 fn (x: BigInt) abs() -> BigInt
@@ -208,7 +208,7 @@ fn (x: BigInt) abs() -> BigInt
 
 [Source: `std/big.xo:55`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L55)
 
-#### BigInt.sign
+#### BigInt.sign {#BigInt.sign}
 
 ```xo
 fn (x: BigInt) sign() -> Int
@@ -218,7 +218,7 @@ fn (x: BigInt) sign() -> Int
 
 [Source: `std/big.xo:57`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L57)
 
-#### BigInt.cmp
+#### BigInt.cmp {#BigInt.cmp}
 
 ```xo
 fn (x: BigInt) cmp(y: BigInt) -> Int
@@ -228,7 +228,7 @@ fn (x: BigInt) cmp(y: BigInt) -> Int
 
 [Source: `std/big.xo:59`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L59)
 
-#### BigInt.cmp_abs
+#### BigInt.cmp_abs {#BigInt.cmp_abs}
 
 ```xo
 fn (x: BigInt) cmp_abs(y: BigInt) -> Int
@@ -236,7 +236,7 @@ fn (x: BigInt) cmp_abs(y: BigInt) -> Int
 
 [Source: `std/big.xo:60`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L60)
 
-#### BigInt.lsh
+#### BigInt.lsh {#BigInt.lsh}
 
 ```xo
 fn (x: BigInt) lsh(n: Int) -> BigInt
@@ -246,7 +246,7 @@ x * 2^n; a fault when n \< 0.
 
 [Source: `std/big.xo:62`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L62)
 
-#### BigInt.rsh
+#### BigInt.rsh {#BigInt.rsh}
 
 ```xo
 fn (x: BigInt) rsh(n: Int) -> BigInt
@@ -256,7 +256,7 @@ x / 2^n rounded toward negative infinity (Go's Rsh); a fault when n \< 0.
 
 [Source: `std/big.xo:64`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L64)
 
-#### BigInt.and
+#### BigInt.and {#BigInt.and}
 
 ```xo
 fn (x: BigInt) and(y: BigInt) -> BigInt
@@ -267,7 +267,7 @@ AndNot, Not.
 
 [Source: `std/big.xo:67`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L67)
 
-#### BigInt.or
+#### BigInt.or {#BigInt.or}
 
 ```xo
 fn (x: BigInt) or(y: BigInt) -> BigInt
@@ -275,7 +275,7 @@ fn (x: BigInt) or(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:68`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L68)
 
-#### BigInt.xor
+#### BigInt.xor {#BigInt.xor}
 
 ```xo
 fn (x: BigInt) xor(y: BigInt) -> BigInt
@@ -283,7 +283,7 @@ fn (x: BigInt) xor(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:69`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L69)
 
-#### BigInt.and_not
+#### BigInt.and_not {#BigInt.and_not}
 
 ```xo
 fn (x: BigInt) and_not(y: BigInt) -> BigInt
@@ -291,7 +291,7 @@ fn (x: BigInt) and_not(y: BigInt) -> BigInt
 
 [Source: `std/big.xo:70`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L70)
 
-#### BigInt.not
+#### BigInt.not {#BigInt.not}
 
 ```xo
 fn (x: BigInt) not() -> BigInt
@@ -299,7 +299,7 @@ fn (x: BigInt) not() -> BigInt
 
 [Source: `std/big.xo:71`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L71)
 
-#### BigInt.bit
+#### BigInt.bit {#BigInt.bit}
 
 ```xo
 fn (x: BigInt) bit(i: Int) -> Int
@@ -309,7 +309,7 @@ Bit i of x's two's complement (0 or 1); a fault when i \< 0.
 
 [Source: `std/big.xo:73`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L73)
 
-#### BigInt.bit_len
+#### BigInt.bit_len {#BigInt.bit_len}
 
 ```xo
 fn (x: BigInt) bit_len() -> Int
@@ -319,7 +319,7 @@ The length of |x| in bits; 0 for 0.
 
 [Source: `std/big.xo:75`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L75)
 
-#### BigInt.trailing_zeros
+#### BigInt.trailing_zeros {#BigInt.trailing_zeros}
 
 ```xo
 fn (x: BigInt) trailing_zeros() -> Int
@@ -329,7 +329,7 @@ The number of zero bits below the lowest one of |x|; 0 for 0.
 
 [Source: `std/big.xo:77`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L77)
 
-#### BigInt.probably_prime
+#### BigInt.probably_prime {#BigInt.probably_prime}
 
 ```xo
 fn (x: BigInt) probably_prime(n: Int) -> Bool
@@ -341,7 +341,7 @@ fault when n \< 0.
 
 [Source: `std/big.xo:81`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L81)
 
-#### BigInt.text
+#### BigInt.text {#BigInt.text}
 
 ```xo
 fn (x: BigInt) text(base: Int = 10) -> Str
@@ -352,7 +352,7 @@ fault for another base.
 
 [Source: `std/big.xo:84`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L84)
 
-#### BigInt.bytes
+#### BigInt.bytes {#BigInt.bytes}
 
 ```xo
 fn (x: BigInt) bytes() -> Bytes
@@ -362,7 +362,7 @@ fn (x: BigInt) bytes() -> Bytes
 
 [Source: `std/big.xo:86`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L86)
 
-#### BigInt.fill_bytes
+#### BigInt.fill_bytes {#BigInt.fill_bytes}
 
 ```xo
 fn (x: BigInt) fill_bytes(len: Int) -> Bytes
@@ -373,7 +373,7 @@ fn (x: BigInt) fill_bytes(len: Int) -> Bytes
 
 [Source: `std/big.xo:89`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L89)
 
-#### BigInt.to_int
+#### BigInt.to_int {#BigInt.to_int}
 
 ```xo
 fn (x: BigInt) to_int() -> Int?
@@ -383,7 +383,7 @@ x as an Int, None when it does not fit (Go's IsInt64 and Int64).
 
 [Source: `std/big.xo:91`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L91)
 
-#### BigInt.to_float
+#### BigInt.to_float {#BigInt.to_float}
 
 ```xo
 fn (x: BigInt) to_float() -> Float
@@ -393,7 +393,7 @@ The Float nearest x (Go's Float64; out of range is +Inf or -Inf).
 
 [Source: `std/big.xo:93`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L93)
 
-#### BigInt.display
+#### BigInt.display {#BigInt.display}
 
 ```xo
 fn (x: BigInt) display() -> Str
@@ -403,7 +403,7 @@ x in base 10.
 
 [Source: `std/big.xo:95`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L95)
 
-#### BigInt.debug
+#### BigInt.debug {#BigInt.debug}
 
 ```xo
 fn (x: BigInt) debug() -> Str
@@ -411,7 +411,7 @@ fn (x: BigInt) debug() -> Str
 
 [Source: `std/big.xo:96`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L96)
 
-### BigErr
+### BigErr {#BigErr}
 
 ```xo
 struct BigErr {
@@ -424,7 +424,7 @@ reports only false).
 
 [Source: `std/big.xo:17`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L17)
 
-#### BigErr.display
+#### BigErr.display {#BigErr.display}
 
 ```xo
 fn (e: BigErr) display() -> Str
@@ -434,7 +434,7 @@ fn (e: BigErr) display() -> Str
 
 ## Functions
 
-### from_int
+### from_int {#from_int}
 
 ```xo
 fn from_int(n: Int) -> BigInt
@@ -444,7 +444,7 @@ n (Go's NewInt).
 
 [Source: `std/big.xo:24`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L24)
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(s: Str, base: Int = 10) -> BigInt ! BigErr
@@ -455,7 +455,7 @@ digits; base 0 reads a 0b, 0o, 0, or 0x prefix and `_` between digits.
 
 [Source: `std/big.xo:27`](https://github.com/xo-lang/xo/blob/main/std/big.xo#L27)
 
-### from_bytes
+### from_bytes {#from_bytes}
 
 ```xo
 fn from_bytes(b: Bytes) -> BigInt

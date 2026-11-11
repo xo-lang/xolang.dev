@@ -9,23 +9,23 @@ generated: "scripts/sync-content.py from `xo doc std/protoparse`; edit the doc c
 ---
 ## Index
 
-- type [`ParseErr`](#parseerr)
-- type [`Kind`](#kind)
-- type [`Token`](#token)
-- type [`Field`](#field)
-- type [`EnumValue`](#enumvalue)
-- type [`Enum`](#enum)
-- type [`Message`](#message)
-- type [`Rpc`](#rpc)
-- type [`Service`](#service)
-- type [`File`](#file)
+- type [`ParseErr`](#ParseErr)
+- type [`Kind`](#Kind)
+- type [`Token`](#Token)
+- type [`Field`](#Field)
+- type [`EnumValue`](#EnumValue)
+- type [`Enum`](#Enum)
+- type [`Message`](#Message)
+- type [`Rpc`](#Rpc)
+- type [`Service`](#Service)
+- type [`File`](#File)
 - fn [`tokens`](#tokens)
 - fn [`parse`](#parse)
 - fn [`gen`](#gen)
 
 ## Types
 
-### ParseErr
+### ParseErr {#ParseErr}
 
 ```xo
 struct ParseErr {
@@ -39,7 +39,7 @@ Where and why a parse failed; the position is 1 based.
 
 [Source: `std/protoparse.xo:5`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L5)
 
-### Kind
+### Kind {#Kind}
 
 ```xo
 enum Kind {
@@ -56,7 +56,7 @@ string literal (unquoted, escapes decoded), or one symbol character.
 
 [Source: `std/protoparse.xo:13`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L13)
 
-### Token
+### Token {#Token}
 
 ```xo
 struct Token {
@@ -69,7 +69,7 @@ struct Token {
 
 [Source: `std/protoparse.xo:21`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L21)
 
-### Field
+### Field {#Field}
 
 ```xo
 struct Field {
@@ -89,7 +89,7 @@ value type and `key` the key type. `oneof` names the oneof it belongs to, or is 
 
 [Source: `std/protoparse.xo:34`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L34)
 
-### EnumValue
+### EnumValue {#EnumValue}
 
 ```xo
 struct EnumValue {
@@ -100,7 +100,7 @@ struct EnumValue {
 
 [Source: `std/protoparse.xo:46`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L46)
 
-### Enum
+### Enum {#Enum}
 
 ```xo
 struct Enum {
@@ -111,7 +111,7 @@ struct Enum {
 
 [Source: `std/protoparse.xo:51`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L51)
 
-### Message
+### Message {#Message}
 
 ```xo
 struct Message {
@@ -125,7 +125,7 @@ struct Message {
 
 [Source: `std/protoparse.xo:56`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L56)
 
-### Rpc
+### Rpc {#Rpc}
 
 ```xo
 struct Rpc {
@@ -139,7 +139,7 @@ struct Rpc {
 
 [Source: `std/protoparse.xo:64`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L64)
 
-### Service
+### Service {#Service}
 
 ```xo
 struct Service {
@@ -150,7 +150,7 @@ struct Service {
 
 [Source: `std/protoparse.xo:72`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L72)
 
-### File
+### File {#File}
 
 ```xo
 struct File {
@@ -167,7 +167,7 @@ struct File {
 
 ## Functions
 
-### tokens
+### tokens {#tokens}
 
 ```xo
 fn tokens(src: Str) -> List[Token] ! ParseErr
@@ -178,7 +178,7 @@ inside a comment.
 
 [Source: `std/protoparse.xo:30`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L30)
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(src: Str) -> File ! ParseErr
@@ -191,7 +191,7 @@ that type named in lower case. A proto3 file rejects `required` and `group`.
 
 [Source: `std/protoparse.xo:90`](https://github.com/xo-lang/xo/blob/main/std/protoparse.xo#L90)
 
-### gen
+### gen {#gen}
 
 ```xo
 fn gen(f: File) -> Str ! ParseErr

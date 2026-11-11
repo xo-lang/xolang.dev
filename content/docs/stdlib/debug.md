@@ -20,7 +20,7 @@ generated: "scripts/sync-content.py from `xo doc std/debug`; edit the doc commen
 
 ## Functions
 
-### router
+### router {#router}
 
 ```xo
 fn router(clock: Clock, auth: fn(http.Request) -> Bool) -> http.Router uses clock
@@ -55,7 +55,7 @@ A request for which `auth` answers false gets 403.
 
 [Source: `std/debug.xo:34`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L34)
 
-### heap_start
+### heap_start {#heap_start}
 
 ```xo
 fn heap_start(rate: Int = 0) -> Bool
@@ -69,7 +69,7 @@ table of the sampled objects) stays for the life of the process.
 
 [Source: `std/debug.xo:41`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L41)
 
-### mem_budget
+### mem_budget {#mem_budget}
 
 ```xo
 fn mem_budget(bytes: Int)
@@ -83,7 +83,7 @@ ignores it).
 
 [Source: `std/debug.xo:48`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L48)
 
-### mem_label
+### mem_label {#mem_label}
 
 ```xo
 fn mem_label(text: Str)
@@ -94,7 +94,7 @@ bytes; "" clears it): what the program is doing, for the report.
 
 [Source: `std/debug.xo:52`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L52)
 
-### mem_mapped
+### mem_mapped {#mem_mapped}
 
 ```xo
 fn mem_mapped() -> Int
@@ -106,7 +106,7 @@ growing block reserves); 0 on the Go backend.
 
 [Source: `std/debug.xo:57`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L57)
 
-### mem_peak
+### mem_peak {#mem_peak}
 
 ```xo
 fn mem_peak() -> Int
@@ -117,7 +117,7 @@ backend.
 
 [Source: `std/debug.xo:61`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L61)
 
-### mem_total
+### mem_total {#mem_total}
 
 ```xo
 fn mem_total() -> Int
@@ -128,7 +128,7 @@ the Go backend for now).
 
 [Source: `std/debug.xo:65`](https://github.com/xo-lang/xo/blob/main/std/debug.xo#L65)
 
-### mem_trim
+### mem_trim {#mem_trim}
 
 ```xo
 fn mem_trim()

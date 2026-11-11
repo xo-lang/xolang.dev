@@ -9,10 +9,10 @@ generated: "scripts/sync-content.py from `xo doc std/multipart`; edit the doc co
 ---
 ## Index
 
-- type [`Part`](#part)
-- type [`Form`](#form)
-- type [`MultipartErr`](#multiparterr)
-  - method [`MultipartErr.display`](#multiparterrdisplay)
+- type [`Part`](#Part)
+- type [`Form`](#Form)
+- type [`MultipartErr`](#MultipartErr)
+  - method [`MultipartErr.display`](#MultipartErr.display)
 - fn [`parse`](#parse)
 - fn [`parse_form`](#parse_form)
 - fn [`write`](#write)
@@ -21,7 +21,7 @@ generated: "scripts/sync-content.py from `xo doc std/multipart`; edit the doc co
 
 ## Types
 
-### Part
+### Part {#Part}
 
 ```xo
 struct Part {
@@ -39,7 +39,7 @@ canonical form (Content-Type).
 
 [Source: `std/multipart.xo:11`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L11)
 
-### Form
+### Form {#Form}
 
 ```xo
 struct Form {
@@ -52,7 +52,7 @@ A form: the fields without a file name, and the file parts by field.
 
 [Source: `std/multipart.xo:19`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L19)
 
-### MultipartErr
+### MultipartErr {#MultipartErr}
 
 ```xo
 struct MultipartErr {
@@ -65,7 +65,7 @@ large`, `unexpected EOF`, `malformed MIME header line: ...`.
 
 [Source: `std/multipart.xo:26`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L26)
 
-#### MultipartErr.display
+#### MultipartErr.display {#MultipartErr.display}
 
 ```xo
 fn (e: MultipartErr) display() -> Str
@@ -75,7 +75,7 @@ fn (e: MultipartErr) display() -> Str
 
 ## Functions
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(body: Bytes, boundary: Str) -> List[Part] ! MultipartErr
@@ -86,7 +86,7 @@ quoted-printable part decoded).
 
 [Source: `std/multipart.xo:34`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L34)
 
-### parse_form
+### parse_form {#parse_form}
 
 ```xo
 fn parse_form(body: Bytes, boundary: Str, max_parts: Int = 1000) -> Form ! MultipartErr
@@ -97,7 +97,7 @@ ParseMultipartForm, `max_parts`, 10,000 headers).
 
 [Source: `std/multipart.xo:37`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L37)
 
-### write
+### write {#write}
 
 ```xo
 fn write(parts: List[Part], boundary: Str) -> Bytes
@@ -108,7 +108,7 @@ Content-Disposition from `name` and `filename` when the part has none.
 
 [Source: `std/multipart.xo:40`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L40)
 
-### form_data_content_type
+### form_data_content_type {#form_data_content_type}
 
 ```xo
 fn form_data_content_type(boundary: Str) -> Str
@@ -118,7 +118,7 @@ fn form_data_content_type(boundary: Str) -> Str
 
 [Source: `std/multipart.xo:42`](https://github.com/xo-lang/xo/blob/main/std/multipart.xo#L42)
 
-### random_boundary
+### random_boundary {#random_boundary}
 
 ```xo
 fn random_boundary(r: Rand) -> Str uses rand

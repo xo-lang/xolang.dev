@@ -9,32 +9,32 @@ generated: "scripts/sync-content.py from `xo doc std/trace`; edit the doc commen
 ---
 ## Index
 
-- type [`Span`](#span)
-- type [`SpanKind`](#spankind)
-- type [`StatusCode`](#statuscode)
-- type [`AttrValue`](#attrvalue)
-- type [`Attr`](#attr)
-- type [`Event`](#event)
-- type [`Ring`](#ring)
-  - method [`Ring.middleware`](#ringmiddleware)
-  - method [`Ring.record`](#ringrecord)
-  - method [`Ring.spans`](#ringspans)
-  - method [`Ring.handler`](#ringhandler)
-- type [`Recorder`](#recorder)
-  - method [`Recorder.start`](#recorderstart)
-- type [`Active`](#active)
-  - method [`Active.ids`](#activeids)
-  - method [`Active.set_attributes`](#activeset_attributes)
-  - method [`Active.add_event`](#activeadd_event)
-  - method [`Active.set_status`](#activeset_status)
-  - method [`Active.end`](#activeend)
+- type [`Span`](#Span)
+- type [`SpanKind`](#SpanKind)
+- type [`StatusCode`](#StatusCode)
+- type [`AttrValue`](#AttrValue)
+- type [`Attr`](#Attr)
+- type [`Event`](#Event)
+- type [`Ring`](#Ring)
+  - method [`Ring.middleware`](#Ring.middleware)
+  - method [`Ring.record`](#Ring.record)
+  - method [`Ring.spans`](#Ring.spans)
+  - method [`Ring.handler`](#Ring.handler)
+- type [`Recorder`](#Recorder)
+  - method [`Recorder.start`](#Recorder.start)
+- type [`Active`](#Active)
+  - method [`Active.ids`](#Active.ids)
+  - method [`Active.set_attributes`](#Active.set_attributes)
+  - method [`Active.add_event`](#Active.add_event)
+  - method [`Active.set_status`](#Active.set_status)
+  - method [`Active.end`](#Active.end)
 - fn [`ring`](#ring)
 - fn [`id`](#id)
 - fn [`recorder`](#recorder)
 
 ## Types
 
-### Span
+### Span {#Span}
 
 ```xo
 struct Span {
@@ -74,7 +74,7 @@ above 0) replace `start_ms` and `micros` in an export. `scope`, `scope_version` 
 
 [Source: `std/trace.xo:20`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L20)
 
-### SpanKind
+### SpanKind {#SpanKind}
 
 ```xo
 enum SpanKind { Unspecified, Internal, Server, Client, Producer, Consumer } derive Json
@@ -84,7 +84,7 @@ OTLP's SpanKind (the declaration order is OTLP's numbers).
 
 [Source: `std/trace.xo:42`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L42)
 
-### StatusCode
+### StatusCode {#StatusCode}
 
 ```xo
 enum StatusCode { Unset, Ok, Error } derive Json
@@ -94,7 +94,7 @@ OTLP's Status.code.
 
 [Source: `std/trace.xo:45`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L45)
 
-### AttrValue
+### AttrValue {#AttrValue}
 
 ```xo
 enum AttrValue {
@@ -109,7 +109,7 @@ An attribute value: OTLP's scalar AnyValue kinds.
 
 [Source: `std/trace.xo:48`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L48)
 
-### Attr
+### Attr {#Attr}
 
 ```xo
 struct Attr {
@@ -122,7 +122,7 @@ One attribute: a key and its value.
 
 [Source: `std/trace.xo:56`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L56)
 
-### Event
+### Event {#Event}
 
 ```xo
 struct Event {
@@ -136,7 +136,7 @@ A timestamped event inside a span (`time_ns` is Unix nanoseconds).
 
 [Source: `std/trace.xo:62`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L62)
 
-### Ring
+### Ring {#Ring}
 
 ```xo
 struct Ring {
@@ -150,7 +150,7 @@ are internal.
 
 [Source: `std/trace.xo:70`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L70)
 
-#### Ring.middleware
+#### Ring.middleware {#Ring.middleware}
 
 ```xo
 fn (r: Ring) middleware(rand: Rand, clock: Clock) -> fn(http.Request, http.Next) -> http.Response uses (rand, clock)
@@ -164,7 +164,7 @@ records a `request` span.
 
 [Source: `std/trace.xo:83`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L83)
 
-#### Ring.record
+#### Ring.record {#Ring.record}
 
 ```xo
 fn (r: Ring) record(id: Str, name: Str, start: Time, d: Duration)
@@ -175,7 +175,7 @@ request `id`.
 
 [Source: `std/trace.xo:90`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L90)
 
-#### Ring.spans
+#### Ring.spans {#Ring.spans}
 
 ```xo
 fn (r: Ring) spans(min: Duration, n: Int) -> List[Span]
@@ -186,7 +186,7 @@ duration is at least `min`.
 
 [Source: `std/trace.xo:94`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L94)
 
-#### Ring.handler
+#### Ring.handler {#Ring.handler}
 
 ```xo
 fn (r: Ring) handler(auth: fn(http.Request) -> Bool) -> fn(http.Request) -> http.Response
@@ -198,7 +198,7 @@ a request for which `auth` answers false gets 403.
 
 [Source: `std/trace.xo:138`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L138)
 
-### Recorder
+### Recorder {#Recorder}
 
 ```xo
 struct Recorder {
@@ -212,7 +212,7 @@ Starts and ends spans into a Ring with ids from `rand` and times from `clock`. C
 
 [Source: `std/trace.xo:97`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L97)
 
-#### Recorder.start
+#### Recorder.start {#Recorder.start}
 
 ```xo
 fn (r: Recorder) start(name: Str, parent: (Str, Str)? = None, kind: SpanKind = SpanKind.Internal, attributes: List[Attr] = [], scope: Str = "", scope_version: Str = "", schema_url: Str = "") -> Active uses (clock, rand)
@@ -224,7 +224,7 @@ its trace id.
 
 [Source: `std/trace.xo:118`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L118)
 
-### Active
+### Active {#Active}
 
 ```xo
 struct Active {
@@ -240,7 +240,7 @@ shares it. Its fields are internal.
 
 [Source: `std/trace.xo:108`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L108)
 
-#### Active.ids
+#### Active.ids {#Active.ids}
 
 ```xo
 fn (a: Active) ids() -> (Str, Str)
@@ -250,7 +250,7 @@ The (trace id, span id) of the span, as hex.
 
 [Source: `std/trace.xo:121`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L121)
 
-#### Active.set_attributes
+#### Active.set_attributes {#Active.set_attributes}
 
 ```xo
 fn (a: Active) set_attributes(attrs: List[Attr])
@@ -260,7 +260,7 @@ Adds attributes; a key already set takes the new value (OpenTelemetry's last val
 
 [Source: `std/trace.xo:124`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L124)
 
-#### Active.add_event
+#### Active.add_event {#Active.add_event}
 
 ```xo
 fn (a: Active) add_event(name: Str, attributes: List[Attr] = []) uses clock
@@ -270,7 +270,7 @@ Adds an event stamped now.
 
 [Source: `std/trace.xo:127`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L127)
 
-#### Active.set_status
+#### Active.set_status {#Active.set_status}
 
 ```xo
 fn (a: Active) set_status(code: StatusCode, message: Str = "")
@@ -280,7 +280,7 @@ Sets the status. A message is kept for Error only, as OpenTelemetry Go does.
 
 [Source: `std/trace.xo:130`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L130)
 
-#### Active.end
+#### Active.end {#Active.end}
 
 ```xo
 fn (a: Active) end() uses clock
@@ -292,7 +292,7 @@ Ends the span now and records it into the Ring; ending again does nothing.
 
 ## Functions
 
-### ring
+### ring {#ring}
 
 ```xo
 fn ring(cap: Int = 1000) -> Ring
@@ -302,7 +302,7 @@ A ring of the last `cap` spans (default 1000).
 
 [Source: `std/trace.xo:76`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L76)
 
-### id
+### id {#id}
 
 ```xo
 fn id(req: http.Request) -> Str
@@ -312,7 +312,7 @@ The id of a request that passed through the middleware, else "".
 
 [Source: `std/trace.xo:86`](https://github.com/xo-lang/xo/blob/main/std/trace.xo#L86)
 
-### recorder
+### recorder {#recorder}
 
 ```xo
 fn recorder(ring: Ring, clock: Clock, rand: Rand) -> Recorder

@@ -9,14 +9,14 @@ generated: "scripts/sync-content.py from `xo doc std/norm`; edit the doc comment
 ---
 ## Index
 
-- type [`Form`](#form)
+- type [`Form`](#Form)
 - fn [`unicode_version`](#unicode_version)
 - fn [`normalize`](#normalize)
 - fn [`is_normalized`](#is_normalized)
 
 ## Types
 
-### Form
+### Form {#Form}
 
 ```xo
 enum Form {
@@ -33,7 +33,7 @@ A normalization form.
 
 ## Functions
 
-### unicode_version
+### unicode_version {#unicode_version}
 
 ```xo
 fn unicode_version() -> Str
@@ -43,7 +43,7 @@ The Unicode version of the tables (`15.0.0`).
 
 [Source: `std/norm.xo:21`](https://github.com/xo-lang/xo/blob/main/std/norm.xo#L21)
 
-### normalize
+### normalize {#normalize}
 
 ```xo
 fn normalize(s: Str, f: Form) -> Str
@@ -53,7 +53,7 @@ s in the form f (Form.String). ASCII text is returned as it is.
 
 [Source: `std/norm.xo:24`](https://github.com/xo-lang/xo/blob/main/std/norm.xo#L24)
 
-### is_normalized
+### is_normalized {#is_normalized}
 
 ```xo
 fn is_normalized(s: Str, f: Form) -> Bool

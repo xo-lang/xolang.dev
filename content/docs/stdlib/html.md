@@ -14,7 +14,7 @@ generated: "scripts/sync-content.py from `xo doc std/html`; edit the doc comment
 
 ## Functions
 
-### escape_string
+### escape_string {#escape_string}
 
 ```xo
 fn escape_string(s: Str) -> Str
@@ -25,7 +25,7 @@ html.EscapeString: `<`, `>`, `&`, `'` and `"` as `&lt;`, `&gt;`,
 
 [Source: `std/html.xo:9`](https://github.com/xo-lang/xo/blob/main/std/html.xo#L9)
 
-### unescape_string
+### unescape_string {#unescape_string}
 
 ```xo
 fn unescape_string(s: Str) -> Str

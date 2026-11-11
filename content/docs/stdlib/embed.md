@@ -9,18 +9,18 @@ generated: "scripts/sync-content.py from `xo doc std/embed`; edit the doc commen
 ---
 ## Index
 
-- type [`Dir`](#dir)
-  - method [`Dir.read`](#dirread)
-  - method [`Dir.read_text`](#dirread_text)
-  - method [`Dir.contains`](#dircontains)
-  - method [`Dir.paths`](#dirpaths)
-  - method [`Dir.sub`](#dirsub)
-  - method [`Dir.len`](#dirlen)
-  - method [`Dir.fs`](#dirfs)
+- type [`Dir`](#Dir)
+  - method [`Dir.read`](#Dir.read)
+  - method [`Dir.read_text`](#Dir.read_text)
+  - method [`Dir.contains`](#Dir.contains)
+  - method [`Dir.paths`](#Dir.paths)
+  - method [`Dir.sub`](#Dir.sub)
+  - method [`Dir.len`](#Dir.len)
+  - method [`Dir.fs`](#Dir.fs)
 
 ## Types
 
-### Dir
+### Dir {#Dir}
 
 ```xo
 struct Dir {
@@ -33,7 +33,7 @@ the directory of the file that declares the constant.
 
 [Source: `std/embed.xo:9`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L9)
 
-#### Dir.read
+#### Dir.read {#Dir.read}
 
 ```xo
 fn (d: Dir) read(path: Str) -> Bytes?
@@ -43,7 +43,7 @@ The bytes of the file at path, or None.
 
 [Source: `std/embed.xo:14`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L14)
 
-#### Dir.read_text
+#### Dir.read_text {#Dir.read_text}
 
 ```xo
 fn (d: Dir) read_text(path: Str) -> Str?
@@ -54,7 +54,7 @@ valid UTF-8.
 
 [Source: `std/embed.xo:17`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L17)
 
-#### Dir.contains
+#### Dir.contains {#Dir.contains}
 
 ```xo
 fn (d: Dir) contains(path: Str) -> Bool
@@ -64,7 +64,7 @@ Whether there is a file at path.
 
 [Source: `std/embed.xo:19`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L19)
 
-#### Dir.paths
+#### Dir.paths {#Dir.paths}
 
 ```xo
 fn (d: Dir) paths() -> List[Str]
@@ -74,7 +74,7 @@ Every file's path, sorted.
 
 [Source: `std/embed.xo:21`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L21)
 
-#### Dir.sub
+#### Dir.sub {#Dir.sub}
 
 ```xo
 fn (d: Dir) sub(dir: Str) -> Dir
@@ -84,7 +84,7 @@ The files under directory dir, keyed relative to it.
 
 [Source: `std/embed.xo:23`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L23)
 
-#### Dir.len
+#### Dir.len {#Dir.len}
 
 ```xo
 fn (d: Dir) len() -> Int
@@ -94,7 +94,7 @@ The number of files.
 
 [Source: `std/embed.xo:25`](https://github.com/xo-lang/xo/blob/main/std/embed.xo#L25)
 
-#### Dir.fs
+#### Dir.fs {#Dir.fs}
 
 ```xo
 fn (d: Dir) fs() -> Fs

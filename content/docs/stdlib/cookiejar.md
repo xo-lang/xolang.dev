@@ -9,17 +9,17 @@ generated: "scripts/sync-content.py from `xo doc std/cookiejar`; edit the doc co
 ---
 ## Index
 
-- type [`Entry`](#entry)
-- type [`JarState`](#jarstate)
-- type [`Jar`](#jar)
-  - method [`Jar.set_cookies`](#jarset_cookies)
-  - method [`Jar.cookies`](#jarcookies)
-  - method [`Jar.clear`](#jarclear)
+- type [`Entry`](#Entry)
+- type [`JarState`](#JarState)
+- type [`Jar`](#Jar)
+  - method [`Jar.set_cookies`](#Jar.set_cookies)
+  - method [`Jar.cookies`](#Jar.cookies)
+  - method [`Jar.clear`](#Jar.clear)
 - fn [`new`](#new)
 
 ## Types
 
-### Entry
+### Entry {#Entry}
 
 ```xo
 struct Entry {
@@ -42,7 +42,7 @@ One stored cookie (net/http/cookiejar's entry). Internal: use the jar.
 
 [Source: `std/cookiejar.xo:10`](https://github.com/xo-lang/xo/blob/main/std/cookiejar.xo#L10)
 
-### JarState
+### JarState {#JarState}
 
 ```xo
 struct JarState {
@@ -55,7 +55,7 @@ A jar's state. Internal: use the methods.
 
 [Source: `std/cookiejar.xo:27`](https://github.com/xo-lang/xo/blob/main/std/cookiejar.xo#L27)
 
-### Jar
+### Jar {#Jar}
 
 ```xo
 struct Jar {
@@ -68,7 +68,7 @@ at once.
 
 [Source: `std/cookiejar.xo:35`](https://github.com/xo-lang/xo/blob/main/std/cookiejar.xo#L35)
 
-#### Jar.set_cookies
+#### Jar.set_cookies {#Jar.set_cookies}
 
 ```xo
 fn (j: Jar) set_cookies(url: http.Url, cookies: List[http.Cookie], now: Time)
@@ -82,7 +82,7 @@ that is not ASCII is ignored (no IDNA yet).
 
 [Source: `std/cookiejar.xo:47`](https://github.com/xo-lang/xo/blob/main/std/cookiejar.xo#L47)
 
-#### Jar.cookies
+#### Jar.cookies {#Jar.cookies}
 
 ```xo
 fn (j: Jar) cookies(url: http.Url, now: Time) -> List[http.Cookie]
@@ -94,7 +94,7 @@ Expired cookies are dropped.
 
 [Source: `std/cookiejar.xo:51`](https://github.com/xo-lang/xo/blob/main/std/cookiejar.xo#L51)
 
-#### Jar.clear
+#### Jar.clear {#Jar.clear}
 
 ```xo
 fn (j: Jar) clear()
@@ -106,7 +106,7 @@ Forgets every cookie.
 
 ## Functions
 
-### new
+### new {#new}
 
 ```xo
 fn new() -> Jar

@@ -9,75 +9,75 @@ generated: "scripts/sync-content.py from `xo doc std/amqp`; edit the doc comment
 ---
 ## Index
 
-- type [`Value`](#value)
-- type [`AmqpErr`](#amqperr)
-- type [`Role`](#role)
-- type [`SenderSettleMode`](#sendersettlemode)
-- type [`ReceiverSettleMode`](#receiversettlemode)
-- type [`WireError`](#wireerror)
-- type [`DeliveryState`](#deliverystate)
-- type [`Source`](#source)
-- type [`Target`](#target)
-- type [`Open`](#open)
-- type [`Begin`](#begin)
-- type [`Attach`](#attach)
-- type [`Flow`](#flow)
-- type [`Transfer`](#transfer)
-- type [`Disposition`](#disposition)
-- type [`Detach`](#detach)
-- type [`End`](#end)
-- type [`Close`](#close)
-- type [`SaslMechanisms`](#saslmechanisms)
-- type [`SaslInit`](#saslinit)
-- type [`SaslChallenge`](#saslchallenge)
-- type [`SaslResponse`](#saslresponse)
-- type [`SaslOutcome`](#sasloutcome)
-- type [`FrameBody`](#framebody)
-- type [`Frame`](#frame)
-- type [`Sasl`](#sasl)
-- type [`ConnOptions`](#connoptions)
-- type [`Transport`](#transport)
-- type [`ConnState`](#connstate)
-- type [`Connection`](#connection)
-  - method [`Connection.peer_container_id`](#connectionpeer_container_id)
-  - method [`Connection.peer_max_frame_size`](#connectionpeer_max_frame_size)
-  - method [`Connection.peer_channel_max`](#connectionpeer_channel_max)
-  - method [`Connection.peer_idle_timeout_ms`](#connectionpeer_idle_timeout_ms)
-  - method [`Connection.peer_properties`](#connectionpeer_properties)
-  - method [`Connection.keepalive`](#connectionkeepalive)
-  - method [`Connection.send`](#connectionsend)
-  - method [`Connection.recv`](#connectionrecv)
-  - method [`Connection.close`](#connectionclose)
-  - method [`Connection.abort`](#connectionabort)
-  - method [`Connection.begin`](#connectionbegin)
-  - method [`Connection.end_session`](#connectionend_session)
-  - method [`Connection.new_sender`](#connectionnew_sender)
-  - method [`Connection.new_receiver`](#connectionnew_receiver)
-- type [`SessionOptions`](#sessionoptions)
-- type [`Session`](#session)
-- type [`Header`](#header)
-- type [`Properties`](#properties)
-- type [`Body`](#body)
-- type [`Message`](#message)
-- type [`SessState`](#sessstate)
-- type [`Delivery`](#delivery)
-- type [`LinkState`](#linkstate)
-- type [`SenderOptions`](#senderoptions)
-- type [`ReceiverOptions`](#receiveroptions)
-- type [`Sender`](#sender)
-  - method [`Sender.send`](#sendersend)
-  - method [`Sender.close`](#senderclose)
-  - method [`Sender.remote_attach`](#senderremote_attach)
-- type [`Receiver`](#receiver)
-  - method [`Receiver.receive`](#receiverreceive)
-  - method [`Receiver.remote_attach`](#receiverremote_attach)
-  - method [`Receiver.issue_credit`](#receiverissue_credit)
-  - method [`Receiver.drain`](#receiverdrain)
-  - method [`Receiver.accept`](#receiveraccept)
-  - method [`Receiver.reject`](#receiverreject)
-  - method [`Receiver.release`](#receiverrelease)
-  - method [`Receiver.modify`](#receivermodify)
-  - method [`Receiver.close`](#receiverclose)
+- type [`Value`](#Value)
+- type [`AmqpErr`](#AmqpErr)
+- type [`Role`](#Role)
+- type [`SenderSettleMode`](#SenderSettleMode)
+- type [`ReceiverSettleMode`](#ReceiverSettleMode)
+- type [`WireError`](#WireError)
+- type [`DeliveryState`](#DeliveryState)
+- type [`Source`](#Source)
+- type [`Target`](#Target)
+- type [`Open`](#Open)
+- type [`Begin`](#Begin)
+- type [`Attach`](#Attach)
+- type [`Flow`](#Flow)
+- type [`Transfer`](#Transfer)
+- type [`Disposition`](#Disposition)
+- type [`Detach`](#Detach)
+- type [`End`](#End)
+- type [`Close`](#Close)
+- type [`SaslMechanisms`](#SaslMechanisms)
+- type [`SaslInit`](#SaslInit)
+- type [`SaslChallenge`](#SaslChallenge)
+- type [`SaslResponse`](#SaslResponse)
+- type [`SaslOutcome`](#SaslOutcome)
+- type [`FrameBody`](#FrameBody)
+- type [`Frame`](#Frame)
+- type [`Sasl`](#Sasl)
+- type [`ConnOptions`](#ConnOptions)
+- type [`Transport`](#Transport)
+- type [`ConnState`](#ConnState)
+- type [`Connection`](#Connection)
+  - method [`Connection.peer_container_id`](#Connection.peer_container_id)
+  - method [`Connection.peer_max_frame_size`](#Connection.peer_max_frame_size)
+  - method [`Connection.peer_channel_max`](#Connection.peer_channel_max)
+  - method [`Connection.peer_idle_timeout_ms`](#Connection.peer_idle_timeout_ms)
+  - method [`Connection.peer_properties`](#Connection.peer_properties)
+  - method [`Connection.keepalive`](#Connection.keepalive)
+  - method [`Connection.send`](#Connection.send)
+  - method [`Connection.recv`](#Connection.recv)
+  - method [`Connection.close`](#Connection.close)
+  - method [`Connection.abort`](#Connection.abort)
+  - method [`Connection.begin`](#Connection.begin)
+  - method [`Connection.end_session`](#Connection.end_session)
+  - method [`Connection.new_sender`](#Connection.new_sender)
+  - method [`Connection.new_receiver`](#Connection.new_receiver)
+- type [`SessionOptions`](#SessionOptions)
+- type [`Session`](#Session)
+- type [`Header`](#Header)
+- type [`Properties`](#Properties)
+- type [`Body`](#Body)
+- type [`Message`](#Message)
+- type [`SessState`](#SessState)
+- type [`Delivery`](#Delivery)
+- type [`LinkState`](#LinkState)
+- type [`SenderOptions`](#SenderOptions)
+- type [`ReceiverOptions`](#ReceiverOptions)
+- type [`Sender`](#Sender)
+  - method [`Sender.send`](#Sender.send)
+  - method [`Sender.close`](#Sender.close)
+  - method [`Sender.remote_attach`](#Sender.remote_attach)
+- type [`Receiver`](#Receiver)
+  - method [`Receiver.receive`](#Receiver.receive)
+  - method [`Receiver.remote_attach`](#Receiver.remote_attach)
+  - method [`Receiver.issue_credit`](#Receiver.issue_credit)
+  - method [`Receiver.drain`](#Receiver.drain)
+  - method [`Receiver.accept`](#Receiver.accept)
+  - method [`Receiver.reject`](#Receiver.reject)
+  - method [`Receiver.release`](#Receiver.release)
+  - method [`Receiver.modify`](#Receiver.modify)
+  - method [`Receiver.close`](#Receiver.close)
 - fn [`encode`](#encode)
 - fn [`decode`](#decode)
 - fn [`encode_frame`](#encode_frame)
@@ -89,7 +89,7 @@ generated: "scripts/sync-content.py from `xo doc std/amqp`; edit the doc comment
 
 ## Types
 
-### Value
+### Value {#Value}
 
 ```xo
 enum Value {
@@ -126,7 +126,7 @@ types, the compound types, and a described value.
 
 [Source: `std/amqp.xo:11`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L11)
 
-### AmqpErr
+### AmqpErr {#AmqpErr}
 
 ```xo
 enum AmqpErr {
@@ -141,7 +141,7 @@ enum AmqpErr {
 
 [Source: `std/amqp.xo:44`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L44)
 
-### Role
+### Role {#Role}
 
 ```xo
 enum Role {
@@ -152,7 +152,7 @@ enum Role {
 
 [Source: `std/amqp.xo:72`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L72)
 
-### SenderSettleMode
+### SenderSettleMode {#SenderSettleMode}
 
 ```xo
 enum SenderSettleMode {
@@ -166,7 +166,7 @@ sender-settle-mode (ubyte)
 
 [Source: `std/amqp.xo:78`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L78)
 
-### ReceiverSettleMode
+### ReceiverSettleMode {#ReceiverSettleMode}
 
 ```xo
 enum ReceiverSettleMode {
@@ -179,7 +179,7 @@ receiver-settle-mode (ubyte)
 
 [Source: `std/amqp.xo:85`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L85)
 
-### WireError
+### WireError {#WireError}
 
 ```xo
 struct WireError {
@@ -194,7 +194,7 @@ and a map of details.
 
 [Source: `std/amqp.xo:92`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L92)
 
-### DeliveryState
+### DeliveryState {#DeliveryState}
 
 ```xo
 enum DeliveryState {
@@ -210,7 +210,7 @@ The outcome or state of a delivery (section 3.4).
 
 [Source: `std/amqp.xo:99`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L99)
 
-### Source
+### Source {#Source}
 
 ```xo
 struct Source {
@@ -235,7 +235,7 @@ for the wire type (0 to 2^32-1, 2^16-1, 2^63-1); encode_frame refuses one outsid
 
 [Source: `std/amqp.xo:111`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L111)
 
-### Target
+### Target {#Target}
 
 ```xo
 struct Target {
@@ -253,7 +253,7 @@ A link's target (section 3.5.4).
 
 [Source: `std/amqp.xo:126`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L126)
 
-### Open
+### Open {#Open}
 
 ```xo
 struct Open {
@@ -272,7 +272,7 @@ struct Open {
 
 [Source: `std/amqp.xo:136`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L136)
 
-### Begin
+### Begin {#Begin}
 
 ```xo
 struct Begin {
@@ -289,7 +289,7 @@ struct Begin {
 
 [Source: `std/amqp.xo:150`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L150)
 
-### Attach
+### Attach {#Attach}
 
 ```xo
 struct Attach {
@@ -312,7 +312,7 @@ struct Attach {
 
 [Source: `std/amqp.xo:161`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L161)
 
-### Flow
+### Flow {#Flow}
 
 ```xo
 struct Flow {
@@ -332,7 +332,7 @@ struct Flow {
 
 [Source: `std/amqp.xo:178`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L178)
 
-### Transfer
+### Transfer {#Transfer}
 
 ```xo
 struct Transfer {
@@ -353,7 +353,7 @@ struct Transfer {
 
 [Source: `std/amqp.xo:192`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L192)
 
-### Disposition
+### Disposition {#Disposition}
 
 ```xo
 struct Disposition {
@@ -368,7 +368,7 @@ struct Disposition {
 
 [Source: `std/amqp.xo:208`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L208)
 
-### Detach
+### Detach {#Detach}
 
 ```xo
 struct Detach {
@@ -380,7 +380,7 @@ struct Detach {
 
 [Source: `std/amqp.xo:217`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L217)
 
-### End
+### End {#End}
 
 ```xo
 struct End {
@@ -390,7 +390,7 @@ struct End {
 
 [Source: `std/amqp.xo:223`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L223)
 
-### Close
+### Close {#Close}
 
 ```xo
 struct Close {
@@ -400,7 +400,7 @@ struct Close {
 
 [Source: `std/amqp.xo:227`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L227)
 
-### SaslMechanisms
+### SaslMechanisms {#SaslMechanisms}
 
 ```xo
 struct SaslMechanisms {
@@ -410,7 +410,7 @@ struct SaslMechanisms {
 
 [Source: `std/amqp.xo:231`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L231)
 
-### SaslInit
+### SaslInit {#SaslInit}
 
 ```xo
 struct SaslInit {
@@ -422,7 +422,7 @@ struct SaslInit {
 
 [Source: `std/amqp.xo:235`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L235)
 
-### SaslChallenge
+### SaslChallenge {#SaslChallenge}
 
 ```xo
 struct SaslChallenge {
@@ -432,7 +432,7 @@ struct SaslChallenge {
 
 [Source: `std/amqp.xo:241`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L241)
 
-### SaslResponse
+### SaslResponse {#SaslResponse}
 
 ```xo
 struct SaslResponse {
@@ -442,7 +442,7 @@ struct SaslResponse {
 
 [Source: `std/amqp.xo:245`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L245)
 
-### SaslOutcome
+### SaslOutcome {#SaslOutcome}
 
 ```xo
 struct SaslOutcome {
@@ -455,7 +455,7 @@ sasl-code (ubyte): 0 ok, 1 auth, 2 sys, 3 sys-perm, 4 sys-temp
 
 [Source: `std/amqp.xo:250`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L250)
 
-### FrameBody
+### FrameBody {#FrameBody}
 
 ```xo
 enum FrameBody {
@@ -481,7 +481,7 @@ The body of a frame.
 
 [Source: `std/amqp.xo:256`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L256)
 
-### Frame
+### Frame {#Frame}
 
 ```xo
 struct Frame {
@@ -494,7 +494,7 @@ A frame: the channel it is for and its body. SASL frames are on channel 0.
 
 [Source: `std/amqp.xo:276`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L276)
 
-### Sasl
+### Sasl {#Sasl}
 
 ```xo
 enum Sasl {
@@ -508,7 +508,7 @@ How to authenticate during the SASL exchange (section 5.3).
 
 [Source: `std/amqp.xo:294`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L294)
 
-### ConnOptions
+### ConnOptions {#ConnOptions}
 
 ```xo
 struct ConnOptions {
@@ -528,7 +528,7 @@ struct ConnOptions {
 
 [Source: `std/amqp.xo:301`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L301)
 
-### Transport
+### Transport {#Transport}
 
 ```xo
 enum Transport {
@@ -541,7 +541,7 @@ The transport, plain or TLS (as std/smtp's Link).
 
 [Source: `std/amqp.xo:324`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L324)
 
-### ConnState
+### ConnState {#ConnState}
 
 ```xo
 struct ConnState {
@@ -576,7 +576,7 @@ A connection's state. Internal: use the methods of `Connection`.
 
 [Source: `std/amqp.xo:330`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L330)
 
-### Connection
+### Connection {#Connection}
 
 ```xo
 struct Connection {
@@ -588,7 +588,7 @@ An open AMQP connection. A handle: copies share the connection, and its methods 
 
 [Source: `std/amqp.xo:370`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L370)
 
-#### Connection.peer_container_id
+#### Connection.peer_container_id {#Connection.peer_container_id}
 
 ```xo
 fn (c: Connection) peer_container_id() -> Str
@@ -598,7 +598,7 @@ The peer's container id from its Open.
 
 [Source: `std/amqp.xo:375`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L375)
 
-#### Connection.peer_max_frame_size
+#### Connection.peer_max_frame_size {#Connection.peer_max_frame_size}
 
 ```xo
 fn (c: Connection) peer_max_frame_size() -> Int
@@ -608,7 +608,7 @@ The largest frame the peer accepts, in bytes.
 
 [Source: `std/amqp.xo:377`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L377)
 
-#### Connection.peer_channel_max
+#### Connection.peer_channel_max {#Connection.peer_channel_max}
 
 ```xo
 fn (c: Connection) peer_channel_max() -> Int
@@ -618,7 +618,7 @@ The largest channel number usable (the lower of both sides' channel-max).
 
 [Source: `std/amqp.xo:379`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L379)
 
-#### Connection.peer_idle_timeout_ms
+#### Connection.peer_idle_timeout_ms {#Connection.peer_idle_timeout_ms}
 
 ```xo
 fn (c: Connection) peer_idle_timeout_ms() -> Int
@@ -628,7 +628,7 @@ The peer's advertised idle timeout in milliseconds, 0 for none.
 
 [Source: `std/amqp.xo:381`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L381)
 
-#### Connection.peer_properties
+#### Connection.peer_properties {#Connection.peer_properties}
 
 ```xo
 fn (c: Connection) peer_properties() -> List[(Str, Value)]
@@ -638,7 +638,7 @@ The peer's Open properties.
 
 [Source: `std/amqp.xo:383`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L383)
 
-#### Connection.keepalive
+#### Connection.keepalive {#Connection.keepalive}
 
 ```xo
 fn (c: Connection) keepalive(g: task.Group) -> () ! AmqpErr uses (net.dial, clock)
@@ -654,7 +654,7 @@ send and settle at the same time; `recv` is refused. It needs `ConnOptions.clock
 
 [Source: `std/amqp.xo:391`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L391)
 
-#### Connection.send
+#### Connection.send {#Connection.send}
 
 ```xo
 fn (c: Connection) send(f: Frame) -> () ! AmqpErr uses (net.dial, clock)
@@ -664,7 +664,7 @@ Writes one frame, as `encode_frame`'s bytes.
 
 [Source: `std/amqp.xo:399`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L399)
 
-#### Connection.recv
+#### Connection.recv {#Connection.recv}
 
 ```xo
 fn (c: Connection) recv() -> Frame ! AmqpErr uses (net.dial, clock)
@@ -674,7 +674,7 @@ The next frame from the peer (an empty frame is returned as `FrameBody.Empty`).
 
 [Source: `std/amqp.xo:402`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L402)
 
-#### Connection.close
+#### Connection.close {#Connection.close}
 
 ```xo
 fn (c: Connection) close(error: WireError? = None) -> () ! AmqpErr uses (net.dial, clock)
@@ -684,7 +684,7 @@ Sends Close and waits for the peer's Close; a Close carrying an error is `Peer`.
 
 [Source: `std/amqp.xo:405`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L405)
 
-#### Connection.abort
+#### Connection.abort {#Connection.abort}
 
 ```xo
 fn (c: Connection) abort()
@@ -694,7 +694,7 @@ Drops the transport without the Close exchange.
 
 [Source: `std/amqp.xo:408`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L408)
 
-#### Connection.begin
+#### Connection.begin {#Connection.begin}
 
 ```xo
 fn (c: Connection) begin(opts: SessionOptions = SessionOptions{}) -> Session ! AmqpErr uses (net.dial, clock)
@@ -704,7 +704,7 @@ Begins a session on the lowest free channel and waits for the peer's Begin.
 
 [Source: `std/amqp.xo:431`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L431)
 
-#### Connection.end_session
+#### Connection.end_session {#Connection.end_session}
 
 ```xo
 fn (c: Connection) end_session(s: Session, error: WireError? = None) -> () ! AmqpErr uses (net.dial, clock)
@@ -715,7 +715,7 @@ stay queued for recv.
 
 [Source: `std/amqp.xo:435`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L435)
 
-#### Connection.new_sender
+#### Connection.new_sender {#Connection.new_sender}
 
 ```xo
 fn (c: Connection) new_sender(s: Session, target: Str, opts: SenderOptions = SenderOptions{}) -> Sender ! AmqpErr uses (net.dial, clock)
@@ -726,7 +726,7 @@ refuses the link answers with a Detach carrying an error, which is `Peer`.
 
 [Source: `std/amqp.xo:626`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L626)
 
-#### Connection.new_receiver
+#### Connection.new_receiver {#Connection.new_receiver}
 
 ```xo
 fn (c: Connection) new_receiver(s: Session, source: Str, opts: ReceiverOptions = ReceiverOptions{}) -> Receiver ! AmqpErr uses (net.dial, clock)
@@ -736,7 +736,7 @@ Attaches a receiving link on session `s` from `source` and grants the initial cr
 
 [Source: `std/amqp.xo:629`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L629)
 
-### SessionOptions
+### SessionOptions {#SessionOptions}
 
 ```xo
 struct SessionOptions {
@@ -748,7 +748,7 @@ struct SessionOptions {
 
 [Source: `std/amqp.xo:410`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L410)
 
-### Session
+### Session {#Session}
 
 ```xo
 struct Session {
@@ -769,7 +769,7 @@ A begun session: its channel and the windows both sides announced.
 
 [Source: `std/amqp.xo:417`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L417)
 
-### Header
+### Header {#Header}
 
 ```xo
 struct Header {
@@ -785,7 +785,7 @@ The header section: delivery details.
 
 [Source: `std/amqp.xo:441`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L441)
 
-### Properties
+### Properties {#Properties}
 
 ```xo
 struct Properties {
@@ -809,7 +809,7 @@ The properties section: standard properties of the message.
 
 [Source: `std/amqp.xo:452`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L452)
 
-### Body
+### Body {#Body}
 
 ```xo
 enum Body {
@@ -824,7 +824,7 @@ The body: one or more data sections, one or more sequence sections, or one value
 
 [Source: `std/amqp.xo:472`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L472)
 
-### Message
+### Message {#Message}
 
 ```xo
 struct Message {
@@ -843,7 +843,7 @@ A message: the sections of the bare and annotated message. A `None` section is n
 
 [Source: `std/amqp.xo:481`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L481)
 
-### SessState
+### SessState {#SessState}
 
 ```xo
 struct SessState {
@@ -863,7 +863,7 @@ A session's flow control state. Internal: use the methods of `Connection`.
 
 [Source: `std/amqp.xo:502`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L502)
 
-### Delivery
+### Delivery {#Delivery}
 
 ```xo
 struct Delivery {
@@ -879,7 +879,7 @@ A completed incoming delivery.
 
 [Source: `std/amqp.xo:519`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L519)
 
-### LinkState
+### LinkState {#LinkState}
 
 ```xo
 struct LinkState {
@@ -918,7 +918,7 @@ A link's state. Internal: use `Sender` and `Receiver`.
 
 [Source: `std/amqp.xo:531`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L531)
 
-### SenderOptions
+### SenderOptions {#SenderOptions}
 
 ```xo
 struct SenderOptions {
@@ -935,7 +935,7 @@ struct SenderOptions {
 
 [Source: `std/amqp.xo:575`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L575)
 
-### ReceiverOptions
+### ReceiverOptions {#ReceiverOptions}
 
 ```xo
 struct ReceiverOptions {
@@ -955,7 +955,7 @@ struct ReceiverOptions {
 
 [Source: `std/amqp.xo:589`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L589)
 
-### Sender
+### Sender {#Sender}
 
 ```xo
 struct Sender {
@@ -970,7 +970,7 @@ A sending link; a handle over its connection.
 
 [Source: `std/amqp.xo:609`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L609)
 
-#### Sender.send
+#### Sender.send {#Sender.send}
 
 ```xo
 fn (x: Sender) send(m: Message, settled: Bool = false, message_format: Int = 0) -> DeliveryState? ! AmqpErr uses (net.dial, clock)
@@ -984,7 +984,7 @@ each an encoded message).
 
 [Source: `std/amqp.xo:636`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L636)
 
-#### Sender.close
+#### Sender.close {#Sender.close}
 
 ```xo
 fn (x: Sender) close(error: WireError? = None) -> () ! AmqpErr uses (net.dial, clock)
@@ -994,7 +994,7 @@ Detaches the link (with `closed` set) and waits for the peer's Detach.
 
 [Source: `std/amqp.xo:639`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L639)
 
-#### Sender.remote_attach
+#### Sender.remote_attach {#Sender.remote_attach}
 
 ```xo
 fn (x: Sender) remote_attach() -> Attach?
@@ -1002,7 +1002,7 @@ fn (x: Sender) remote_attach() -> Attach?
 
 [Source: `std/amqp.xo:648`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L648)
 
-### Receiver
+### Receiver {#Receiver}
 
 ```xo
 struct Receiver {
@@ -1017,7 +1017,7 @@ A receiving link; a handle over its connection.
 
 [Source: `std/amqp.xo:617`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L617)
 
-#### Receiver.receive
+#### Receiver.receive {#Receiver.receive}
 
 ```xo
 fn (r: Receiver) receive(timeout_ms: Int = 0) -> Delivery ! AmqpErr uses (net.dial, clock)
@@ -1027,7 +1027,7 @@ The next complete message, topping up credit as needed.
 
 [Source: `std/amqp.xo:642`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L642)
 
-#### Receiver.remote_attach
+#### Receiver.remote_attach {#Receiver.remote_attach}
 
 ```xo
 fn (r: Receiver) remote_attach() -> Attach?
@@ -1039,7 +1039,7 @@ with the session it chose), its target and its properties (`com.microsoft:locked
 
 [Source: `std/amqp.xo:647`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L647)
 
-#### Receiver.issue_credit
+#### Receiver.issue_credit {#Receiver.issue_credit}
 
 ```xo
 fn (r: Receiver) issue_credit(n: Int) -> () ! AmqpErr uses (net.dial, clock)
@@ -1050,7 +1050,7 @@ Grants the peer `n` more credit (a Flow with the link credit raised by `n`). Wit
 
 [Source: `std/amqp.xo:652`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L652)
 
-#### Receiver.drain
+#### Receiver.drain {#Receiver.drain}
 
 ```xo
 fn (r: Receiver) drain(timeout_ms: Int = 0) -> List[Delivery] ! AmqpErr uses (net.dial, clock)
@@ -1062,7 +1062,7 @@ returns every delivery that arrived before it, oldest first; the link then has n
 
 [Source: `std/amqp.xo:657`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L657)
 
-#### Receiver.accept
+#### Receiver.accept {#Receiver.accept}
 
 ```xo
 fn (r: Receiver) accept(d: Delivery) -> () ! AmqpErr uses (net.dial, clock)
@@ -1074,7 +1074,7 @@ with an error, such as Service Bus's `com.microsoft:message-lock-lost`) makes th
 
 [Source: `std/amqp.xo:662`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L662)
 
-#### Receiver.reject
+#### Receiver.reject {#Receiver.reject}
 
 ```xo
 fn (r: Receiver) reject(d: Delivery, error: WireError? = None) -> () ! AmqpErr uses (net.dial, clock)
@@ -1082,7 +1082,7 @@ fn (r: Receiver) reject(d: Delivery, error: WireError? = None) -> () ! AmqpErr u
 
 [Source: `std/amqp.xo:663`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L663)
 
-#### Receiver.release
+#### Receiver.release {#Receiver.release}
 
 ```xo
 fn (r: Receiver) release(d: Delivery) -> () ! AmqpErr uses (net.dial, clock)
@@ -1090,7 +1090,7 @@ fn (r: Receiver) release(d: Delivery) -> () ! AmqpErr uses (net.dial, clock)
 
 [Source: `std/amqp.xo:664`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L664)
 
-#### Receiver.modify
+#### Receiver.modify {#Receiver.modify}
 
 ```xo
 fn (r: Receiver) modify(d: Delivery, delivery_failed: Bool = true, undeliverable_here: Bool = false, annotations: List[(Str, Value)] = []) -> () ! AmqpErr uses (net.dial, clock)
@@ -1101,7 +1101,7 @@ the keys are symbols).
 
 [Source: `std/amqp.xo:667`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L667)
 
-#### Receiver.close
+#### Receiver.close {#Receiver.close}
 
 ```xo
 fn (r: Receiver) close(error: WireError? = None) -> () ! AmqpErr uses (net.dial, clock)
@@ -1113,7 +1113,7 @@ Detaches the link (with `closed` set) and waits for the peer's Detach.
 
 ## Functions
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(v: Value) -> Bytes ! AmqpErr
@@ -1124,7 +1124,7 @@ The encoding of v with the smallest constructors go-amqp's encoder picks
 
 [Source: `std/amqp.xo:61`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L61)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(b: Bytes) -> (Value, Int) ! AmqpErr
@@ -1134,7 +1134,7 @@ The value at the start of b and the number of bytes it took.
 
 [Source: `std/amqp.xo:64`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L64)
 
-### encode_frame
+### encode_frame {#encode_frame}
 
 ```xo
 fn encode_frame(f: Frame) -> Bytes ! AmqpErr
@@ -1145,7 +1145,7 @@ AMQP and 1 for SASL, channel) and the body.
 
 [Source: `std/amqp.xo:283`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L283)
 
-### decode_frame
+### decode_frame {#decode_frame}
 
 ```xo
 fn decode_frame(b: Bytes, max_size: Int = 4294967295) -> (Frame, Int) ! AmqpErr
@@ -1156,7 +1156,7 @@ largest frame size accepted (a larger one is a Decode error).
 
 [Source: `std/amqp.xo:287`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L287)
 
-### dial
+### dial {#dial}
 
 ```xo
 fn dial(net: Net, addr: Str, opts: ConnOptions = ConnOptions{}) -> Connection ! AmqpErr uses (net.dial, clock)
@@ -1168,7 +1168,7 @@ and exchanges the Open frames.
 
 [Source: `std/amqp.xo:396`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L396)
 
-### encode_message
+### encode_message {#encode_message}
 
 ```xo
 fn encode_message(m: Message) -> Bytes ! AmqpErr
@@ -1178,7 +1178,7 @@ The message as the bytes of a transfer's payload.
 
 [Source: `std/amqp.xo:492`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L492)
 
-### decode_message
+### decode_message {#decode_message}
 
 ```xo
 fn decode_message(b: Bytes) -> Message ! AmqpErr
@@ -1189,7 +1189,7 @@ header, properties or annotations section, or mixed body kinds, is a Decode erro
 
 [Source: `std/amqp.xo:496`](https://github.com/xo-lang/xo/blob/main/std/amqp.xo#L496)
 
-### cbs_put_token
+### cbs_put_token {#cbs_put_token}
 
 ```xo
 fn cbs_put_token(c: Connection, s: Session, audience: Str, token: Str, token_type: Str = "servicebus.windows.net:sastoken", expiry_ms: Int = 0, expiration: Value? = None) -> () ! AmqpErr uses (net.dial, clock)

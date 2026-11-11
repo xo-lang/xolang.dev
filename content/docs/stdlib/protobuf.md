@@ -9,14 +9,14 @@ generated: "scripts/sync-content.py from `xo doc std/protobuf`; edit the doc com
 ---
 ## Index
 
-- const [`VARINT`](#varint)
-- const [`FIXED64`](#fixed64)
-- const [`BYTES`](#bytes)
-- const [`START_GROUP`](#start_group)
-- const [`END_GROUP`](#end_group)
-- const [`FIXED32`](#fixed32)
-- const [`MAX_GROUP_DEPTH`](#max_group_depth)
-- type [`ProtoErr`](#protoerr)
+- const [`VARINT`](#VARINT)
+- const [`FIXED64`](#FIXED64)
+- const [`BYTES`](#BYTES)
+- const [`START_GROUP`](#START_GROUP)
+- const [`END_GROUP`](#END_GROUP)
+- const [`FIXED32`](#FIXED32)
+- const [`MAX_GROUP_DEPTH`](#MAX_GROUP_DEPTH)
+- type [`ProtoErr`](#ProtoErr)
 - fn [`append_varint`](#append_varint)
 - fn [`append_tag`](#append_tag)
 - fn [`append_fixed32`](#append_fixed32)
@@ -41,7 +41,7 @@ generated: "scripts/sync-content.py from `xo doc std/protobuf`; edit the doc com
 
 ## Constants
 
-### VARINT
+### VARINT {#VARINT}
 
 ```xo
 const VARINT: Int = 0
@@ -51,7 +51,7 @@ A field's wire type (the low three bits of its tag).
 
 [Source: `std/protobuf.xo:5`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L5)
 
-### FIXED64
+### FIXED64 {#FIXED64}
 
 ```xo
 const FIXED64: Int = 1
@@ -59,7 +59,7 @@ const FIXED64: Int = 1
 
 [Source: `std/protobuf.xo:6`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L6)
 
-### BYTES
+### BYTES {#BYTES}
 
 ```xo
 const BYTES: Int = 2
@@ -67,7 +67,7 @@ const BYTES: Int = 2
 
 [Source: `std/protobuf.xo:7`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L7)
 
-### START_GROUP
+### START_GROUP {#START_GROUP}
 
 ```xo
 const START_GROUP: Int = 3
@@ -75,7 +75,7 @@ const START_GROUP: Int = 3
 
 [Source: `std/protobuf.xo:8`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L8)
 
-### END_GROUP
+### END_GROUP {#END_GROUP}
 
 ```xo
 const END_GROUP: Int = 4
@@ -83,7 +83,7 @@ const END_GROUP: Int = 4
 
 [Source: `std/protobuf.xo:9`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L9)
 
-### FIXED32
+### FIXED32 {#FIXED32}
 
 ```xo
 const FIXED32: Int = 5
@@ -91,7 +91,7 @@ const FIXED32: Int = 5
 
 [Source: `std/protobuf.xo:10`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L10)
 
-### MAX_GROUP_DEPTH
+### MAX_GROUP_DEPTH {#MAX_GROUP_DEPTH}
 
 ```xo
 const MAX_GROUP_DEPTH: Int = 10000
@@ -103,7 +103,7 @@ The greatest nesting of groups `skip_field` follows (protowire's 10000).
 
 ## Types
 
-### ProtoErr
+### ProtoErr {#ProtoErr}
 
 ```xo
 enum ProtoErr {
@@ -129,7 +129,7 @@ not valid UTF-8.
 
 ## Functions
 
-### append_varint
+### append_varint {#append_varint}
 
 ```xo
 fn append_varint(b: Bytes, v: UInt64) -> Bytes
@@ -139,7 +139,7 @@ The bytes of `v` as a varint appended to `b` (protowire.AppendVarint).
 
 [Source: `std/protobuf.xo:33`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L33)
 
-### append_tag
+### append_tag {#append_tag}
 
 ```xo
 fn append_tag(b: Bytes, num: Int, wire: Int) -> Bytes
@@ -149,7 +149,7 @@ The bytes of the tag of field `num` with wire type `wire` appended to `b` (Appen
 
 [Source: `std/protobuf.xo:35`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L35)
 
-### append_fixed32
+### append_fixed32 {#append_fixed32}
 
 ```xo
 fn append_fixed32(b: Bytes, v: UInt32) -> Bytes
@@ -157,7 +157,7 @@ fn append_fixed32(b: Bytes, v: UInt32) -> Bytes
 
 [Source: `std/protobuf.xo:36`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L36)
 
-### append_fixed64
+### append_fixed64 {#append_fixed64}
 
 ```xo
 fn append_fixed64(b: Bytes, v: UInt64) -> Bytes
@@ -165,7 +165,7 @@ fn append_fixed64(b: Bytes, v: UInt64) -> Bytes
 
 [Source: `std/protobuf.xo:37`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L37)
 
-### append_bytes
+### append_bytes {#append_bytes}
 
 ```xo
 fn append_bytes(b: Bytes, data: Bytes) -> Bytes
@@ -175,7 +175,7 @@ A length prefix then the bytes (AppendBytes).
 
 [Source: `std/protobuf.xo:39`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L39)
 
-### put_varint
+### put_varint {#put_varint}
 
 ```xo
 fn put_varint(out: BytesBuilder, v: UInt64) -> BytesBuilder
@@ -185,7 +185,7 @@ Builder forms of the append functions (the generated writers of `derive Proto` u
 
 [Source: `std/protobuf.xo:41`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L41)
 
-### put_tag
+### put_tag {#put_tag}
 
 ```xo
 fn put_tag(out: BytesBuilder, num: Int, wire: Int) -> BytesBuilder
@@ -193,7 +193,7 @@ fn put_tag(out: BytesBuilder, num: Int, wire: Int) -> BytesBuilder
 
 [Source: `std/protobuf.xo:42`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L42)
 
-### put_fixed32
+### put_fixed32 {#put_fixed32}
 
 ```xo
 fn put_fixed32(out: BytesBuilder, v: UInt32) -> BytesBuilder
@@ -201,7 +201,7 @@ fn put_fixed32(out: BytesBuilder, v: UInt32) -> BytesBuilder
 
 [Source: `std/protobuf.xo:43`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L43)
 
-### put_fixed64
+### put_fixed64 {#put_fixed64}
 
 ```xo
 fn put_fixed64(out: BytesBuilder, v: UInt64) -> BytesBuilder
@@ -209,7 +209,7 @@ fn put_fixed64(out: BytesBuilder, v: UInt64) -> BytesBuilder
 
 [Source: `std/protobuf.xo:44`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L44)
 
-### put_bytes
+### put_bytes {#put_bytes}
 
 ```xo
 fn put_bytes(out: BytesBuilder, data: Bytes) -> BytesBuilder
@@ -217,7 +217,7 @@ fn put_bytes(out: BytesBuilder, data: Bytes) -> BytesBuilder
 
 [Source: `std/protobuf.xo:45`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L45)
 
-### size_varint
+### size_varint {#size_varint}
 
 ```xo
 fn size_varint(v: UInt64) -> Int
@@ -227,7 +227,7 @@ The number of bytes `append_varint` writes for `v` (SizeVarint).
 
 [Source: `std/protobuf.xo:47`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L47)
 
-### encode_zigzag
+### encode_zigzag {#encode_zigzag}
 
 ```xo
 fn encode_zigzag(v: Int) -> UInt64
@@ -237,7 +237,7 @@ The zigzag form of a signed value (EncodeZigZag) and its inverse (DecodeZigZag).
 
 [Source: `std/protobuf.xo:49`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L49)
 
-### decode_zigzag
+### decode_zigzag {#decode_zigzag}
 
 ```xo
 fn decode_zigzag(v: UInt64) -> Int
@@ -245,7 +245,7 @@ fn decode_zigzag(v: UInt64) -> Int
 
 [Source: `std/protobuf.xo:50`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L50)
 
-### read_varint
+### read_varint {#read_varint}
 
 ```xo
 fn read_varint(b: Bytes, at: Int) -> (UInt64, Int) ! ProtoErr
@@ -255,7 +255,7 @@ The varint at offset `at` of `b` and the offset after it (ConsumeVarint).
 
 [Source: `std/protobuf.xo:53`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L53)
 
-### read_tag
+### read_tag {#read_tag}
 
 ```xo
 fn read_tag(b: Bytes, at: Int) -> (Int, Int, Int) ! ProtoErr
@@ -265,7 +265,7 @@ The field number, wire type and the offset after the tag at `at` (ConsumeTag).
 
 [Source: `std/protobuf.xo:55`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L55)
 
-### read_fixed32
+### read_fixed32 {#read_fixed32}
 
 ```xo
 fn read_fixed32(b: Bytes, at: Int) -> (UInt32, Int) ! ProtoErr
@@ -273,7 +273,7 @@ fn read_fixed32(b: Bytes, at: Int) -> (UInt32, Int) ! ProtoErr
 
 [Source: `std/protobuf.xo:56`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L56)
 
-### read_fixed64
+### read_fixed64 {#read_fixed64}
 
 ```xo
 fn read_fixed64(b: Bytes, at: Int) -> (UInt64, Int) ! ProtoErr
@@ -281,7 +281,7 @@ fn read_fixed64(b: Bytes, at: Int) -> (UInt64, Int) ! ProtoErr
 
 [Source: `std/protobuf.xo:57`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L57)
 
-### read_bytes
+### read_bytes {#read_bytes}
 
 ```xo
 fn read_bytes(b: Bytes, at: Int) -> (Bytes, Int) ! ProtoErr
@@ -291,7 +291,7 @@ A length prefixed value: its bytes (a view) and the offset after it (ConsumeByte
 
 [Source: `std/protobuf.xo:59`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L59)
 
-### skip_field
+### skip_field {#skip_field}
 
 ```xo
 fn skip_field(b: Bytes, at: Int, num: Int, wire: Int) -> Int ! ProtoErr
@@ -302,7 +302,7 @@ The offset after the value of a field with tag number `num` and wire type `wire`
 
 [Source: `std/protobuf.xo:62`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L62)
 
-### marshal
+### marshal {#marshal}
 
 ```xo
 fn marshal[T: Proto](v: T) -> Bytes
@@ -313,7 +313,7 @@ value is not written). `T` derives Proto (decision 0530).
 
 [Source: `std/protobuf.xo:66`](https://github.com/xo-lang/xo/blob/main/std/protobuf.xo#L66)
 
-### unmarshal
+### unmarshal {#unmarshal}
 
 ```xo
 fn unmarshal[T: Proto](data: Bytes) -> T ! ProtoErr

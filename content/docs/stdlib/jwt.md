@@ -9,12 +9,12 @@ generated: "scripts/sync-content.py from `xo doc std/jwt`; edit the doc comments
 ---
 ## Index
 
-- type [`Alg`](#alg)
-- type [`Key`](#key)
-- type [`Header`](#header)
-- type [`Options`](#options)
-- type [`JwtErr`](#jwterr)
-  - method [`JwtErr.display`](#jwterrdisplay)
+- type [`Alg`](#Alg)
+- type [`Key`](#Key)
+- type [`Header`](#Header)
+- type [`Options`](#Options)
+- type [`JwtErr`](#JwtErr)
+  - method [`JwtErr.display`](#JwtErr.display)
 - fn [`sign`](#sign)
 - fn [`verify_with`](#verify_with)
 - fn [`verify`](#verify)
@@ -23,7 +23,7 @@ generated: "scripts/sync-content.py from `xo doc std/jwt`; edit the doc comments
 
 ## Types
 
-### Alg
+### Alg {#Alg}
 
 ```xo
 enum Alg {
@@ -47,7 +47,7 @@ The signature algorithms (RFC 7518 3.1). There is no `none`.
 
 [Source: `std/jwt.xo:8`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L8)
 
-### Key
+### Key {#Key}
 
 ```xo
 enum Key {
@@ -62,7 +62,7 @@ half verifies) for RS*, PS*, ES* and EdDSA, a private key to sign them.
 
 [Source: `std/jwt.xo:26`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L26)
 
-### Header
+### Header {#Header}
 
 ```xo
 struct Header {
@@ -81,7 +81,7 @@ fields of other types are not kept.
 
 [Source: `std/jwt.xo:36`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L36)
 
-### Options
+### Options {#Options}
 
 ```xo
 struct Options {
@@ -103,7 +103,7 @@ What a verification requires. `algs` has no default: the token's own
 
 [Source: `std/jwt.xo:46`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L46)
 
-### JwtErr
+### JwtErr {#JwtErr}
 
 ```xo
 enum JwtErr {
@@ -122,7 +122,7 @@ enum JwtErr {
 
 [Source: `std/jwt.xo:63`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L63)
 
-#### JwtErr.display
+#### JwtErr.display {#JwtErr.display}
 
 ```xo
 fn (e: JwtErr) display() -> Str
@@ -132,7 +132,7 @@ fn (e: JwtErr) display() -> Str
 
 ## Functions
 
-### sign
+### sign {#sign}
 
 ```xo
 fn sign[T: Json](r: Rand, alg: Alg, key: Key, claims: T, kid: Str? = None, header: Map[Str, Str] = {}, x5c: List[Str] = []) -> Str ! JwtErr uses rand
@@ -147,7 +147,7 @@ Azure client assertion) and `x5c` its certificate chain; they follow
 
 [Source: `std/jwt.xo:90`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L90)
 
-### verify_with
+### verify_with {#verify_with}
 
 ```xo
 fn verify_with[T: Json](token: Str, key: Key, opts: Options) -> T ! JwtErr
@@ -158,7 +158,7 @@ checking the registered claims against opts.
 
 [Source: `std/jwt.xo:93`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L93)
 
-### verify
+### verify {#verify}
 
 ```xo
 fn verify[T: Json](token: Str, keys: fn(Header) -> Key ! JwtErr, opts: Options) -> T ! JwtErr
@@ -170,7 +170,7 @@ unknown kid.
 
 [Source: `std/jwt.xo:97`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L97)
 
-### peek_header
+### peek_header {#peek_header}
 
 ```xo
 fn peek_header(token: Str) -> Header ! JwtErr
@@ -180,7 +180,7 @@ The header of token, unverified: for routing by `kid`, never to decide anything.
 
 [Source: `std/jwt.xo:99`](https://github.com/xo-lang/xo/blob/main/std/jwt.xo#L99)
 
-### jwks
+### jwks {#jwks}
 
 ```xo
 fn jwks(set: Str) -> Map[Str, Key] ! JwtErr

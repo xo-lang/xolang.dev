@@ -14,7 +14,7 @@ generated: "scripts/sync-content.py from `xo doc std/htmlent`; edit the doc comm
 
 ## Functions
 
-### entity_of
+### entity_of {#entity_of}
 
 ```xo
 fn entity_of(name: Str) -> Str
@@ -24,7 +24,7 @@ The character of an entity name without `&`, "" for none (`amp;` and the semicol
 
 [Source: `std/htmlent.xo:6`](https://github.com/xo-lang/xo/blob/main/std/htmlent.xo#L6)
 
-### entity2_of
+### entity2_of {#entity2_of}
 
 ```xo
 fn entity2_of(name: Str) -> Str

@@ -9,20 +9,20 @@ generated: "scripts/sync-content.py from `xo doc std/bufio`; edit the doc commen
 ---
 ## Index
 
-- type [`BufErr`](#buferr)
-  - method [`BufErr.display`](#buferrdisplay)
-- type [`Reader`](#reader)
-  - method [`Reader.read`](#readerread)
-  - method [`Reader.read_until`](#readerread_until)
-  - method [`Reader.read_line`](#readerread_line)
-  - method [`Reader.read_exact`](#readerread_exact)
-  - method [`Reader.peek`](#readerpeek)
-  - method [`Reader.buffered`](#readerbuffered)
+- type [`BufErr`](#BufErr)
+  - method [`BufErr.display`](#BufErr.display)
+- type [`Reader`](#Reader)
+  - method [`Reader.read`](#Reader.read)
+  - method [`Reader.read_until`](#Reader.read_until)
+  - method [`Reader.read_line`](#Reader.read_line)
+  - method [`Reader.read_exact`](#Reader.read_exact)
+  - method [`Reader.peek`](#Reader.peek)
+  - method [`Reader.buffered`](#Reader.buffered)
 - fn [`reader`](#reader)
 
 ## Types
 
-### BufErr
+### BufErr {#BufErr}
 
 ```xo
 enum BufErr {
@@ -40,7 +40,7 @@ long` and `bufio: unexpected EOF`.
 
 [Source: `std/bufio.xo:13`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L13)
 
-#### BufErr.display
+#### BufErr.display {#BufErr.display}
 
 ```xo
 fn (e: BufErr) display() -> Str
@@ -48,7 +48,7 @@ fn (e: BufErr) display() -> Str
 
 [Source: `std/bufio.xo:19`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L19)
 
-### Reader
+### Reader {#Reader}
 
 ```xo
 struct Reader {}
@@ -59,7 +59,7 @@ it read are not given back to the stream).
 
 [Source: `std/bufio.xo:23`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L23)
 
-#### Reader.read
+#### Reader.read {#Reader.read}
 
 ```xo
 fn (var r: Reader) read(max: Int) -> Bytes? ! NetErr uses net
@@ -70,7 +70,7 @@ the end of the stream (Go's Read).
 
 [Source: `std/bufio.xo:30`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L30)
 
-#### Reader.read_until
+#### Reader.read_until {#Reader.read_until}
 
 ```xo
 fn (var r: Reader) read_until(delim: UInt8, limit: Int = 1048576) -> Bytes? ! BufErr uses net
@@ -85,7 +85,7 @@ and the current chunk stays buffered, so a caller closes the connection.
 
 [Source: `std/bufio.xo:37`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L37)
 
-#### Reader.read_line
+#### Reader.read_line {#Reader.read_line}
 
 ```xo
 fn (var r: Reader) read_line(limit: Int = 1048576) -> Str? ! BufErr uses net
@@ -98,7 +98,7 @@ the end with nothing left.
 
 [Source: `std/bufio.xo:42`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L42)
 
-#### Reader.read_exact
+#### Reader.read_exact {#Reader.read_exact}
 
 ```xo
 fn (var r: Reader) read_exact(n: Int) -> Bytes ! BufErr uses net
@@ -109,7 +109,7 @@ first (what was read is lost); n 0 is empty.
 
 [Source: `std/bufio.xo:45`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L45)
 
-#### Reader.peek
+#### Reader.peek {#Reader.peek}
 
 ```xo
 fn (var r: Reader) peek(n: Int) -> Bytes ! BufErr uses net
@@ -120,7 +120,7 @@ stream ends first. Reads from the stream to fill.
 
 [Source: `std/bufio.xo:48`](https://github.com/xo-lang/xo/blob/main/std/bufio.xo#L48)
 
-#### Reader.buffered
+#### Reader.buffered {#Reader.buffered}
 
 ```xo
 fn (r: Reader) buffered() -> Int
@@ -132,7 +132,7 @@ The bytes buffered and not yet read (Go's Buffered).
 
 ## Functions
 
-### reader
+### reader {#reader}
 
 ```xo
 fn reader(s: Stream, size: Int = 4096) -> Reader

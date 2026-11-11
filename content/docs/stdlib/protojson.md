@@ -9,11 +9,11 @@ generated: "scripts/sync-content.py from `xo doc std/protojson`; edit the doc co
 ---
 ## Index
 
-- type [`JsonErr`](#jsonerr)
-  - method [`JsonErr.display`](#jsonerrdisplay)
-- type [`Opts`](#opts)
-- type [`Registry`](#registry)
-- type [`MsgInfo`](#msginfo)
+- type [`JsonErr`](#JsonErr)
+  - method [`JsonErr.display`](#JsonErr.display)
+- type [`Opts`](#Opts)
+- type [`Registry`](#Registry)
+- type [`MsgInfo`](#MsgInfo)
 - fn [`registry`](#registry)
 - fn [`registry_from_set`](#registry_from_set)
 - fn [`marshal`](#marshal)
@@ -22,7 +22,7 @@ generated: "scripts/sync-content.py from `xo doc std/protojson`; edit the doc co
 
 ## Types
 
-### JsonErr
+### JsonErr {#JsonErr}
 
 ```xo
 struct JsonErr {
@@ -34,7 +34,7 @@ Why a conversion failed; `text` is protojson's message.
 
 [Source: `std/protojson.xo:16`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L16)
 
-#### JsonErr.display
+#### JsonErr.display {#JsonErr.display}
 
 ```xo
 fn (e: JsonErr) display() -> Str
@@ -42,7 +42,7 @@ fn (e: JsonErr) display() -> Str
 
 [Source: `std/protojson.xo:20`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L20)
 
-### Opts
+### Opts {#Opts}
 
 ```xo
 struct Opts {
@@ -59,7 +59,7 @@ Go's MarshalOptions and UnmarshalOptions: `proto_names` writes the proto field n
 
 [Source: `std/protojson.xo:25`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L25)
 
-### Registry
+### Registry {#Registry}
 
 ```xo
 struct Registry {
@@ -72,7 +72,7 @@ The messages and enums of a set of files, by full name (no leading dot).
 
 [Source: `std/protojson.xo:33`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L33)
 
-### MsgInfo
+### MsgInfo {#MsgInfo}
 
 ```xo
 struct MsgInfo {
@@ -90,7 +90,7 @@ A message of a registry: its descriptor, full name, syntax and whether it is a m
 
 ## Functions
 
-### registry
+### registry {#registry}
 
 ```xo
 fn registry(files: List[protodesc.FileDesc]) -> Registry
@@ -100,7 +100,7 @@ A registry of the files (a file's dependencies must be in the list).
 
 [Source: `std/protojson.xo:49`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L49)
 
-### registry_from_set
+### registry_from_set {#registry_from_set}
 
 ```xo
 fn registry_from_set(set: Bytes) -> Registry ! protobuf.ProtoErr
@@ -110,7 +110,7 @@ A registry of a serialized FileDescriptorSet.
 
 [Source: `std/protojson.xo:51`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L51)
 
-### marshal
+### marshal {#marshal}
 
 ```xo
 fn marshal(r: Registry, name: Str, wire: Bytes, o: Opts = Opts{}) -> Str ! JsonErr
@@ -120,7 +120,7 @@ The JSON text (compact, no whitespace) of the wire bytes of message `name` (`pkg
 
 [Source: `std/protojson.xo:54`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L54)
 
-### unmarshal
+### unmarshal {#unmarshal}
 
 ```xo
 fn unmarshal(r: Registry, name: Str, json: Str, o: Opts = Opts{}) -> Bytes ! JsonErr
@@ -131,7 +131,7 @@ text as message `name`.
 
 [Source: `std/protojson.xo:57`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L57)
 
-### normalize
+### normalize {#normalize}
 
 ```xo
 fn normalize(r: Registry, name: Str, wire: Bytes) -> Bytes ! JsonErr

@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/base64`; edit the doc comme
 ---
 ## Index
 
-- type [`Base64`](#base64)
-- type [`DecodeErr`](#decodeerr)
-  - method [`DecodeErr.display`](#decodeerrdisplay)
+- type [`Base64`](#Base64)
+- type [`DecodeErr`](#DecodeErr)
+  - method [`DecodeErr.display`](#DecodeErr.display)
 - fn [`encode`](#encode)
 - fn [`decode`](#decode)
 
 ## Types
 
-### Base64
+### Base64 {#Base64}
 
 ```xo
 enum Base64 {
@@ -33,7 +33,7 @@ forms write and read no `=` padding.
 
 [Source: `std/base64.xo:8`](https://github.com/xo-lang/xo/blob/main/std/base64.xo#L8)
 
-### DecodeErr
+### DecodeErr {#DecodeErr}
 
 ```xo
 struct DecodeErr {
@@ -45,7 +45,7 @@ Displays as Go's CorruptInputError: `illegal base64 data at input byte 4`.
 
 [Source: `std/base64.xo:16`](https://github.com/xo-lang/xo/blob/main/std/base64.xo#L16)
 
-#### DecodeErr.display
+#### DecodeErr.display {#DecodeErr.display}
 
 ```xo
 fn (e: DecodeErr) display() -> Str
@@ -55,7 +55,7 @@ fn (e: DecodeErr) display() -> Str
 
 ## Functions
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(data: Bytes, enc: Base64 = Base64.Std) -> Str
@@ -63,7 +63,7 @@ fn encode(data: Bytes, enc: Base64 = Base64.Std) -> Str
 
 [Source: `std/base64.xo:22`](https://github.com/xo-lang/xo/blob/main/std/base64.xo#L22)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(s: Str, enc: Base64 = Base64.Std) -> Bytes ! DecodeErr

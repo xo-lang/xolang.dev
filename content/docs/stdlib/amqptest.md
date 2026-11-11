@@ -9,48 +9,48 @@ generated: "scripts/sync-content.py from `xo doc std/amqptest`; edit the doc com
 ---
 ## Index
 
-- type [`QueueOptions`](#queueoptions)
-- type [`FakeMsg`](#fakemsg)
-- type [`FakeSession`](#fakesession)
-- type [`FakeQueue`](#fakequeue)
-- type [`FakeFail`](#fakefail)
-- type [`FakePart`](#fakepart)
-- type [`FakeHub`](#fakehub)
-- type [`HubOwner`](#hubowner)
-- type [`BrokerState`](#brokerstate)
-- type [`Broker`](#broker)
-  - method [`Broker.serve`](#brokerserve)
-  - method [`Broker.queue`](#brokerqueue)
-  - method [`Broker.event_hub`](#brokerevent_hub)
-  - method [`Broker.event_hub_geo_factor`](#brokerevent_hub_geo_factor)
-  - method [`Broker.events`](#brokerevents)
-  - method [`Broker.topic`](#brokertopic)
-  - method [`Broker.subscription`](#brokersubscription)
-  - method [`Broker.put`](#brokerput)
-  - method [`Broker.ready`](#brokerready)
-  - method [`Broker.locked`](#brokerlocked)
-  - method [`Broker.dead_letters`](#brokerdead_letters)
-  - method [`Broker.scheduled`](#brokerscheduled)
-  - method [`Broker.deferred`](#brokerdeferred)
-  - method [`Broker.tokens`](#brokertokens)
-  - method [`Broker.attaches`](#brokerattaches)
-  - method [`Broker.reject_token`](#brokerreject_token)
-  - method [`Broker.require_token`](#brokerrequire_token)
-  - method [`Broker.session_state`](#brokersession_state)
-  - method [`Broker.fail_next`](#brokerfail_next)
-  - method [`Broker.fail`](#brokerfail)
-  - method [`Broker.clear_failures`](#brokerclear_failures)
-  - method [`Broker.slow_management`](#brokerslow_management)
-  - method [`Broker.detach_links`](#brokerdetach_links)
-  - method [`Broker.disconnect_all`](#brokerdisconnect_all)
-- type [`SvLink`](#svlink)
-- type [`SvSession`](#svsession)
-- type [`SvConn`](#svconn)
+- type [`QueueOptions`](#QueueOptions)
+- type [`FakeMsg`](#FakeMsg)
+- type [`FakeSession`](#FakeSession)
+- type [`FakeQueue`](#FakeQueue)
+- type [`FakeFail`](#FakeFail)
+- type [`FakePart`](#FakePart)
+- type [`FakeHub`](#FakeHub)
+- type [`HubOwner`](#HubOwner)
+- type [`BrokerState`](#BrokerState)
+- type [`Broker`](#Broker)
+  - method [`Broker.serve`](#Broker.serve)
+  - method [`Broker.queue`](#Broker.queue)
+  - method [`Broker.event_hub`](#Broker.event_hub)
+  - method [`Broker.event_hub_geo_factor`](#Broker.event_hub_geo_factor)
+  - method [`Broker.events`](#Broker.events)
+  - method [`Broker.topic`](#Broker.topic)
+  - method [`Broker.subscription`](#Broker.subscription)
+  - method [`Broker.put`](#Broker.put)
+  - method [`Broker.ready`](#Broker.ready)
+  - method [`Broker.locked`](#Broker.locked)
+  - method [`Broker.dead_letters`](#Broker.dead_letters)
+  - method [`Broker.scheduled`](#Broker.scheduled)
+  - method [`Broker.deferred`](#Broker.deferred)
+  - method [`Broker.tokens`](#Broker.tokens)
+  - method [`Broker.attaches`](#Broker.attaches)
+  - method [`Broker.reject_token`](#Broker.reject_token)
+  - method [`Broker.require_token`](#Broker.require_token)
+  - method [`Broker.session_state`](#Broker.session_state)
+  - method [`Broker.fail_next`](#Broker.fail_next)
+  - method [`Broker.fail`](#Broker.fail)
+  - method [`Broker.clear_failures`](#Broker.clear_failures)
+  - method [`Broker.slow_management`](#Broker.slow_management)
+  - method [`Broker.detach_links`](#Broker.detach_links)
+  - method [`Broker.disconnect_all`](#Broker.disconnect_all)
+- type [`SvLink`](#SvLink)
+- type [`SvSession`](#SvSession)
+- type [`SvConn`](#SvConn)
 - fn [`new`](#new)
 
 ## Types
 
-### QueueOptions
+### QueueOptions {#QueueOptions}
 
 ```xo
 struct QueueOptions {
@@ -64,7 +64,7 @@ One entity's settings.
 
 [Source: `std/amqptest.xo:8`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L8)
 
-### FakeMsg
+### FakeMsg {#FakeMsg}
 
 ```xo
 struct FakeMsg {
@@ -87,7 +87,7 @@ A message held by a queue. Internal: use the Broker's methods.
 
 [Source: `std/amqptest.xo:18`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L18)
 
-### FakeSession
+### FakeSession {#FakeSession}
 
 ```xo
 struct FakeSession {
@@ -103,7 +103,7 @@ A session of a session enabled queue. Internal.
 
 [Source: `std/amqptest.xo:36`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L36)
 
-### FakeQueue
+### FakeQueue {#FakeQueue}
 
 ```xo
 struct FakeQueue {
@@ -122,7 +122,7 @@ Internal.
 
 [Source: `std/amqptest.xo:47`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L47)
 
-### FakeFail
+### FakeFail {#FakeFail}
 
 ```xo
 struct FakeFail {
@@ -138,7 +138,7 @@ An injected failure. Internal.
 
 [Source: `std/amqptest.xo:58`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L58)
 
-### FakePart
+### FakePart {#FakePart}
 
 ```xo
 struct FakePart {
@@ -150,7 +150,7 @@ One partition of an event hub: the events in order, each with its x-opt annotati
 
 [Source: `std/amqptest.xo:70`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L70)
 
-### FakeHub
+### FakeHub {#FakeHub}
 
 ```xo
 struct FakeHub {
@@ -167,7 +167,7 @@ An event hub (decision 0521). Internal.
 
 [Source: `std/amqptest.xo:75`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L75)
 
-### HubOwner
+### HubOwner {#HubOwner}
 
 ```xo
 struct HubOwner {
@@ -181,7 +181,7 @@ A receiver link that owns a partition of a consumer group at an epoch. Internal.
 
 [Source: `std/amqptest.xo:87`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L87)
 
-### BrokerState
+### BrokerState {#BrokerState}
 
 ```xo
 struct BrokerState {
@@ -209,7 +209,7 @@ The broker's state. Internal.
 
 [Source: `std/amqptest.xo:96`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L96)
 
-### Broker
+### Broker {#Broker}
 
 ```xo
 struct Broker {
@@ -222,7 +222,7 @@ A broker. A handle: copies share it.
 
 [Source: `std/amqptest.xo:122`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L122)
 
-#### Broker.serve
+#### Broker.serve {#Broker.serve}
 
 ```xo
 fn (b: Broker) serve(g: task.Group, l: Listener) uses (net.listen, clock)
@@ -233,7 +233,7 @@ Serves the connections `l` accepts, each in a task of `g`; returns at once. The 
 
 [Source: `std/amqptest.xo:189`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L189)
 
-#### Broker.queue
+#### Broker.queue {#Broker.queue}
 
 ```xo
 fn (b: Broker) queue(name: Str, opts: QueueOptions = QueueOptions{})
@@ -243,7 +243,7 @@ Declares a queue (a queue is also created, with the defaults, by the first link 
 
 [Source: `std/amqptest.xo:192`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L192)
 
-#### Broker.event_hub
+#### Broker.event_hub {#Broker.event_hub}
 
 ```xo
 fn (b: Broker) event_hub(name: Str, partitions: Int, consumer_groups: List[Str] = ["$Default"])
@@ -254,7 +254,7 @@ at `hub/ConsumerGroups/cg/Partitions/id` and sendable at `hub` or `hub/Partition
 
 [Source: `std/amqptest.xo:195`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L195)
 
-#### Broker.event_hub_geo_factor
+#### Broker.event_hub_geo_factor {#Broker.event_hub_geo_factor}
 
 ```xo
 fn (b: Broker) event_hub_geo_factor(hub: Str, factor: Int)
@@ -265,7 +265,7 @@ geo-replication is enabled, as Event Hubs v2 reads it).
 
 [Source: `std/amqptest.xo:198`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L198)
 
-#### Broker.events
+#### Broker.events {#Broker.events}
 
 ```xo
 fn (b: Broker) events(hub: Str, partition: Int) -> List[amqp.Message]
@@ -276,7 +276,7 @@ message annotations.
 
 [Source: `std/amqptest.xo:201`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L201)
 
-#### Broker.topic
+#### Broker.topic {#Broker.topic}
 
 ```xo
 fn (b: Broker) topic(name: Str)
@@ -286,7 +286,7 @@ Declares a topic: a message sent to it is copied to every subscription.
 
 [Source: `std/amqptest.xo:203`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L203)
 
-#### Broker.subscription
+#### Broker.subscription {#Broker.subscription}
 
 ```xo
 fn (b: Broker) subscription(topic: Str, name: Str, opts: QueueOptions = QueueOptions{})
@@ -296,7 +296,7 @@ Declares the subscription `topic/Subscriptions/name`, receivable at that address
 
 [Source: `std/amqptest.xo:205`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L205)
 
-#### Broker.put
+#### Broker.put {#Broker.put}
 
 ```xo
 fn (b: Broker) put(queue: Str, m: amqp.Message)
@@ -306,7 +306,7 @@ Puts a message on a queue (or a topic) as if a client had sent it.
 
 [Source: `std/amqptest.xo:208`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L208)
 
-#### Broker.ready
+#### Broker.ready {#Broker.ready}
 
 ```xo
 fn (b: Broker) ready(queue: Str) -> List[amqp.Message]
@@ -316,7 +316,7 @@ The messages that can be delivered now, in order, as a client would receive them
 
 [Source: `std/amqptest.xo:210`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L210)
 
-#### Broker.locked
+#### Broker.locked {#Broker.locked}
 
 ```xo
 fn (b: Broker) locked(queue: Str) -> Int
@@ -326,7 +326,7 @@ The number of messages locked by a receiver.
 
 [Source: `std/amqptest.xo:212`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L212)
 
-#### Broker.dead_letters
+#### Broker.dead_letters {#Broker.dead_letters}
 
 ```xo
 fn (b: Broker) dead_letters(queue: Str) -> List[amqp.Message]
@@ -336,7 +336,7 @@ The messages in the dead letter queue.
 
 [Source: `std/amqptest.xo:214`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L214)
 
-#### Broker.scheduled
+#### Broker.scheduled {#Broker.scheduled}
 
 ```xo
 fn (b: Broker) scheduled(queue: Str) -> List[amqp.Message]
@@ -346,7 +346,7 @@ The messages scheduled for later.
 
 [Source: `std/amqptest.xo:216`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L216)
 
-#### Broker.deferred
+#### Broker.deferred {#Broker.deferred}
 
 ```xo
 fn (b: Broker) deferred(queue: Str) -> List[amqp.Message]
@@ -356,7 +356,7 @@ The deferred messages.
 
 [Source: `std/amqptest.xo:218`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L218)
 
-#### Broker.tokens
+#### Broker.tokens {#Broker.tokens}
 
 ```xo
 fn (b: Broker) tokens() -> List[(Str, Str)]
@@ -366,7 +366,7 @@ The `(audience, token)` pairs the broker accepted through $cbs, in order.
 
 [Source: `std/amqptest.xo:220`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L220)
 
-#### Broker.attaches
+#### Broker.attaches {#Broker.attaches}
 
 ```xo
 fn (b: Broker) attaches() -> List[(Str, Str, List[Str])]
@@ -377,7 +377,7 @@ the client's role ("sender" or "receiver") and the Attach's desired capabilities
 
 [Source: `std/amqptest.xo:223`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L223)
 
-#### Broker.reject_token
+#### Broker.reject_token {#Broker.reject_token}
 
 ```xo
 fn (b: Broker) reject_token(token: Str)
@@ -387,7 +387,7 @@ A put-token with this token is answered with 401.
 
 [Source: `std/amqptest.xo:225`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L225)
 
-#### Broker.require_token
+#### Broker.require_token {#Broker.require_token}
 
 ```xo
 fn (b: Broker) require_token(on: Bool)
@@ -398,7 +398,7 @@ ends with the entity's name was accepted and has not expired.
 
 [Source: `std/amqptest.xo:228`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L228)
 
-#### Broker.session_state
+#### Broker.session_state {#Broker.session_state}
 
 ```xo
 fn (b: Broker) session_state(queue: Str, session: Str) -> Bytes
@@ -408,7 +408,7 @@ The state of a session of a session enabled queue, as set by a client.
 
 [Source: `std/amqptest.xo:230`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L230)
 
-#### Broker.fail_next
+#### Broker.fail_next {#Broker.fail_next}
 
 ```xo
 fn (b: Broker) fail_next(op: Str, status: Int, condition: Str, description: Str)
@@ -422,7 +422,7 @@ put-token is refused with `condition`; a management operation (`renew-lock`, `pe
 
 [Source: `std/amqptest.xo:237`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L237)
 
-#### Broker.fail
+#### Broker.fail {#Broker.fail}
 
 ```xo
 fn (b: Broker) fail(op: Str, status: Int, condition: Str, description: Str)
@@ -432,7 +432,7 @@ Like `fail_next`, until `clear_failures`.
 
 [Source: `std/amqptest.xo:239`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L239)
 
-#### Broker.clear_failures
+#### Broker.clear_failures {#Broker.clear_failures}
 
 ```xo
 fn (b: Broker) clear_failures()
@@ -440,7 +440,7 @@ fn (b: Broker) clear_failures()
 
 [Source: `std/amqptest.xo:240`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L240)
 
-#### Broker.slow_management
+#### Broker.slow_management {#Broker.slow_management}
 
 ```xo
 fn (b: Broker) slow_management(ms: Int)
@@ -450,7 +450,7 @@ Holds every management reply back by `ms` milliseconds.
 
 [Source: `std/amqptest.xo:242`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L242)
 
-#### Broker.detach_links
+#### Broker.detach_links {#Broker.detach_links}
 
 ```xo
 fn (b: Broker) detach_links(queue: Str, error: amqp.WireError)
@@ -460,7 +460,7 @@ Detaches every link to `queue` with `error` (for example `amqp:link:detach-force
 
 [Source: `std/amqptest.xo:244`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L244)
 
-#### Broker.disconnect_all
+#### Broker.disconnect_all {#Broker.disconnect_all}
 
 ```xo
 fn (b: Broker) disconnect_all(error: amqp.WireError? = None)
@@ -471,7 +471,7 @@ transport.
 
 [Source: `std/amqptest.xo:247`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L247)
 
-### SvLink
+### SvLink {#SvLink}
 
 ```xo
 struct SvLink {
@@ -507,7 +507,7 @@ A link of one connection. Internal.
 
 [Source: `std/amqptest.xo:128`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L128)
 
-### SvSession
+### SvSession {#SvSession}
 
 ```xo
 struct SvSession {
@@ -524,7 +524,7 @@ A session of one connection. Internal.
 
 [Source: `std/amqptest.xo:165`](https://github.com/xo-lang/xo/blob/main/std/amqptest.xo#L165)
 
-### SvConn
+### SvConn {#SvConn}
 
 ```xo
 struct SvConn {
@@ -542,7 +542,7 @@ One connection's state. Internal.
 
 ## Functions
 
-### new
+### new {#new}
 
 ```xo
 fn new(clock: Clock) -> Broker

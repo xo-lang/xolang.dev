@@ -9,13 +9,13 @@ generated: "scripts/sync-content.py from `xo doc std/uuid`; edit the doc comment
 ---
 ## Index
 
-- type [`Uuid`](#uuid)
-  - method [`Uuid.version`](#uuidversion)
-  - method [`Uuid.bytes`](#uuidbytes)
-  - method [`Uuid.display`](#uuiddisplay)
-  - method [`Uuid.debug`](#uuiddebug)
-- type [`UuidErr`](#uuiderr)
-  - method [`UuidErr.display`](#uuiderrdisplay)
+- type [`Uuid`](#Uuid)
+  - method [`Uuid.version`](#Uuid.version)
+  - method [`Uuid.bytes`](#Uuid.bytes)
+  - method [`Uuid.display`](#Uuid.display)
+  - method [`Uuid.debug`](#Uuid.debug)
+- type [`UuidErr`](#UuidErr)
+  - method [`UuidErr.display`](#UuidErr.display)
 - fn [`v4`](#v4)
 - fn [`v7`](#v7)
 - fn [`parse`](#parse)
@@ -24,7 +24,7 @@ generated: "scripts/sync-content.py from `xo doc std/uuid`; edit the doc comment
 
 ## Types
 
-### Uuid
+### Uuid {#Uuid}
 
 ```xo
 struct Uuid {
@@ -39,7 +39,7 @@ canonical text, `u.bytes()` its bytes, `u < v` the order of its bytes.
 
 [Source: `std/uuid.xo:12`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L12)
 
-#### Uuid.version
+#### Uuid.version {#Uuid.version}
 
 ```xo
 fn (u: Uuid) version() -> Int
@@ -47,7 +47,7 @@ fn (u: Uuid) version() -> Int
 
 [Source: `std/uuid.xo:40`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L40)
 
-#### Uuid.bytes
+#### Uuid.bytes {#Uuid.bytes}
 
 ```xo
 fn (u: Uuid) bytes() -> Bytes
@@ -55,7 +55,7 @@ fn (u: Uuid) bytes() -> Bytes
 
 [Source: `std/uuid.xo:41`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L41)
 
-#### Uuid.display
+#### Uuid.display {#Uuid.display}
 
 ```xo
 fn (u: Uuid) display() -> Str
@@ -63,7 +63,7 @@ fn (u: Uuid) display() -> Str
 
 [Source: `std/uuid.xo:42`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L42)
 
-#### Uuid.debug
+#### Uuid.debug {#Uuid.debug}
 
 ```xo
 fn (u: Uuid) debug() -> Str
@@ -73,7 +73,7 @@ fn (u: Uuid) debug() -> Str
 
 [Source: `std/uuid.xo:44`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L44)
 
-### UuidErr
+### UuidErr {#UuidErr}
 
 ```xo
 struct UuidErr {
@@ -86,7 +86,7 @@ Displays as google/uuid's texts: `invalid UUID length: 35`,
 
 [Source: `std/uuid.xo:22`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L22)
 
-#### UuidErr.display
+#### UuidErr.display {#UuidErr.display}
 
 ```xo
 fn (e: UuidErr) display() -> Str
@@ -96,7 +96,7 @@ fn (e: UuidErr) display() -> Str
 
 ## Functions
 
-### v4
+### v4 {#v4}
 
 ```xo
 fn v4(r: Rand) -> Uuid uses rand
@@ -106,7 +106,7 @@ A random UUID (version 4): 122 random bits.
 
 [Source: `std/uuid.xo:29`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L29)
 
-### v7
+### v7 {#v7}
 
 ```xo
 fn v7(r: Rand, c: Clock) -> Uuid uses (rand, clock)
@@ -117,7 +117,7 @@ random bits, so keys made later sort later (to the millisecond).
 
 [Source: `std/uuid.xo:32`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L32)
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(s: Str) -> Uuid ! UuidErr
@@ -128,7 +128,7 @@ digits (google/uuid's Parse), in either case.
 
 [Source: `std/uuid.xo:35`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L35)
 
-### from_bytes
+### from_bytes {#from_bytes}
 
 ```xo
 fn from_bytes(b: Bytes) -> Uuid ! UuidErr
@@ -138,7 +138,7 @@ The 16 bytes.
 
 [Source: `std/uuid.xo:37`](https://github.com/xo-lang/xo/blob/main/std/uuid.xo#L37)
 
-### nil
+### nil {#nil}
 
 ```xo
 fn nil() -> Uuid

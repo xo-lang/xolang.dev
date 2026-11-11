@@ -9,10 +9,10 @@ generated: "scripts/sync-content.py from `xo doc std/csv`; edit the doc comments
 ---
 ## Index
 
-- type [`CsvErr`](#csverr)
-  - method [`CsvErr.display`](#csverrdisplay)
-- type [`Reader`](#reader)
-  - method [`Reader.read`](#readerread)
+- type [`CsvErr`](#CsvErr)
+  - method [`CsvErr.display`](#CsvErr.display)
+- type [`Reader`](#Reader)
+  - method [`Reader.read`](#Reader.read)
 - fn [`parse`](#parse)
 - fn [`reader`](#reader)
 - fn [`parse_maps`](#parse_maps)
@@ -22,7 +22,7 @@ generated: "scripts/sync-content.py from `xo doc std/csv`; edit the doc comments
 
 ## Types
 
-### CsvErr
+### CsvErr {#CsvErr}
 
 ```xo
 struct CsvErr {
@@ -43,7 +43,7 @@ line 4: wrong number of fields`.
 
 [Source: `std/csv.xo:14`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L14)
 
-#### CsvErr.display
+#### CsvErr.display {#CsvErr.display}
 
 ```xo
 fn (e: CsvErr) display() -> Str
@@ -51,7 +51,7 @@ fn (e: CsvErr) display() -> Str
 
 [Source: `std/csv.xo:21`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L21)
 
-### Reader
+### Reader {#Reader}
 
 ```xo
 struct Reader {}
@@ -64,7 +64,7 @@ may hold line breaks.
 
 [Source: `std/csv.xo:33`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L33)
 
-#### Reader.read
+#### Reader.read {#Reader.read}
 
 ```xo
 fn (var r: Reader) read() -> List[Str]? ! CsvErr uses fs.read
@@ -78,7 +78,7 @@ file's error text as `msg`.
 
 ## Functions
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(text: Str, sep: Rune = ',', comment: Rune = '\0', fields: Int = -1, lazy_quotes: Bool = false, trim_leading_space: Bool = false) -> List[List[Str]] ! CsvErr
@@ -92,7 +92,7 @@ and `trim_leading_space` are LazyQuotes and TrimLeadingSpace.
 
 [Source: `std/csv.xo:28`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L28)
 
-### reader
+### reader {#reader}
 
 ```xo
 fn reader(f: File, sep: Rune = ',', comment: Rune = '\0', fields: Int = -1, lazy_quotes: Bool = false, trim_leading_space: Bool = false) -> Reader
@@ -100,7 +100,7 @@ fn reader(f: File, sep: Rune = ',', comment: Rune = '\0', fields: Int = -1, lazy
 
 [Source: `std/csv.xo:35`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L35)
 
-### parse_maps
+### parse_maps {#parse_maps}
 
 ```xo
 fn parse_maps(text: Str, sep: Rune = ',', comment: Rune = '\0', lazy_quotes: Bool = false, trim_leading_space: Bool = false) -> List[Map[Str, Str]] ! CsvErr
@@ -112,7 +112,7 @@ number of fields (`wrong number of fields`).
 
 [Source: `std/csv.xo:43`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L43)
 
-### format
+### format {#format}
 
 ```xo
 fn format(rows: List[List[Str]], sep: Rune = ',', crlf: Bool = false) -> Str
@@ -125,7 +125,7 @@ record (so it reads back as a record, where Go writes an empty line).
 
 [Source: `std/csv.xo:48`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L48)
 
-### valid_sep
+### valid_sep {#valid_sep}
 
 ```xo
 fn valid_sep(r: Rune) -> Bool
@@ -139,7 +139,7 @@ byte one included.
 
 [Source: `std/csv.xo:54`](https://github.com/xo-lang/xo/blob/main/std/csv.xo#L54)
 
-### valid_comment
+### valid_comment {#valid_comment}
 
 ```xo
 fn valid_comment(r: Rune) -> Bool

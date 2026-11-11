@@ -9,64 +9,64 @@ generated: "scripts/sync-content.py from `xo doc std/sql`; edit the doc comments
 ---
 ## Index
 
-- type [`SqlValue`](#sqlvalue)
-- type [`Isolation`](#isolation)
-- type [`SqlErr`](#sqlerr)
-  - method [`SqlErr.display`](#sqlerrdisplay)
-- type [`ExecResult`](#execresult)
-- type [`Db`](#db)
-  - method [`Db.query`](#dbquery)
-  - method [`Db.rows`](#dbrows)
-  - method [`Db.each`](#dbeach)
-  - method [`Db.copy_from`](#dbcopy_from)
-  - method [`Db.query_one`](#dbquery_one)
-  - method [`Db.exec`](#dbexec)
-  - method [`Db.query_as`](#dbquery_as)
-  - method [`Db.query_one_as`](#dbquery_one_as)
-  - method [`Db.begin`](#dbbegin)
-  - method [`Db.ping`](#dbping)
-  - method [`Db.close`](#dbclose)
-- type [`Tx`](#tx)
-  - method [`Tx.query`](#txquery)
-  - method [`Tx.rows`](#txrows)
-  - method [`Tx.each`](#txeach)
-  - method [`Tx.copy_from`](#txcopy_from)
-  - method [`Tx.query_one`](#txquery_one)
-  - method [`Tx.exec`](#txexec)
-  - method [`Tx.query_as`](#txquery_as)
-  - method [`Tx.query_one_as`](#txquery_one_as)
-  - method [`Tx.commit`](#txcommit)
-  - method [`Tx.rollback`](#txrollback)
-- type [`Row`](#row)
-  - method [`Row.columns`](#rowcolumns)
-  - method [`Row.decode`](#rowdecode)
-  - method [`Row.value`](#rowvalue)
-  - method [`Row.is_null`](#rowis_null)
-  - method [`Row.int`](#rowint)
-  - method [`Row.str`](#rowstr)
-  - method [`Row.float`](#rowfloat)
-  - method [`Row.bool`](#rowbool)
-  - method [`Row.time`](#rowtime)
-  - method [`Row.int_opt`](#rowint_opt)
-  - method [`Row.str_opt`](#rowstr_opt)
-  - method [`Row.float_opt`](#rowfloat_opt)
-  - method [`Row.bool_opt`](#rowbool_opt)
-  - method [`Row.time_opt`](#rowtime_opt)
-  - method [`Row.bytes`](#rowbytes)
-  - method [`Row.bytes_opt`](#rowbytes_opt)
-  - method [`Row.json`](#rowjson)
-  - method [`Row.ints`](#rowints)
-  - method [`Row.strs`](#rowstrs)
-  - method [`Row.items`](#rowitems)
-- type [`Rows`](#rows)
-  - method [`Rows.columns`](#rowscolumns)
-  - method [`Rows.next`](#rowsnext)
-  - method [`Rows.next_as`](#rowsnext_as)
-  - method [`Rows.close`](#rowsclose)
-- type [`Driver`](#driver)
-- type [`DriverConn`](#driverconn)
-- type [`DriverRows`](#driverrows)
-- type [`DriverCursor`](#drivercursor)
+- type [`SqlValue`](#SqlValue)
+- type [`Isolation`](#Isolation)
+- type [`SqlErr`](#SqlErr)
+  - method [`SqlErr.display`](#SqlErr.display)
+- type [`ExecResult`](#ExecResult)
+- type [`Db`](#Db)
+  - method [`Db.query`](#Db.query)
+  - method [`Db.rows`](#Db.rows)
+  - method [`Db.each`](#Db.each)
+  - method [`Db.copy_from`](#Db.copy_from)
+  - method [`Db.query_one`](#Db.query_one)
+  - method [`Db.exec`](#Db.exec)
+  - method [`Db.query_as`](#Db.query_as)
+  - method [`Db.query_one_as`](#Db.query_one_as)
+  - method [`Db.begin`](#Db.begin)
+  - method [`Db.ping`](#Db.ping)
+  - method [`Db.close`](#Db.close)
+- type [`Tx`](#Tx)
+  - method [`Tx.query`](#Tx.query)
+  - method [`Tx.rows`](#Tx.rows)
+  - method [`Tx.each`](#Tx.each)
+  - method [`Tx.copy_from`](#Tx.copy_from)
+  - method [`Tx.query_one`](#Tx.query_one)
+  - method [`Tx.exec`](#Tx.exec)
+  - method [`Tx.query_as`](#Tx.query_as)
+  - method [`Tx.query_one_as`](#Tx.query_one_as)
+  - method [`Tx.commit`](#Tx.commit)
+  - method [`Tx.rollback`](#Tx.rollback)
+- type [`Row`](#Row)
+  - method [`Row.columns`](#Row.columns)
+  - method [`Row.decode`](#Row.decode)
+  - method [`Row.value`](#Row.value)
+  - method [`Row.is_null`](#Row.is_null)
+  - method [`Row.int`](#Row.int)
+  - method [`Row.str`](#Row.str)
+  - method [`Row.float`](#Row.float)
+  - method [`Row.bool`](#Row.bool)
+  - method [`Row.time`](#Row.time)
+  - method [`Row.int_opt`](#Row.int_opt)
+  - method [`Row.str_opt`](#Row.str_opt)
+  - method [`Row.float_opt`](#Row.float_opt)
+  - method [`Row.bool_opt`](#Row.bool_opt)
+  - method [`Row.time_opt`](#Row.time_opt)
+  - method [`Row.bytes`](#Row.bytes)
+  - method [`Row.bytes_opt`](#Row.bytes_opt)
+  - method [`Row.json`](#Row.json)
+  - method [`Row.ints`](#Row.ints)
+  - method [`Row.strs`](#Row.strs)
+  - method [`Row.items`](#Row.items)
+- type [`Rows`](#Rows)
+  - method [`Rows.columns`](#Rows.columns)
+  - method [`Rows.next`](#Rows.next)
+  - method [`Rows.next_as`](#Rows.next_as)
+  - method [`Rows.close`](#Rows.close)
+- type [`Driver`](#Driver)
+- type [`DriverConn`](#DriverConn)
+- type [`DriverRows`](#DriverRows)
+- type [`DriverCursor`](#DriverCursor)
 - fn [`null`](#null)
 - fn [`int`](#int)
 - fn [`str`](#str)
@@ -83,7 +83,7 @@ generated: "scripts/sync-content.py from `xo doc std/sql`; edit the doc comments
 
 ## Types
 
-### SqlValue
+### SqlValue {#SqlValue}
 
 ```xo
 enum SqlValue {
@@ -103,7 +103,7 @@ A query parameter. `$1` is `args[0]`.
 
 [Source: `std/sql.xo:19`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L19)
 
-### Isolation
+### Isolation {#Isolation}
 
 ```xo
 enum Isolation {
@@ -120,7 +120,7 @@ standard SQL); Default is the server's own.
 
 [Source: `std/sql.xo:50`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L50)
 
-### SqlErr
+### SqlErr {#SqlErr}
 
 ```xo
 enum SqlErr {
@@ -142,7 +142,7 @@ enum SqlErr {
 
 [Source: `std/sql.xo:58`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L58)
 
-#### SqlErr.display
+#### SqlErr.display {#SqlErr.display}
 
 ```xo
 fn (e: SqlErr) display() -> Str
@@ -156,7 +156,7 @@ Param or Driver, `no such table: NAME`, `no rows in result set`,
 
 [Source: `std/sql.xo:89`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L89)
 
-### ExecResult
+### ExecResult {#ExecResult}
 
 ```xo
 struct ExecResult {
@@ -167,7 +167,7 @@ struct ExecResult {
 
 [Source: `std/sql.xo:91`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L91)
 
-### Db
+### Db {#Db}
 
 ```xo
 struct Db[fx: Effects] {}
@@ -175,7 +175,7 @@ struct Db[fx: Effects] {}
 
 [Source: `std/sql.xo:97`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L97)
 
-#### Db.query
+#### Db.query {#Db.query}
 
 ```xo
 fn (d: Db) query(q: Str, args: List[SqlValue] = []) -> List[Row] ! SqlErr uses net.dial
@@ -183,7 +183,7 @@ fn (d: Db) query(q: Str, args: List[SqlValue] = []) -> List[Row] ! SqlErr uses n
 
 [Source: `std/sql.xo:113`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L113)
 
-#### Db.rows
+#### Db.rows {#Db.rows}
 
 ```xo
 fn (d: Db) rows(q: Str, args: List[SqlValue] = []) -> Rows ! SqlErr uses net.dial
@@ -197,7 +197,7 @@ The connection stays taken until `next` returns None or an error, or
 
 [Source: `std/sql.xo:119`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L119)
 
-#### Db.each
+#### Db.each {#Db.each}
 
 ```xo
 fn (d: Db) each(q: Str, args: List[SqlValue], f: fn(Row) -> () ! SqlErr) -> () ! SqlErr uses net.dial
@@ -208,7 +208,7 @@ f ends the walk and is returned.
 
 [Source: `std/sql.xo:122`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L122)
 
-#### Db.copy_from
+#### Db.copy_from {#Db.copy_from}
 
 ```xo
 fn (d: Db) copy_from(table: Str, columns: List[Str], rows: fn() -> List[SqlValue]? ! SqlErr) -> Int ! SqlErr uses net.dial
@@ -225,7 +225,7 @@ returns Driver.
 
 [Source: `std/sql.xo:131`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L131)
 
-#### Db.query_one
+#### Db.query_one {#Db.query_one}
 
 ```xo
 fn (d: Db) query_one(q: Str, args: List[SqlValue] = []) -> Row ! SqlErr uses net.dial
@@ -233,7 +233,7 @@ fn (d: Db) query_one(q: Str, args: List[SqlValue] = []) -> Row ! SqlErr uses net
 
 [Source: `std/sql.xo:132`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L132)
 
-#### Db.exec
+#### Db.exec {#Db.exec}
 
 ```xo
 fn (d: Db) exec(q: Str, args: List[SqlValue] = []) -> ExecResult ! SqlErr uses net.dial
@@ -241,7 +241,7 @@ fn (d: Db) exec(q: Str, args: List[SqlValue] = []) -> ExecResult ! SqlErr uses n
 
 [Source: `std/sql.xo:133`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L133)
 
-#### Db.query_as
+#### Db.query_as {#Db.query_as}
 
 ```xo
 fn (d: Db) query_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> List[T] ! SqlErr uses net.dial
@@ -251,7 +251,7 @@ fn (d: Db) query_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> List[T] ! S
 
 [Source: `std/sql.xo:135`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L135)
 
-#### Db.query_one_as
+#### Db.query_one_as {#Db.query_one_as}
 
 ```xo
 fn (d: Db) query_one_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> T ! SqlErr uses net.dial
@@ -261,7 +261,7 @@ fn (d: Db) query_one_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> T ! Sql
 
 [Source: `std/sql.xo:137`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L137)
 
-#### Db.begin
+#### Db.begin {#Db.begin}
 
 ```xo
 fn (d: Db) begin(isolation: Isolation = Isolation.Default, read_only: Bool = false) -> Tx ! SqlErr uses net.dial
@@ -275,7 +275,7 @@ read only transaction with Server("25006", ...), as Postgres does.
 
 [Source: `std/sql.xo:143`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L143)
 
-#### Db.ping
+#### Db.ping {#Db.ping}
 
 ```xo
 fn (d: Db) ping() -> () ! SqlErr uses net.dial
@@ -283,7 +283,7 @@ fn (d: Db) ping() -> () ! SqlErr uses net.dial
 
 [Source: `std/sql.xo:144`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L144)
 
-#### Db.close
+#### Db.close {#Db.close}
 
 ```xo
 fn (d: Db) close() -> () ! SqlErr
@@ -291,7 +291,7 @@ fn (d: Db) close() -> () ! SqlErr
 
 [Source: `std/sql.xo:145`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L145)
 
-### Tx
+### Tx {#Tx}
 
 ```xo
 struct Tx[fx: Effects] {}
@@ -299,7 +299,7 @@ struct Tx[fx: Effects] {}
 
 [Source: `std/sql.xo:98`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L98)
 
-#### Tx.query
+#### Tx.query {#Tx.query}
 
 ```xo
 fn (t: Tx) query(q: Str, args: List[SqlValue] = []) -> List[Row] ! SqlErr uses net.dial
@@ -307,7 +307,7 @@ fn (t: Tx) query(q: Str, args: List[SqlValue] = []) -> List[Row] ! SqlErr uses n
 
 [Source: `std/sql.xo:147`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L147)
 
-#### Tx.rows
+#### Tx.rows {#Tx.rows}
 
 ```xo
 fn (t: Tx) rows(q: Str, args: List[SqlValue] = []) -> Rows ! SqlErr uses net.dial
@@ -318,7 +318,7 @@ busy until the cursor ends or is closed.
 
 [Source: `std/sql.xo:150`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L150)
 
-#### Tx.each
+#### Tx.each {#Tx.each}
 
 ```xo
 fn (t: Tx) each(q: Str, args: List[SqlValue], f: fn(Row) -> () ! SqlErr) -> () ! SqlErr uses net.dial
@@ -326,7 +326,7 @@ fn (t: Tx) each(q: Str, args: List[SqlValue], f: fn(Row) -> () ! SqlErr) -> () !
 
 [Source: `std/sql.xo:151`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L151)
 
-#### Tx.copy_from
+#### Tx.copy_from {#Tx.copy_from}
 
 ```xo
 fn (t: Tx) copy_from(table: Str, columns: List[Str], rows: fn() -> List[SqlValue]? ! SqlErr) -> Int ! SqlErr uses net.dial
@@ -334,7 +334,7 @@ fn (t: Tx) copy_from(table: Str, columns: List[Str], rows: fn() -> List[SqlValue
 
 [Source: `std/sql.xo:152`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L152)
 
-#### Tx.query_one
+#### Tx.query_one {#Tx.query_one}
 
 ```xo
 fn (t: Tx) query_one(q: Str, args: List[SqlValue] = []) -> Row ! SqlErr uses net.dial
@@ -342,7 +342,7 @@ fn (t: Tx) query_one(q: Str, args: List[SqlValue] = []) -> Row ! SqlErr uses net
 
 [Source: `std/sql.xo:153`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L153)
 
-#### Tx.exec
+#### Tx.exec {#Tx.exec}
 
 ```xo
 fn (t: Tx) exec(q: Str, args: List[SqlValue] = []) -> ExecResult ! SqlErr uses net.dial
@@ -350,7 +350,7 @@ fn (t: Tx) exec(q: Str, args: List[SqlValue] = []) -> ExecResult ! SqlErr uses n
 
 [Source: `std/sql.xo:154`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L154)
 
-#### Tx.query_as
+#### Tx.query_as {#Tx.query_as}
 
 ```xo
 fn (t: Tx) query_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> List[T] ! SqlErr uses net.dial
@@ -358,7 +358,7 @@ fn (t: Tx) query_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> List[T] ! S
 
 [Source: `std/sql.xo:155`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L155)
 
-#### Tx.query_one_as
+#### Tx.query_one_as {#Tx.query_one_as}
 
 ```xo
 fn (t: Tx) query_one_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> T ! SqlErr uses net.dial
@@ -366,7 +366,7 @@ fn (t: Tx) query_one_as[T: SqlRow](q: Str, args: List[SqlValue] = []) -> T ! Sql
 
 [Source: `std/sql.xo:156`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L156)
 
-#### Tx.commit
+#### Tx.commit {#Tx.commit}
 
 ```xo
 fn (t: Tx) commit() -> () ! SqlErr uses net.dial
@@ -374,7 +374,7 @@ fn (t: Tx) commit() -> () ! SqlErr uses net.dial
 
 [Source: `std/sql.xo:157`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L157)
 
-#### Tx.rollback
+#### Tx.rollback {#Tx.rollback}
 
 ```xo
 fn (t: Tx) rollback() -> () ! SqlErr uses net.dial
@@ -382,7 +382,7 @@ fn (t: Tx) rollback() -> () ! SqlErr uses net.dial
 
 [Source: `std/sql.xo:158`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L158)
 
-### Row
+### Row {#Row}
 
 ```xo
 struct Row {}
@@ -390,7 +390,7 @@ struct Row {}
 
 [Source: `std/sql.xo:99`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L99)
 
-#### Row.columns
+#### Row.columns {#Row.columns}
 
 ```xo
 fn (r: Row) columns() -> List[Str]
@@ -398,7 +398,7 @@ fn (r: Row) columns() -> List[Str]
 
 [Source: `std/sql.xo:169`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L169)
 
-#### Row.decode
+#### Row.decode {#Row.decode}
 
 ```xo
 fn (r: Row) decode[T: SqlRow]() -> T ! SqlErr
@@ -409,7 +409,7 @@ column of the same name (std.md 10.4).
 
 [Source: `std/sql.xo:172`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L172)
 
-#### Row.value
+#### Row.value {#Row.value}
 
 ```xo
 fn (r: Row) value(name: Str) -> SqlValue ! SqlErr
@@ -420,7 +420,7 @@ column; NoColumn for an unknown name).
 
 [Source: `std/sql.xo:175`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L175)
 
-#### Row.is_null
+#### Row.is_null {#Row.is_null}
 
 ```xo
 fn (r: Row) is_null(name: Str) -> Bool ! SqlErr
@@ -428,7 +428,7 @@ fn (r: Row) is_null(name: Str) -> Bool ! SqlErr
 
 [Source: `std/sql.xo:176`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L176)
 
-#### Row.int
+#### Row.int {#Row.int}
 
 ```xo
 fn (r: Row) int(name: Str) -> Int ! SqlErr
@@ -436,7 +436,7 @@ fn (r: Row) int(name: Str) -> Int ! SqlErr
 
 [Source: `std/sql.xo:177`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L177)
 
-#### Row.str
+#### Row.str {#Row.str}
 
 ```xo
 fn (r: Row) str(name: Str) -> Str ! SqlErr
@@ -444,7 +444,7 @@ fn (r: Row) str(name: Str) -> Str ! SqlErr
 
 [Source: `std/sql.xo:178`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L178)
 
-#### Row.float
+#### Row.float {#Row.float}
 
 ```xo
 fn (r: Row) float(name: Str) -> Float ! SqlErr
@@ -452,7 +452,7 @@ fn (r: Row) float(name: Str) -> Float ! SqlErr
 
 [Source: `std/sql.xo:179`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L179)
 
-#### Row.bool
+#### Row.bool {#Row.bool}
 
 ```xo
 fn (r: Row) bool(name: Str) -> Bool ! SqlErr
@@ -460,7 +460,7 @@ fn (r: Row) bool(name: Str) -> Bool ! SqlErr
 
 [Source: `std/sql.xo:180`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L180)
 
-#### Row.time
+#### Row.time {#Row.time}
 
 ```xo
 fn (r: Row) time(name: Str) -> Time ! SqlErr
@@ -468,7 +468,7 @@ fn (r: Row) time(name: Str) -> Time ! SqlErr
 
 [Source: `std/sql.xo:181`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L181)
 
-#### Row.int_opt
+#### Row.int_opt {#Row.int_opt}
 
 ```xo
 fn (r: Row) int_opt(name: Str) -> Int? ! SqlErr
@@ -476,7 +476,7 @@ fn (r: Row) int_opt(name: Str) -> Int? ! SqlErr
 
 [Source: `std/sql.xo:182`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L182)
 
-#### Row.str_opt
+#### Row.str_opt {#Row.str_opt}
 
 ```xo
 fn (r: Row) str_opt(name: Str) -> Str? ! SqlErr
@@ -484,7 +484,7 @@ fn (r: Row) str_opt(name: Str) -> Str? ! SqlErr
 
 [Source: `std/sql.xo:183`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L183)
 
-#### Row.float_opt
+#### Row.float_opt {#Row.float_opt}
 
 ```xo
 fn (r: Row) float_opt(name: Str) -> Float? ! SqlErr
@@ -492,7 +492,7 @@ fn (r: Row) float_opt(name: Str) -> Float? ! SqlErr
 
 [Source: `std/sql.xo:184`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L184)
 
-#### Row.bool_opt
+#### Row.bool_opt {#Row.bool_opt}
 
 ```xo
 fn (r: Row) bool_opt(name: Str) -> Bool? ! SqlErr
@@ -500,7 +500,7 @@ fn (r: Row) bool_opt(name: Str) -> Bool? ! SqlErr
 
 [Source: `std/sql.xo:185`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L185)
 
-#### Row.time_opt
+#### Row.time_opt {#Row.time_opt}
 
 ```xo
 fn (r: Row) time_opt(name: Str) -> Time? ! SqlErr
@@ -508,7 +508,7 @@ fn (r: Row) time_opt(name: Str) -> Time? ! SqlErr
 
 [Source: `std/sql.xo:186`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L186)
 
-#### Row.bytes
+#### Row.bytes {#Row.bytes}
 
 ```xo
 fn (r: Row) bytes(name: Str) -> Bytes ! SqlErr
@@ -516,7 +516,7 @@ fn (r: Row) bytes(name: Str) -> Bytes ! SqlErr
 
 [Source: `std/sql.xo:187`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L187)
 
-#### Row.bytes_opt
+#### Row.bytes_opt {#Row.bytes_opt}
 
 ```xo
 fn (r: Row) bytes_opt(name: Str) -> Bytes? ! SqlErr
@@ -524,7 +524,7 @@ fn (r: Row) bytes_opt(name: Str) -> Bytes? ! SqlErr
 
 [Source: `std/sql.xo:188`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L188)
 
-#### Row.json
+#### Row.json {#Row.json}
 
 ```xo
 fn (r: Row) json[T: Json](name: Str) -> T ! SqlErr
@@ -535,7 +535,7 @@ Mismatch(column, msg).
 
 [Source: `std/sql.xo:191`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L191)
 
-#### Row.ints
+#### Row.ints {#Row.ints}
 
 ```xo
 fn (r: Row) ints(name: Str) -> List[Int] ! SqlErr
@@ -545,7 +545,7 @@ An array of integers; a NULL element is Mismatch.
 
 [Source: `std/sql.xo:193`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L193)
 
-#### Row.strs
+#### Row.strs {#Row.strs}
 
 ```xo
 fn (r: Row) strs(name: Str) -> List[Str] ! SqlErr
@@ -553,7 +553,7 @@ fn (r: Row) strs(name: Str) -> List[Str] ! SqlErr
 
 [Source: `std/sql.xo:194`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L194)
 
-#### Row.items
+#### Row.items {#Row.items}
 
 ```xo
 fn (r: Row) items(name: Str) -> List[SqlValue] ! SqlErr
@@ -563,7 +563,7 @@ An array's elements as values.
 
 [Source: `std/sql.xo:196`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L196)
 
-### Rows
+### Rows {#Rows}
 
 ```xo
 struct Rows[fx: Effects] {}
@@ -574,7 +574,7 @@ connection from `rows` to the last row or `close`.
 
 [Source: `std/sql.xo:102`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L102)
 
-#### Rows.columns
+#### Rows.columns {#Rows.columns}
 
 ```xo
 fn (r: Rows) columns() -> List[Str]
@@ -582,7 +582,7 @@ fn (r: Rows) columns() -> List[Str]
 
 [Source: `std/sql.xo:160`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L160)
 
-#### Rows.next
+#### Rows.next {#Rows.next}
 
 ```xo
 fn (r: Rows) next() -> Row? ! SqlErr uses net.dial
@@ -592,7 +592,7 @@ The next row, None after the last (the connection is then released).
 
 [Source: `std/sql.xo:162`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L162)
 
-#### Rows.next_as
+#### Rows.next_as {#Rows.next_as}
 
 ```xo
 fn (r: Rows) next_as[T: SqlRow]() -> T? ! SqlErr uses net.dial
@@ -602,7 +602,7 @@ fn (r: Rows) next_as[T: SqlRow]() -> T? ! SqlErr uses net.dial
 
 [Source: `std/sql.xo:164`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L164)
 
-#### Rows.close
+#### Rows.close {#Rows.close}
 
 ```xo
 fn (r: Rows) close() uses net.dial
@@ -613,7 +613,7 @@ idempotent.
 
 [Source: `std/sql.xo:167`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L167)
 
-### Driver
+### Driver {#Driver}
 
 ```xo
 interface Driver[fx: Effects] {
@@ -627,7 +627,7 @@ cancellation. It dials through the Net it is given.
 
 [Source: `std/sql.xo:201`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L201)
 
-### DriverConn
+### DriverConn {#DriverConn}
 
 ```xo
 interface DriverConn[fx: Effects] {
@@ -648,7 +648,7 @@ cancellation points that return Canceled.
 
 [Source: `std/sql.xo:207`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L207)
 
-### DriverRows
+### DriverRows {#DriverRows}
 
 ```xo
 struct DriverRows[fx: Effects] {
@@ -664,7 +664,7 @@ driver may return a few rows (or none) and a cursor for the rest
 
 [Source: `std/sql.xo:224`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L224)
 
-### DriverCursor
+### DriverCursor {#DriverCursor}
 
 ```xo
 interface DriverCursor[fx: Effects] {
@@ -681,7 +681,7 @@ used again until the cursor is read to the end or closed.
 
 ## Functions
 
-### null
+### null {#null}
 
 ```xo
 fn null() -> SqlValue
@@ -689,7 +689,7 @@ fn null() -> SqlValue
 
 [Source: `std/sql.xo:34`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L34)
 
-### int
+### int {#int}
 
 ```xo
 fn int(n: Int) -> SqlValue
@@ -697,7 +697,7 @@ fn int(n: Int) -> SqlValue
 
 [Source: `std/sql.xo:35`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L35)
 
-### str
+### str {#str}
 
 ```xo
 fn str(s: Str) -> SqlValue
@@ -705,7 +705,7 @@ fn str(s: Str) -> SqlValue
 
 [Source: `std/sql.xo:36`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L36)
 
-### float
+### float {#float}
 
 ```xo
 fn float(f: Float) -> SqlValue
@@ -713,7 +713,7 @@ fn float(f: Float) -> SqlValue
 
 [Source: `std/sql.xo:37`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L37)
 
-### bool
+### bool {#bool}
 
 ```xo
 fn bool(b: Bool) -> SqlValue
@@ -721,7 +721,7 @@ fn bool(b: Bool) -> SqlValue
 
 [Source: `std/sql.xo:38`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L38)
 
-### time
+### time {#time}
 
 ```xo
 fn time(t: Time) -> SqlValue
@@ -729,7 +729,7 @@ fn time(t: Time) -> SqlValue
 
 [Source: `std/sql.xo:39`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L39)
 
-### bytes
+### bytes {#bytes}
 
 ```xo
 fn bytes(b: Bytes) -> SqlValue
@@ -737,7 +737,7 @@ fn bytes(b: Bytes) -> SqlValue
 
 [Source: `std/sql.xo:40`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L40)
 
-### json
+### json {#json}
 
 ```xo
 fn json[T: Json](v: T) -> SqlValue
@@ -747,7 +747,7 @@ JsonText of `json.encode_str(v)`.
 
 [Source: `std/sql.xo:42`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L42)
 
-### array
+### array {#array}
 
 ```xo
 fn array(items: List[SqlValue]) -> SqlValue
@@ -755,7 +755,7 @@ fn array(items: List[SqlValue]) -> SqlValue
 
 [Source: `std/sql.xo:43`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L43)
 
-### quote_ident
+### quote_ident {#quote_ident}
 
 ```xo
 fn quote_ident(name: Str) -> Str
@@ -766,7 +766,7 @@ quote_ident, pgx's Identifier.Sanitize).
 
 [Source: `std/sql.xo:46`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L46)
 
-### open
+### open {#open}
 
 ```xo
 fn open(net: Net, driver: Str, dsn: Str, max_open: Int = 10, max_idle: Int = 2, max_lifetime: Duration = 30m, roots: Bytes = b"") -> Db ! SqlErr uses net.dial
@@ -779,7 +779,7 @@ operations and open transactions (waiting is a cancellation point),
 
 [Source: `std/sql.xo:108`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L108)
 
-### memory
+### memory {#memory}
 
 ```xo
 fn memory(schema: Str = "") -> Db ! SqlErr
@@ -790,7 +790,7 @@ statements). Needs no capability.
 
 [Source: `std/sql.xo:111`](https://github.com/xo-lang/xo/blob/main/std/sql.xo#L111)
 
-### open_driver
+### open_driver {#open_driver}
 
 ```xo
 fn open_driver[fx: Effects](net: Net, d: Driver[fx], dsn: Str, max_open: Int = 10, max_idle: Int = 2, max_lifetime: Duration = 30m) -> Db[fx] ! SqlErr uses (net.dial, fx)

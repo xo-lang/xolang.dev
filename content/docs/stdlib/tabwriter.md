@@ -9,21 +9,21 @@ generated: "scripts/sync-content.py from `xo doc std/tabwriter`; edit the doc co
 ---
 ## Index
 
-- const [`FILTER_HTML`](#filter_html)
-- const [`STRIP_ESCAPE`](#strip_escape)
-- const [`ALIGN_RIGHT`](#align_right)
-- const [`DISCARD_EMPTY_COLUMNS`](#discard_empty_columns)
-- const [`TAB_INDENT`](#tab_indent)
-- const [`DEBUG`](#debug)
-- const [`ESCAPE`](#escape)
-- type [`TabWriter`](#tabwriter)
-  - method [`TabWriter.write`](#tabwriterwrite)
-  - method [`TabWriter.flush`](#tabwriterflush)
+- const [`FILTER_HTML`](#FILTER_HTML)
+- const [`STRIP_ESCAPE`](#STRIP_ESCAPE)
+- const [`ALIGN_RIGHT`](#ALIGN_RIGHT)
+- const [`DISCARD_EMPTY_COLUMNS`](#DISCARD_EMPTY_COLUMNS)
+- const [`TAB_INDENT`](#TAB_INDENT)
+- const [`DEBUG`](#DEBUG)
+- const [`ESCAPE`](#ESCAPE)
+- type [`TabWriter`](#TabWriter)
+  - method [`TabWriter.write`](#TabWriter.write)
+  - method [`TabWriter.flush`](#TabWriter.flush)
 - fn [`writer`](#writer)
 
 ## Constants
 
-### FILTER_HTML
+### FILTER_HTML {#FILTER_HTML}
 
 ```xo
 const FILTER_HTML: Int = 1
@@ -34,7 +34,7 @@ TabIndent, Debug), added together.
 
 [Source: `std/tabwriter.xo:8`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L8)
 
-### STRIP_ESCAPE
+### STRIP_ESCAPE {#STRIP_ESCAPE}
 
 ```xo
 const STRIP_ESCAPE: Int = 2
@@ -42,7 +42,7 @@ const STRIP_ESCAPE: Int = 2
 
 [Source: `std/tabwriter.xo:9`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L9)
 
-### ALIGN_RIGHT
+### ALIGN_RIGHT {#ALIGN_RIGHT}
 
 ```xo
 const ALIGN_RIGHT: Int = 4
@@ -50,7 +50,7 @@ const ALIGN_RIGHT: Int = 4
 
 [Source: `std/tabwriter.xo:10`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L10)
 
-### DISCARD_EMPTY_COLUMNS
+### DISCARD_EMPTY_COLUMNS {#DISCARD_EMPTY_COLUMNS}
 
 ```xo
 const DISCARD_EMPTY_COLUMNS: Int = 8
@@ -58,7 +58,7 @@ const DISCARD_EMPTY_COLUMNS: Int = 8
 
 [Source: `std/tabwriter.xo:11`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L11)
 
-### TAB_INDENT
+### TAB_INDENT {#TAB_INDENT}
 
 ```xo
 const TAB_INDENT: Int = 16
@@ -66,7 +66,7 @@ const TAB_INDENT: Int = 16
 
 [Source: `std/tabwriter.xo:12`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L12)
 
-### DEBUG
+### DEBUG {#DEBUG}
 
 ```xo
 const DEBUG: Int = 32
@@ -74,7 +74,7 @@ const DEBUG: Int = 32
 
 [Source: `std/tabwriter.xo:13`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L13)
 
-### ESCAPE
+### ESCAPE {#ESCAPE}
 
 ```xo
 const ESCAPE: Int = 255
@@ -87,7 +87,7 @@ bytes pass through as one piece of the cell, tabs and all.
 
 ## Types
 
-### TabWriter
+### TabWriter {#TabWriter}
 
 ```xo
 struct TabWriter {}
@@ -103,7 +103,7 @@ returns it (Go writes it to the io.Writer as lines complete).
 
 [Source: `std/tabwriter.xo:26`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L26)
 
-#### TabWriter.write
+#### TabWriter.write {#TabWriter.write}
 
 ```xo
 fn (var w: TabWriter) write(data: Bytes)
@@ -111,7 +111,7 @@ fn (var w: TabWriter) write(data: Bytes)
 
 [Source: `std/tabwriter.xo:35`](https://github.com/xo-lang/xo/blob/main/std/tabwriter.xo#L35)
 
-#### TabWriter.flush
+#### TabWriter.flush {#TabWriter.flush}
 
 ```xo
 fn (var w: TabWriter) flush() -> Bytes
@@ -123,7 +123,7 @@ The formatted output since the last flush; the writer is empty again.
 
 ## Functions
 
-### writer
+### writer {#writer}
 
 ```xo
 fn writer(min_width: Int, tab_width: Int, padding: Int, pad_char: Int = 32, flags: Int = 0) -> TabWriter

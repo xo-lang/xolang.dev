@@ -9,12 +9,12 @@ generated: "scripts/sync-content.py from `xo doc std/mail`; edit the doc comment
 ---
 ## Index
 
-- type [`Address`](#address)
-  - method [`Address.display`](#addressdisplay)
-- type [`MailErr`](#mailerr)
-  - method [`MailErr.display`](#mailerrdisplay)
-- type [`Message`](#message)
-  - method [`Message.header`](#messageheader)
+- type [`Address`](#Address)
+  - method [`Address.display`](#Address.display)
+- type [`MailErr`](#MailErr)
+  - method [`MailErr.display`](#MailErr.display)
+- type [`Message`](#Message)
+  - method [`Message.header`](#Message.header)
 - fn [`parse_address`](#parse_address)
 - fn [`parse_address_list`](#parse_address_list)
 - fn [`read_message`](#read_message)
@@ -23,7 +23,7 @@ generated: "scripts/sync-content.py from `xo doc std/mail`; edit the doc comment
 
 ## Types
 
-### Address
+### Address {#Address}
 
 ```xo
 struct Address {
@@ -36,7 +36,7 @@ A mail address: the display name (decoded) and `local@domain`.
 
 [Source: `std/mail.xo:6`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L6)
 
-#### Address.display
+#### Address.display {#Address.display}
 
 ```xo
 fn (a: Address) display() -> Str
@@ -47,7 +47,7 @@ needed (Address.String).
 
 [Source: `std/mail.xo:26`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L26)
 
-### MailErr
+### MailErr {#MailErr}
 
 ```xo
 struct MailErr {
@@ -59,7 +59,7 @@ Go's error texts: `mail: no address`, `mail: missing @ in addr-spec`, ...
 
 [Source: `std/mail.xo:12`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L12)
 
-#### MailErr.display
+#### MailErr.display {#MailErr.display}
 
 ```xo
 fn (e: MailErr) display() -> Str
@@ -67,7 +67,7 @@ fn (e: MailErr) display() -> Str
 
 [Source: `std/mail.xo:16`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L16)
 
-### Message
+### Message {#Message}
 
 ```xo
 struct Message {
@@ -82,7 +82,7 @@ the body after the blank line.
 
 [Source: `std/mail.xo:31`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L31)
 
-#### Message.header
+#### Message.header {#Message.header}
 
 ```xo
 fn (m: Message) header(name: Str) -> Str?
@@ -94,7 +94,7 @@ The first value of the header field name, any case (Header.Get).
 
 ## Functions
 
-### parse_address
+### parse_address {#parse_address}
 
 ```xo
 fn parse_address(s: Str) -> Address ! MailErr
@@ -105,7 +105,7 @@ RFC 2047 encoded name (mail.ParseAddress).
 
 [Source: `std/mail.xo:20`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L20)
 
-### parse_address_list
+### parse_address_list {#parse_address_list}
 
 ```xo
 fn parse_address_list(s: Str) -> List[Address] ! MailErr
@@ -116,7 +116,7 @@ A comma separated list, groups (`team: a@x, b@y;`) flattened
 
 [Source: `std/mail.xo:23`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L23)
 
-### read_message
+### read_message {#read_message}
 
 ```xo
 fn read_message(msg: Bytes) -> Message ! MailErr
@@ -127,7 +127,7 @@ The header and body of msg (mail.ReadMessage), with Go's errors
 
 [Source: `std/mail.xo:38`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L38)
 
-### parse_date
+### parse_date {#parse_date}
 
 ```xo
 fn parse_date(s: Str) -> Time ! MailErr
@@ -139,7 +139,7 @@ years, no seconds, zone names, comments).
 
 [Source: `std/mail.xo:44`](https://github.com/xo-lang/xo/blob/main/std/mail.xo#L44)
 
-### compose
+### compose {#compose}
 
 ```xo
 fn compose(from: Address, to: List[Address], subject: Str, text: Str, html: Str? = None, date: Time, id: Str) -> Bytes

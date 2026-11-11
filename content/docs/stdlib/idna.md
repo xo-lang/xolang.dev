@@ -9,16 +9,16 @@ generated: "scripts/sync-content.py from `xo doc std/idna`; edit the doc comment
 ---
 ## Index
 
-- type [`IdnaErr`](#idnaerr)
-  - method [`IdnaErr.display`](#idnaerrdisplay)
-- type [`Profile`](#profile)
+- type [`IdnaErr`](#IdnaErr)
+  - method [`IdnaErr.display`](#IdnaErr.display)
+- type [`Profile`](#Profile)
 - fn [`unicode_version`](#unicode_version)
 - fn [`to_ascii`](#to_ascii)
 - fn [`to_unicode`](#to_unicode)
 
 ## Types
 
-### IdnaErr
+### IdnaErr {#IdnaErr}
 
 ```xo
 struct IdnaErr {
@@ -34,7 +34,7 @@ for example `idna: invalid label "-a"`.
 
 [Source: `std/idna.xo:9`](https://github.com/xo-lang/xo/blob/main/std/idna.xo#L9)
 
-#### IdnaErr.display
+#### IdnaErr.display {#IdnaErr.display}
 
 ```xo
 fn (e: IdnaErr) display() -> Str
@@ -42,7 +42,7 @@ fn (e: IdnaErr) display() -> Str
 
 [Source: `std/idna.xo:14`](https://github.com/xo-lang/xo/blob/main/std/idna.xo#L14)
 
-### Profile
+### Profile {#Profile}
 
 ```xo
 enum Profile {
@@ -59,7 +59,7 @@ x/net/idna's profiles.
 
 ## Functions
 
-### unicode_version
+### unicode_version {#unicode_version}
 
 ```xo
 fn unicode_version() -> Str
@@ -69,7 +69,7 @@ The Unicode version of the tables (`15.0.0`).
 
 [Source: `std/idna.xo:32`](https://github.com/xo-lang/xo/blob/main/std/idna.xo#L32)
 
-### to_ascii
+### to_ascii {#to_ascii}
 
 ```xo
 fn to_ascii(domain: Str, p: Profile = Profile.Lookup) -> Str ! IdnaErr
@@ -80,7 +80,7 @@ The ASCII form of a domain name: each label that is not ASCII becomes
 
 [Source: `std/idna.xo:36`](https://github.com/xo-lang/xo/blob/main/std/idna.xo#L36)
 
-### to_unicode
+### to_unicode {#to_unicode}
 
 ```xo
 fn to_unicode(domain: Str, p: Profile = Profile.Lookup) -> Str ! IdnaErr

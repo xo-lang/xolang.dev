@@ -9,17 +9,17 @@ generated: "scripts/sync-content.py from `xo doc std/htmlparse`; edit the doc co
 ---
 ## Index
 
-- type [`NodeType`](#nodetype)
-- type [`Attr`](#attr)
-- type [`Node`](#node)
-- type [`Tree`](#tree)
-  - method [`Tree.render`](#treerender)
-  - method [`Tree.render_node`](#treerender_node)
-  - method [`Tree.dump`](#treedump)
-- type [`ParseErr`](#parseerr)
-  - method [`ParseErr.display`](#parseerrdisplay)
-- type [`RenderErr`](#rendererr)
-  - method [`RenderErr.display`](#rendererrdisplay)
+- type [`NodeType`](#NodeType)
+- type [`Attr`](#Attr)
+- type [`Node`](#Node)
+- type [`Tree`](#Tree)
+  - method [`Tree.render`](#Tree.render)
+  - method [`Tree.render_node`](#Tree.render_node)
+  - method [`Tree.dump`](#Tree.dump)
+- type [`ParseErr`](#ParseErr)
+  - method [`ParseErr.display`](#ParseErr.display)
+- type [`RenderErr`](#RenderErr)
+  - method [`RenderErr.display`](#RenderErr.display)
 - fn [`parse`](#parse)
 - fn [`parse_with`](#parse_with)
 - fn [`parse_fragment`](#parse_fragment)
@@ -28,7 +28,7 @@ generated: "scripts/sync-content.py from `xo doc std/htmlparse`; edit the doc co
 
 ## Types
 
-### NodeType
+### NodeType {#NodeType}
 
 ```xo
 enum NodeType {
@@ -46,7 +46,7 @@ Go's html.NodeType (without the internal scope marker).
 
 [Source: `std/htmlparse.xo:13`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L13)
 
-### Attr
+### Attr {#Attr}
 
 ```xo
 struct Attr {
@@ -61,7 +61,7 @@ attributes (`xlink`, `xml`, `xmlns`).
 
 [Source: `std/htmlparse.xo:25`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L25)
 
-### Node
+### Node {#Node}
 
 ```xo
 struct Node {
@@ -85,7 +85,7 @@ indexes into `Tree.nodes`, -1 for none.
 
 [Source: `std/htmlparse.xo:36`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L36)
 
-### Tree
+### Tree {#Tree}
 
 ```xo
 struct Tree {
@@ -100,7 +100,7 @@ takes its nodes from).
 
 [Source: `std/htmlparse.xo:51`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L51)
 
-#### Tree.render
+#### Tree.render {#Tree.render}
 
 ```xo
 fn (t: Tree) render() -> Str ! RenderErr
@@ -110,7 +110,7 @@ html.Render of the whole result: the children of `root` in order.
 
 [Source: `std/htmlparse.xo:84`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L84)
 
-#### Tree.render_node
+#### Tree.render_node {#Tree.render_node}
 
 ```xo
 fn (t: Tree) render_node(n: Int) -> Str ! RenderErr
@@ -120,7 +120,7 @@ html.Render of one node (a document renders its children).
 
 [Source: `std/htmlparse.xo:86`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L86)
 
-#### Tree.dump
+#### Tree.dump {#Tree.dump}
 
 ```xo
 fn (t: Tree) dump() -> Str
@@ -132,7 +132,7 @@ template).
 
 [Source: `std/htmlparse.xo:90`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L90)
 
-### ParseErr
+### ParseErr {#ParseErr}
 
 ```xo
 struct ParseErr {
@@ -145,7 +145,7 @@ panic text), or the tokenizer's buffer limit.
 
 [Source: `std/htmlparse.xo:58`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L58)
 
-#### ParseErr.display
+#### ParseErr.display {#ParseErr.display}
 
 ```xo
 fn (e: ParseErr) display() -> Str
@@ -153,7 +153,7 @@ fn (e: ParseErr) display() -> Str
 
 [Source: `std/htmlparse.xo:62`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L62)
 
-### RenderErr
+### RenderErr {#RenderErr}
 
 ```xo
 struct RenderErr {
@@ -166,7 +166,7 @@ doctype identifier with both quote types.
 
 [Source: `std/htmlparse.xo:66`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L66)
 
-#### RenderErr.display
+#### RenderErr.display {#RenderErr.display}
 
 ```xo
 fn (e: RenderErr) display() -> Str
@@ -176,7 +176,7 @@ fn (e: RenderErr) display() -> Str
 
 ## Functions
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(text: Str) -> Tree ! ParseErr
@@ -186,7 +186,7 @@ html.Parse: the document of `text` (UTF-8), scripting enabled.
 
 [Source: `std/htmlparse.xo:73`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L73)
 
-### parse_with
+### parse_with {#parse_with}
 
 ```xo
 fn parse_with(text: Str, scripting: Bool) -> Tree ! ParseErr
@@ -196,7 +196,7 @@ html.ParseWithOptions with ParseOptionEnableScripting(scripting).
 
 [Source: `std/htmlparse.xo:75`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L75)
 
-### parse_fragment
+### parse_fragment {#parse_fragment}
 
 ```xo
 fn parse_fragment(text: Str, context_namespace: Str, context_tag: Str) -> Tree ! ParseErr
@@ -208,7 +208,7 @@ document. The nodes are the children of the result's `root`.
 
 [Source: `std/htmlparse.xo:79`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L79)
 
-### parse_fragment_with
+### parse_fragment_with {#parse_fragment_with}
 
 ```xo
 fn parse_fragment_with(text: Str, context_namespace: Str, context_tag: Str, scripting: Bool) -> Tree ! ParseErr
@@ -218,7 +218,7 @@ html.ParseFragmentWithOptions with the scripting flag.
 
 [Source: `std/htmlparse.xo:81`](https://github.com/xo-lang/xo/blob/main/std/htmlparse.xo#L81)
 
-### escape
+### escape {#escape}
 
 ```xo
 fn escape(s: Str) -> Str

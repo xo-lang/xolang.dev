@@ -9,17 +9,17 @@ generated: "scripts/sync-content.py from `xo doc std/toml`; edit the doc comment
 ---
 ## Index
 
-- type [`TomlErr`](#tomlerr)
-  - method [`TomlErr.display`](#tomlerrdisplay)
-- type [`DecodeErr`](#decodeerr)
-  - method [`DecodeErr.display`](#decodeerrdisplay)
+- type [`TomlErr`](#TomlErr)
+  - method [`TomlErr.display`](#TomlErr.display)
+- type [`DecodeErr`](#DecodeErr)
+  - method [`DecodeErr.display`](#DecodeErr.display)
 - fn [`decode`](#decode)
 - fn [`to_json`](#to_json)
 - fn [`encode`](#encode)
 
 ## Types
 
-### TomlErr
+### TomlErr {#TomlErr}
 
 ```xo
 struct TomlErr {
@@ -33,7 +33,7 @@ has line 0 and displays as `toml: msg`.
 
 [Source: `std/toml.xo:10`](https://github.com/xo-lang/xo/blob/main/std/toml.xo#L10)
 
-#### TomlErr.display
+#### TomlErr.display {#TomlErr.display}
 
 ```xo
 fn (e: TomlErr) display() -> Str
@@ -41,7 +41,7 @@ fn (e: TomlErr) display() -> Str
 
 [Source: `std/toml.xo:15`](https://github.com/xo-lang/xo/blob/main/std/toml.xo#L15)
 
-### DecodeErr
+### DecodeErr {#DecodeErr}
 
 ```xo
 enum DecodeErr {
@@ -54,7 +54,7 @@ Why decode failed: the text is not TOML, or its values do not fit T.
 
 [Source: `std/toml.xo:34`](https://github.com/xo-lang/xo/blob/main/std/toml.xo#L34)
 
-#### DecodeErr.display
+#### DecodeErr.display {#DecodeErr.display}
 
 ```xo
 fn (e: DecodeErr) display() -> Str
@@ -64,7 +64,7 @@ fn (e: DecodeErr) display() -> Str
 
 ## Functions
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode[T: Json](text: Str) -> T ! DecodeErr
@@ -75,7 +75,7 @@ that is not valid TOML is TomlErr.
 
 [Source: `std/toml.xo:19`](https://github.com/xo-lang/xo/blob/main/std/toml.xo#L19)
 
-### to_json
+### to_json {#to_json}
 
 ```xo
 fn to_json(text: Str) -> Str ! TomlErr
@@ -85,7 +85,7 @@ The document as JSON text, its keys in document order.
 
 [Source: `std/toml.xo:21`](https://github.com/xo-lang/xo/blob/main/std/toml.xo#L21)
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode[T: Json](v: T) -> Str ! TomlErr

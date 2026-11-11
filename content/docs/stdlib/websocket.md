@@ -9,29 +9,29 @@ generated: "scripts/sync-content.py from `xo doc std/websocket`; edit the doc co
 ---
 ## Index
 
-- type [`Message`](#message)
-- type [`Kind`](#kind)
-- type [`WsErr`](#wserr)
-  - method [`WsErr.display`](#wserrdisplay)
-- type [`WsConn`](#wsconn)
-  - method [`WsConn.read`](#wsconnread)
-  - method [`WsConn.write`](#wsconnwrite)
-  - method [`WsConn.write_text`](#wsconnwrite_text)
-  - method [`WsConn.ping`](#wsconnping)
-  - method [`WsConn.close`](#wsconnclose)
-  - method [`WsConn.subprotocol`](#wsconnsubprotocol)
-  - method [`WsConn.set_deadline`](#wsconnset_deadline)
-  - method [`WsConn.set_read_deadline`](#wsconnset_read_deadline)
-  - method [`WsConn.set_write_deadline`](#wsconnset_write_deadline)
-  - method [`WsConn.on_ping`](#wsconnon_ping)
-  - method [`WsConn.on_pong`](#wsconnon_pong)
-  - method [`WsConn.pong`](#wsconnpong)
+- type [`Message`](#Message)
+- type [`Kind`](#Kind)
+- type [`WsErr`](#WsErr)
+  - method [`WsErr.display`](#WsErr.display)
+- type [`WsConn`](#WsConn)
+  - method [`WsConn.read`](#WsConn.read)
+  - method [`WsConn.write`](#WsConn.write)
+  - method [`WsConn.write_text`](#WsConn.write_text)
+  - method [`WsConn.ping`](#WsConn.ping)
+  - method [`WsConn.close`](#WsConn.close)
+  - method [`WsConn.subprotocol`](#WsConn.subprotocol)
+  - method [`WsConn.set_deadline`](#WsConn.set_deadline)
+  - method [`WsConn.set_read_deadline`](#WsConn.set_read_deadline)
+  - method [`WsConn.set_write_deadline`](#WsConn.set_write_deadline)
+  - method [`WsConn.on_ping`](#WsConn.on_ping)
+  - method [`WsConn.on_pong`](#WsConn.on_pong)
+  - method [`WsConn.pong`](#WsConn.pong)
 - fn [`upgrade`](#upgrade)
 - fn [`dial`](#dial)
 
 ## Types
 
-### Message
+### Message {#Message}
 
 ```xo
 struct Message {
@@ -45,7 +45,7 @@ UTF-8).
 
 [Source: `std/websocket.xo:9`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L9)
 
-### Kind
+### Kind {#Kind}
 
 ```xo
 enum Kind {
@@ -56,7 +56,7 @@ enum Kind {
 
 [Source: `std/websocket.xo:14`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L14)
 
-### WsErr
+### WsErr {#WsErr}
 
 ```xo
 enum WsErr {
@@ -75,7 +75,7 @@ gorilla's errors: `websocket: close 1001 (going away): bye`,
 
 [Source: `std/websocket.xo:23`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L23)
 
-#### WsErr.display
+#### WsErr.display {#WsErr.display}
 
 ```xo
 fn (e: WsErr) display() -> Str
@@ -83,7 +83,7 @@ fn (e: WsErr) display() -> Str
 
 [Source: `std/websocket.xo:38`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L38)
 
-### WsConn
+### WsConn {#WsConn}
 
 ```xo
 struct WsConn {}
@@ -94,7 +94,7 @@ writes; writes are whole messages, one at a time.
 
 [Source: `std/websocket.xo:42`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L42)
 
-#### WsConn.read
+#### WsConn.read {#WsConn.read}
 
 ```xo
 fn (c: WsConn) read() -> Message ! WsErr
@@ -105,7 +105,7 @@ skipped; a close frame is answered and is `Closed`.
 
 [Source: `std/websocket.xo:46`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L46)
 
-#### WsConn.write
+#### WsConn.write {#WsConn.write}
 
 ```xo
 fn (c: WsConn) write(m: Message) -> () ! WsErr
@@ -113,7 +113,7 @@ fn (c: WsConn) write(m: Message) -> () ! WsErr
 
 [Source: `std/websocket.xo:47`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L47)
 
-#### WsConn.write_text
+#### WsConn.write_text {#WsConn.write_text}
 
 ```xo
 fn (c: WsConn) write_text(s: Str) -> () ! WsErr
@@ -121,7 +121,7 @@ fn (c: WsConn) write_text(s: Str) -> () ! WsErr
 
 [Source: `std/websocket.xo:48`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L48)
 
-#### WsConn.ping
+#### WsConn.ping {#WsConn.ping}
 
 ```xo
 fn (c: WsConn) ping(data: Bytes = b"") -> () ! WsErr
@@ -129,7 +129,7 @@ fn (c: WsConn) ping(data: Bytes = b"") -> () ! WsErr
 
 [Source: `std/websocket.xo:49`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L49)
 
-#### WsConn.close
+#### WsConn.close {#WsConn.close}
 
 ```xo
 fn (c: WsConn) close(code: Int = 1000, reason: Str = "") -> () ! WsErr
@@ -140,7 +140,7 @@ the connection; later writes fail.
 
 [Source: `std/websocket.xo:52`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L52)
 
-#### WsConn.subprotocol
+#### WsConn.subprotocol {#WsConn.subprotocol}
 
 ```xo
 fn (c: WsConn) subprotocol() -> Str
@@ -150,7 +150,7 @@ The subprotocol the server chose ("" for none).
 
 [Source: `std/websocket.xo:54`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L54)
 
-#### WsConn.set_deadline
+#### WsConn.set_deadline {#WsConn.set_deadline}
 
 ```xo
 fn (c: WsConn) set_deadline(clock: Clock, t: Time?) uses clock
@@ -162,7 +162,7 @@ Net(Timeout), and the connection stays failed. None clears it.
 
 [Source: `std/websocket.xo:58`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L58)
 
-#### WsConn.set_read_deadline
+#### WsConn.set_read_deadline {#WsConn.set_read_deadline}
 
 ```xo
 fn (c: WsConn) set_read_deadline(clock: Clock, t: Time?) uses clock
@@ -170,7 +170,7 @@ fn (c: WsConn) set_read_deadline(clock: Clock, t: Time?) uses clock
 
 [Source: `std/websocket.xo:59`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L59)
 
-#### WsConn.set_write_deadline
+#### WsConn.set_write_deadline {#WsConn.set_write_deadline}
 
 ```xo
 fn (c: WsConn) set_write_deadline(clock: Clock, t: Time?) uses clock
@@ -178,7 +178,7 @@ fn (c: WsConn) set_write_deadline(clock: Clock, t: Time?) uses clock
 
 [Source: `std/websocket.xo:60`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L60)
 
-#### WsConn.on_ping
+#### WsConn.on_ping {#WsConn.on_ping}
 
 ```xo
 fn (c: WsConn) on_ping[fx: Effects](f: fn(Bytes) -> () uses fx) uses fx
@@ -191,7 +191,7 @@ read().
 
 [Source: `std/websocket.xo:65`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L65)
 
-#### WsConn.on_pong
+#### WsConn.on_pong {#WsConn.on_pong}
 
 ```xo
 fn (c: WsConn) on_pong[fx: Effects](f: fn(Bytes) -> () uses fx) uses fx
@@ -202,7 +202,7 @@ read() reads (a keepalive moves the read deadline here).
 
 [Source: `std/websocket.xo:68`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L68)
 
-#### WsConn.pong
+#### WsConn.pong {#WsConn.pong}
 
 ```xo
 fn (c: WsConn) pong(data: Bytes = b"") -> () ! WsErr
@@ -214,7 +214,7 @@ A pong control frame, as gorilla's WriteControl(PongMessage).
 
 ## Functions
 
-### upgrade
+### upgrade {#upgrade}
 
 ```xo
 fn upgrade[fx: Effects](req: http.Request, f: fn(WsConn) -> () uses fx, protocols: List[Str] = [], origins: List[Str] = [], max_message: Int = 1048576) -> http.Response uses fx
@@ -230,7 +230,7 @@ subprotocol.
 
 [Source: `std/websocket.xo:79`](https://github.com/xo-lang/xo/blob/main/std/websocket.xo#L79)
 
-### dial
+### dial {#dial}
 
 ```xo
 fn dial(net: Net, url: Str, headers: Map[Str, Str] = {}, protocols: List[Str] = [], max_message: Int = 1048576, roots: Bytes = b"") -> WsConn ! WsErr uses net.dial

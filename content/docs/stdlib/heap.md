@@ -9,23 +9,23 @@ generated: "scripts/sync-content.py from `xo doc std/heap`; edit the doc comment
 ---
 ## Index
 
-- type [`Heap`](#heap)
-  - method [`Heap.push`](#heappush)
-  - method [`Heap.pop`](#heappop)
-  - method [`Heap.peek`](#heappeek)
-  - method [`Heap.get`](#heapget)
-  - method [`Heap.remove`](#heapremove)
-  - method [`Heap.fix`](#heapfix)
-  - method [`Heap.len`](#heaplen)
-  - method [`Heap.is_empty`](#heapis_empty)
-  - method [`Heap.to_list`](#heapto_list)
+- type [`Heap`](#Heap)
+  - method [`Heap.push`](#Heap.push)
+  - method [`Heap.pop`](#Heap.pop)
+  - method [`Heap.peek`](#Heap.peek)
+  - method [`Heap.get`](#Heap.get)
+  - method [`Heap.remove`](#Heap.remove)
+  - method [`Heap.fix`](#Heap.fix)
+  - method [`Heap.len`](#Heap.len)
+  - method [`Heap.is_empty`](#Heap.is_empty)
+  - method [`Heap.to_list`](#Heap.to_list)
 - fn [`new`](#new)
 - fn [`tracked`](#tracked)
 - fn [`from_list`](#from_list)
 
 ## Types
 
-### Heap
+### Heap {#Heap}
 
 ```xo
 struct Heap[T] {
@@ -41,7 +41,7 @@ of them is written. Equal elements come out in no particular order.
 
 [Source: `std/heap.xo:11`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L11)
 
-#### Heap.push
+#### Heap.push {#Heap.push}
 
 ```xo
 fn (var h: Heap[T]) push(x: T)
@@ -51,7 +51,7 @@ Adds x in O(log n) (heap.Push).
 
 [Source: `std/heap.xo:29`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L29)
 
-#### Heap.pop
+#### Heap.pop {#Heap.pop}
 
 ```xo
 fn (var h: Heap[T]) pop() -> T?
@@ -61,7 +61,7 @@ The least element, removed, in O(log n); None when empty (heap.Pop).
 
 [Source: `std/heap.xo:31`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L31)
 
-#### Heap.peek
+#### Heap.peek {#Heap.peek}
 
 ```xo
 fn (h: Heap[T]) peek() -> T?
@@ -71,7 +71,7 @@ The least element, kept; None when empty.
 
 [Source: `std/heap.xo:33`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L33)
 
-#### Heap.get
+#### Heap.get {#Heap.get}
 
 ```xo
 fn (h: Heap[T]) get(i: Int) -> T?
@@ -81,7 +81,7 @@ The element at heap position i (0 is the least); None out of range.
 
 [Source: `std/heap.xo:35`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L35)
 
-#### Heap.remove
+#### Heap.remove {#Heap.remove}
 
 ```xo
 fn (var h: Heap[T]) remove(i: Int) -> T?
@@ -92,7 +92,7 @@ The element at position i, removed, in O(log n); None out of range
 
 [Source: `std/heap.xo:38`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L38)
 
-#### Heap.fix
+#### Heap.fix {#Heap.fix}
 
 ```xo
 fn (var h: Heap[T]) fix(i: Int, x: T)
@@ -103,7 +103,7 @@ O(log n) (heap.Fix after changing it); a fault when i is out of range.
 
 [Source: `std/heap.xo:41`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L41)
 
-#### Heap.len
+#### Heap.len {#Heap.len}
 
 ```xo
 fn (h: Heap[T]) len() -> Int
@@ -111,7 +111,7 @@ fn (h: Heap[T]) len() -> Int
 
 [Source: `std/heap.xo:42`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L42)
 
-#### Heap.is_empty
+#### Heap.is_empty {#Heap.is_empty}
 
 ```xo
 fn (h: Heap[T]) is_empty() -> Bool
@@ -119,7 +119,7 @@ fn (h: Heap[T]) is_empty() -> Bool
 
 [Source: `std/heap.xo:43`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L43)
 
-#### Heap.to_list
+#### Heap.to_list {#Heap.to_list}
 
 ```xo
 fn (h: Heap[T]) to_list() -> List[T]
@@ -131,7 +131,7 @@ The elements in heap order (the least first, the rest not sorted).
 
 ## Functions
 
-### new
+### new {#new}
 
 ```xo
 fn new[T](less: fn(T, T) -> Bool) -> Heap[T]
@@ -141,7 +141,7 @@ An empty heap; less(a, b) is true when a comes out before b.
 
 [Source: `std/heap.xo:21`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L21)
 
-### tracked
+### tracked {#tracked}
 
 ```xo
 fn tracked[T](less: fn(T, T) -> Bool, moved: fn(T, Int)) -> Heap[T]
@@ -153,7 +153,7 @@ a caller can keep the position of each element for `remove` and `fix`.
 
 [Source: `std/heap.xo:25`](https://github.com/xo-lang/xo/blob/main/std/heap.xo#L25)
 
-### from_list
+### from_list {#from_list}
 
 ```xo
 fn from_list[T](items: List[T], less: fn(T, T) -> Bool) -> Heap[T]

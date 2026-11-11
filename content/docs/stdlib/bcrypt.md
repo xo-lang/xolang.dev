@@ -9,18 +9,18 @@ generated: "scripts/sync-content.py from `xo doc std/bcrypt`; edit the doc comme
 ---
 ## Index
 
-- const [`MIN_COST`](#min_cost)
-- const [`MAX_COST`](#max_cost)
-- const [`DEFAULT_COST`](#default_cost)
-- type [`BcryptErr`](#bcrypterr)
-  - method [`BcryptErr.display`](#bcrypterrdisplay)
+- const [`MIN_COST`](#MIN_COST)
+- const [`MAX_COST`](#MAX_COST)
+- const [`DEFAULT_COST`](#DEFAULT_COST)
+- type [`BcryptErr`](#BcryptErr)
+  - method [`BcryptErr.display`](#BcryptErr.display)
 - fn [`hash`](#hash)
 - fn [`compare`](#compare)
 - fn [`cost`](#cost)
 
 ## Constants
 
-### MIN_COST
+### MIN_COST {#MIN_COST}
 
 ```xo
 const MIN_COST: Int = 4
@@ -31,7 +31,7 @@ The lowest cost `hash` accepts; a lower one is replaced by DEFAULT_COST
 
 [Source: `std/bcrypt.xo:11`](https://github.com/xo-lang/xo/blob/main/std/bcrypt.xo#L11)
 
-### MAX_COST
+### MAX_COST {#MAX_COST}
 
 ```xo
 const MAX_COST: Int = 31
@@ -41,7 +41,7 @@ The highest cost (Go's MaxCost).
 
 [Source: `std/bcrypt.xo:13`](https://github.com/xo-lang/xo/blob/main/std/bcrypt.xo#L13)
 
-### DEFAULT_COST
+### DEFAULT_COST {#DEFAULT_COST}
 
 ```xo
 const DEFAULT_COST: Int = 10
@@ -54,7 +54,7 @@ DefaultCost).
 
 ## Types
 
-### BcryptErr
+### BcryptErr {#BcryptErr}
 
 ```xo
 enum BcryptErr {
@@ -79,7 +79,7 @@ cost or salt that is not valid text (Go's strconv and base64 errors).
 
 [Source: `std/bcrypt.xo:26`](https://github.com/xo-lang/xo/blob/main/std/bcrypt.xo#L26)
 
-#### BcryptErr.display
+#### BcryptErr.display {#BcryptErr.display}
 
 ```xo
 fn (e: BcryptErr) display() -> Str
@@ -89,7 +89,7 @@ fn (e: BcryptErr) display() -> Str
 
 ## Functions
 
-### hash
+### hash {#hash}
 
 ```xo
 fn hash(password: Bytes, rand: Rand, cost: Int = 10) -> Str ! BcryptErr uses rand
@@ -102,7 +102,7 @@ is `PasswordTooLong`.
 
 [Source: `std/bcrypt.xo:42`](https://github.com/xo-lang/xo/blob/main/std/bcrypt.xo#L42)
 
-### compare
+### compare {#compare}
 
 ```xo
 fn compare(hashed: Str, password: Bytes) -> () ! BcryptErr
@@ -115,7 +115,7 @@ takes the same time wherever they differ.
 
 [Source: `std/bcrypt.xo:47`](https://github.com/xo-lang/xo/blob/main/std/bcrypt.xo#L47)
 
-### cost
+### cost {#cost}
 
 ```xo
 fn cost(hashed: Str) -> Int ! BcryptErr

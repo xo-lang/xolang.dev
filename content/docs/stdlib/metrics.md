@@ -9,63 +9,63 @@ generated: "scripts/sync-content.py from `xo doc std/metrics`; edit the doc comm
 ---
 ## Index
 
-- type [`Series`](#series)
-- type [`QSample`](#qsample)
-- type [`QStream`](#qstream)
-- type [`QState`](#qstate)
-- type [`Sample`](#sample)
-- type [`Kind`](#kind)
-- type [`Family`](#family)
-- type [`Registry`](#registry)
-  - method [`Registry.counter`](#registrycounter)
-  - method [`Registry.gauge`](#registrygauge)
-  - method [`Registry.histogram`](#registryhistogram)
-  - method [`Registry.summary`](#registrysummary)
-  - method [`Registry.gauge_func`](#registrygauge_func)
-  - method [`Registry.counter_func`](#registrycounter_func)
-  - method [`Registry.collector`](#registrycollector)
-  - method [`Registry.text`](#registrytext)
-  - method [`Registry.handler`](#registryhandler)
-  - method [`Registry.handler_at`](#registryhandler_at)
-  - method [`Registry.middleware`](#registrymiddleware)
-- type [`Counter`](#counter)
-  - method [`Counter.inc`](#counterinc)
-  - method [`Counter.add`](#counteradd)
-  - method [`Counter.child`](#counterchild)
-  - method [`Counter.remove`](#counterremove)
-  - method [`Counter.reset`](#counterreset)
-- type [`Gauge`](#gauge)
-  - method [`Gauge.set`](#gaugeset)
-  - method [`Gauge.add`](#gaugeadd)
-  - method [`Gauge.child`](#gaugechild)
-  - method [`Gauge.remove`](#gaugeremove)
-  - method [`Gauge.reset`](#gaugereset)
-- type [`Histogram`](#histogram)
-  - method [`Histogram.observe`](#histogramobserve)
-  - method [`Histogram.child`](#histogramchild)
-  - method [`Histogram.remove`](#histogramremove)
-  - method [`Histogram.reset`](#histogramreset)
-- type [`Summary`](#summary)
-  - method [`Summary.child`](#summarychild)
-  - method [`Summary.observe`](#summaryobserve)
-  - method [`Summary.remove`](#summaryremove)
-  - method [`Summary.reset`](#summaryreset)
-- type [`CounterChild`](#counterchild)
-  - method [`CounterChild.inc`](#counterchildinc)
-  - method [`CounterChild.add`](#counterchildadd)
-- type [`GaugeChild`](#gaugechild)
-  - method [`GaugeChild.set`](#gaugechildset)
-  - method [`GaugeChild.add`](#gaugechildadd)
-- type [`HistogramChild`](#histogramchild)
-  - method [`HistogramChild.observe`](#histogramchildobserve)
-- type [`SummaryChild`](#summarychild)
-  - method [`SummaryChild.observe`](#summarychildobserve)
+- type [`Series`](#Series)
+- type [`QSample`](#QSample)
+- type [`QStream`](#QStream)
+- type [`QState`](#QState)
+- type [`Sample`](#Sample)
+- type [`Kind`](#Kind)
+- type [`Family`](#Family)
+- type [`Registry`](#Registry)
+  - method [`Registry.counter`](#Registry.counter)
+  - method [`Registry.gauge`](#Registry.gauge)
+  - method [`Registry.histogram`](#Registry.histogram)
+  - method [`Registry.summary`](#Registry.summary)
+  - method [`Registry.gauge_func`](#Registry.gauge_func)
+  - method [`Registry.counter_func`](#Registry.counter_func)
+  - method [`Registry.collector`](#Registry.collector)
+  - method [`Registry.text`](#Registry.text)
+  - method [`Registry.handler`](#Registry.handler)
+  - method [`Registry.handler_at`](#Registry.handler_at)
+  - method [`Registry.middleware`](#Registry.middleware)
+- type [`Counter`](#Counter)
+  - method [`Counter.inc`](#Counter.inc)
+  - method [`Counter.add`](#Counter.add)
+  - method [`Counter.child`](#Counter.child)
+  - method [`Counter.remove`](#Counter.remove)
+  - method [`Counter.reset`](#Counter.reset)
+- type [`Gauge`](#Gauge)
+  - method [`Gauge.set`](#Gauge.set)
+  - method [`Gauge.add`](#Gauge.add)
+  - method [`Gauge.child`](#Gauge.child)
+  - method [`Gauge.remove`](#Gauge.remove)
+  - method [`Gauge.reset`](#Gauge.reset)
+- type [`Histogram`](#Histogram)
+  - method [`Histogram.observe`](#Histogram.observe)
+  - method [`Histogram.child`](#Histogram.child)
+  - method [`Histogram.remove`](#Histogram.remove)
+  - method [`Histogram.reset`](#Histogram.reset)
+- type [`Summary`](#Summary)
+  - method [`Summary.child`](#Summary.child)
+  - method [`Summary.observe`](#Summary.observe)
+  - method [`Summary.remove`](#Summary.remove)
+  - method [`Summary.reset`](#Summary.reset)
+- type [`CounterChild`](#CounterChild)
+  - method [`CounterChild.inc`](#CounterChild.inc)
+  - method [`CounterChild.add`](#CounterChild.add)
+- type [`GaugeChild`](#GaugeChild)
+  - method [`GaugeChild.set`](#GaugeChild.set)
+  - method [`GaugeChild.add`](#GaugeChild.add)
+- type [`HistogramChild`](#HistogramChild)
+  - method [`HistogramChild.observe`](#HistogramChild.observe)
+- type [`SummaryChild`](#SummaryChild)
+  - method [`SummaryChild.observe`](#SummaryChild.observe)
 - fn [`registry`](#registry)
 - fn [`latency_buckets`](#latency_buckets)
 
 ## Types
 
-### Series
+### Series {#Series}
 
 ```xo
 struct Series {
@@ -84,7 +84,7 @@ instruments.
 
 [Source: `std/metrics.xo:14`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L14)
 
-### QSample
+### QSample {#QSample}
 
 ```xo
 struct QSample {
@@ -100,7 +100,7 @@ the count. Internal.
 
 [Source: `std/metrics.xo:24`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L24)
 
-### QStream
+### QStream {#QStream}
 
 ```xo
 struct QStream {
@@ -112,7 +112,7 @@ struct QStream {
 
 [Source: `std/metrics.xo:29`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L29)
 
-### QState
+### QState {#QState}
 
 ```xo
 struct QState {
@@ -131,7 +131,7 @@ out. Internal.
 
 [Source: `std/metrics.xo:38`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L38)
 
-### Sample
+### Sample {#Sample}
 
 ```xo
 struct Sample {
@@ -145,7 +145,7 @@ value (decision 0411).
 
 [Source: `std/metrics.xo:51`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L51)
 
-### Kind
+### Kind {#Kind}
 
 ```xo
 enum Kind { Counter, Gauge }
@@ -155,7 +155,7 @@ The kind of a collector's series.
 
 [Source: `std/metrics.xo:57`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L57)
 
-### Family
+### Family {#Family}
 
 ```xo
 struct Family {
@@ -179,7 +179,7 @@ objectives, max_age_ms and age_buckets: a summary's. Internal.
 
 [Source: `std/metrics.xo:62`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L62)
 
-### Registry
+### Registry {#Registry}
 
 ```xo
 struct Registry {
@@ -192,7 +192,7 @@ A set of instruments. Cloning shares it. Its fields are internal.
 
 [Source: `std/metrics.xo:77`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L77)
 
-#### Registry.counter
+#### Registry.counter {#Registry.counter}
 
 ```xo
 fn (r: Registry) counter(name: Str, help: Str, labels: List[Str] = []) -> Counter
@@ -206,7 +206,7 @@ found at start.
 
 [Source: `std/metrics.xo:133`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L133)
 
-#### Registry.gauge
+#### Registry.gauge {#Registry.gauge}
 
 ```xo
 fn (r: Registry) gauge(name: Str, help: Str, labels: List[Str] = []) -> Gauge
@@ -214,7 +214,7 @@ fn (r: Registry) gauge(name: Str, help: Str, labels: List[Str] = []) -> Gauge
 
 [Source: `std/metrics.xo:134`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L134)
 
-#### Registry.histogram
+#### Registry.histogram {#Registry.histogram}
 
 ```xo
 fn (r: Registry) histogram(name: Str, help: Str, labels: List[Str] = [], buckets: List[Float] = latency_buckets()) -> Histogram
@@ -222,7 +222,7 @@ fn (r: Registry) histogram(name: Str, help: Str, labels: List[Str] = [], buckets
 
 [Source: `std/metrics.xo:135`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L135)
 
-#### Registry.summary
+#### Registry.summary {#Registry.summary}
 
 ```xo
 fn (r: Registry) summary(name: Str, help: Str, labels: List[Str] = [], objectives: List[(Float, Float)] = [], max_age: Duration = 10m, age_buckets: Int = 5) -> Summary
@@ -237,7 +237,7 @@ never scraped with a time keeps every observation.
 
 [Source: `std/metrics.xo:170`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L170)
 
-#### Registry.gauge_func
+#### Registry.gauge_func {#Registry.gauge_func}
 
 ```xo
 fn (r: Registry) gauge_func(name: Str, help: Str, f: fn() -> Float)
@@ -248,7 +248,7 @@ CounterFunc).
 
 [Source: `std/metrics.xo:175`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L175)
 
-#### Registry.counter_func
+#### Registry.counter_func {#Registry.counter_func}
 
 ```xo
 fn (r: Registry) counter_func(name: Str, help: Str, f: fn() -> Float)
@@ -256,7 +256,7 @@ fn (r: Registry) counter_func(name: Str, help: Str, f: fn() -> Float)
 
 [Source: `std/metrics.xo:176`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L176)
 
-#### Registry.collector
+#### Registry.collector {#Registry.collector}
 
 ```xo
 fn (r: Registry) collector(name: Str, help: Str, kind: Kind, labels: List[Str], f: fn() -> List[Sample])
@@ -267,7 +267,7 @@ one Sample per series, its values one per label.
 
 [Source: `std/metrics.xo:179`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L179)
 
-#### Registry.text
+#### Registry.text {#Registry.text}
 
 ```xo
 fn (r: Registry) text(now: Time? = None) -> Str
@@ -280,7 +280,7 @@ values, histograms as cumulative `_bucket{le=...}`, `_sum` and
 
 [Source: `std/metrics.xo:197`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L197)
 
-#### Registry.handler
+#### Registry.handler {#Registry.handler}
 
 ```xo
 fn (r: Registry) handler() -> fn(http.Request) -> http.Response
@@ -291,7 +291,7 @@ A handler answering `text()` as `text/plain; version=0.0.4`:
 
 [Source: `std/metrics.xo:200`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L200)
 
-#### Registry.handler_at
+#### Registry.handler_at {#Registry.handler_at}
 
 ```xo
 fn (r: Registry) handler_at(clock: Clock) -> fn(http.Request) -> http.Response uses clock
@@ -301,7 +301,7 @@ handler, each scrape passing the clock's time to text (summaries age).
 
 [Source: `std/metrics.xo:202`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L202)
 
-#### Registry.middleware
+#### Registry.middleware {#Registry.middleware}
 
 ```xo
 fn (r: Registry) middleware(clock: Clock, label: fn(http.Request) -> Str) -> fn(http.Request, http.Next) -> http.Response uses clock
@@ -316,7 +316,7 @@ or the path with ids cut), never the raw path of an API with ids.
 
 [Source: `std/metrics.xo:210`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L210)
 
-### Counter
+### Counter {#Counter}
 
 ```xo
 struct Counter {
@@ -328,7 +328,7 @@ A value that only goes up.
 
 [Source: `std/metrics.xo:87`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L87)
 
-#### Counter.inc
+#### Counter.inc {#Counter.inc}
 
 ```xo
 fn (c: Counter) inc(values: List[Str] = [])
@@ -342,7 +342,7 @@ a new series past it is dropped and counted in
 
 [Source: `std/metrics.xo:142`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L142)
 
-#### Counter.add
+#### Counter.add {#Counter.add}
 
 ```xo
 fn (c: Counter) add(n: Float, values: List[Str] = [])
@@ -350,7 +350,7 @@ fn (c: Counter) add(n: Float, values: List[Str] = [])
 
 [Source: `std/metrics.xo:143`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L143)
 
-#### Counter.child
+#### Counter.child {#Counter.child}
 
 ```xo
 fn (c: Counter) child(values: List[Str] = []) -> CounterChild
@@ -363,7 +363,7 @@ is counted in `xo_metrics_dropped_total` as `inc` counts it.
 
 [Source: `std/metrics.xo:152`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L152)
 
-#### Counter.remove
+#### Counter.remove {#Counter.remove}
 
 ```xo
 fn (c: Counter) remove(values: List[Str]) -> Bool
@@ -374,7 +374,7 @@ there was one.
 
 [Source: `std/metrics.xo:183`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L183)
 
-#### Counter.reset
+#### Counter.reset {#Counter.reset}
 
 ```xo
 fn (c: Counter) reset()
@@ -384,7 +384,7 @@ Removes every series (Reset).
 
 [Source: `std/metrics.xo:188`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L188)
 
-### Gauge
+### Gauge {#Gauge}
 
 ```xo
 struct Gauge {
@@ -396,7 +396,7 @@ A value that goes up and down.
 
 [Source: `std/metrics.xo:91`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L91)
 
-#### Gauge.set
+#### Gauge.set {#Gauge.set}
 
 ```xo
 fn (g: Gauge) set(v: Float, values: List[Str] = [])
@@ -404,7 +404,7 @@ fn (g: Gauge) set(v: Float, values: List[Str] = [])
 
 [Source: `std/metrics.xo:144`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L144)
 
-#### Gauge.add
+#### Gauge.add {#Gauge.add}
 
 ```xo
 fn (g: Gauge) add(v: Float, values: List[Str] = [])
@@ -412,7 +412,7 @@ fn (g: Gauge) add(v: Float, values: List[Str] = [])
 
 [Source: `std/metrics.xo:145`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L145)
 
-#### Gauge.child
+#### Gauge.child {#Gauge.child}
 
 ```xo
 fn (g: Gauge) child(values: List[Str] = []) -> GaugeChild
@@ -420,7 +420,7 @@ fn (g: Gauge) child(values: List[Str] = []) -> GaugeChild
 
 [Source: `std/metrics.xo:153`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L153)
 
-#### Gauge.remove
+#### Gauge.remove {#Gauge.remove}
 
 ```xo
 fn (g: Gauge) remove(values: List[Str]) -> Bool
@@ -428,7 +428,7 @@ fn (g: Gauge) remove(values: List[Str]) -> Bool
 
 [Source: `std/metrics.xo:184`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L184)
 
-#### Gauge.reset
+#### Gauge.reset {#Gauge.reset}
 
 ```xo
 fn (g: Gauge) reset()
@@ -436,7 +436,7 @@ fn (g: Gauge) reset()
 
 [Source: `std/metrics.xo:189`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L189)
 
-### Histogram
+### Histogram {#Histogram}
 
 ```xo
 struct Histogram {
@@ -448,7 +448,7 @@ Observations counted in buckets, with their count and sum.
 
 [Source: `std/metrics.xo:95`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L95)
 
-#### Histogram.observe
+#### Histogram.observe {#Histogram.observe}
 
 ```xo
 fn (h: Histogram) observe(v: Float, values: List[Str] = [])
@@ -456,7 +456,7 @@ fn (h: Histogram) observe(v: Float, values: List[Str] = [])
 
 [Source: `std/metrics.xo:146`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L146)
 
-#### Histogram.child
+#### Histogram.child {#Histogram.child}
 
 ```xo
 fn (h: Histogram) child(values: List[Str] = []) -> HistogramChild
@@ -464,7 +464,7 @@ fn (h: Histogram) child(values: List[Str] = []) -> HistogramChild
 
 [Source: `std/metrics.xo:154`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L154)
 
-#### Histogram.remove
+#### Histogram.remove {#Histogram.remove}
 
 ```xo
 fn (h: Histogram) remove(values: List[Str]) -> Bool
@@ -472,7 +472,7 @@ fn (h: Histogram) remove(values: List[Str]) -> Bool
 
 [Source: `std/metrics.xo:185`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L185)
 
-#### Histogram.reset
+#### Histogram.reset {#Histogram.reset}
 
 ```xo
 fn (h: Histogram) reset()
@@ -480,7 +480,7 @@ fn (h: Histogram) reset()
 
 [Source: `std/metrics.xo:190`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L190)
 
-### Summary
+### Summary {#Summary}
 
 ```xo
 struct Summary {
@@ -493,7 +493,7 @@ with their count and sum.
 
 [Source: `std/metrics.xo:100`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L100)
 
-#### Summary.child
+#### Summary.child {#Summary.child}
 
 ```xo
 fn (s: Summary) child(values: List[Str] = []) -> SummaryChild
@@ -501,7 +501,7 @@ fn (s: Summary) child(values: List[Str] = []) -> SummaryChild
 
 [Source: `std/metrics.xo:155`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L155)
 
-#### Summary.observe
+#### Summary.observe {#Summary.observe}
 
 ```xo
 fn (s: Summary) observe(v: Float, values: List[Str] = [])
@@ -509,7 +509,7 @@ fn (s: Summary) observe(v: Float, values: List[Str] = [])
 
 [Source: `std/metrics.xo:171`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L171)
 
-#### Summary.remove
+#### Summary.remove {#Summary.remove}
 
 ```xo
 fn (s: Summary) remove(values: List[Str]) -> Bool
@@ -517,7 +517,7 @@ fn (s: Summary) remove(values: List[Str]) -> Bool
 
 [Source: `std/metrics.xo:186`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L186)
 
-#### Summary.reset
+#### Summary.reset {#Summary.reset}
 
 ```xo
 fn (s: Summary) reset()
@@ -525,7 +525,7 @@ fn (s: Summary) reset()
 
 [Source: `std/metrics.xo:191`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L191)
 
-### CounterChild
+### CounterChild {#CounterChild}
 
 ```xo
 struct CounterChild {
@@ -542,7 +542,7 @@ detached series (take a new one after a remove), as in client_golang.
 
 [Source: `std/metrics.xo:110`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L110)
 
-#### CounterChild.inc
+#### CounterChild.inc {#CounterChild.inc}
 
 ```xo
 fn (c: CounterChild) inc()
@@ -552,7 +552,7 @@ Adds 1 to (or n >= 0 to) the child's series.
 
 [Source: `std/metrics.xo:157`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L157)
 
-#### CounterChild.add
+#### CounterChild.add {#CounterChild.add}
 
 ```xo
 fn (c: CounterChild) add(n: Float)
@@ -560,7 +560,7 @@ fn (c: CounterChild) add(n: Float)
 
 [Source: `std/metrics.xo:158`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L158)
 
-### GaugeChild
+### GaugeChild {#GaugeChild}
 
 ```xo
 struct GaugeChild {
@@ -570,7 +570,7 @@ struct GaugeChild {
 
 [Source: `std/metrics.xo:113`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L113)
 
-#### GaugeChild.set
+#### GaugeChild.set {#GaugeChild.set}
 
 ```xo
 fn (g: GaugeChild) set(v: Float)
@@ -578,7 +578,7 @@ fn (g: GaugeChild) set(v: Float)
 
 [Source: `std/metrics.xo:159`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L159)
 
-#### GaugeChild.add
+#### GaugeChild.add {#GaugeChild.add}
 
 ```xo
 fn (g: GaugeChild) add(v: Float)
@@ -586,7 +586,7 @@ fn (g: GaugeChild) add(v: Float)
 
 [Source: `std/metrics.xo:160`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L160)
 
-### HistogramChild
+### HistogramChild {#HistogramChild}
 
 ```xo
 struct HistogramChild {
@@ -597,7 +597,7 @@ struct HistogramChild {
 
 [Source: `std/metrics.xo:116`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L116)
 
-#### HistogramChild.observe
+#### HistogramChild.observe {#HistogramChild.observe}
 
 ```xo
 fn (h: HistogramChild) observe(v: Float)
@@ -605,7 +605,7 @@ fn (h: HistogramChild) observe(v: Float)
 
 [Source: `std/metrics.xo:161`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L161)
 
-### SummaryChild
+### SummaryChild {#SummaryChild}
 
 ```xo
 struct SummaryChild {
@@ -616,7 +616,7 @@ struct SummaryChild {
 
 [Source: `std/metrics.xo:120`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L120)
 
-#### SummaryChild.observe
+#### SummaryChild.observe {#SummaryChild.observe}
 
 ```xo
 fn (s: SummaryChild) observe(v: Float)
@@ -626,7 +626,7 @@ fn (s: SummaryChild) observe(v: Float)
 
 ## Functions
 
-### registry
+### registry {#registry}
 
 ```xo
 fn registry() -> Registry
@@ -637,7 +637,7 @@ passes it to what registers or reads instruments.
 
 [Source: `std/metrics.xo:84`](https://github.com/xo-lang/xo/blob/main/std/metrics.xo#L84)
 
-### latency_buckets
+### latency_buckets {#latency_buckets}
 
 ```xo
 fn latency_buckets() -> List[Float]

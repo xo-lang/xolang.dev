@@ -9,14 +9,14 @@ generated: "scripts/sync-content.py from `xo doc std/cbor`; edit the doc comment
 ---
 ## Index
 
-- type [`Value`](#value)
-  - method [`Value.to_int`](#valueto_int)
-  - method [`Value.get`](#valueget)
-  - method [`Value.diagnostic`](#valuediagnostic)
-  - method [`Value.to_json`](#valueto_json)
-- type [`CborErr`](#cborerr)
-  - method [`CborErr.display`](#cborerrdisplay)
-- type [`Unm`](#unm)
+- type [`Value`](#Value)
+  - method [`Value.to_int`](#Value.to_int)
+  - method [`Value.get`](#Value.get)
+  - method [`Value.diagnostic`](#Value.diagnostic)
+  - method [`Value.to_json`](#Value.to_json)
+- type [`CborErr`](#CborErr)
+  - method [`CborErr.display`](#CborErr.display)
+- type [`Unm`](#Unm)
 - fn [`from_int`](#from_int)
 - fn [`encode`](#encode)
 - fn [`decode`](#decode)
@@ -58,7 +58,7 @@ generated: "scripts/sync-content.py from `xo doc std/cbor`; edit the doc comment
 
 ## Types
 
-### Value
+### Value {#Value}
 
 ```xo
 enum Value {
@@ -86,7 +86,7 @@ is a simple value other than false, true, null and undefined (n is 0 to
 
 [Source: `std/cbor.xo:15`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L15)
 
-#### Value.to_int
+#### Value.to_int {#Value.to_int}
 
 ```xo
 fn (v: Value) to_int() -> Int?
@@ -97,7 +97,7 @@ other item or a value past Int.
 
 [Source: `std/cbor.xo:56`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L56)
 
-#### Value.get
+#### Value.get {#Value.get}
 
 ```xo
 fn (v: Value) get(key: Str) -> Value?
@@ -108,7 +108,7 @@ that is not a map.
 
 [Source: `std/cbor.xo:60`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L60)
 
-#### Value.diagnostic
+#### Value.diagnostic {#Value.diagnostic}
 
 ```xo
 fn (v: Value) diagnostic() -> Str
@@ -123,7 +123,7 @@ is written as its definite value.
 
 [Source: `std/cbor.xo:88`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L88)
 
-#### Value.to_json
+#### Value.to_json {#Value.to_json}
 
 ```xo
 fn (v: Value) to_json() -> json.Value ! CborErr
@@ -140,7 +140,7 @@ not one of those kinds.
 
 [Source: `std/cbor.xo:98`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L98)
 
-### CborErr
+### CborErr {#CborErr}
 
 ```xo
 enum CborErr {
@@ -163,7 +163,7 @@ nesting than max_depth, or an item larger than the data.
 
 [Source: `std/cbor.xo:38`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L38)
 
-#### CborErr.display
+#### CborErr.display {#CborErr.display}
 
 ```xo
 fn (e: CborErr) display() -> Str
@@ -171,7 +171,7 @@ fn (e: CborErr) display() -> Str
 
 [Source: `std/cbor.xo:48`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L48)
 
-### Unm
+### Unm {#Unm}
 
 ```xo
 struct Unm {
@@ -188,7 +188,7 @@ key no field names an error.
 
 ## Functions
 
-### from_int
+### from_int {#from_int}
 
 ```xo
 fn from_int(n: Int) -> Value
@@ -199,7 +199,7 @@ below.
 
 [Source: `std/cbor.xo:52`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L52)
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(v: Value, deterministic: Bool = false) -> Bytes ! CborErr
@@ -213,7 +213,7 @@ that is not 0 to 19 or 32 to 255.
 
 [Source: `std/cbor.xo:67`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L67)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(data: Bytes, max_depth: Int = 128, reject_dup_keys: Bool = false) -> Value ! CborErr
@@ -225,7 +225,7 @@ is `Invalid`.
 
 [Source: `std/cbor.xo:72`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L72)
 
-### decode_prefix
+### decode_prefix {#decode_prefix}
 
 ```xo
 fn decode_prefix(data: Bytes, max_depth: Int = 128, reject_dup_keys: Bool = false) -> (Value, Int) ! CborErr
@@ -236,7 +236,7 @@ left for the caller (a CBOR sequence, RFC 8742).
 
 [Source: `std/cbor.xo:76`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L76)
 
-### well_formed
+### well_formed {#well_formed}
 
 ```xo
 fn well_formed(data: Bytes, max_depth: Int = 128) -> Bool
@@ -247,7 +247,7 @@ check), as RFC 8949 Section 5.3.1 defines it.
 
 [Source: `std/cbor.xo:80`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L80)
 
-### from_json
+### from_json {#from_json}
 
 ```xo
 fn from_json(j: json.Value) -> Value
@@ -259,7 +259,7 @@ with text keys. A `Trusted` value is its text.
 
 [Source: `std/cbor.xo:103`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L103)
 
-### marshal
+### marshal {#marshal}
 
 ```xo
 fn marshal[T: Cbor](v: T, deterministic: Bool = true) -> Bytes ! CborErr
@@ -271,7 +271,7 @@ for T. `deterministic` sorts map keys (section 4.2.1).
 
 [Source: `std/cbor.xo:118`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L118)
 
-### unmarshal
+### unmarshal {#unmarshal}
 
 ```xo
 fn unmarshal[T: Cbor](data: Bytes, strict: Bool = false, max_depth: Int = 128) -> T ! CborErr
@@ -281,7 +281,7 @@ fn unmarshal[T: Cbor](data: Bytes, strict: Bool = false, max_depth: Int = 128) -
 
 [Source: `std/cbor.xo:121`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L121)
 
-### unmarshal_prefix
+### unmarshal_prefix {#unmarshal_prefix}
 
 ```xo
 fn unmarshal_prefix[T: Cbor](data: Bytes, strict: Bool = false, max_depth: Int = 128) -> (T, Int) ! CborErr
@@ -291,7 +291,7 @@ The first item of `data` decoded into T, and the bytes it used.
 
 [Source: `std/cbor.xo:124`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L124)
 
-### unm_new
+### unm_new {#unm_new}
 
 ```xo
 fn unm_new(strict: Bool) -> Unm
@@ -299,7 +299,7 @@ fn unm_new(strict: Bool) -> Unm
 
 [Source: `std/cbor.xo:127`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L127)
 
-### dec_error
+### dec_error {#dec_error}
 
 ```xo
 fn dec_error(st: Unm) -> CborErr?
@@ -307,7 +307,7 @@ fn dec_error(st: Unm) -> CborErr?
 
 [Source: `std/cbor.xo:128`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L128)
 
-### is_null
+### is_null {#is_null}
 
 ```xo
 fn is_null(v: Value) -> Bool
@@ -315,7 +315,7 @@ fn is_null(v: Value) -> Bool
 
 [Source: `std/cbor.xo:129`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L129)
 
-### to_str
+### to_str {#to_str}
 
 ```xo
 fn to_str(v: Value, var st: Unm) -> (Bool, Str)
@@ -323,7 +323,7 @@ fn to_str(v: Value, var st: Unm) -> (Bool, Str)
 
 [Source: `std/cbor.xo:130`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L130)
 
-### to_int
+### to_int {#to_int}
 
 ```xo
 fn to_int(v: Value, var st: Unm) -> (Bool, Int)
@@ -331,7 +331,7 @@ fn to_int(v: Value, var st: Unm) -> (Bool, Int)
 
 [Source: `std/cbor.xo:131`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L131)
 
-### to_float
+### to_float {#to_float}
 
 ```xo
 fn to_float(v: Value, var st: Unm) -> (Bool, Float)
@@ -339,7 +339,7 @@ fn to_float(v: Value, var st: Unm) -> (Bool, Float)
 
 [Source: `std/cbor.xo:132`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L132)
 
-### to_bool
+### to_bool {#to_bool}
 
 ```xo
 fn to_bool(v: Value, var st: Unm) -> (Bool, Bool)
@@ -347,7 +347,7 @@ fn to_bool(v: Value, var st: Unm) -> (Bool, Bool)
 
 [Source: `std/cbor.xo:133`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L133)
 
-### to_bytes
+### to_bytes {#to_bytes}
 
 ```xo
 fn to_bytes(v: Value, var st: Unm) -> (Bool, Bytes)
@@ -355,7 +355,7 @@ fn to_bytes(v: Value, var st: Unm) -> (Bool, Bytes)
 
 [Source: `std/cbor.xo:134`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L134)
 
-### items
+### items {#items}
 
 ```xo
 fn items(v: Value, want: Str, var st: Unm) -> (Bool, List[Value])
@@ -363,7 +363,7 @@ fn items(v: Value, want: Str, var st: Unm) -> (Bool, List[Value])
 
 [Source: `std/cbor.xo:135`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L135)
 
-### pairs
+### pairs {#pairs}
 
 ```xo
 fn pairs(v: Value, want: Str, var st: Unm) -> (Bool, List[(Value, Value)])
@@ -371,7 +371,7 @@ fn pairs(v: Value, want: Str, var st: Unm) -> (Bool, List[(Value, Value)])
 
 [Source: `std/cbor.xo:136`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L136)
 
-### key_text
+### key_text {#key_text}
 
 ```xo
 fn key_text(k: Value) -> Str?
@@ -379,7 +379,7 @@ fn key_text(k: Value) -> Str?
 
 [Source: `std/cbor.xo:137`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L137)
 
-### key_int
+### key_int {#key_int}
 
 ```xo
 fn key_int(k: Value) -> Int?
@@ -387,7 +387,7 @@ fn key_int(k: Value) -> Int?
 
 [Source: `std/cbor.xo:138`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L138)
 
-### unknown_key
+### unknown_key {#unknown_key}
 
 ```xo
 fn unknown_key(var st: Unm, want: Str, k: Value)
@@ -395,7 +395,7 @@ fn unknown_key(var st: Unm, want: Str, k: Value)
 
 [Source: `std/cbor.xo:139`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L139)
 
-### sorted_keys
+### sorted_keys {#sorted_keys}
 
 ```xo
 fn sorted_keys(keys: List[Str]) -> List[Str]
@@ -403,7 +403,7 @@ fn sorted_keys(keys: List[Str]) -> List[Str]
 
 [Source: `std/cbor.xo:140`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L140)
 
-### to_value
+### to_value {#to_value}
 
 ```xo
 fn to_value(v: Value, var st: Unm) -> (Bool, Value)
@@ -411,7 +411,7 @@ fn to_value(v: Value, var st: Unm) -> (Bool, Value)
 
 [Source: `std/cbor.xo:141`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L141)
 
-### from_value
+### from_value {#from_value}
 
 ```xo
 fn from_value(v: Value) -> Value
@@ -419,7 +419,7 @@ fn from_value(v: Value) -> Value
 
 [Source: `std/cbor.xo:142`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L142)
 
-### to_time
+### to_time {#to_time}
 
 ```xo
 fn to_time(v: Value, var st: Unm) -> (Bool, Time)
@@ -427,7 +427,7 @@ fn to_time(v: Value, var st: Unm) -> (Bool, Time)
 
 [Source: `std/cbor.xo:143`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L143)
 
-### to_duration
+### to_duration {#to_duration}
 
 ```xo
 fn to_duration(v: Value, var st: Unm) -> (Bool, Duration)
@@ -435,7 +435,7 @@ fn to_duration(v: Value, var st: Unm) -> (Bool, Duration)
 
 [Source: `std/cbor.xo:144`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L144)
 
-### from_time
+### from_time {#from_time}
 
 ```xo
 fn from_time(t: Time) -> Value
@@ -443,7 +443,7 @@ fn from_time(t: Time) -> Value
 
 [Source: `std/cbor.xo:145`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L145)
 
-### from_duration
+### from_duration {#from_duration}
 
 ```xo
 fn from_duration(d: Duration) -> Value
@@ -451,7 +451,7 @@ fn from_duration(d: Duration) -> Value
 
 [Source: `std/cbor.xo:146`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L146)
 
-### put_head
+### put_head {#put_head}
 
 ```xo
 fn put_head(var out: BytesBuilder, major: Int, n: Int)
@@ -459,7 +459,7 @@ fn put_head(var out: BytesBuilder, major: Int, n: Int)
 
 [Source: `std/cbor.xo:149`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L149)
 
-### put_int
+### put_int {#put_int}
 
 ```xo
 fn put_int(var out: BytesBuilder, n: Int)
@@ -467,7 +467,7 @@ fn put_int(var out: BytesBuilder, n: Int)
 
 [Source: `std/cbor.xo:150`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L150)
 
-### put_float
+### put_float {#put_float}
 
 ```xo
 fn put_float(var out: BytesBuilder, f: Float)
@@ -475,7 +475,7 @@ fn put_float(var out: BytesBuilder, f: Float)
 
 [Source: `std/cbor.xo:151`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L151)
 
-### put_text
+### put_text {#put_text}
 
 ```xo
 fn put_text(var out: BytesBuilder, s: Str)
@@ -483,7 +483,7 @@ fn put_text(var out: BytesBuilder, s: Str)
 
 [Source: `std/cbor.xo:152`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L152)
 
-### put_bytes
+### put_bytes {#put_bytes}
 
 ```xo
 fn put_bytes(var out: BytesBuilder, b: Bytes)
@@ -491,7 +491,7 @@ fn put_bytes(var out: BytesBuilder, b: Bytes)
 
 [Source: `std/cbor.xo:153`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L153)
 
-### put_value
+### put_value {#put_value}
 
 ```xo
 fn put_value(var out: BytesBuilder, v: Value, deterministic: Bool) -> () ! CborErr
@@ -499,7 +499,7 @@ fn put_value(var out: BytesBuilder, v: Value, deterministic: Bool) -> () ! CborE
 
 [Source: `std/cbor.xo:154`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L154)
 
-### det_keys
+### det_keys {#det_keys}
 
 ```xo
 fn det_keys(keys: List[Str]) -> List[Str]
@@ -507,7 +507,7 @@ fn det_keys(keys: List[Str]) -> List[Str]
 
 [Source: `std/cbor.xo:155`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L155)
 
-### bad_arity
+### bad_arity {#bad_arity}
 
 ```xo
 fn bad_arity(var st: Unm, want: Str, got: Int, need: Int)
@@ -515,7 +515,7 @@ fn bad_arity(var st: Unm, want: Str, got: Int, need: Int)
 
 [Source: `std/cbor.xo:156`](https://github.com/xo-lang/xo/blob/main/std/cbor.xo#L156)
 
-### bad_variant
+### bad_variant {#bad_variant}
 
 ```xo
 fn bad_variant(var st: Unm, want: Str, got: Str)

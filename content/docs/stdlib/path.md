@@ -9,8 +9,8 @@ generated: "scripts/sync-content.py from `xo doc std/path`; edit the doc comment
 ---
 ## Index
 
-- type [`PathErr`](#patherr)
-  - method [`PathErr.display`](#patherrdisplay)
+- type [`PathErr`](#PathErr)
+  - method [`PathErr.display`](#PathErr.display)
 - fn [`join`](#join)
 - fn [`split`](#split)
 - fn [`dir`](#dir)
@@ -22,7 +22,7 @@ generated: "scripts/sync-content.py from `xo doc std/path`; edit the doc comment
 
 ## Types
 
-### PathErr
+### PathErr {#PathErr}
 
 ```xo
 struct PathErr {
@@ -34,7 +34,7 @@ A path pattern `is_match` cannot parse (Go's path.ErrBadPattern).
 
 [Source: `std/path.xo:14`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L14)
 
-#### PathErr.display
+#### PathErr.display {#PathErr.display}
 
 ```xo
 fn (e: PathErr) display() -> Str
@@ -44,7 +44,7 @@ fn (e: PathErr) display() -> Str
 
 ## Functions
 
-### join
+### join {#join}
 
 ```xo
 fn join(a: Str, b: Str) -> Str
@@ -52,7 +52,7 @@ fn join(a: Str, b: Str) -> Str
 
 [Source: `std/path.xo:5`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L5)
 
-### split
+### split {#split}
 
 ```xo
 fn split(p: Str) -> (Str, Str)
@@ -60,7 +60,7 @@ fn split(p: Str) -> (Str, Str)
 
 [Source: `std/path.xo:6`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L6)
 
-### dir
+### dir {#dir}
 
 ```xo
 fn dir(p: Str) -> Str
@@ -68,7 +68,7 @@ fn dir(p: Str) -> Str
 
 [Source: `std/path.xo:7`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L7)
 
-### base
+### base {#base}
 
 ```xo
 fn base(p: Str) -> Str
@@ -76,7 +76,7 @@ fn base(p: Str) -> Str
 
 [Source: `std/path.xo:8`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L8)
 
-### ext
+### ext {#ext}
 
 ```xo
 fn ext(p: Str) -> Str
@@ -84,7 +84,7 @@ fn ext(p: Str) -> Str
 
 [Source: `std/path.xo:9`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L9)
 
-### clean
+### clean {#clean}
 
 ```xo
 fn clean(p: Str) -> Str
@@ -92,7 +92,7 @@ fn clean(p: Str) -> Str
 
 [Source: `std/path.xo:10`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L10)
 
-### is_abs
+### is_abs {#is_abs}
 
 ```xo
 fn is_abs(p: Str) -> Bool
@@ -100,7 +100,7 @@ fn is_abs(p: Str) -> Bool
 
 [Source: `std/path.xo:11`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L11)
 
-### is_match
+### is_match {#is_match}
 
 ```xo
 fn is_match(pattern: Str, name: Str) -> Bool ! PathErr

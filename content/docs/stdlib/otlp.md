@@ -9,21 +9,21 @@ generated: "scripts/sync-content.py from `xo doc std/otlp`; edit the doc comment
 ---
 ## Index
 
-- type [`Resource`](#resource)
-- type [`ExportErr`](#exporterr)
-  - method [`ExportErr.display`](#exporterrdisplay)
-- type [`Exporter`](#exporter)
-  - method [`Exporter.with_headers`](#exporterwith_headers)
-  - method [`Exporter.with_backoff`](#exporterwith_backoff)
-  - method [`Exporter.send_traces`](#exportersend_traces)
-  - method [`Exporter.send_metrics`](#exportersend_metrics)
+- type [`Resource`](#Resource)
+- type [`ExportErr`](#ExportErr)
+  - method [`ExportErr.display`](#ExportErr.display)
+- type [`Exporter`](#Exporter)
+  - method [`Exporter.with_headers`](#Exporter.with_headers)
+  - method [`Exporter.with_backoff`](#Exporter.with_backoff)
+  - method [`Exporter.send_traces`](#Exporter.send_traces)
+  - method [`Exporter.send_metrics`](#Exporter.send_metrics)
 - fn [`encode_traces`](#encode_traces)
 - fn [`encode_metrics`](#encode_metrics)
 - fn [`exporter`](#exporter)
 
 ## Types
 
-### Resource
+### Resource {#Resource}
 
 ```xo
 struct Resource {
@@ -39,7 +39,7 @@ resource attributes, and the instrumentation scope name (and version) the spans 
 
 [Source: `std/otlp.xo:12`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L12)
 
-### ExportErr
+### ExportErr {#ExportErr}
 
 ```xo
 enum ExportErr {
@@ -54,7 +54,7 @@ retry would send the same bytes), or retries that ran out with the last answer.
 
 [Source: `std/otlp.xo:35`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L35)
 
-#### ExportErr.display
+#### ExportErr.display {#ExportErr.display}
 
 ```xo
 fn (e: ExportErr) display() -> Str
@@ -64,7 +64,7 @@ fn (e: ExportErr) display() -> Str
 
 [Source: `std/otlp.xo:42`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L42)
 
-### Exporter
+### Exporter {#Exporter}
 
 ```xo
 struct Exporter {
@@ -85,7 +85,7 @@ specification says.
 
 [Source: `std/otlp.xo:48`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L48)
 
-#### Exporter.with_headers
+#### Exporter.with_headers {#Exporter.with_headers}
 
 ```xo
 fn (e: Exporter) with_headers(h: Map[Str, Str]) -> Exporter
@@ -95,7 +95,7 @@ The exporter sending these headers on every request (an API key, `Authorization`
 
 [Source: `std/otlp.xo:61`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L61)
 
-#### Exporter.with_backoff
+#### Exporter.with_backoff {#Exporter.with_backoff}
 
 ```xo
 fn (e: Exporter) with_backoff(b: backoff.Backoff) -> Exporter
@@ -105,7 +105,7 @@ The exporter retrying on schedule b (5 tries by default).
 
 [Source: `std/otlp.xo:63`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L63)
 
-#### Exporter.send_traces
+#### Exporter.send_traces {#Exporter.send_traces}
 
 ```xo
 fn (e: Exporter) send_traces(spans: List[trace.Span]) -> () ! ExportErr uses net.dial, clock, rand
@@ -115,7 +115,7 @@ Exports `spans` (one request; an empty list sends nothing).
 
 [Source: `std/otlp.xo:65`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L65)
 
-#### Exporter.send_metrics
+#### Exporter.send_metrics {#Exporter.send_metrics}
 
 ```xo
 fn (e: Exporter) send_metrics(reg: metrics.Registry, start_ms: Int) -> () ! ExportErr uses net.dial, clock, rand
@@ -127,7 +127,7 @@ Exports the registry's metrics (one request), every point cumulative since `star
 
 ## Functions
 
-### encode_traces
+### encode_traces {#encode_traces}
 
 ```xo
 fn encode_traces(res: Resource, spans: List[trace.Span]) -> Bytes
@@ -142,7 +142,7 @@ HTTP status becomes the span status (500 and above is an error) and the attribut
 
 [Source: `std/otlp.xo:25`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L25)
 
-### encode_metrics
+### encode_metrics {#encode_metrics}
 
 ```xo
 fn encode_metrics(res: Resource, reg: metrics.Registry, start_ms: Int, now_ms: Int) -> Bytes
@@ -155,7 +155,7 @@ a Summary with its count and sum (no quantile values); a label becomes a string 
 
 [Source: `std/otlp.xo:31`](https://github.com/xo-lang/xo/blob/main/std/otlp.xo#L31)
 
-### exporter
+### exporter {#exporter}
 
 ```xo
 fn exporter(client: http.Client, endpoint: Str, res: Resource, clock: Clock, rand: Rand) -> Exporter

@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/base32`; edit the doc comme
 ---
 ## Index
 
-- type [`Base32`](#base32)
-- type [`DecodeErr`](#decodeerr)
-  - method [`DecodeErr.display`](#decodeerrdisplay)
+- type [`Base32`](#Base32)
+- type [`DecodeErr`](#DecodeErr)
+  - method [`DecodeErr.display`](#DecodeErr.display)
 - fn [`encode`](#encode)
 - fn [`decode`](#decode)
 
 ## Types
 
-### Base32
+### Base32 {#Base32}
 
 ```xo
 enum Base32 {
@@ -33,7 +33,7 @@ RFC 4648 section 6 (`Std`, `A-Z2-7`) and section 7 (`Hex`,
 
 [Source: `std/base32.xo:7`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L7)
 
-### DecodeErr
+### DecodeErr {#DecodeErr}
 
 ```xo
 struct DecodeErr {
@@ -45,7 +45,7 @@ Displays as Go's CorruptInputError: `illegal base32 data at input byte 4`.
 
 [Source: `std/base32.xo:15`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L15)
 
-#### DecodeErr.display
+#### DecodeErr.display {#DecodeErr.display}
 
 ```xo
 fn (e: DecodeErr) display() -> Str
@@ -55,7 +55,7 @@ fn (e: DecodeErr) display() -> Str
 
 ## Functions
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(data: Bytes, enc: Base32 = Base32.Std) -> Str
@@ -63,7 +63,7 @@ fn encode(data: Bytes, enc: Base32 = Base32.Std) -> Str
 
 [Source: `std/base32.xo:21`](https://github.com/xo-lang/xo/blob/main/std/base32.xo#L21)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(s: Str, enc: Base32 = Base32.Std) -> Bytes ! DecodeErr

@@ -9,24 +9,24 @@ generated: "scripts/sync-content.py from `xo doc std/netip`; edit the doc commen
 ---
 ## Index
 
-- type [`Addr`](#addr)
-  - method [`Addr.is_4`](#addris_4)
-  - method [`Addr.is_6`](#addris_6)
-  - method [`Addr.is_4in6`](#addris_4in6)
-  - method [`Addr.unmap`](#addrunmap)
-  - method [`Addr.is_loopback`](#addris_loopback)
-  - method [`Addr.is_private`](#addris_private)
-  - method [`Addr.is_unspecified`](#addris_unspecified)
-  - method [`Addr.is_link_local_unicast`](#addris_link_local_unicast)
-  - method [`Addr.is_multicast`](#addris_multicast)
-  - method [`Addr.bytes`](#addrbytes)
-  - method [`Addr.display`](#addrdisplay)
-- type [`Prefix`](#prefix)
-  - method [`Prefix.contains`](#prefixcontains)
-  - method [`Prefix.masked`](#prefixmasked)
-  - method [`Prefix.display`](#prefixdisplay)
-- type [`ParseErr`](#parseerr)
-  - method [`ParseErr.display`](#parseerrdisplay)
+- type [`Addr`](#Addr)
+  - method [`Addr.is_4`](#Addr.is_4)
+  - method [`Addr.is_6`](#Addr.is_6)
+  - method [`Addr.is_4in6`](#Addr.is_4in6)
+  - method [`Addr.unmap`](#Addr.unmap)
+  - method [`Addr.is_loopback`](#Addr.is_loopback)
+  - method [`Addr.is_private`](#Addr.is_private)
+  - method [`Addr.is_unspecified`](#Addr.is_unspecified)
+  - method [`Addr.is_link_local_unicast`](#Addr.is_link_local_unicast)
+  - method [`Addr.is_multicast`](#Addr.is_multicast)
+  - method [`Addr.bytes`](#Addr.bytes)
+  - method [`Addr.display`](#Addr.display)
+- type [`Prefix`](#Prefix)
+  - method [`Prefix.contains`](#Prefix.contains)
+  - method [`Prefix.masked`](#Prefix.masked)
+  - method [`Prefix.display`](#Prefix.display)
+- type [`ParseErr`](#ParseErr)
+  - method [`ParseErr.display`](#ParseErr.display)
 - fn [`parse_addr`](#parse_addr)
 - fn [`lookup`](#lookup)
 - fn [`parse_prefix`](#parse_prefix)
@@ -34,7 +34,7 @@ generated: "scripts/sync-content.py from `xo doc std/netip`; edit the doc commen
 
 ## Types
 
-### Addr
+### Addr {#Addr}
 
 ```xo
 struct Addr {
@@ -51,7 +51,7 @@ value; `hi` and `lo` its 16 bytes as two words (an IPv4 address as
 
 [Source: `std/netip.xo:8`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L8)
 
-#### Addr.is_4
+#### Addr.is_4 {#Addr.is_4}
 
 ```xo
 fn (a: Addr) is_4() -> Bool
@@ -59,7 +59,7 @@ fn (a: Addr) is_4() -> Bool
 
 [Source: `std/netip.xo:40`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L40)
 
-#### Addr.is_6
+#### Addr.is_6 {#Addr.is_6}
 
 ```xo
 fn (a: Addr) is_6() -> Bool
@@ -67,7 +67,7 @@ fn (a: Addr) is_6() -> Bool
 
 [Source: `std/netip.xo:41`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L41)
 
-#### Addr.is_4in6
+#### Addr.is_4in6 {#Addr.is_4in6}
 
 ```xo
 fn (a: Addr) is_4in6() -> Bool
@@ -75,7 +75,7 @@ fn (a: Addr) is_4in6() -> Bool
 
 [Source: `std/netip.xo:42`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L42)
 
-#### Addr.unmap
+#### Addr.unmap {#Addr.unmap}
 
 ```xo
 fn (a: Addr) unmap() -> Addr
@@ -85,7 +85,7 @@ An IPv4 in IPv6 address as IPv4 (its zone dropped), others as they are.
 
 [Source: `std/netip.xo:44`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L44)
 
-#### Addr.is_loopback
+#### Addr.is_loopback {#Addr.is_loopback}
 
 ```xo
 fn (a: Addr) is_loopback() -> Bool
@@ -93,7 +93,7 @@ fn (a: Addr) is_loopback() -> Bool
 
 [Source: `std/netip.xo:45`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L45)
 
-#### Addr.is_private
+#### Addr.is_private {#Addr.is_private}
 
 ```xo
 fn (a: Addr) is_private() -> Bool
@@ -101,7 +101,7 @@ fn (a: Addr) is_private() -> Bool
 
 [Source: `std/netip.xo:46`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L46)
 
-#### Addr.is_unspecified
+#### Addr.is_unspecified {#Addr.is_unspecified}
 
 ```xo
 fn (a: Addr) is_unspecified() -> Bool
@@ -109,7 +109,7 @@ fn (a: Addr) is_unspecified() -> Bool
 
 [Source: `std/netip.xo:47`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L47)
 
-#### Addr.is_link_local_unicast
+#### Addr.is_link_local_unicast {#Addr.is_link_local_unicast}
 
 ```xo
 fn (a: Addr) is_link_local_unicast() -> Bool
@@ -117,7 +117,7 @@ fn (a: Addr) is_link_local_unicast() -> Bool
 
 [Source: `std/netip.xo:48`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L48)
 
-#### Addr.is_multicast
+#### Addr.is_multicast {#Addr.is_multicast}
 
 ```xo
 fn (a: Addr) is_multicast() -> Bool
@@ -125,7 +125,7 @@ fn (a: Addr) is_multicast() -> Bool
 
 [Source: `std/netip.xo:49`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L49)
 
-#### Addr.bytes
+#### Addr.bytes {#Addr.bytes}
 
 ```xo
 fn (a: Addr) bytes() -> Bytes
@@ -135,7 +135,7 @@ fn (a: Addr) bytes() -> Bytes
 
 [Source: `std/netip.xo:51`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L51)
 
-#### Addr.display
+#### Addr.display {#Addr.display}
 
 ```xo
 fn (a: Addr) display() -> Str
@@ -145,7 +145,7 @@ Go's String: `1.2.3.4`, `2001:db8::1`, `::ffff:1.2.3.4`, `fe80::1%eth0`.
 
 [Source: `std/netip.xo:53`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L53)
 
-### Prefix
+### Prefix {#Prefix}
 
 ```xo
 struct Prefix {
@@ -158,7 +158,7 @@ An address and a prefix length.
 
 [Source: `std/netip.xo:19`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L19)
 
-#### Prefix.contains
+#### Prefix.contains {#Prefix.contains}
 
 ```xo
 fn (p: Prefix) contains(a: Addr) -> Bool
@@ -166,7 +166,7 @@ fn (p: Prefix) contains(a: Addr) -> Bool
 
 [Source: `std/netip.xo:54`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L54)
 
-#### Prefix.masked
+#### Prefix.masked {#Prefix.masked}
 
 ```xo
 fn (p: Prefix) masked() -> Prefix
@@ -174,7 +174,7 @@ fn (p: Prefix) masked() -> Prefix
 
 [Source: `std/netip.xo:55`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L55)
 
-#### Prefix.display
+#### Prefix.display {#Prefix.display}
 
 ```xo
 fn (p: Prefix) display() -> Str
@@ -182,7 +182,7 @@ fn (p: Prefix) display() -> Str
 
 [Source: `std/netip.xo:56`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L56)
 
-### ParseErr
+### ParseErr {#ParseErr}
 
 ```xo
 struct ParseErr {
@@ -194,7 +194,7 @@ Go's texts: `ParseAddr("1.2.3"): IPv4 address too short`.
 
 [Source: `std/netip.xo:25`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L25)
 
-#### ParseErr.display
+#### ParseErr.display {#ParseErr.display}
 
 ```xo
 fn (e: ParseErr) display() -> Str
@@ -204,7 +204,7 @@ fn (e: ParseErr) display() -> Str
 
 ## Functions
 
-### parse_addr
+### parse_addr {#parse_addr}
 
 ```xo
 fn parse_addr(s: Str) -> Addr ! ParseErr
@@ -214,7 +214,7 @@ Go's ParseAddr: IPv4 (no leading zeros), IPv6, IPv4 in IPv6, zones.
 
 [Source: `std/netip.xo:32`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L32)
 
-### lookup
+### lookup {#lookup}
 
 ```xo
 fn lookup(n: Net, host: Str) -> List[Addr] ! NetErr uses net.dial
@@ -225,7 +225,7 @@ net.LookupIP through Net.lookup_host; decision 0406).
 
 [Source: `std/netip.xo:35`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L35)
 
-### parse_prefix
+### parse_prefix {#parse_prefix}
 
 ```xo
 fn parse_prefix(s: Str) -> Prefix ! ParseErr
@@ -235,7 +235,7 @@ Go's ParsePrefix: `10.0.0.0/8`, `2001:db8::/32`.
 
 [Source: `std/netip.xo:37`](https://github.com/xo-lang/xo/blob/main/std/netip.xo#L37)
 
-### addr_from_bytes
+### addr_from_bytes {#addr_from_bytes}
 
 ```xo
 fn addr_from_bytes(b: Bytes) -> Addr?

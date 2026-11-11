@@ -9,9 +9,9 @@ generated: "scripts/sync-content.py from `xo doc std/xmlcodec`; edit the doc com
 ---
 ## Index
 
-- type [`Piece`](#piece)
-- type [`Writer`](#writer)
-- type [`Event`](#event)
+- type [`Piece`](#Piece)
+- type [`Writer`](#Writer)
+- type [`Event`](#Event)
 - fn [`open_path`](#open_path)
 - fn [`leaf`](#leaf)
 - fn [`child`](#child)
@@ -37,7 +37,7 @@ generated: "scripts/sync-content.py from `xo doc std/xmlcodec`; edit the doc com
 
 ## Types
 
-### Piece
+### Piece {#Piece}
 
 ```xo
 struct Piece {
@@ -54,7 +54,7 @@ field's name, empty for none), and what to write there.
 
 [Source: `std/xmlcodec.xo:12`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L12)
 
-### Writer
+### Writer {#Writer}
 
 ```xo
 struct Writer {
@@ -76,7 +76,7 @@ stack), with no tree: `write_start` an element, then its fields'
 
 [Source: `std/xmlcodec.xo:44`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L44)
 
-### Event
+### Event {#Event}
 
 ```xo
 struct Event {
@@ -92,7 +92,7 @@ order.
 
 ## Functions
 
-### open_path
+### open_path {#open_path}
 
 ```xo
 fn open_path(parents: List[Str]) -> Piece
@@ -103,7 +103,7 @@ empty list).
 
 [Source: `std/xmlcodec.xo:24`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L24)
 
-### leaf
+### leaf {#leaf}
 
 ```xo
 fn leaf(parents: List[Str], name: Str, text: Str) -> Piece
@@ -113,7 +113,7 @@ A child element `name` holding the text.
 
 [Source: `std/xmlcodec.xo:26`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L26)
 
-### child
+### child {#child}
 
 ```xo
 fn child(parents: List[Str], name: Str, el: xml.Element) -> Piece
@@ -123,7 +123,7 @@ A child element: the tree of a nested struct, named `name`.
 
 [Source: `std/xmlcodec.xo:28`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L28)
 
-### chardata
+### chardata {#chardata}
 
 ```xo
 fn chardata(text: Str) -> Piece
@@ -133,7 +133,7 @@ Character data inside the open element.
 
 [Source: `std/xmlcodec.xo:30`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L30)
 
-### comment
+### comment {#comment}
 
 ```xo
 fn comment(text: Str) -> Piece
@@ -143,7 +143,7 @@ A comment inside the open element.
 
 [Source: `std/xmlcodec.xo:32`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L32)
 
-### attr
+### attr {#attr}
 
 ```xo
 fn attr(name: Str, value: Str) -> xml.Attr
@@ -153,7 +153,7 @@ An attribute.
 
 [Source: `std/xmlcodec.xo:34`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L34)
 
-### build
+### build {#build}
 
 ```xo
 fn build(name: Str, attrs: List[xml.Attr], pieces: List[Piece]) -> xml.Element
@@ -164,7 +164,7 @@ The element `name` with the attributes and, in order, the pieces
 
 [Source: `std/xmlcodec.xo:37`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L37)
 
-### writer
+### writer {#writer}
 
 ```xo
 fn writer(indent: Str) -> Writer
@@ -174,7 +174,7 @@ A writer that indents by `indent` (none when empty).
 
 [Source: `std/xmlcodec.xo:57`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L57)
 
-### write_start
+### write_start {#write_start}
 
 ```xo
 fn write_start(var w: Writer, name: Str, attrs: List[xml.Attr])
@@ -185,7 +185,7 @@ left out).
 
 [Source: `std/xmlcodec.xo:60`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L60)
 
-### write_open
+### write_open {#write_open}
 
 ```xo
 fn write_open(var w: Writer, parents: List[Str])
@@ -196,7 +196,7 @@ the parents the previous field opened stay open as far as they match.
 
 [Source: `std/xmlcodec.xo:63`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L63)
 
-### write_leaf
+### write_leaf {#write_leaf}
 
 ```xo
 fn write_leaf(var w: Writer, parents: List[Str], name: Str, text: Str)
@@ -206,7 +206,7 @@ The element `name` holding the text under `parents` (leaf's piece).
 
 [Source: `std/xmlcodec.xo:65`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L65)
 
-### write_chardata
+### write_chardata {#write_chardata}
 
 ```xo
 fn write_chardata(var w: Writer, text: Str)
@@ -216,7 +216,7 @@ Character data where the writer is (chardata's piece).
 
 [Source: `std/xmlcodec.xo:67`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L67)
 
-### write_end
+### write_end {#write_end}
 
 ```xo
 fn write_end(var w: Writer, name: Str)
@@ -226,7 +226,7 @@ Closes the open parents and the element `name` write_start began.
 
 [Source: `std/xmlcodec.xo:69`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L69)
 
-### written
+### written {#written}
 
 ```xo
 fn written(var w: Writer) -> Str
@@ -236,7 +236,7 @@ The text written.
 
 [Source: `std/xmlcodec.xo:71`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L71)
 
-### parse_root
+### parse_root {#parse_root}
 
 ```xo
 fn parse_root(text: Str) -> xml.Element ! xml.XmlErr
@@ -247,7 +247,7 @@ element is `EOF`.
 
 [Source: `std/xmlcodec.xo:75`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L75)
 
-### attr_of
+### attr_of {#attr_of}
 
 ```xo
 fn attr_of(e: xml.Element, name: Str) -> Str?
@@ -257,7 +257,7 @@ The value of the attribute of that local name.
 
 [Source: `std/xmlcodec.xo:77`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L77)
 
-### events
+### events {#events}
 
 ```xo
 fn events(e: xml.Element, paths: List[List[Str]]) -> List[Event]
@@ -268,7 +268,7 @@ order, with the index of the path.
 
 [Source: `std/xmlcodec.xo:87`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L87)
 
-### direct_text
+### direct_text {#direct_text}
 
 ```xo
 fn direct_text(e: xml.Element) -> Str
@@ -278,7 +278,7 @@ The character data directly inside e, in order (Go's chardata).
 
 [Source: `std/xmlcodec.xo:89`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L89)
 
-### float_text
+### float_text {#float_text}
 
 ```xo
 fn float_text(f: Float) -> Str
@@ -289,7 +289,7 @@ Go's FormatFloat(f, 'g', -1, 64): Xo's text of a Float without the
 
 [Source: `std/xmlcodec.xo:93`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L93)
 
-### int_of
+### int_of {#int_of}
 
 ```xo
 fn int_of(s: Str) -> Int ! xml.XmlErr
@@ -300,7 +300,7 @@ Go's strconv.ParseInt of the text with spaces trimmed (0 when empty):
 
 [Source: `std/xmlcodec.xo:97`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L97)
 
-### float_of
+### float_of {#float_of}
 
 ```xo
 fn float_of(s: Str) -> Float ! xml.XmlErr
@@ -312,7 +312,7 @@ out of range`.
 
 [Source: `std/xmlcodec.xo:101`](https://github.com/xo-lang/xo/blob/main/std/xmlcodec.xo#L101)
 
-### bool_of
+### bool_of {#bool_of}
 
 ```xo
 fn bool_of(s: Str) -> Bool ! xml.XmlErr

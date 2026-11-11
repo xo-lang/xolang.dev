@@ -9,9 +9,9 @@ generated: "scripts/sync-content.py from `xo doc std/charset`; edit the doc comm
 ---
 ## Index
 
-- type [`Charset`](#charset)
-- type [`CharsetErr`](#charseterr)
-  - method [`CharsetErr.display`](#charseterrdisplay)
+- type [`Charset`](#Charset)
+- type [`CharsetErr`](#CharsetErr)
+  - method [`CharsetErr.display`](#CharsetErr.display)
 - fn [`decode`](#decode)
 - fn [`encode`](#encode)
 - fn [`lookup`](#lookup)
@@ -20,7 +20,7 @@ generated: "scripts/sync-content.py from `xo doc std/charset`; edit the doc comm
 
 ## Types
 
-### Charset
+### Charset {#Charset}
 
 ```xo
 enum Charset {
@@ -46,7 +46,7 @@ U+008F, U+0090 and U+009D).
 
 [Source: `std/charset.xo:18`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L18)
 
-### CharsetErr
+### CharsetErr {#CharsetErr}
 
 ```xo
 struct CharsetErr {
@@ -63,7 +63,7 @@ surrogate`, `character U+20AC is not in latin1`). Displays as
 
 [Source: `std/charset.xo:32`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L32)
 
-#### CharsetErr.display
+#### CharsetErr.display {#CharsetErr.display}
 
 ```xo
 fn (e: CharsetErr) display() -> Str
@@ -73,7 +73,7 @@ fn (e: CharsetErr) display() -> Str
 
 ## Functions
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(data: Bytes, cs: Charset, lossy: Bool = false) -> Str ! CharsetErr
@@ -89,7 +89,7 @@ Latin1 and Windows1252 accept every byte.
 
 [Source: `std/charset.xo:46`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L46)
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(text: Str, cs: Charset) -> Bytes ! CharsetErr
@@ -100,7 +100,7 @@ its byte offset in text.
 
 [Source: `std/charset.xo:49`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L49)
 
-### lookup
+### lookup {#lookup}
 
 ```xo
 fn lookup(label: Str) -> Charset?
@@ -114,7 +114,7 @@ case and surrounding ASCII space ignored: "utf-8", "utf8";
 
 [Source: `std/charset.xo:55`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L55)
 
-### utf16_units
+### utf16_units {#utf16_units}
 
 ```xo
 fn utf16_units(text: Str) -> List[Int]
@@ -125,7 +125,7 @@ surrogate pair for a character above U+FFFF).
 
 [Source: `std/charset.xo:58`](https://github.com/xo-lang/xo/blob/main/std/charset.xo#L58)
 
-### from_utf16_units
+### from_utf16_units {#from_utf16_units}
 
 ```xo
 fn from_utf16_units(units: List[Int]) -> Str

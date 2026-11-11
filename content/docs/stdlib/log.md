@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/log`; edit the doc comments
 ---
 ## Index
 
-- type [`Logger`](#logger)
-  - method [`Logger.with`](#loggerwith)
-  - method [`Logger.debug`](#loggerdebug)
-  - method [`Logger.info`](#loggerinfo)
-  - method [`Logger.warn`](#loggerwarn)
-  - method [`Logger.error`](#loggererror)
-- type [`Level`](#level)
-- type [`Format`](#format)
-- type [`Record`](#record)
+- type [`Logger`](#Logger)
+  - method [`Logger.with`](#Logger.with)
+  - method [`Logger.debug`](#Logger.debug)
+  - method [`Logger.info`](#Logger.info)
+  - method [`Logger.warn`](#Logger.warn)
+  - method [`Logger.error`](#Logger.error)
+- type [`Level`](#Level)
+- type [`Format`](#Format)
+- type [`Record`](#Record)
 - fn [`debug`](#debug)
 - fn [`info`](#info)
 - fn [`warn`](#warn)
@@ -28,7 +28,7 @@ generated: "scripts/sync-content.py from `xo doc std/log`; edit the doc comments
 
 ## Types
 
-### Logger
+### Logger {#Logger}
 
 ```xo
 struct Logger {}
@@ -42,7 +42,7 @@ dependency as its records' module (decision 0173).
 
 [Source: `std/log.xo:22`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L22)
 
-#### Logger.with
+#### Logger.with {#Logger.with}
 
 ```xo
 fn (l: Logger) with(fields: Map[Str, Debug]) -> Logger
@@ -50,7 +50,7 @@ fn (l: Logger) with(fields: Map[Str, Debug]) -> Logger
 
 [Source: `std/log.xo:24`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L24)
 
-#### Logger.debug
+#### Logger.debug {#Logger.debug}
 
 ```xo
 fn (l: Logger) debug(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -58,7 +58,7 @@ fn (l: Logger) debug(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:25`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L25)
 
-#### Logger.info
+#### Logger.info {#Logger.info}
 
 ```xo
 fn (l: Logger) info(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -66,7 +66,7 @@ fn (l: Logger) info(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:26`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L26)
 
-#### Logger.warn
+#### Logger.warn {#Logger.warn}
 
 ```xo
 fn (l: Logger) warn(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -74,7 +74,7 @@ fn (l: Logger) warn(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:27`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L27)
 
-#### Logger.error
+#### Logger.error {#Logger.error}
 
 ```xo
 fn (l: Logger) error(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -82,7 +82,7 @@ fn (l: Logger) error(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:28`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L28)
 
-### Level
+### Level {#Level}
 
 ```xo
 enum Level {
@@ -95,7 +95,7 @@ enum Level {
 
 [Source: `std/log.xo:30`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L30)
 
-### Format
+### Format {#Format}
 
 ```xo
 enum Format {
@@ -106,7 +106,7 @@ enum Format {
 
 [Source: `std/log.xo:37`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L37)
 
-### Record
+### Record {#Record}
 
 ```xo
 struct Record {
@@ -125,7 +125,7 @@ their text form. module is the dependency that wrote the record
 
 ## Functions
 
-### debug
+### debug {#debug}
 
 ```xo
 fn debug(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -133,7 +133,7 @@ fn debug(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:5`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L5)
 
-### info
+### info {#info}
 
 ```xo
 fn info(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -141,7 +141,7 @@ fn info(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:6`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L6)
 
-### warn
+### warn {#warn}
 
 ```xo
 fn warn(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -149,7 +149,7 @@ fn warn(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:7`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L7)
 
-### error
+### error {#error}
 
 ```xo
 fn error(msg: Str, fields: Map[Str, Debug] = {}) uses log
@@ -157,7 +157,7 @@ fn error(msg: Str, fields: Map[Str, Debug] = {}) uses log
 
 [Source: `std/log.xo:8`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L8)
 
-### enabled
+### enabled {#enabled}
 
 ```xo
 fn enabled(level: Level) -> Bool uses log
@@ -171,7 +171,7 @@ dump).
 
 [Source: `std/log.xo:14`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L14)
 
-### configure
+### configure {#configure}
 
 ```xo
 fn configure(out: Stdio, level: Level = Level.Info, format: Format = Format.Text) uses stdio
@@ -179,7 +179,7 @@ fn configure(out: Stdio, level: Level = Level.Info, format: Format = Format.Text
 
 [Source: `std/log.xo:15`](https://github.com/xo-lang/xo/blob/main/std/log.xo#L15)
 
-### with
+### with {#with}
 
 ```xo
 fn with(fields: Map[Str, Debug]) -> Logger

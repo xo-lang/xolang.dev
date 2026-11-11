@@ -9,14 +9,14 @@ generated: "scripts/sync-content.py from `xo doc std/sqlite`; edit the doc comme
 ---
 ## Index
 
-- type [`Config`](#config)
+- type [`Config`](#Config)
 - fn [`driver`](#driver)
 - fn [`config`](#config)
 - fn [`version`](#version)
 
 ## Types
 
-### Config
+### Config {#Config}
 
 ```xo
 struct Config {
@@ -34,7 +34,7 @@ A parsed DSN (see the module comment).
 
 ## Functions
 
-### driver
+### driver {#driver}
 
 ```xo
 fn driver(fs: Fs) -> sql.Driver[fs]
@@ -45,7 +45,7 @@ perform fs.
 
 [Source: `std/sqlite.xo:40`](https://github.com/xo-lang/xo/blob/main/std/sqlite.xo#L40)
 
-### config
+### config {#config}
 
 ```xo
 fn config(dsn: Str) -> Config ! sql.SqlErr
@@ -55,7 +55,7 @@ The DSN's parts; Param for an unknown `_` key or a bad value.
 
 [Source: `std/sqlite.xo:43`](https://github.com/xo-lang/xo/blob/main/std/sqlite.xo#L43)
 
-### version
+### version {#version}
 
 ```xo
 fn version() -> Str uses fs

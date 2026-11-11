@@ -9,13 +9,13 @@ generated: "scripts/sync-content.py from `xo doc std/dns`; edit the doc comments
 ---
 ## Index
 
-- type [`Mx`](#mx)
-- type [`Srv`](#srv)
-- type [`Resolver`](#resolver)
-  - method [`Resolver.lookup_mx`](#resolverlookup_mx)
-  - method [`Resolver.lookup_txt`](#resolverlookup_txt)
-  - method [`Resolver.lookup_srv`](#resolverlookup_srv)
-  - method [`Resolver.lookup_addr`](#resolverlookup_addr)
+- type [`Mx`](#Mx)
+- type [`Srv`](#Srv)
+- type [`Resolver`](#Resolver)
+  - method [`Resolver.lookup_mx`](#Resolver.lookup_mx)
+  - method [`Resolver.lookup_txt`](#Resolver.lookup_txt)
+  - method [`Resolver.lookup_srv`](#Resolver.lookup_srv)
+  - method [`Resolver.lookup_addr`](#Resolver.lookup_addr)
 - fn [`lookup_mx`](#lookup_mx)
 - fn [`lookup_txt`](#lookup_txt)
 - fn [`lookup_srv`](#lookup_srv)
@@ -23,7 +23,7 @@ generated: "scripts/sync-content.py from `xo doc std/dns`; edit the doc comments
 
 ## Types
 
-### Mx
+### Mx {#Mx}
 
 ```xo
 struct Mx {
@@ -37,7 +37,7 @@ and its preference (lower first).
 
 [Source: `std/dns.xo:9`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L9)
 
-### Srv
+### Srv {#Srv}
 
 ```xo
 struct Srv {
@@ -53,7 +53,7 @@ priority (lower first) and weight (a share within one priority).
 
 [Source: `std/dns.xo:16`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L16)
 
-### Resolver
+### Resolver {#Resolver}
 
 ```xo
 struct Resolver {
@@ -67,7 +67,7 @@ host ("127.0.0.1:5353"), as Go's Resolver with its own Dial.
 
 [Source: `std/dns.xo:26`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L26)
 
-#### Resolver.lookup_mx
+#### Resolver.lookup_mx {#Resolver.lookup_mx}
 
 ```xo
 fn (r: Resolver) lookup_mx(n: Net, name: Str) -> List[Mx] ! NetErr uses net.dial
@@ -75,7 +75,7 @@ fn (r: Resolver) lookup_mx(n: Net, name: Str) -> List[Mx] ! NetErr uses net.dial
 
 [Source: `std/dns.xo:46`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L46)
 
-#### Resolver.lookup_txt
+#### Resolver.lookup_txt {#Resolver.lookup_txt}
 
 ```xo
 fn (r: Resolver) lookup_txt(n: Net, name: Str) -> List[Str] ! NetErr uses net.dial
@@ -83,7 +83,7 @@ fn (r: Resolver) lookup_txt(n: Net, name: Str) -> List[Str] ! NetErr uses net.di
 
 [Source: `std/dns.xo:47`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L47)
 
-#### Resolver.lookup_srv
+#### Resolver.lookup_srv {#Resolver.lookup_srv}
 
 ```xo
 fn (r: Resolver) lookup_srv(n: Net, service: Str, proto: Str, name: Str) -> List[Srv] ! NetErr uses net.dial
@@ -91,7 +91,7 @@ fn (r: Resolver) lookup_srv(n: Net, service: Str, proto: Str, name: Str) -> List
 
 [Source: `std/dns.xo:48`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L48)
 
-#### Resolver.lookup_addr
+#### Resolver.lookup_addr {#Resolver.lookup_addr}
 
 ```xo
 fn (r: Resolver) lookup_addr(n: Net, ip: Str) -> List[Str] ! NetErr uses net.dial
@@ -101,7 +101,7 @@ fn (r: Resolver) lookup_addr(n: Net, ip: Str) -> List[Str] ! NetErr uses net.dia
 
 ## Functions
 
-### lookup_mx
+### lookup_mx {#lookup_mx}
 
 ```xo
 fn lookup_mx(n: Net, name: Str) -> List[Mx] ! NetErr uses net.dial
@@ -113,7 +113,7 @@ record is (Go returns both).
 
 [Source: `std/dns.xo:33`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L33)
 
-### lookup_txt
+### lookup_txt {#lookup_txt}
 
 ```xo
 fn lookup_txt(n: Net, name: Str) -> List[Str] ! NetErr uses net.dial
@@ -124,7 +124,7 @@ LookupTXT); a record that is not UTF-8 is left out, Err when all are.
 
 [Source: `std/dns.xo:36`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L36)
 
-### lookup_srv
+### lookup_srv {#lookup_srv}
 
 ```xo
 fn lookup_srv(n: Net, service: Str, proto: Str, name: Str) -> List[Srv] ! NetErr uses net.dial
@@ -137,7 +137,7 @@ out; Err when every record is.
 
 [Source: `std/dns.xo:41`](https://github.com/xo-lang/xo/blob/main/std/dns.xo#L41)
 
-### lookup_addr
+### lookup_addr {#lookup_addr}
 
 ```xo
 fn lookup_addr(n: Net, ip: Str) -> List[Str] ! NetErr uses net.dial

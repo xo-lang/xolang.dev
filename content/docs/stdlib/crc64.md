@@ -9,13 +9,13 @@ generated: "scripts/sync-content.py from `xo doc std/crc64`; edit the doc commen
 ---
 ## Index
 
-- type [`Poly`](#poly)
+- type [`Poly`](#Poly)
 - fn [`checksum`](#checksum)
 - fn [`update`](#update)
 
 ## Types
 
-### Poly
+### Poly {#Poly}
 
 ```xo
 enum Poly {
@@ -35,7 +35,7 @@ flexible checksum; `checksum(b"123456789", Poly.Nvme)` is
 
 ## Functions
 
-### checksum
+### checksum {#checksum}
 
 ```xo
 fn checksum(data: Bytes, poly: Poly = Poly.Iso) -> Int
@@ -46,7 +46,7 @@ The CRC-64 of data: the Int's bits are Go's uint64, so a checksum past
 
 [Source: `std/crc64.xo:19`](https://github.com/xo-lang/xo/blob/main/std/crc64.xo#L19)
 
-### update
+### update {#update}
 
 ```xo
 fn update(crc: Int, data: Bytes, poly: Poly = Poly.Iso) -> Int

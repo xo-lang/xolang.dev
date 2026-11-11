@@ -9,16 +9,16 @@ generated: "scripts/sync-content.py from `xo doc std/cron`; edit the doc comment
 ---
 ## Index
 
-- type [`CronErr`](#cronerr)
-  - method [`CronErr.display`](#cronerrdisplay)
-- type [`Schedule`](#schedule)
-  - method [`Schedule.next`](#schedulenext)
-  - method [`Schedule.zone`](#schedulezone)
+- type [`CronErr`](#CronErr)
+  - method [`CronErr.display`](#CronErr.display)
+- type [`Schedule`](#Schedule)
+  - method [`Schedule.next`](#Schedule.next)
+  - method [`Schedule.zone`](#Schedule.zone)
 - fn [`parse`](#parse)
 
 ## Types
 
-### CronErr
+### CronErr {#CronErr}
 
 ```xo
 struct CronErr {
@@ -31,7 +31,7 @@ Why a spec did not parse; `msg` is robfig/cron's text, for example
 
 [Source: `std/cron.xo:9`](https://github.com/xo-lang/xo/blob/main/std/cron.xo#L9)
 
-#### CronErr.display
+#### CronErr.display {#CronErr.display}
 
 ```xo
 fn (e: CronErr) display() -> Str
@@ -39,7 +39,7 @@ fn (e: CronErr) display() -> Str
 
 [Source: `std/cron.xo:13`](https://github.com/xo-lang/xo/blob/main/std/cron.xo#L13)
 
-### Schedule
+### Schedule {#Schedule}
 
 ```xo
 struct Schedule {
@@ -59,7 +59,7 @@ A parsed schedule: a value, never changes.
 
 [Source: `std/cron.xo:16`](https://github.com/xo-lang/xo/blob/main/std/cron.xo#L16)
 
-#### Schedule.next
+#### Schedule.next {#Schedule.next}
 
 ```xo
 fn (s: Schedule) next(after: Time) -> Time?
@@ -71,7 +71,7 @@ seconds); None when none is found within 5 years. `@every` is
 
 [Source: `std/cron.xo:42`](https://github.com/xo-lang/xo/blob/main/std/cron.xo#L42)
 
-#### Schedule.zone
+#### Schedule.zone {#Schedule.zone}
 
 ```xo
 fn (s: Schedule) zone() -> time.Zone
@@ -83,7 +83,7 @@ The zone the fields are read in.
 
 ## Functions
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(spec: Str, zone: time.Zone = time.utc()) -> Schedule ! CronErr

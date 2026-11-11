@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/smtp`; edit the doc comment
 ---
 ## Index
 
-- type [`SmtpErr`](#smtperr)
-  - method [`SmtpErr.display`](#smtperrdisplay)
-- type [`Auth`](#auth)
-- type [`Security`](#security)
+- type [`SmtpErr`](#SmtpErr)
+  - method [`SmtpErr.display`](#SmtpErr.display)
+- type [`Auth`](#Auth)
+- type [`Security`](#Security)
 - fn [`send`](#send)
 
 ## Types
 
-### SmtpErr
+### SmtpErr {#SmtpErr}
 
 ```xo
 struct SmtpErr {
@@ -33,7 +33,7 @@ support STARTTLS`).
 
 [Source: `std/smtp.xo:10`](https://github.com/xo-lang/xo/blob/main/std/smtp.xo#L10)
 
-#### SmtpErr.display
+#### SmtpErr.display {#SmtpErr.display}
 
 ```xo
 fn (e: SmtpErr) display() -> Str
@@ -43,7 +43,7 @@ fn (e: SmtpErr) display() -> Str
 
 [Source: `std/smtp.xo:16`](https://github.com/xo-lang/xo/blob/main/std/smtp.xo#L16)
 
-### Auth
+### Auth {#Auth}
 
 ```xo
 enum Auth {
@@ -57,7 +57,7 @@ How the client authenticates (net/smtp PlainAuth, CRAMMD5Auth).
 
 [Source: `std/smtp.xo:19`](https://github.com/xo-lang/xo/blob/main/std/smtp.xo#L19)
 
-### Security
+### Security {#Security}
 
 ```xo
 enum Security {
@@ -76,7 +76,7 @@ loopback host.
 
 ## Functions
 
-### send
+### send {#send}
 
 ```xo
 fn send(net: Net, addr: Str, from: Str, to: List[Str], msg: Bytes, auth: Auth = Auth.None, security: Security = Security.StartTls, roots: Bytes = b"", hello: Str = "localhost") -> () ! SmtpErr uses net.dial

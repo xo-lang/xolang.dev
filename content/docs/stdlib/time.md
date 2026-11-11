@@ -9,45 +9,45 @@ generated: "scripts/sync-content.py from `xo doc std/time`; edit the doc comment
 ---
 ## Index
 
-- const [`RFC3339`](#rfc3339)
-- const [`RFC1123`](#rfc1123)
-- const [`DATE`](#date)
-- const [`TIME`](#time)
-- const [`RFC3339_LAYOUT`](#rfc3339_layout)
-- const [`RFC1123_LAYOUT`](#rfc1123_layout)
-- const [`DATE_LAYOUT`](#date_layout)
-- const [`TIME_LAYOUT`](#time_layout)
-- type [`Zone`](#zone)
-  - method [`Zone.display`](#zonedisplay)
-  - method [`Zone.name`](#zonename)
-  - method [`Zone.offset_at`](#zoneoffset_at)
-  - method [`Zone.abbreviation_at`](#zoneabbreviation_at)
-- type [`ZoneErr`](#zoneerr)
-  - method [`ZoneErr.display`](#zoneerrdisplay)
-- type [`Date`](#date)
-  - method [`Date.weekday`](#dateweekday)
-  - method [`Date.add_days`](#dateadd_days)
-  - method [`Date.add_months`](#dateadd_months)
-  - method [`Date.days_until`](#datedays_until)
-  - method [`Date.display`](#datedisplay)
-- type [`ClockTime`](#clocktime)
-- type [`Civil`](#civil)
-- type [`Weekday`](#weekday)
-  - method [`Weekday.number`](#weekdaynumber)
-- type [`Ambiguity`](#ambiguity)
-- type [`CivilErr`](#civilerr)
-  - method [`CivilErr.display`](#civilerrdisplay)
-- type [`Ticker`](#ticker)
-  - method [`Ticker.wait`](#tickerwait)
-  - method [`Ticker.reset`](#tickerreset)
-- type [`Layout`](#layout)
-  - method [`Layout.display`](#layoutdisplay)
-  - method [`Layout.format`](#layoutformat)
-  - method [`Layout.parse`](#layoutparse)
-- type [`ParseErr`](#parseerr)
-  - method [`ParseErr.display`](#parseerrdisplay)
-- type [`LayoutErr`](#layouterr)
-  - method [`LayoutErr.display`](#layouterrdisplay)
+- const [`RFC3339`](#RFC3339)
+- const [`RFC1123`](#RFC1123)
+- const [`DATE`](#DATE)
+- const [`TIME`](#TIME)
+- const [`RFC3339_LAYOUT`](#RFC3339_LAYOUT)
+- const [`RFC1123_LAYOUT`](#RFC1123_LAYOUT)
+- const [`DATE_LAYOUT`](#DATE_LAYOUT)
+- const [`TIME_LAYOUT`](#TIME_LAYOUT)
+- type [`Zone`](#Zone)
+  - method [`Zone.display`](#Zone.display)
+  - method [`Zone.name`](#Zone.name)
+  - method [`Zone.offset_at`](#Zone.offset_at)
+  - method [`Zone.abbreviation_at`](#Zone.abbreviation_at)
+- type [`ZoneErr`](#ZoneErr)
+  - method [`ZoneErr.display`](#ZoneErr.display)
+- type [`Date`](#Date)
+  - method [`Date.weekday`](#Date.weekday)
+  - method [`Date.add_days`](#Date.add_days)
+  - method [`Date.add_months`](#Date.add_months)
+  - method [`Date.days_until`](#Date.days_until)
+  - method [`Date.display`](#Date.display)
+- type [`ClockTime`](#ClockTime)
+- type [`Civil`](#Civil)
+- type [`Weekday`](#Weekday)
+  - method [`Weekday.number`](#Weekday.number)
+- type [`Ambiguity`](#Ambiguity)
+- type [`CivilErr`](#CivilErr)
+  - method [`CivilErr.display`](#CivilErr.display)
+- type [`Ticker`](#Ticker)
+  - method [`Ticker.wait`](#Ticker.wait)
+  - method [`Ticker.reset`](#Ticker.reset)
+- type [`Layout`](#Layout)
+  - method [`Layout.display`](#Layout.display)
+  - method [`Layout.format`](#Layout.format)
+  - method [`Layout.parse`](#Layout.parse)
+- type [`ParseErr`](#ParseErr)
+  - method [`ParseErr.display`](#ParseErr.display)
+- type [`LayoutErr`](#LayoutErr)
+  - method [`LayoutErr.display`](#LayoutErr.display)
 - fn [`utc`](#utc)
 - fn [`zone`](#zone)
 - fn [`fixed`](#fixed)
@@ -66,7 +66,7 @@ generated: "scripts/sync-content.py from `xo doc std/time`; edit the doc comment
 
 ## Constants
 
-### RFC3339
+### RFC3339 {#RFC3339}
 
 ```xo
 const RFC3339: Str = "{year}-{month}-{day}T{hour}:{minute}:{second}{frac}{offset}"
@@ -74,7 +74,7 @@ const RFC3339: Str = "{year}-{month}-{day}T{hour}:{minute}:{second}{frac}{offset
 
 [Source: `std/time.xo:146`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L146)
 
-### RFC1123
+### RFC1123 {#RFC1123}
 
 ```xo
 const RFC1123: Str = "{weekday:short}, {day} {month:short} {year} {hour}:{minute}:{second} {zone}"
@@ -84,7 +84,7 @@ HTTP dates.
 
 [Source: `std/time.xo:148`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L148)
 
-### DATE
+### DATE {#DATE}
 
 ```xo
 const DATE: Str = "{year}-{month}-{day}"
@@ -92,7 +92,7 @@ const DATE: Str = "{year}-{month}-{day}"
 
 [Source: `std/time.xo:149`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L149)
 
-### TIME
+### TIME {#TIME}
 
 ```xo
 const TIME: Str = "{hour}:{minute}:{second}"
@@ -100,7 +100,7 @@ const TIME: Str = "{hour}:{minute}:{second}"
 
 [Source: `std/time.xo:150`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L150)
 
-### RFC3339_LAYOUT
+### RFC3339_LAYOUT {#RFC3339_LAYOUT}
 
 ```xo
 const RFC3339_LAYOUT: Layout = layout(RFC3339)
@@ -108,7 +108,7 @@ const RFC3339_LAYOUT: Layout = layout(RFC3339)
 
 [Source: `std/time.xo:169`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L169)
 
-### RFC1123_LAYOUT
+### RFC1123_LAYOUT {#RFC1123_LAYOUT}
 
 ```xo
 const RFC1123_LAYOUT: Layout = layout(RFC1123)
@@ -116,7 +116,7 @@ const RFC1123_LAYOUT: Layout = layout(RFC1123)
 
 [Source: `std/time.xo:170`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L170)
 
-### DATE_LAYOUT
+### DATE_LAYOUT {#DATE_LAYOUT}
 
 ```xo
 const DATE_LAYOUT: Layout = layout(DATE)
@@ -124,7 +124,7 @@ const DATE_LAYOUT: Layout = layout(DATE)
 
 [Source: `std/time.xo:171`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L171)
 
-### TIME_LAYOUT
+### TIME_LAYOUT {#TIME_LAYOUT}
 
 ```xo
 const TIME_LAYOUT: Layout = layout(TIME)
@@ -134,7 +134,7 @@ const TIME_LAYOUT: Layout = layout(TIME)
 
 ## Types
 
-### Zone
+### Zone {#Zone}
 
 ```xo
 struct Zone {}
@@ -145,7 +145,7 @@ A time zone: a handle to its rules. Equal when the names (and, for
 
 [Source: `std/time.xo:13`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L13)
 
-#### Zone.display
+#### Zone.display {#Zone.display}
 
 ```xo
 fn (z: Zone) display() -> Str
@@ -153,7 +153,7 @@ fn (z: Zone) display() -> Str
 
 [Source: `std/time.xo:15`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L15)
 
-#### Zone.name
+#### Zone.name {#Zone.name}
 
 ```xo
 fn (z: Zone) name() -> Str
@@ -161,7 +161,7 @@ fn (z: Zone) name() -> Str
 
 [Source: `std/time.xo:38`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L38)
 
-#### Zone.offset_at
+#### Zone.offset_at {#Zone.offset_at}
 
 ```xo
 fn (z: Zone) offset_at(t: Time) -> Duration
@@ -171,7 +171,7 @@ The offset from UTC at that instant.
 
 [Source: `std/time.xo:40`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L40)
 
-#### Zone.abbreviation_at
+#### Zone.abbreviation_at {#Zone.abbreviation_at}
 
 ```xo
 fn (z: Zone) abbreviation_at(t: Time) -> Str
@@ -181,7 +181,7 @@ fn (z: Zone) abbreviation_at(t: Time) -> Str
 
 [Source: `std/time.xo:42`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L42)
 
-### ZoneErr
+### ZoneErr {#ZoneErr}
 
 ```xo
 enum ZoneErr {
@@ -195,7 +195,7 @@ Displays as `unknown time zone "Mars/Olympus"` or
 
 [Source: `std/time.xo:19`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L19)
 
-#### ZoneErr.display
+#### ZoneErr.display {#ZoneErr.display}
 
 ```xo
 fn (e: ZoneErr) display() -> Str
@@ -203,7 +203,7 @@ fn (e: ZoneErr) display() -> Str
 
 [Source: `std/time.xo:26`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L26)
 
-### Date
+### Date {#Date}
 
 ```xo
 struct Date {
@@ -217,7 +217,7 @@ A calendar date in the proleptic Gregorian calendar.
 
 [Source: `std/time.xo:45`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L45)
 
-#### Date.weekday
+#### Date.weekday {#Date.weekday}
 
 ```xo
 fn (d: Date) weekday() -> Weekday
@@ -225,7 +225,7 @@ fn (d: Date) weekday() -> Weekday
 
 [Source: `std/time.xo:109`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L109)
 
-#### Date.add_days
+#### Date.add_days {#Date.add_days}
 
 ```xo
 fn (d: Date) add_days(n: Int) -> Date
@@ -233,7 +233,7 @@ fn (d: Date) add_days(n: Int) -> Date
 
 [Source: `std/time.xo:110`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L110)
 
-#### Date.add_months
+#### Date.add_months {#Date.add_months}
 
 ```xo
 fn (d: Date) add_months(n: Int) -> Date
@@ -243,7 +243,7 @@ Clamps the day: Jan 31 + 1 month is Feb 28 or 29.
 
 [Source: `std/time.xo:112`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L112)
 
-#### Date.days_until
+#### Date.days_until {#Date.days_until}
 
 ```xo
 fn (d: Date) days_until(o: Date) -> Int
@@ -251,7 +251,7 @@ fn (d: Date) days_until(o: Date) -> Int
 
 [Source: `std/time.xo:113`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L113)
 
-#### Date.display
+#### Date.display {#Date.display}
 
 ```xo
 fn (d: Date) display() -> Str
@@ -261,7 +261,7 @@ fn (d: Date) display() -> Str
 
 [Source: `std/time.xo:115`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L115)
 
-### ClockTime
+### ClockTime {#ClockTime}
 
 ```xo
 struct ClockTime {
@@ -276,7 +276,7 @@ A wall clock time of day.
 
 [Source: `std/time.xo:52`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L52)
 
-### Civil
+### Civil {#Civil}
 
 ```xo
 struct Civil {
@@ -291,7 +291,7 @@ A wall clock reading in a zone: what `civil(t, z)` returns.
 
 [Source: `std/time.xo:60`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L60)
 
-### Weekday
+### Weekday {#Weekday}
 
 ```xo
 enum Weekday {
@@ -307,7 +307,7 @@ enum Weekday {
 
 [Source: `std/time.xo:67`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L67)
 
-#### Weekday.number
+#### Weekday.number {#Weekday.number}
 
 ```xo
 fn (w: Weekday) number() -> Int
@@ -317,7 +317,7 @@ The ISO 8601 number of the day: Monday 1 to Sunday 7 (decision 0414).
 
 [Source: `std/time.xo:118`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L118)
 
-### Ambiguity
+### Ambiguity {#Ambiguity}
 
 ```xo
 enum Ambiguity {
@@ -336,7 +336,7 @@ for an overlap, 01:30 on 2026-11-01 is 01:30 EDT or 01:30 EST.
 
 [Source: `std/time.xo:83`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L83)
 
-### CivilErr
+### CivilErr {#CivilErr}
 
 ```xo
 enum CivilErr {
@@ -353,7 +353,7 @@ happens twice (repeated by a daylight saving change)`.
 
 [Source: `std/time.xo:93`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L93)
 
-#### CivilErr.display
+#### CivilErr.display {#CivilErr.display}
 
 ```xo
 fn (e: CivilErr) display() -> Str
@@ -361,7 +361,7 @@ fn (e: CivilErr) display() -> Str
 
 [Source: `std/time.xo:103`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L103)
 
-### Ticker
+### Ticker {#Ticker}
 
 ```xo
 struct Ticker {
@@ -378,7 +378,7 @@ the phase is kept (decision 0414). Copies share the schedule.
 
 [Source: `std/time.xo:134`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L134)
 
-#### Ticker.wait
+#### Ticker.wait {#Ticker.wait}
 
 ```xo
 fn (t: Ticker) wait() -> Time uses clock
@@ -386,7 +386,7 @@ fn (t: Ticker) wait() -> Time uses clock
 
 [Source: `std/time.xo:142`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L142)
 
-#### Ticker.reset
+#### Ticker.reset {#Ticker.reset}
 
 ```xo
 fn (t: Ticker) reset(period: Duration) -> Ticker uses clock
@@ -396,7 +396,7 @@ Restarts the schedule: the next tick one (new) period from now.
 
 [Source: `std/time.xo:144`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L144)
 
-### Layout
+### Layout {#Layout}
 
 ```xo
 struct Layout {}
@@ -412,7 +412,7 @@ are.
 
 [Source: `std/time.xo:159`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L159)
 
-#### Layout.display
+#### Layout.display {#Layout.display}
 
 ```xo
 fn (l: Layout) display() -> Str
@@ -420,7 +420,7 @@ fn (l: Layout) display() -> Str
 
 [Source: `std/time.xo:163`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L163)
 
-#### Layout.format
+#### Layout.format {#Layout.format}
 
 ```xo
 fn (l: Layout) format(t: Time, z: Zone) -> Str
@@ -430,7 +430,7 @@ Same text as `time.format(t, z, text)`.
 
 [Source: `std/time.xo:165`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L165)
 
-#### Layout.parse
+#### Layout.parse {#Layout.parse}
 
 ```xo
 fn (l: Layout) parse(s: Str, z: Zone) -> Time ! ParseErr
@@ -440,7 +440,7 @@ Same result as `time.parse(s, text, z)`.
 
 [Source: `std/time.xo:167`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L167)
 
-### ParseErr
+### ParseErr {#ParseErr}
 
 ```xo
 struct ParseErr {
@@ -459,7 +459,7 @@ Displays as `at byte 5 of "2026-1x-09": expected 2 digit month`.
 
 [Source: `std/time.xo:175`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L175)
 
-#### ParseErr.display
+#### ParseErr.display {#ParseErr.display}
 
 ```xo
 fn (e: ParseErr) display() -> Str
@@ -467,7 +467,7 @@ fn (e: ParseErr) display() -> Str
 
 [Source: `std/time.xo:188`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L188)
 
-### LayoutErr
+### LayoutErr {#LayoutErr}
 
 ```xo
 struct LayoutErr {
@@ -480,7 +480,7 @@ Displays as `bad layout "{yr}": unknown field {yr}`.
 
 [Source: `std/time.xo:191`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L191)
 
-#### LayoutErr.display
+#### LayoutErr.display {#LayoutErr.display}
 
 ```xo
 fn (e: LayoutErr) display() -> Str
@@ -490,7 +490,7 @@ fn (e: LayoutErr) display() -> Str
 
 ## Functions
 
-### utc
+### utc {#utc}
 
 ```xo
 fn utc() -> Zone
@@ -500,7 +500,7 @@ fn utc() -> Zone
 
 [Source: `std/time.xo:29`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L29)
 
-### zone
+### zone {#zone}
 
 ```xo
 fn zone(name: Str) -> Zone ! ZoneErr
@@ -510,7 +510,7 @@ An IANA name: "Europe/Berlin". Pure: the data is embedded in the program.
 
 [Source: `std/time.xo:31`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L31)
 
-### fixed
+### fixed {#fixed}
 
 ```xo
 fn fixed(name: Str, offset: Duration) -> Zone
@@ -520,7 +520,7 @@ A zone with one offset forever ("UTC+2" style names); faults past 24h.
 
 [Source: `std/time.xo:33`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L33)
 
-### local
+### local {#local}
 
 ```xo
 fn local(env: Env) -> Zone ! ZoneErr uses env
@@ -531,7 +531,7 @@ The machine's zone: `TZ`, then the system setting. A fake `Env` without
 
 [Source: `std/time.xo:36`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L36)
 
-### civil
+### civil {#civil}
 
 ```xo
 fn civil(t: Time, z: Zone) -> Civil
@@ -539,7 +539,7 @@ fn civil(t: Time, z: Zone) -> Civil
 
 [Source: `std/time.xo:105`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L105)
 
-### instant
+### instant {#instant}
 
 ```xo
 fn instant(date: Date, time: ClockTime, z: Zone, ambiguity: Ambiguity = Ambiguity.Reject) -> Time ! CivilErr
@@ -547,7 +547,7 @@ fn instant(date: Date, time: ClockTime, z: Zone, ambiguity: Ambiguity = Ambiguit
 
 [Source: `std/time.xo:106`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L106)
 
-### date
+### date {#date}
 
 ```xo
 fn date(year: Int, month: Int, day: Int) -> Date ! CivilErr
@@ -555,7 +555,7 @@ fn date(year: Int, month: Int, day: Int) -> Date ! CivilErr
 
 [Source: `std/time.xo:107`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L107)
 
-### weekday_from
+### weekday_from {#weekday_from}
 
 ```xo
 fn weekday_from(n: Int) -> Weekday?
@@ -566,7 +566,7 @@ outside 1 to 7.
 
 [Source: `std/time.xo:121`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L121)
 
-### truncate
+### truncate {#truncate}
 
 ```xo
 fn truncate(t: Time, d: Duration) -> Time
@@ -578,7 +578,7 @@ the start of the UTC minute, hour or day. d \<= 0 returns t.
 
 [Source: `std/time.xo:126`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L126)
 
-### round
+### round {#round}
 
 ```xo
 fn round(t: Time, d: Duration) -> Time
@@ -588,7 +588,7 @@ t rounded to the nearest multiple of d (halves up), Go's Time.Round.
 
 [Source: `std/time.xo:128`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L128)
 
-### ticker
+### ticker {#ticker}
 
 ```xo
 fn ticker(clock: Clock, period: Duration) -> Ticker uses clock
@@ -599,7 +599,7 @@ of 0 or less (Go's NewTicker panics).
 
 [Source: `std/time.xo:141`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L141)
 
-### layout
+### layout {#layout}
 
 ```xo
 fn layout(text: Str) -> Layout
@@ -609,7 +609,7 @@ Faults on a bad layout (a constant layout is checked at compile time).
 
 [Source: `std/time.xo:162`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L162)
 
-### format
+### format {#format}
 
 ```xo
 fn format(t: Time, z: Zone, layout: Str) -> Str
@@ -620,7 +620,7 @@ Faults on a bad layout (a constant layout is checked at compile time).
 
 [Source: `std/time.xo:200`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L200)
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(s: Str, layout: Str, z: Zone) -> Time ! ParseErr
@@ -631,7 +631,7 @@ offset.
 
 [Source: `std/time.xo:203`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L203)
 
-### check_layout
+### check_layout {#check_layout}
 
 ```xo
 fn check_layout(layout: Str) -> () ! LayoutErr

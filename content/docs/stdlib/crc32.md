@@ -9,13 +9,13 @@ generated: "scripts/sync-content.py from `xo doc std/crc32`; edit the doc commen
 ---
 ## Index
 
-- type [`Poly`](#poly)
+- type [`Poly`](#Poly)
 - fn [`checksum`](#checksum)
 - fn [`update`](#update)
 
 ## Types
 
-### Poly
+### Poly {#Poly}
 
 ```xo
 enum Poly {
@@ -31,7 +31,7 @@ tables, both reversed as Go's are.
 
 ## Functions
 
-### checksum
+### checksum {#checksum}
 
 ```xo
 fn checksum(data: Bytes, poly: Poly = Poly.Ieee) -> Int
@@ -42,7 +42,7 @@ with MakeTable(Castagnoli)).
 
 [Source: `std/crc32.xo:15`](https://github.com/xo-lang/xo/blob/main/std/crc32.xo#L15)
 
-### update
+### update {#update}
 
 ```xo
 fn update(crc: Int, data: Bytes, poly: Poly = Poly.Ieee) -> Int

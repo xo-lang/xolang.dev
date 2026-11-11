@@ -141,6 +141,7 @@ def stdlib():
         body = re.sub(r"\A# Module `[^`]*`\n+", "", body)
         body = re.sub(r"^Defined at (std/[\w/]+\.xo):(\d+):\d+\.$",
                       lambda g: f"[Source: `{g.group(1)}:{g.group(2)}`]({SOURCE}{g.group(1)}#L{g.group(2)})", body, flags=re.M)
+        body = stable_ids(body)
         rows.append(f"| [`{name}`]({short}/) | {md_text(summary)} |")
         write(f"content/docs/stdlib/{short}.md", front(
             title=name, linkTitle=short, description=summary, toc=True, module=name,
@@ -160,6 +161,22 @@ def stdlib():
     ] + rows) + "\n")
     if tmp:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+DOC_NAME = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?"
+
+
+def stable_ids(body):
+    """Each type, fn, const and method heading of an `xo doc` page gets its
+    exact name as its id ({#CharsetErr.display}, as pkg.go.dev's
+    #Reader.Read), and the Index links to it: Hugo's ids lower case the
+    name, so type `Decoder` and fn `decoder` shared #decoder and the second
+    became #decoder-1, an id that moved when a declaration was added. xo
+    lsp's hover links to these ids."""
+    body = re.sub(r"^(#{3,4}) (" + DOC_NAME + r")$", r"\1 \2 {#\2}", body, flags=re.M)
+    body = re.sub(r"^(\s*- (?:type|fn|const|method) \[`(" + DOC_NAME + r")`\]\()#[^)]*\)",
+                  r"\1#\2)", body, flags=re.M)
+    return body
 
 
 def diagnostics():

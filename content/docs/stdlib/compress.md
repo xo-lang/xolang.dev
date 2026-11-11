@@ -9,18 +9,18 @@ generated: "scripts/sync-content.py from `xo doc std/compress`; edit the doc com
 ---
 ## Index
 
-- type [`Level`](#level)
-- type [`CompressErr`](#compresserr)
-  - method [`CompressErr.display`](#compresserrdisplay)
-- type [`Format`](#format)
-- type [`Compressor`](#compressor)
-  - method [`Compressor.write`](#compressorwrite)
-  - method [`Compressor.flush`](#compressorflush)
-  - method [`Compressor.finish`](#compressorfinish)
-- type [`Decompressor`](#decompressor)
-  - method [`Decompressor.write`](#decompressorwrite)
-  - method [`Decompressor.finish`](#decompressorfinish)
-- type [`LzwOrder`](#lzworder)
+- type [`Level`](#Level)
+- type [`CompressErr`](#CompressErr)
+  - method [`CompressErr.display`](#CompressErr.display)
+- type [`Format`](#Format)
+- type [`Compressor`](#Compressor)
+  - method [`Compressor.write`](#Compressor.write)
+  - method [`Compressor.flush`](#Compressor.flush)
+  - method [`Compressor.finish`](#Compressor.finish)
+- type [`Decompressor`](#Decompressor)
+  - method [`Decompressor.write`](#Decompressor.write)
+  - method [`Decompressor.finish`](#Decompressor.finish)
+- type [`LzwOrder`](#LzwOrder)
 - fn [`gzip`](#gzip)
 - fn [`gunzip`](#gunzip)
 - fn [`deflate`](#deflate)
@@ -34,7 +34,7 @@ generated: "scripts/sync-content.py from `xo doc std/compress`; edit the doc com
 
 ## Types
 
-### Level
+### Level {#Level}
 
 ```xo
 enum Level {
@@ -52,7 +52,7 @@ A compression level: Go's -2 (HuffmanOnly) to 9 (BestCompression);
 
 [Source: `std/compress.xo:9`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L9)
 
-### CompressErr
+### CompressErr {#CompressErr}
 
 ```xo
 struct CompressErr {
@@ -66,7 +66,7 @@ offset 5`, `zlib: invalid checksum`, `unexpected EOF`), or
 
 [Source: `std/compress.xo:21`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L21)
 
-#### CompressErr.display
+#### CompressErr.display {#CompressErr.display}
 
 ```xo
 fn (e: CompressErr) display() -> Str
@@ -74,7 +74,7 @@ fn (e: CompressErr) display() -> Str
 
 [Source: `std/compress.xo:25`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L25)
 
-### Format
+### Format {#Format}
 
 ```xo
 enum Format {
@@ -88,7 +88,7 @@ The stream formats of a Compressor or Decompressor.
 
 [Source: `std/compress.xo:41`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L41)
 
-### Compressor
+### Compressor {#Compressor}
 
 ```xo
 struct Compressor {}
@@ -103,7 +103,7 @@ of its outputs is what gzip, deflate, or zlib gives for all the data.
 
 [Source: `std/compress.xo:53`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L53)
 
-#### Compressor.write
+#### Compressor.write {#Compressor.write}
 
 ```xo
 fn (var c: Compressor) write(data: Bytes) -> Bytes
@@ -111,7 +111,7 @@ fn (var c: Compressor) write(data: Bytes) -> Bytes
 
 [Source: `std/compress.xo:56`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L56)
 
-#### Compressor.flush
+#### Compressor.flush {#Compressor.flush}
 
 ```xo
 fn (var c: Compressor) flush() -> Bytes
@@ -119,7 +119,7 @@ fn (var c: Compressor) flush() -> Bytes
 
 [Source: `std/compress.xo:57`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L57)
 
-#### Compressor.finish
+#### Compressor.finish {#Compressor.finish}
 
 ```xo
 fn (var c: Compressor) finish() -> Bytes
@@ -129,7 +129,7 @@ fn (var c: Compressor) finish() -> Bytes
 
 [Source: `std/compress.xo:59`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L59)
 
-### Decompressor
+### Decompressor {#Decompressor}
 
 ```xo
 struct Decompressor {}
@@ -146,7 +146,7 @@ error at once.
 
 [Source: `std/compress.xo:69`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L69)
 
-#### Decompressor.write
+#### Decompressor.write {#Decompressor.write}
 
 ```xo
 fn (var d: Decompressor) write(data: Bytes) -> Bytes ! CompressErr
@@ -154,7 +154,7 @@ fn (var d: Decompressor) write(data: Bytes) -> Bytes ! CompressErr
 
 [Source: `std/compress.xo:72`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L72)
 
-#### Decompressor.finish
+#### Decompressor.finish {#Decompressor.finish}
 
 ```xo
 fn (var d: Decompressor) finish() -> Bytes ! CompressErr
@@ -164,7 +164,7 @@ fn (var d: Decompressor) finish() -> Bytes ! CompressErr
 
 [Source: `std/compress.xo:74`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L74)
 
-### LzwOrder
+### LzwOrder {#LzwOrder}
 
 ```xo
 enum LzwOrder {
@@ -181,7 +181,7 @@ TIFF) from the high end.
 
 ## Functions
 
-### gzip
+### gzip {#gzip}
 
 ```xo
 fn gzip(data: Bytes, level: Level = Level.Default) -> Bytes
@@ -192,7 +192,7 @@ and the level only).
 
 [Source: `std/compress.xo:29`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L29)
 
-### gunzip
+### gunzip {#gunzip}
 
 ```xo
 fn gunzip(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
@@ -203,7 +203,7 @@ error.
 
 [Source: `std/compress.xo:32`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L32)
 
-### deflate
+### deflate {#deflate}
 
 ```xo
 fn deflate(data: Bytes, level: Level = Level.Default) -> Bytes
@@ -213,7 +213,7 @@ Raw DEFLATE (RFC 1951).
 
 [Source: `std/compress.xo:34`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L34)
 
-### inflate
+### inflate {#inflate}
 
 ```xo
 fn inflate(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
@@ -221,7 +221,7 @@ fn inflate(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
 
 [Source: `std/compress.xo:35`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L35)
 
-### zlib
+### zlib {#zlib}
 
 ```xo
 fn zlib(data: Bytes, level: Level = Level.Default) -> Bytes
@@ -231,7 +231,7 @@ zlib (RFC 1950): a two byte header, DEFLATE, and the Adler-32 sum.
 
 [Source: `std/compress.xo:37`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L37)
 
-### unzlib
+### unzlib {#unzlib}
 
 ```xo
 fn unzlib(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
@@ -239,7 +239,7 @@ fn unzlib(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
 
 [Source: `std/compress.xo:38`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L38)
 
-### compressor
+### compressor {#compressor}
 
 ```xo
 fn compressor(format: Format, level: Level = Level.Default) -> Compressor
@@ -247,7 +247,7 @@ fn compressor(format: Format, level: Level = Level.Default) -> Compressor
 
 [Source: `std/compress.xo:55`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L55)
 
-### decompressor
+### decompressor {#decompressor}
 
 ```xo
 fn decompressor(format: Format, max_size: Int = 1073741824) -> Decompressor
@@ -255,7 +255,7 @@ fn decompressor(format: Format, max_size: Int = 1073741824) -> Decompressor
 
 [Source: `std/compress.xo:71`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L71)
 
-### lzw_encode
+### lzw_encode {#lzw_encode}
 
 ```xo
 fn lzw_encode(data: Bytes, order: LzwOrder, lit_width: Int) -> Bytes ! CompressErr
@@ -269,7 +269,7 @@ out of range`, `lzw: input byte too large for the litWidth`.
 
 [Source: `std/compress.xo:89`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L89)
 
-### lzw_decode
+### lzw_decode {#lzw_decode}
 
 ```xo
 fn lzw_decode(data: Bytes, order: LzwOrder, lit_width: Int, max_size: Int = 1073741824) -> Bytes ! CompressErr

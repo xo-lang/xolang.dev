@@ -9,28 +9,28 @@ generated: "scripts/sync-content.py from `xo doc std/image`; edit the doc commen
 ---
 ## Index
 
-- type [`Rect`](#rect)
-- type [`Color`](#color)
-  - method [`Color.gray`](#colorgray)
-  - method [`Color.gray16`](#colorgray16)
-  - method [`Color.nrgba`](#colornrgba)
-- type [`Model`](#model)
-- type [`Image`](#image)
-  - method [`Image.at`](#imageat)
-  - method [`Image.set`](#imageset)
-  - method [`Image.sub_image`](#imagesub_image)
-  - method [`Image.crop`](#imagecrop)
-  - method [`Image.to_rgba`](#imageto_rgba)
-  - method [`Image.to_nrgba`](#imageto_nrgba)
-  - method [`Image.to_png`](#imageto_png)
-  - method [`Image.to_jpeg`](#imageto_jpeg)
-  - method [`Image.draw`](#imagedraw)
-  - method [`Image.draw_mask`](#imagedraw_mask)
-  - method [`Image.fill`](#imagefill)
-  - method [`Image.scale`](#imagescale)
-  - method [`Image.floyd_steinberg`](#imagefloyd_steinberg)
-- type [`Op`](#op)
-- type [`Kernel`](#kernel)
+- type [`Rect`](#Rect)
+- type [`Color`](#Color)
+  - method [`Color.gray`](#Color.gray)
+  - method [`Color.gray16`](#Color.gray16)
+  - method [`Color.nrgba`](#Color.nrgba)
+- type [`Model`](#Model)
+- type [`Image`](#Image)
+  - method [`Image.at`](#Image.at)
+  - method [`Image.set`](#Image.set)
+  - method [`Image.sub_image`](#Image.sub_image)
+  - method [`Image.crop`](#Image.crop)
+  - method [`Image.to_rgba`](#Image.to_rgba)
+  - method [`Image.to_nrgba`](#Image.to_nrgba)
+  - method [`Image.to_png`](#Image.to_png)
+  - method [`Image.to_jpeg`](#Image.to_jpeg)
+  - method [`Image.draw`](#Image.draw)
+  - method [`Image.draw_mask`](#Image.draw_mask)
+  - method [`Image.fill`](#Image.fill)
+  - method [`Image.scale`](#Image.scale)
+  - method [`Image.floyd_steinberg`](#Image.floyd_steinberg)
+- type [`Op`](#Op)
+- type [`Kernel`](#Kernel)
 - fn [`rgb_to_ycbcr`](#rgb_to_ycbcr)
 - fn [`ycbcr_to_rgb`](#ycbcr_to_rgb)
 - fn [`rgb_to_cmyk`](#rgb_to_cmyk)
@@ -43,7 +43,7 @@ generated: "scripts/sync-content.py from `xo doc std/image`; edit the doc commen
 
 ## Types
 
-### Rect
+### Rect {#Rect}
 
 ```xo
 struct Rect {
@@ -58,7 +58,7 @@ Go's image.Rectangle: x0 \<= x \< x1 and y0 \<= y \< y1.
 
 [Source: `std/image.xo:10`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L10)
 
-### Color
+### Color {#Color}
 
 ```xo
 struct Color {
@@ -74,7 +74,7 @@ r, g and b is at most a).
 
 [Source: `std/image.xo:19`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L19)
 
-#### Color.gray
+#### Color.gray {#Color.gray}
 
 ```xo
 fn (c: Color) gray() -> Int
@@ -85,7 +85,7 @@ Go's color.GrayModel: the 8 bit luma of c, (19595 r + 38470 g + 7471 b +
 
 [Source: `std/image.xo:68`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L68)
 
-#### Color.gray16
+#### Color.gray16 {#Color.gray16}
 
 ```xo
 fn (c: Color) gray16() -> Int
@@ -95,7 +95,7 @@ Go's color.Gray16Model: the same sum >> 16.
 
 [Source: `std/image.xo:71`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L71)
 
-#### Color.nrgba
+#### Color.nrgba {#Color.nrgba}
 
 ```xo
 fn (c: Color) nrgba() -> Int
@@ -105,7 +105,7 @@ Go's color.NRGBAModel: 8 bit channels, not premultiplied, as 0xRRGGBBAA.
 
 [Source: `std/image.xo:74`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L74)
 
-### Model
+### Model {#Model}
 
 ```xo
 enum Model {
@@ -128,7 +128,7 @@ CMYK (4, 255 is full ink) and YCbCr (the planes `y`, `cb` and `cr`).
 
 [Source: `std/image.xo:30`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L30)
 
-### Image
+### Image {#Image}
 
 ```xo
 struct Image {
@@ -159,7 +159,7 @@ in the planes `y`, `cb` and `cr` (rows of `y_stride` and `c_stride` bytes,
 
 [Source: `std/image.xo:49`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L49)
 
-#### Image.at
+#### Image.at {#Image.at}
 
 ```xo
 fn (im: Image) at(x: Int, y: Int) -> Color
@@ -173,7 +173,7 @@ CMYK: opaque white, Paletted: palette entry 0).
 
 [Source: `std/image.xo:97`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L97)
 
-#### Image.set
+#### Image.set {#Image.set}
 
 ```xo
 fn (var im: Image) set(x: Int, y: Int, c: Color)
@@ -187,7 +187,7 @@ is ignored, as in Go.
 
 [Source: `std/image.xo:113`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L113)
 
-#### Image.sub_image
+#### Image.sub_image {#Image.sub_image}
 
 ```xo
 fn (im: Image) sub_image(r: Rect) -> Image
@@ -201,7 +201,7 @@ image Go returns.
 
 [Source: `std/image.xo:120`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L120)
 
-#### Image.crop
+#### Image.crop {#Image.crop}
 
 ```xo
 fn (im: Image) crop(r: Rect) -> Image
@@ -212,7 +212,7 @@ at r's corner after clipping).
 
 [Source: `std/image.xo:124`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L124)
 
-#### Image.to_rgba
+#### Image.to_rgba {#Image.to_rgba}
 
 ```xo
 fn (im: Image) to_rgba() -> Image
@@ -224,7 +224,7 @@ tight rows, the same size and corner. Not YCbCr yet.
 
 [Source: `std/image.xo:129`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L129)
 
-#### Image.to_nrgba
+#### Image.to_nrgba {#Image.to_nrgba}
 
 ```xo
 fn (im: Image) to_nrgba() -> Image
@@ -234,7 +234,7 @@ The image as an NRGBA image (color.NRGBAModel on every pixel).
 
 [Source: `std/image.xo:132`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L132)
 
-#### Image.to_png
+#### Image.to_png {#Image.to_png}
 
 ```xo
 fn (im: Image) to_png() -> png.Image?
@@ -246,7 +246,7 @@ layout for (CMYK, YCbCr).
 
 [Source: `std/image.xo:141`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L141)
 
-#### Image.to_jpeg
+#### Image.to_jpeg {#Image.to_jpeg}
 
 ```xo
 fn (im: Image) to_jpeg() -> jpeg.Image?
@@ -258,7 +258,7 @@ and RGBA) and for a YCbCr sub image (crop does not pack planes yet).
 
 [Source: `std/image.xo:150`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L150)
 
-#### Image.draw
+#### Image.draw {#Image.draw}
 
 ```xo
 fn (var dst: Image) draw(r: Rect, src: Image, sp_x: Int, sp_y: Int, op: Op)
@@ -277,7 +277,7 @@ once per call.
 
 [Source: `std/image.xo:168`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L168)
 
-#### Image.draw_mask
+#### Image.draw_mask {#Image.draw_mask}
 
 ```xo
 fn (var dst: Image) draw_mask(r: Rect, src: Image, sp_x: Int, sp_y: Int, mask: Image, mp_x: Int, mp_y: Int, op: Op)
@@ -294,7 +294,7 @@ fast paths compute too.
 
 [Source: `std/image.xo:178`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L178)
 
-#### Image.fill
+#### Image.fill {#Image.fill}
 
 ```xo
 fn (var dst: Image) fill(r: Rect, c: Color, op: Op)
@@ -306,7 +306,7 @@ image, with Src or Over (an opaque c fills as Src either way).
 
 [Source: `std/image.xo:183`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L183)
 
-#### Image.scale
+#### Image.scale {#Image.scale}
 
 ```xo
 fn (var dst: Image) scale(dr: Rect, src: Image, sr: Rect, op: Op, kernel: Kernel)
@@ -326,7 +326,7 @@ and round each channel to 16 bits; an opaque source takes Src for Over.
 
 [Source: `std/image.xo:204`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L204)
 
-#### Image.floyd_steinberg
+#### Image.floyd_steinberg {#Image.floyd_steinberg}
 
 ```xo
 fn (var dst: Image) floyd_steinberg(r: Rect, src: Image, sp_x: Int, sp_y: Int)
@@ -340,7 +340,7 @@ neighbours in sixteenths. Any other destination model is left alone.
 
 [Source: `std/image.xo:211`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L211)
 
-### Op
+### Op {#Op}
 
 ```xo
 enum Op {
@@ -353,7 +353,7 @@ Go's draw.Op: how the source combines with the destination.
 
 [Source: `std/image.xo:153`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L153)
 
-### Kernel
+### Kernel {#Kernel}
 
 ```xo
 enum Kernel {
@@ -370,7 +370,7 @@ The interpolation algorithms of golang.org/x/image/draw.
 
 ## Functions
 
-### rgb_to_ycbcr
+### rgb_to_ycbcr {#rgb_to_ycbcr}
 
 ```xo
 fn rgb_to_ycbcr(r: Int, g: Int, b: Int) -> (Int, Int, Int)
@@ -380,7 +380,7 @@ Go's color.RGBToYCbCr over 8 bit channels: (y, cb, cr).
 
 [Source: `std/image.xo:77`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L77)
 
-### ycbcr_to_rgb
+### ycbcr_to_rgb {#ycbcr_to_rgb}
 
 ```xo
 fn ycbcr_to_rgb(y: Int, cb: Int, cr: Int) -> (Int, Int, Int)
@@ -390,7 +390,7 @@ Go's color.YCbCrToRGB: 8 bit (r, g, b).
 
 [Source: `std/image.xo:80`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L80)
 
-### rgb_to_cmyk
+### rgb_to_cmyk {#rgb_to_cmyk}
 
 ```xo
 fn rgb_to_cmyk(r: Int, g: Int, b: Int) -> (Int, Int, Int, Int)
@@ -400,7 +400,7 @@ Go's color.RGBToCMYK: 8 bit (c, m, y, k).
 
 [Source: `std/image.xo:83`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L83)
 
-### cmyk_to_rgb
+### cmyk_to_rgb {#cmyk_to_rgb}
 
 ```xo
 fn cmyk_to_rgb(c: Int, m: Int, y: Int, k: Int) -> (Int, Int, Int)
@@ -410,7 +410,7 @@ Go's color.CMYKToRGB: 8 bit (r, g, b).
 
 [Source: `std/image.xo:86`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L86)
 
-### from_nrgba
+### from_nrgba {#from_nrgba}
 
 ```xo
 fn from_nrgba(v: Int) -> Color
@@ -421,7 +421,7 @@ color.NRGBA.RGBA()).
 
 [Source: `std/image.xo:90`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L90)
 
-### web_safe
+### web_safe {#web_safe}
 
 ```xo
 fn web_safe() -> List[Int]
@@ -433,7 +433,7 @@ Go's palette.WebSafe: the 216 colors with each channel one of 0, 51, 102,
 
 [Source: `std/image.xo:102`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L102)
 
-### plan9
+### plan9 {#plan9}
 
 ```xo
 fn plan9() -> List[Int]
@@ -444,7 +444,7 @@ Go's palette.Plan9: the 256 colors of Plan 9's default palette, as
 
 [Source: `std/image.xo:106`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L106)
 
-### from_png
+### from_png {#from_png}
 
 ```xo
 fn from_png(p: png.Image) -> Image
@@ -455,7 +455,7 @@ rows, corner (0, 0).
 
 [Source: `std/image.xo:136`](https://github.com/xo-lang/xo/blob/main/std/image.xo#L136)
 
-### from_jpeg
+### from_jpeg {#from_jpeg}
 
 ```xo
 fn from_jpeg(j: jpeg.Image) -> Image

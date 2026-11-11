@@ -9,25 +9,25 @@ generated: "scripts/sync-content.py from `xo doc std/htmltok`; edit the doc comm
 ---
 ## Index
 
-- type [`TokenType`](#tokentype)
-- type [`Attribute`](#attribute)
-- type [`Token`](#token)
-- type [`Pend`](#pend)
-- type [`Tokenizer`](#tokenizer)
-  - method [`Tokenizer.next`](#tokenizernext)
-  - method [`Tokenizer.token`](#tokenizertoken)
-  - method [`Tokenizer.raw`](#tokenizerraw)
-  - method [`Tokenizer.err`](#tokenizererr)
-  - method [`Tokenizer.allow_cdata`](#tokenizerallow_cdata)
-  - method [`Tokenizer.next_is_not_raw_text`](#tokenizernext_is_not_raw_text)
-  - method [`Tokenizer.set_max_buf`](#tokenizerset_max_buf)
-  - method [`Tokenizer.buffered`](#tokenizerbuffered)
+- type [`TokenType`](#TokenType)
+- type [`Attribute`](#Attribute)
+- type [`Token`](#Token)
+- type [`Pend`](#Pend)
+- type [`Tokenizer`](#Tokenizer)
+  - method [`Tokenizer.next`](#Tokenizer.next)
+  - method [`Tokenizer.token`](#Tokenizer.token)
+  - method [`Tokenizer.raw`](#Tokenizer.raw)
+  - method [`Tokenizer.err`](#Tokenizer.err)
+  - method [`Tokenizer.allow_cdata`](#Tokenizer.allow_cdata)
+  - method [`Tokenizer.next_is_not_raw_text`](#Tokenizer.next_is_not_raw_text)
+  - method [`Tokenizer.set_max_buf`](#Tokenizer.set_max_buf)
+  - method [`Tokenizer.buffered`](#Tokenizer.buffered)
 - fn [`tokenizer`](#tokenizer)
 - fn [`tokenizer_fragment`](#tokenizer_fragment)
 
 ## Types
 
-### TokenType
+### TokenType {#TokenType}
 
 ```xo
 enum TokenType {
@@ -45,7 +45,7 @@ Go's TokenType.
 
 [Source: `std/htmltok.xo:10`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L10)
 
-### Attribute
+### Attribute {#Attribute}
 
 ```xo
 struct Attribute {
@@ -59,7 +59,7 @@ key lower cased, the value unescaped.
 
 [Source: `std/htmltok.xo:22`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L22)
 
-### Token
+### Token {#Token}
 
 ```xo
 struct Token {
@@ -75,7 +75,7 @@ duplicates (by lower cased key) and empty keys dropped.
 
 [Source: `std/htmltok.xo:30`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L30)
 
-### Pend
+### Pend {#Pend}
 
 ```xo
 struct Pend {
@@ -91,7 +91,7 @@ The key and value spans of the attribute being read (internal).
 
 [Source: `std/htmltok.xo:38`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L38)
 
-### Tokenizer
+### Tokenizer {#Tokenizer}
 
 ```xo
 struct Tokenizer {
@@ -114,7 +114,7 @@ struct Tokenizer {
 
 [Source: `std/htmltok.xo:45`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L45)
 
-#### Tokenizer.next
+#### Tokenizer.next {#Tokenizer.next}
 
 ```xo
 fn (var z: Tokenizer) next() -> TokenType
@@ -125,7 +125,7 @@ the input (see `err`) or when the buffer limit is exceeded.
 
 [Source: `std/htmltok.xo:73`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L73)
 
-#### Tokenizer.token
+#### Tokenizer.token {#Tokenizer.token}
 
 ```xo
 fn (var z: Tokenizer) token() -> Token
@@ -136,7 +136,7 @@ call it once per `next`).
 
 [Source: `std/htmltok.xo:76`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L76)
 
-#### Tokenizer.raw
+#### Tokenizer.raw {#Tokenizer.raw}
 
 ```xo
 fn (z: Tokenizer) raw() -> Str
@@ -147,7 +147,7 @@ tokens partition the input up to the Error token.
 
 [Source: `std/htmltok.xo:79`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L79)
 
-#### Tokenizer.err
+#### Tokenizer.err {#Tokenizer.err}
 
 ```xo
 fn (z: Tokenizer) err() -> Str?
@@ -158,7 +158,7 @@ exceeded` past the limit; None before one.
 
 [Source: `std/htmltok.xo:82`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L82)
 
-#### Tokenizer.allow_cdata
+#### Tokenizer.allow_cdata {#Tokenizer.allow_cdata}
 
 ```xo
 fn (var z: Tokenizer) allow_cdata(allow: Bool)
@@ -169,7 +169,7 @@ comment (default false).
 
 [Source: `std/htmltok.xo:85`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L85)
 
-#### Tokenizer.next_is_not_raw_text
+#### Tokenizer.next_is_not_raw_text {#Tokenizer.next_is_not_raw_text}
 
 ```xo
 fn (var z: Tokenizer) next_is_not_raw_text()
@@ -180,7 +180,7 @@ scanned as ordinary markup.
 
 [Source: `std/htmltok.xo:88`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L88)
 
-#### Tokenizer.set_max_buf
+#### Tokenizer.set_max_buf {#Tokenizer.set_max_buf}
 
 ```xo
 fn (var z: Tokenizer) set_max_buf(n: Int)
@@ -190,7 +190,7 @@ Go's SetMaxBuf: a token longer than n bytes is an Error (0 is no limit).
 
 [Source: `std/htmltok.xo:90`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L90)
 
-#### Tokenizer.buffered
+#### Tokenizer.buffered {#Tokenizer.buffered}
 
 ```xo
 fn (z: Tokenizer) buffered() -> Str
@@ -202,7 +202,7 @@ Go's Buffered: the input not yet tokenized.
 
 ## Functions
 
-### tokenizer
+### tokenizer {#tokenizer}
 
 ```xo
 fn tokenizer(text: Str) -> Tokenizer
@@ -212,7 +212,7 @@ Go's NewTokenizer.
 
 [Source: `std/htmltok.xo:64`](https://github.com/xo-lang/xo/blob/main/std/htmltok.xo#L64)
 
-### tokenizer_fragment
+### tokenizer_fragment {#tokenizer_fragment}
 
 ```xo
 fn tokenizer_fragment(text: Str, context_tag: Str) -> Tokenizer

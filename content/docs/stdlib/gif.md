@@ -9,10 +9,10 @@ generated: "scripts/sync-content.py from `xo doc std/gif`; edit the doc comments
 ---
 ## Index
 
-- type [`GifErr`](#giferr)
-  - method [`GifErr.display`](#giferrdisplay)
-- type [`Config`](#config)
-- type [`Gif`](#gif)
+- type [`GifErr`](#GifErr)
+  - method [`GifErr.display`](#GifErr.display)
+- type [`Config`](#Config)
+- type [`Gif`](#Gif)
 - fn [`decode`](#decode)
 - fn [`decode_all`](#decode_all)
 - fn [`decode_config`](#decode_config)
@@ -21,7 +21,7 @@ generated: "scripts/sync-content.py from `xo doc std/gif`; edit the doc comments
 
 ## Types
 
-### GifErr
+### GifErr {#GifErr}
 
 ```xo
 struct GifErr {
@@ -37,7 +37,7 @@ image/gif's.
 
 [Source: `std/gif.xo:14`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L14)
 
-#### GifErr.display
+#### GifErr.display {#GifErr.display}
 
 ```xo
 fn (e: GifErr) display() -> Str
@@ -45,7 +45,7 @@ fn (e: GifErr) display() -> Str
 
 [Source: `std/gif.xo:18`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L18)
 
-### Config
+### Config {#Config}
 
 ```xo
 struct Config {
@@ -60,7 +60,7 @@ table (empty when there is none).
 
 [Source: `std/gif.xo:22`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L22)
 
-### Gif
+### Gif {#Gif}
 
 ```xo
 struct Gif {
@@ -86,7 +86,7 @@ background color index.
 
 ## Functions
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(data: Bytes, max_pixels: Int = 100000000) -> image.Image ! GifErr
@@ -97,7 +97,7 @@ max_pixels pixels is refused before anything is allocated.
 
 [Source: `std/gif.xo:47`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L47)
 
-### decode_all
+### decode_all {#decode_all}
 
 ```xo
 fn decode_all(data: Bytes, max_pixels: Int = 100000000) -> Gif ! GifErr
@@ -107,7 +107,7 @@ Go's gif.DecodeAll.
 
 [Source: `std/gif.xo:49`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L49)
 
-### decode_config
+### decode_config {#decode_config}
 
 ```xo
 fn decode_config(data: Bytes) -> Config ! GifErr
@@ -117,7 +117,7 @@ Go's gif.DecodeConfig.
 
 [Source: `std/gif.xo:51`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L51)
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(im: image.Image, num_colors: Int = 256) -> Bytes ! GifErr
@@ -130,7 +130,7 @@ the first num_colors entries of the Plan 9 palette.
 
 [Source: `std/gif.xo:57`](https://github.com/xo-lang/xo/blob/main/std/gif.xo#L57)
 
-### encode_all
+### encode_all {#encode_all}
 
 ```xo
 fn encode_all(g: Gif) -> Bytes ! GifErr

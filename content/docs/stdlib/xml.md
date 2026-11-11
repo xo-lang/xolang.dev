@@ -9,20 +9,20 @@ generated: "scripts/sync-content.py from `xo doc std/xml`; edit the doc comments
 ---
 ## Index
 
-- type [`Name`](#name)
-- type [`Attr`](#attr)
-- type [`Token`](#token)
-- type [`XmlErr`](#xmlerr)
-  - method [`XmlErr.display`](#xmlerrdisplay)
-- type [`Reader`](#reader)
-  - method [`Reader.next`](#readernext)
-- type [`Element`](#element)
-  - method [`Element.attr`](#elementattr)
-  - method [`Element.child`](#elementchild)
-  - method [`Element.children_named`](#elementchildren_named)
-  - method [`Element.text`](#elementtext)
-  - method [`Element.encode`](#elementencode)
-- type [`Node`](#node)
+- type [`Name`](#Name)
+- type [`Attr`](#Attr)
+- type [`Token`](#Token)
+- type [`XmlErr`](#XmlErr)
+  - method [`XmlErr.display`](#XmlErr.display)
+- type [`Reader`](#Reader)
+  - method [`Reader.next`](#Reader.next)
+- type [`Element`](#Element)
+  - method [`Element.attr`](#Element.attr)
+  - method [`Element.child`](#Element.child)
+  - method [`Element.children_named`](#Element.children_named)
+  - method [`Element.text`](#Element.text)
+  - method [`Element.encode`](#Element.encode)
+- type [`Node`](#Node)
 - fn [`tokens`](#tokens)
 - fn [`raw_tokens`](#raw_tokens)
 - fn [`reader`](#reader)
@@ -35,7 +35,7 @@ generated: "scripts/sync-content.py from `xo doc std/xml`; edit the doc comments
 
 ## Types
 
-### Name
+### Name {#Name}
 
 ```xo
 struct Name {
@@ -49,7 +49,7 @@ resolved (the prefix itself in raw tokens); empty for none.
 
 [Source: `std/xml.xo:9`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L9)
 
-### Attr
+### Attr {#Attr}
 
 ```xo
 struct Attr {
@@ -60,7 +60,7 @@ struct Attr {
 
 [Source: `std/xml.xo:14`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L14)
 
-### Token
+### Token {#Token}
 
 ```xo
 enum Token {
@@ -77,7 +77,7 @@ Go's xml.Token.
 
 [Source: `std/xml.xo:20`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L20)
 
-### XmlErr
+### XmlErr {#XmlErr}
 
 ```xo
 struct XmlErr {
@@ -91,7 +91,7 @@ MSG`; Go's other errors and parse's own (line 0) as MSG.
 
 [Source: `std/xml.xo:32`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L32)
 
-#### XmlErr.display
+#### XmlErr.display {#XmlErr.display}
 
 ```xo
 fn (e: XmlErr) display() -> Str
@@ -99,7 +99,7 @@ fn (e: XmlErr) display() -> Str
 
 [Source: `std/xml.xo:37`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L37)
 
-### Reader
+### Reader {#Reader}
 
 ```xo
 struct Reader {}
@@ -111,7 +111,7 @@ Tokens one at a time (Go's Decoder.Token and RawToken): the same tokens as
 
 [Source: `std/xml.xo:49`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L49)
 
-#### Reader.next
+#### Reader.next {#Reader.next}
 
 ```xo
 fn (var r: Reader) next() -> Token? ! XmlErr
@@ -122,7 +122,7 @@ by every later call.
 
 [Source: `std/xml.xo:57`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L57)
 
-### Element
+### Element {#Element}
 
 ```xo
 struct Element {
@@ -136,7 +136,7 @@ An element and everything inside it.
 
 [Source: `std/xml.xo:60`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L60)
 
-#### Element.attr
+#### Element.attr {#Element.attr}
 
 ```xo
 fn (e: Element) attr(local: Str) -> Str?
@@ -146,7 +146,7 @@ The value of the first attribute of that local name.
 
 [Source: `std/xml.xo:82`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L82)
 
-#### Element.child
+#### Element.child {#Element.child}
 
 ```xo
 fn (e: Element) child(local: Str) -> Element?
@@ -156,7 +156,7 @@ The first child element of that local name.
 
 [Source: `std/xml.xo:84`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L84)
 
-#### Element.children_named
+#### Element.children_named {#Element.children_named}
 
 ```xo
 fn (e: Element) children_named(local: Str) -> List[Element]
@@ -164,7 +164,7 @@ fn (e: Element) children_named(local: Str) -> List[Element]
 
 [Source: `std/xml.xo:85`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L85)
 
-#### Element.text
+#### Element.text {#Element.text}
 
 ```xo
 fn (e: Element) text() -> Str
@@ -174,7 +174,7 @@ The character data inside e, its descendants' included, in order.
 
 [Source: `std/xml.xo:87`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L87)
 
-#### Element.encode
+#### Element.encode {#Element.encode}
 
 ```xo
 fn (e: Element) encode(indent: Str = "") -> Str ! XmlErr
@@ -186,7 +186,7 @@ contain "--"`).
 
 [Source: `std/xml.xo:91`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L91)
 
-### Node
+### Node {#Node}
 
 ```xo
 enum Node {
@@ -203,7 +203,7 @@ enum Node {
 
 ## Functions
 
-### tokens
+### tokens {#tokens}
 
 ```xo
 fn tokens(text: Str, strict: Bool = true) -> List[Token] ! XmlErr
@@ -214,7 +214,7 @@ Strict = false with AutoClose = HTMLAutoClose and Entity = HTMLEntity.
 
 [Source: `std/xml.xo:41`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L41)
 
-### raw_tokens
+### raw_tokens {#raw_tokens}
 
 ```xo
 fn raw_tokens(text: Str) -> List[Token] ! XmlErr
@@ -225,7 +225,7 @@ matching.
 
 [Source: `std/xml.xo:44`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L44)
 
-### reader
+### reader {#reader}
 
 ```xo
 fn reader(text: Str, strict: Bool = true) -> Reader
@@ -235,7 +235,7 @@ A reader of text's tokens (`tokens`'s rules, strict: false as there).
 
 [Source: `std/xml.xo:52`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L52)
 
-### raw_reader
+### raw_reader {#raw_reader}
 
 ```xo
 fn raw_reader(text: Str) -> Reader
@@ -245,7 +245,7 @@ A reader of Decoder.RawToken's tokens (`raw_tokens`).
 
 [Source: `std/xml.xo:54`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L54)
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(text: Str, strict: Bool = true) -> Element ! XmlErr
@@ -257,7 +257,7 @@ more than one root element`, `xml: text outside the root element`).
 
 [Source: `std/xml.xo:80`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L80)
 
-### escape
+### escape {#escape}
 
 ```xo
 fn escape(s: Str) -> Str
@@ -267,7 +267,7 @@ Go's EscapeText of s.
 
 [Source: `std/xml.xo:93`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L93)
 
-### escape_to
+### escape_to {#escape_to}
 
 ```xo
 fn escape_to(var out: StrBuilder, s: Str)
@@ -277,7 +277,7 @@ Go's EscapeText of s into out: the text escape returns, appended.
 
 [Source: `std/xml.xo:95`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L95)
 
-### encode_value
+### encode_value {#encode_value}
 
 ```xo
 fn encode_value[T: Xml](v: T, indent: Str = "") -> Str ! XmlErr
@@ -290,7 +290,7 @@ call of the function `derive Xml` generates for T.
 
 [Source: `std/xml.xo:101`](https://github.com/xo-lang/xo/blob/main/std/xml.xo#L101)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode[T: Xml](text: Str) -> T ! XmlErr

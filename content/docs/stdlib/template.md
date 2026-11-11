@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/template`; edit the doc com
 ---
 ## Index
 
-- type [`TemplateErr`](#templateerr)
-  - method [`TemplateErr.display`](#templateerrdisplay)
-- type [`TemplateFn`](#templatefn)
-- type [`Template`](#template)
-  - method [`Template.add`](#templateadd)
-  - method [`Template.missing_key`](#templatemissing_key)
-  - method [`Template.render`](#templaterender)
-  - method [`Template.render_named`](#templaterender_named)
-- type [`Parsed`](#parsed)
+- type [`TemplateErr`](#TemplateErr)
+  - method [`TemplateErr.display`](#TemplateErr.display)
+- type [`TemplateFn`](#TemplateFn)
+- type [`Template`](#Template)
+  - method [`Template.add`](#Template.add)
+  - method [`Template.missing_key`](#Template.missing_key)
+  - method [`Template.render`](#Template.render)
+  - method [`Template.render_named`](#Template.render_named)
+- type [`Parsed`](#Parsed)
 - fn [`parse`](#parse)
 - fn [`parse_html`](#parse_html)
 - fn [`html`](#html)
@@ -30,7 +30,7 @@ generated: "scripts/sync-content.py from `xo doc std/template`; edit the doc com
 
 ## Types
 
-### TemplateErr
+### TemplateErr {#TemplateErr}
 
 ```xo
 struct TemplateErr {
@@ -43,7 +43,7 @@ A parse or execution error, with Go's text
 
 [Source: `std/template.xo:9`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L9)
 
-#### TemplateErr.display
+#### TemplateErr.display {#TemplateErr.display}
 
 ```xo
 fn (e: TemplateErr) display() -> Str
@@ -53,7 +53,7 @@ The message, Go's text (decision 0358).
 
 [Source: `std/template.xo:14`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L14)
 
-### TemplateFn
+### TemplateFn {#TemplateFn}
 
 ```xo
 type TemplateFn = fn(List[json.Value]) -> json.Value ! Str
@@ -67,7 +67,7 @@ cannot be called from a render.
 
 [Source: `std/template.xo:21`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L21)
 
-### Template
+### Template {#Template}
 
 ```xo
 struct Template {
@@ -89,7 +89,7 @@ delimiters, and whether a missing object key is an error
 
 [Source: `std/template.xo:27`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L27)
 
-#### Template.add
+#### Template.add {#Template.add}
 
 ```xo
 fn (t: Template) add(name: Str, src: Str) -> Template ! TemplateErr
@@ -99,7 +99,7 @@ Another named template in the set (t.New(name).Parse(src)).
 
 [Source: `std/template.xo:59`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L59)
 
-#### Template.missing_key
+#### Template.missing_key {#Template.missing_key}
 
 ```xo
 fn (t: Template) missing_key(error: Bool) -> Template
@@ -109,7 +109,7 @@ The set with Option("missingkey=error") (true) or the default.
 
 [Source: `std/template.xo:61`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L61)
 
-#### Template.render
+#### Template.render {#Template.render}
 
 ```xo
 fn (t: Template) render(data: json.Value) -> Str ! TemplateErr
@@ -119,7 +119,7 @@ Execute: the output of the template named t.name with data.
 
 [Source: `std/template.xo:63`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L63)
 
-#### Template.render_named
+#### Template.render_named {#Template.render_named}
 
 ```xo
 fn (t: Template) render_named(name: Str, data: json.Value) -> Str ! TemplateErr
@@ -129,7 +129,7 @@ ExecuteTemplate: the output of the template name of the set.
 
 [Source: `std/template.xo:65`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L65)
 
-### Parsed
+### Parsed {#Parsed}
 
 ```xo
 struct Parsed {}
@@ -141,7 +141,7 @@ The parsed trees of a Template (opaque).
 
 ## Functions
 
-### parse
+### parse {#parse}
 
 ```xo
 fn parse(name: Str, src: Str, left: Str = "{{", right: Str = "}}", funcs: Map[Str, TemplateFn] = {}) -> Template ! TemplateErr
@@ -152,7 +152,7 @@ Go's parse error. `{{define}}` blocks become templates of the set.
 
 [Source: `std/template.xo:51`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L51)
 
-### parse_html
+### parse_html {#parse_html}
 
 ```xo
 fn parse_html(name: Str, src: Str, left: Str = "{{", right: Str = "}}", funcs: Map[Str, TemplateFn] = {}) -> Template ! TemplateErr
@@ -166,7 +166,7 @@ render's, as Go reports them on Execute.
 
 [Source: `std/template.xo:57`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L57)
 
-### html
+### html {#html}
 
 ```xo
 fn html(s: Str) -> json.Value
@@ -179,7 +179,7 @@ other, and the plain string to every other reader.
 
 [Source: `std/template.xo:71`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L71)
 
-### css
+### css {#css}
 
 ```xo
 fn css(s: Str) -> json.Value
@@ -187,7 +187,7 @@ fn css(s: Str) -> json.Value
 
 [Source: `std/template.xo:72`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L72)
 
-### js
+### js {#js}
 
 ```xo
 fn js(s: Str) -> json.Value
@@ -195,7 +195,7 @@ fn js(s: Str) -> json.Value
 
 [Source: `std/template.xo:73`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L73)
 
-### jsstr
+### jsstr {#jsstr}
 
 ```xo
 fn jsstr(s: Str) -> json.Value
@@ -203,7 +203,7 @@ fn jsstr(s: Str) -> json.Value
 
 [Source: `std/template.xo:74`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L74)
 
-### url
+### url {#url}
 
 ```xo
 fn url(s: Str) -> json.Value
@@ -211,7 +211,7 @@ fn url(s: Str) -> json.Value
 
 [Source: `std/template.xo:75`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L75)
 
-### attr
+### attr {#attr}
 
 ```xo
 fn attr(s: Str) -> json.Value
@@ -219,7 +219,7 @@ fn attr(s: Str) -> json.Value
 
 [Source: `std/template.xo:76`](https://github.com/xo-lang/xo/blob/main/std/template.xo#L76)
 
-### srcset
+### srcset {#srcset}
 
 ```xo
 fn srcset(s: Str) -> json.Value

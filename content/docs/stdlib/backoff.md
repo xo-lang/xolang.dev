@@ -9,15 +9,15 @@ generated: "scripts/sync-content.py from `xo doc std/backoff`; edit the doc comm
 ---
 ## Index
 
-- type [`Backoff`](#backoff)
-  - method [`Backoff.delay`](#backoffdelay)
+- type [`Backoff`](#Backoff)
+  - method [`Backoff.delay`](#Backoff.delay)
 - fn [`retry`](#retry)
 - fn [`retry_notify`](#retry_notify)
 - fn [`always`](#always)
 
 ## Types
 
-### Backoff
+### Backoff {#Backoff}
 
 ```xo
 struct Backoff {
@@ -36,7 +36,7 @@ The schedule (cenkalti/backoff v4's defaults): the first delay is
 
 [Source: `std/backoff.xo:10`](https://github.com/xo-lang/xo/blob/main/std/backoff.xo#L10)
 
-#### Backoff.delay
+#### Backoff.delay {#Backoff.delay}
 
 ```xo
 fn (b: Backoff) delay(attempt: Int, rand: Rand) -> Duration uses rand
@@ -50,7 +50,7 @@ randomized with one `rand.float()`.
 
 ## Functions
 
-### retry
+### retry {#retry}
 
 ```xo
 fn retry[T, E, fx: Effects](b: Backoff, clock: Clock, rand: Rand, op: fn() -> T ! E uses fx, retryable: fn(E) -> Bool) -> T ! E uses (clock, rand, fx)
@@ -62,7 +62,7 @@ tries (a cancellation point: a cancelled task unwinds there).
 
 [Source: `std/backoff.xo:31`](https://github.com/xo-lang/xo/blob/main/std/backoff.xo#L31)
 
-### retry_notify
+### retry_notify {#retry_notify}
 
 ```xo
 fn retry_notify[T, E, fx: Effects, rx: Effects, nx: Effects](b: Backoff, clock: Clock, rand: Rand, op: fn() -> T ! E uses fx, retryable: fn(E) -> Bool uses rx, notify: fn(E, Duration) -> () uses nx) -> T ! E uses (clock, rand, fx, rx, nx)
@@ -75,7 +75,7 @@ effect variable: op's need not include a log's).
 
 [Source: `std/backoff.xo:37`](https://github.com/xo-lang/xo/blob/main/std/backoff.xo#L37)
 
-### always
+### always {#always}
 
 ```xo
 fn always[E]() -> fn(E) -> Bool

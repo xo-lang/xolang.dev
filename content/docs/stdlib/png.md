@@ -9,14 +9,14 @@ generated: "scripts/sync-content.py from `xo doc std/png`; edit the doc comments
 ---
 ## Index
 
-- type [`Model`](#model)
-  - method [`Model.bytes_per_pixel`](#modelbytes_per_pixel)
-- type [`Image`](#image)
-  - method [`Image.at`](#imageat)
-- type [`Config`](#config)
-- type [`Compression`](#compression)
-- type [`PngErr`](#pngerr)
-  - method [`PngErr.display`](#pngerrdisplay)
+- type [`Model`](#Model)
+  - method [`Model.bytes_per_pixel`](#Model.bytes_per_pixel)
+- type [`Image`](#Image)
+  - method [`Image.at`](#Image.at)
+- type [`Config`](#Config)
+- type [`Compression`](#Compression)
+- type [`PngErr`](#PngErr)
+  - method [`PngErr.display`](#PngErr.display)
 - fn [`image`](#image)
 - fn [`decode`](#decode)
 - fn [`decode_config`](#decode_config)
@@ -24,7 +24,7 @@ generated: "scripts/sync-content.py from `xo doc std/png`; edit the doc comments
 
 ## Types
 
-### Model
+### Model {#Model}
 
 ```xo
 enum Model {
@@ -47,7 +47,7 @@ RGBA64 (8, big endian 16 bit channels, premultiplied), NRGBA64 (8).
 
 [Source: `std/png.xo:14`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L14)
 
-#### Model.bytes_per_pixel
+#### Model.bytes_per_pixel {#Model.bytes_per_pixel}
 
 ```xo
 fn (m: Model) bytes_per_pixel() -> Int
@@ -57,7 +57,7 @@ The bytes of one pixel: 1, 2, 4 or 8.
 
 [Source: `std/png.xo:71`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L71)
 
-### Image
+### Image {#Image}
 
 ```xo
 struct Image {
@@ -75,7 +75,7 @@ per index, at most 256.
 
 [Source: `std/png.xo:27`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L27)
 
-#### Image.at
+#### Image.at {#Image.at}
 
 ```xo
 fn (img: Image) at(x: Int, y: Int) -> Int
@@ -88,7 +88,7 @@ for a point outside the image.
 
 [Source: `std/png.xo:77`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L77)
 
-### Config
+### Config {#Config}
 
 ```xo
 struct Config {
@@ -103,7 +103,7 @@ not read).
 
 [Source: `std/png.xo:37`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L37)
 
-### Compression
+### Compression {#Compression}
 
 ```xo
 enum Compression {
@@ -119,7 +119,7 @@ Speed (compress level 1) or Best (level 9).
 
 [Source: `std/png.xo:45`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L45)
 
-### PngErr
+### PngErr {#PngErr}
 
 ```xo
 enum PngErr {
@@ -138,7 +138,7 @@ header asks for more than max_pixels pixels, `image too large`.
 
 [Source: `std/png.xo:57`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L57)
 
-#### PngErr.display
+#### PngErr.display {#PngErr.display}
 
 ```xo
 fn (e: PngErr) display() -> Str
@@ -148,7 +148,7 @@ fn (e: PngErr) display() -> Str
 
 ## Functions
 
-### image
+### image {#image}
 
 ```xo
 fn image(width: Int, height: Int, model: Model) -> Image
@@ -159,7 +159,7 @@ palette, set it before `encode`). Faults for a width or height under 1.
 
 [Source: `std/png.xo:68`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L68)
 
-### decode
+### decode {#decode}
 
 ```xo
 fn decode(data: Bytes, max_pixels: Int = 100000000) -> Image ! PngErr
@@ -174,7 +174,7 @@ from the header).
 
 [Source: `std/png.xo:85`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L85)
 
-### decode_config
+### decode_config {#decode_config}
 
 ```xo
 fn decode_config(data: Bytes) -> Config ! PngErr
@@ -184,7 +184,7 @@ Go's png.DecodeConfig: the size and image type without the pixels.
 
 [Source: `std/png.xo:88`](https://github.com/xo-lang/xo/blob/main/std/png.xo#L88)
 
-### encode
+### encode {#encode}
 
 ```xo
 fn encode(img: Image, level: Compression = Compression.Default) -> Bytes ! PngErr
