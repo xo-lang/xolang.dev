@@ -89,6 +89,8 @@ section { padding: 80px 0; border-top: 1px solid var(--line); }
 .eyebrow { font: 500 13px "JetBrains Mono", monospace; color: var(--accent); letter-spacing: .06em; }
 h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -.02em; margin: 10px 0 14px; }
 .sub { color: var(--ink-2); max-width: 44em; margin: 0 0 36px; }
+/* a note right after a button row: the row's own gap above it (.ctas margin-top) */
+.ctas + .sub { margin-top: 28px; }
 
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .cell { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
