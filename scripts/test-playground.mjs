@@ -304,8 +304,11 @@ async function main() {
       await replRun("sq(xs.len())");
       const later = Date.now() - t1;
       await replRun("nope(1)");
-      const log = await replRun("os.stdio.println(\"hi\")");
-      const want = [/› 1 \+ 2\n3\n/, /› sq\(xs\.len\(\)\)\n9\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/];
+      await replRun("os.stdio.println(\"hi\")");
+      // a std module the first load does not have: its pack is fetched
+      await replRun("use std/path");
+      const log = await replRun("path.base(\"/a/b.txt\")");
+      const want = [/› 1 \+ 2\n3\n/, /› sq\(xs\.len\(\)\)\n9\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/, /› path\.base\("\/a\/b\.txt"\)\n"?b\.txt"?/];
       const miss = want.filter((r) => !r.test(log));
       if (miss.length) fail("repl", miss.join(" ") + "\n" + log.slice(-800));
       else pass("repl keeps definitions, values, errors, output", `first ${first} ms, later ${later} ms, compiler memory ${await b.eval(`document.getElementById('play').dataset.replMem`)} MB`);

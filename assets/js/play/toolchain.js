@@ -14,7 +14,9 @@ const MAX_OUTPUT = 4 << 20; // bytes of stdout or stderr kept from a run
 
 let manifest = null;
 let compiler = null; // WebAssembly.Module
-let stdFiles = null; // [{path, file}]
+let stdFiles = null; // [{path, file}]: the first load's std files and the packs fetched since
+const stdPacks = new Set(); // the manifest's std packs fetched
+let replStd = null; // the REPL's live /w/std, which fetched packs join
 let record = null; // File: std's declaration record, when the manifest has one
 
 async function loadManifest() {
@@ -84,6 +86,88 @@ async function load(progress) {
   if (!record && (await loadManifest()).files.rec) record = new File(await asset("rec", progress), { readonly: true });
 }
 
+// USE_STD finds the std modules a source names (`use std/json`).
+const USE_STD = /^\s*use\s+(std\/[A-Za-z0-9_/]+)/gm;
+
+// addStd fetches the packs not yet here and adds their files to std (and
+// the REPL's live std).
+async function addStd(packs, progress) {
+  for (const p of packs) {
+    if (stdPacks.has(p)) continue;
+    const entries = unbundle(await asset(p, progress));
+    stdPacks.add(p);
+    stdFiles.push(...entries);
+    if (replStd) place(replStd.contents, entries);
+  }
+}
+
+// needStd fetches the packs of the std modules source names (the first
+// load has only what a program with no `use` reads; decision 0583's
+// follow-up in the xo repo, scripts/build-playground.py).
+async function needStd(source, progress) {
+  const m = await loadManifest();
+  if (!m.stdmods) return;
+  const packs = [];
+  for (const [, mod] of source.matchAll(USE_STD)) packs.push(...(m.stdmods[mod] || []));
+  await addStd(packs, progress);
+}
+
+// allStd fetches every pack: a build named a module the first load does
+// not have (the prelude reads a runtime file only for what a program
+// calls, which its `use` lines do not say). It reports whether any pack
+// was missing.
+async function allStd(progress) {
+  const m = await loadManifest();
+  const left = (m.stdpacks || []).filter((p) => !stdPacks.has(p));
+  await addStd(left, progress);
+  return left.length > 0;
+}
+
+// lacksModule reports whether a result names a module std does not have
+// here (XO0601's "module `M` not found"; the code also reports a missing
+// member, which more of std does not fix).
+function lacksModule(out) {
+  return (out.diagnostics || []).some((d) => {
+    const m = d.code === "XO0601" && /^module `([^`]+)` not found/.exec(d.message || "");
+    // a std/ module the manifest does not list is not in std at all
+    return m && !haveModule(m[1]) && !(m[1].startsWith("std/") && manifest.stdmods && !(m[1] in manifest.stdmods));
+  });
+}
+
+// haveModule reports whether std's files here include module m (P.xo or
+// a directory P, std/P also as native/P.xo): a module not found that is
+// here is the program's error, which more of std does not fix.
+function haveModule(m) {
+  const p = m.startsWith("std/") ? m.slice(4) : m;
+  return stdFiles.some(({ path }) => path === p + ".xo" || path === "native/" + p + ".xo" || path.startsWith(p + "/"));
+}
+
+// lacksFile reports whether the compiler stopped for a std file its
+// record names that is not here (a runtime file a call needs, which the
+// program's `use` lines do not name).
+function lacksFile(e) {
+  return /not where std's record says/.test(String(e && e.message || e));
+}
+
+// withStd runs f, and again after fetching the rest of std when it names
+// a module or stops for a file std does not have here.
+async function withStd(f, progress, status) {
+  let out;
+  try {
+    out = f();
+  } catch (e) {
+    if (!lacksFile(e)) throw e;
+    if (status) status("Loading the rest of std");
+    if (!(await allStd(progress))) throw e;
+    return f();
+  }
+  if (lacksModule(out)) {
+    if (status) status("Loading the rest of std");
+    if (await allStd(progress)) out = f();
+  }
+  return out;
+}
+
 // env is the compiler's environment: XO_PLAY_RECORD when there is a record.
 function env() {
   return record ? ["HOME=/w", "PWD=/w", "XO_PLAY_RECORD=/w/std.rec"] : ["HOME=/w", "PWD=/w"];
@@ -106,6 +190,27 @@ function unbundle(data) {
 // directories, fresh for each workspace (directories record their parent).
 function tree(entries) {
   const top = new Map();
+  place(top, entries);
+  return new Directory(top);
+}
+
+// ordered rebuilds each directory's contents in the full bundle's order
+// (its files by name, then its directories by name), whatever order the
+// packs came in: the compiler finds std's modules by that order.
+function ordered(top) {
+  const es = [...top.entries()].sort(([a, x], [b, y]) => {
+    const da = x instanceof Directory, db = y instanceof Directory;
+    return da !== db ? (da ? 1 : -1) : a < b ? -1 : a > b ? 1 : 0;
+  });
+  top.clear();
+  for (const [k, v] of es) {
+    top.set(k, v);
+    if (v instanceof Directory) ordered(v.contents);
+  }
+}
+
+// place adds bundle entries to the directory contents top.
+function place(top, entries) {
   for (const { path, file } of entries) {
     const parts = path.split("/");
     let dir = top;
@@ -115,7 +220,7 @@ function tree(entries) {
     }
     dir.set(parts[parts.length - 1], file);
   }
-  return new Directory(top);
+  ordered(top);
 }
 
 function collector() {
@@ -178,7 +283,8 @@ function xoc(args, w) {
 
 async function check(source, progress) {
   await load(progress);
-  return xoc(["check", "/w/src"], workspace(source));
+  await needStd(source, progress);
+  return withStd(() => xoc(["check", "/w/src"], workspace(source)), progress, null);
 }
 
 async function format(source, progress) {
@@ -203,9 +309,13 @@ async function build(source, progress, status, test) {
   }
   status("Loading the toolchain");
   await load(progress);
+  await needStd(source, progress);
   status("Compiling");
-  const w = workspace(source);
-  const out = xoc(["build", "/w/src", "/w/out/prog.wasm"], w);
+  let w;
+  const out = await withStd(() => {
+    w = workspace(source);
+    return xoc(["build", "/w/src", "/w/out/prog.wasm"], w);
+  }, progress, status);
   if (!out.ok) {
     if (out.unsupported) return { diagnostics: out.diagnostics, refused: "This program uses something the wasm backend does not support yet: " + out.unsupported };
     return { diagnostics: out.diagnostics };
@@ -232,8 +342,9 @@ let repl = null; // { inst, sess, send, reply, ended }
 
 async function startRepl() {
   const sess = new Directory(new Map([["xo.mod", text("module sess\n")]]));
+  replStd = tree(stdFiles);
   const w = new Directory(new Map([
-    ["std", tree(stdFiles)],
+    ["std", replStd],
     ["warm", new Directory(new Map([["main.xo", text(WARM)], ["xo.mod", text("module warm\n")]]))],
     ["sess", sess],
   ]));
@@ -306,10 +417,15 @@ async function replStep(req, progress, status) {
     repl = await startRepl();
     if (restarted && !req.in) return { reply: { ok: false, err: "The REPL restarted; its session is empty.\n" } };
   }
-  repl.send(req);
+  if (req.in) await needStd(req.in, progress);
   let r;
   try {
+    repl.send(req);
     r = await repl.reply();
+    if (req.in && lacksModule(r) && await allStd(progress)) {
+      repl.send(req);
+      r = await repl.reply();
+    }
   } catch (e) {
     repl = null;
     throw e;
