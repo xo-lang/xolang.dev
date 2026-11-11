@@ -9,6 +9,7 @@ One page per `std` module, generated from the doc comments and signatures with `
 (run it in a terminal for the same text). Import a module with `use std/NAME`. The prelude's methods on
 `Str`, `List`, `Map` and the other builtin types are in the [standard library specification](../spec/std/);
 what each module follows in Go's standard library is in the [coverage table](../std-coverage/).
+The same reference, searchable and with each module's source, is at [pkg.xolang.org](https://pkg.xolang.org/).
 
 | Module | What it is |
 |---|---|

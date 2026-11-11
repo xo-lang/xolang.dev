@@ -44,6 +44,7 @@
       {{- with site.GetPage "/docs/stdlib" }}
       <li><a href="{{ .RelPermalink }}"{{ if or (eq $cur .) (eq $cur.Parent .) }} class="active"{{ end }}>Std reference</a></li>
       {{- end }}
+      <li><a href="https://pkg.xolang.org/">pkg.xolang.org</a></li>
       {{- with site.GetPage "/docs/diagnostics" }}
       <li><a href="{{ .RelPermalink }}"{{ if or (eq $cur .) (eq $cur.Parent .) }} class="active"{{ end }}>Diagnostic codes</a></li>
       {{- end }}
