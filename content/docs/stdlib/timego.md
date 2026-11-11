@@ -33,6 +33,7 @@ generated: "scripts/sync-content.py from `xo doc std/timego`; edit the doc comme
 - fn [`layout`](#layout)
 - fn [`format`](#format)
 - fn [`parse`](#parse)
+- fn [`go_text`](#go_text)
 
 ## Constants
 
@@ -252,3 +253,15 @@ fn parse(s: Str, go_layout: Str, z: time.Zone) -> Time ! time.ParseErr
 `layout(go_layout).parse(s, z)`.
 
 [Source: `std/timego.xo:46`](https://github.com/xo-lang/xo/blob/main/std/timego.xo#L46)
+
+### go_text
+
+```xo
+fn go_text(e: time.ParseErr) -> Str
+```
+
+The text Go's time.Parse gives for the same failure (`parsing time "X" as "LAYOUT": cannot parse "REST" as "ELEM"`,
+`parsing time "X": extra text: "REST"`, `parsing time "X": month out of range`) when `e` came from a timego parse; the
+display text of `e` for any other failure (a time outside what a Time holds, an error of core time's parser).
+
+[Source: `std/timego.xo:51`](https://github.com/xo-lang/xo/blob/main/std/timego.xo#L51)

@@ -18,6 +18,7 @@ generated: "scripts/sync-content.py from `xo doc std/protojson`; edit the doc co
 - fn [`registry_from_set`](#registry_from_set)
 - fn [`marshal`](#marshal)
 - fn [`unmarshal`](#unmarshal)
+- fn [`normalize`](#normalize)
 
 ## Types
 
@@ -79,6 +80,7 @@ struct MsgInfo {
   full: Str
   proto3: Bool
   is_map: Bool
+  implicit_nums: List[Int] = []
 }
 ```
 
@@ -96,7 +98,7 @@ fn registry(files: List[protodesc.FileDesc]) -> Registry
 
 A registry of the files (a file's dependencies must be in the list).
 
-[Source: `std/protojson.xo:47`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L47)
+[Source: `std/protojson.xo:49`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L49)
 
 ### registry_from_set
 
@@ -106,7 +108,7 @@ fn registry_from_set(set: Bytes) -> Registry ! protobuf.ProtoErr
 
 A registry of a serialized FileDescriptorSet.
 
-[Source: `std/protojson.xo:49`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L49)
+[Source: `std/protojson.xo:51`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L51)
 
 ### marshal
 
@@ -116,7 +118,7 @@ fn marshal(r: Registry, name: Str, wire: Bytes, o: Opts = Opts{}) -> Str ! JsonE
 
 The JSON text (compact, no whitespace) of the wire bytes of message `name` (`pkg.Msg`).
 
-[Source: `std/protojson.xo:52`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L52)
+[Source: `std/protojson.xo:54`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L54)
 
 ### unmarshal
 
@@ -127,4 +129,19 @@ fn unmarshal(r: Registry, name: Str, json: Str, o: Opts = Opts{}) -> Bytes ! Jso
 The wire bytes (fields in field number order, maps in key order: Go's Deterministic marshaling) of the JSON
 text as message `name`.
 
-[Source: `std/protojson.xo:55`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L55)
+[Source: `std/protojson.xo:57`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L57)
+
+### normalize
+
+```xo
+fn normalize(r: Registry, name: Str, wire: Bytes) -> Bytes ! JsonErr
+```
+
+The wire bytes of message `name` as protobuf-go writes it after parsing `wire` (proto.Unmarshal then
+proto.Marshal on a dynamic message): the known fields in canonical form (field number order, repeated numbers
+packed in proto3, maps in key order), then the message's own unknown fields (a number the descriptor lacks, or a
+wire type it does not take) as they were on the wire. An invalid message, or one missing a proto2 required
+field, is an error. The known fields go through the JSON mapping, so the result is exact only
+for a message that mapping carries without loss, and unknown fields inside nested messages are not kept.
+
+[Source: `std/protojson.xo:64`](https://github.com/xo-lang/xo/blob/main/std/protojson.xo#L64)

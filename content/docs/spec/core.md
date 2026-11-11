@@ -6,12 +6,12 @@ description: "Syntax and semantics of Xo: types, errors, concurrency, effects, m
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/core.md"
-status: "draft 0.45 (2026-11-08; 0.44 released as toolchain v0.44.0, decision 0089)"
+status: "draft 0.47 (2026-11-10; 0.46 released as toolchain v0.46.0, decision 0089)"
 generated: "scripts/sync-content.py from spec/core.md; edit the source, not this file"
 ---
 # Xo Language Specification (Core)
 
-Status: draft 0.45 (2026-11-08; 0.44 released as toolchain v0.44.0, decision 0089)
+Status: draft 0.47 (2026-11-10; 0.46 released as toolchain v0.46.0, decision 0089)
 Edition: preview (the only edition before 1.0, decision 0155)
 Companion: `spec/std.md` (prelude methods and standard library surface)
 
@@ -21,9 +21,30 @@ fast builds, static binaries, a strong standard library, a compatibility
 promise) and is designed so that an AI agent can write, check, build, and debug
 programs for any OS with fast, structured, unambiguous feedback.
 
-## Changes in 0.45
+## Changes in 0.47
 
 None yet.
+
+## Changes in 0.46
+
+- An interface value's covariant effect argument widens: `Cred[fs.read]` is
+  usable as `Cred[(fs.read, proc)]` (section 6.2, decision 0582).
+- An `Os` literal may leave out `fs`, `net`, `env`, `proc` and `stdio`:
+  each omitted field is its no-access value; `clock`, `rand` and `tasks`
+  stay required (section 6.3, decision 0585).
+
+## Changes in 0.45
+
+- linux/riscv64 (12.1, 12.2; decision 0571 stage 1): `TargetArch` gains
+  `Riscv64`, so an exhaustive `match target.arch` needs its arm; the
+  target builds with `--backend=llvm` only and is not in `all`.
+- freebsd/amd64 and freebsd/arm64 (12.1, 12.2; decision 0573 stage 1):
+  `TargetOs` gains `FreeBSD`, so an exhaustive `match target.os` needs its
+  arm; the targets cross build and are not in `all`.
+- Checksum log server (4.3; decision 0124's addendum): `xo mod sumdb
+  keygen` and `xo mod sumdb serve` make a log's key and run a log, its
+  records kept in a data directory. `xo mod proxy fill` fills an
+  S3-compatible bucket with the proxy protocol's files (decision 0568).
 
 ## Changes in 0.44
 
@@ -723,6 +744,17 @@ Float comparison (decision 0053; the same for `Float32`):
 - Unary `-` flips the sign of every Float, zero included: `-0.0` is
   negative zero.
 
+A NaN's bits (`to_bits()`, std.md 1) are the CPU's, not a language promise
+(decision 0361): an operation that makes a NaN from operands that are not
+(`0.0 / 0.0`, `inf - inf`) gives the architecture's default NaN (positive
+on arm64, negative on x86_64), and an operation on a NaN operand keeps that
+operand's payload on arm64 and x86_64. RISC-V's F and D extensions never
+propagate a payload: every NaN that arithmetic returns there
+(linux/riscv64) is the canonical NaN, 0x7FC00000 as a `Float32` and
+0x7FF8000000000000 as a `Float`. Conversions between `Float` and
+`Float32`, and `Float32.from_bits` and `to_bits`, keep a payload on every
+target.
+
 `Duration` may be negative (`d.abs()` gives the magnitude).
 
 Operators on `Duration` and `Time`:
@@ -1380,6 +1412,32 @@ pub fn fetch_user(db: Db, id: Int) -> User ! LoadErr
   arguments must come before named ones.
 - Default parameter values are allowed: `fn listen(addr: Str, backlog: Int = 128)`.
 - No variadic functions. Pass a `List` or `Map`.
+- **C exports** (decision 0574): a top
+  level `pub fn` of the root package with the clause `as c "name"` is the C
+  function `name` of a library built with `xo build --lib=shared`:
+  `pub fn add(a: Int, b: Int) -> Int as c "geo_add" { a + b }`. Its
+  parameters are `Int` (C `int64_t`), `Float` (`double`), `Bytes`
+  (`XoBytes {const uint8_t *p; int64_t n}`) or `Str` (`XoStr
+  {const char *p; int64_t n}`, n bytes of UTF-8, no NUL needed), borrowed
+  for the call: Xo copies the bytes, and a `Str`'s invalid UTF-8 arrives
+  as U+FFFD per byte of an invalid sequence), or a value of any other type but `Bool` and
+  function types, which C holds as an `XoHandle` (a `uint64_t` the
+  library's table keeps the value under until `xo_release(h)`; using a
+  released handle, or one holding another type, faults), at most 8
+  integer words (a `Bytes` takes 2); its result is `Int`, `Float`, a
+  value held by an `XoHandle`, or none, with or without an error type: a
+  function that can fail (`-> T ! E`) takes a last C parameter
+  `int32_t *err`, set to 0 on success and to 1 on failure (NULL: not
+  set), returns 0 on failure, and leaves the error's text (its `Display`)
+  for `xo_last_error()`, the calling thread's last error (a NUL terminated
+  string the thread's next error replaces). The name is a C identifier
+  outside the `xo_` names. It is not a method, generic, or a function with
+  `var` parameters (XO1518). The library starts the runtime
+  when it is loaded (its constructor, `xo_init(argc, argv, envp)`, which
+  a C caller may also call; a second call does nothing). `--lib` writes the
+  header `NAME.h` beside the library, and a package with `fn main` is not
+  a library. A fault in an export aborts the process. A program build
+  ignores the clause.
 
 ### 3.3 Closures
 
@@ -1697,7 +1755,11 @@ note `XO1315` (decision 0155). Any other name stops the check.
   repository. A directory holding its own xo.mod is never part of the
   module around it (it is not fetched, hashed, or vendored with it), and
   the module around it imports its packages only by requiring it, as
-  any other module (`XO1306` without the requirement).
+  any other module (`XO1306` without the requirement). When a
+  subdirectory module's tree has no file named `LICENSE` and the
+  repository root has one at the tag, the root's `LICENSE` is part of the
+  version's tree (its hash, zip and vendored copy), as Go's module zips
+  (decision 0590).
 - There is no `replace`, `exclude`, or `retract` (`XO1301`); local copies
   are reached only through a workspace (below).
 - Minimal version selection: the build uses, for each module, the highest
@@ -1775,8 +1837,9 @@ use ./billing
   directories in build information only. A release build (`xo build
   --release`, 8) and `xo build --ci` fail while a workspace overrides a
   required module (`XO1308`).
-- `xo.work` is gitignored by `xo init` in a single module repository;
-  a monorepo may commit it.
+- `xo.work` is gitignored by `xo init` in a single module repository
+  (`xo init` writes .gitignore only in a git repository: a .git at or
+  above the module directory); a monorepo may commit it.
 
 **[P1]** Effect ceilings (decision 0086 step 3): a `uses` clause after
 the version bounds the effects of a dependency.
@@ -1962,6 +2025,22 @@ its content hash.
   failure is `XO1313` and nothing is cached; a log that cannot be
   consulted, or malformed settings, is `XO1314`. `XO_NOSUMDB=<patterns>`
   (as `XO_NOPROXY`, 4.2) names private modules that are never looked up.
+  `xo mod sumdb keygen <name> <key file>` makes a log's key (the
+  verifier key, printed, is what `XO_SUMDB` names) and `xo mod sumdb
+  serve --key=<key file> [--addr=127.0.0.1:7071] [--fetch] <data dir>`
+  runs a log, its records kept in the data directory (decision 0124);
+  `--copy-to=<bucket URL>` copies each new record to an S3-compatible
+  bucket before adding it, `--fill-to=<bucket URL>` writes each version
+  it adds to a proxy bucket as `xo mod proxy fill` does, `xo mod sumdb
+  restore --from=<bucket URL>
+  <data dir>` rebuilds the log from the copies, `--rate` limits the
+  lookups that add a version per client and minute (default 60), and
+  `GET /index?since=<RFC 3339 time>` lists records added since as JSON
+  lines (decision 0568).
+  `xo mod proxy fill --to=<bucket URL> <module path>[@version]...`
+  writes versions, checked against the log, and their lists into an
+  S3-compatible bucket that serves the proxy protocol as static files
+  (4.2; decision 0568).
 - **[P1]** Definition hashes (decision 0125, step 5 of decision 0086):
   every top level definition (function, method, type, constant) has a
   content hash `d1:<base64 SHA-256>` over its syntax tree with
@@ -2292,6 +2371,42 @@ fn main(os: Os) {
 
 ---
 
+### 4.6 Declaration files
+
+A declaration file is an Xo source file whose functions may be declared
+without a body: `fn crc32(crc: UInt32, data: Bytes) -> UInt32` with no
+`{ ... }`. The body is supplied outside Xo: by the backend's runtime (std's
+intrinsics), by a generated adapter (Go packages, 4.4; C headers, 4.5),
+or by the std module's per-backend implementation file.
+
+- **Which files.** Only these are declaration files: a std module's
+  declaration file (`std/NAME.xo`, and `std/native/NAME.xo` for a module
+  imported by that path, such as the native intrinsics `std/native/rt.xo`),
+  and the binding files the toolchain generates into `.xo/gobind/` (4.4)
+  and `.xo/cbind/` (4.5). The native implementation files that back a
+  std module (`std/native/NAME.xo` for `std/NAME`, `std/native/llrt/`)
+  are ordinary files: every function in them has a body.
+  A program's or library's own files never are: a function without a
+  body there is `XO0172` ("expected `{` to start the body"), and an
+  interface method is the only bodyless function a user writes.
+- **What else is the same.** A declaration file is otherwise ordinary
+  Xo: its types, constants, and functions with bodies are checked as in
+  any file, and a bodyless function's signature (parameters, result,
+  errors, effects, clauses) is checked and is the contract callers see.
+  Doc comments, `xo doc` and `xo def` treat the declaration as the
+  definition.
+- **Markers.** The checker reads two markers in a std declaration file's
+  doc comments, and in no other file (in user code they are ordinary
+  comment text):
+  - `@move_only` on a struct: values of the type move as the builders do
+    (5.3, `XO0510`; decision 0305).
+  - `@internal` on a struct: its fields are not visible outside std
+    (`XO0605`; decision 0440).
+  - `@static T.name` on a constant: it is the type constant `T.name`
+    (`Int.max`), not a name of its module (decision 0587).
+- Generated binding files are rewritten by `xo bind` (Go's begin with
+  `// Code generated by xo bind ... DO NOT EDIT.`) and are never edited.
+
 ## 5. Values, mutation, and memory [P1]
 
 ### 5.1 Value semantics
@@ -2355,6 +2470,9 @@ never depend on it, but the time does:
   collection method (`put`, `remove`, `update`, `pop`, `add`).
 - Field assignment `u.name = "b"` on a `var u` rebinds `u` to a modified copy.
   Nested paths work: `st.users.put(k, v)`, `st.config.port = 9090`.
+- An element of a `Bytes` cannot be assigned, even through a `var`
+  binding: `Bytes` is immutable (3.6). `b[i] = x` is error `XO0502`, with
+  a note naming `BytesBuilder` and `List[UInt8]`.
 - An assignment evaluates the indexes of its target, then the value, then
   stores into the target (decision 0140): changes the value makes to the
   target's binding are kept, so `t.objs[o].kids = t.add_kids()` keeps the
@@ -2622,7 +2740,12 @@ pub fn sync(src: Fs, out: Stdio) -> () ! SyncErr uses fs.read, stdio { ... }
   is the declared set, and no clause means pure. Non pub functions and
   closures have their effects inferred.
 - Performing an effect outside the declared set is error `XO0701`, which shows
-  the call chain that performs it. Declaring more is allowed (for interface
+  the call chain that performs it. On a declaration its note names the
+  corrected clause (`uses (stdio, fx)`: the written effects, then the
+  missing labels and effect parameters), and its fix writes it, with the
+  same labels in each declared caller that would miss them next, so one
+  `xo fix` checks clean. The effects are not inferred: the clause stays
+  what the source says. Declaring more is allowed (for interface
   stability) and noted by `xo vet`.
 - **Function types** carry effects. One effect: `fn(Int) -> Int uses clock`.
   Several effects are parenthesized: `fn(Int) -> Int uses (net, clock)`.
@@ -2650,6 +2773,15 @@ pub fn sync(src: Fs, out: Stdio) -> () ! SyncErr uses fs.read, stdio { ... }
   function parameters, it is the union of the effects of those arguments
   (decision 0432). Elsewhere (an effect argument of a type, `Cache[K, V, fx]`)
   the variable is bound exactly, and a conflict is an error.
+- **A type's effect arguments are exact**, with one exception (decision
+  0582): an interface's effect parameter that its methods name only in their
+  `uses` clauses (never in a parameter, result or error type) is covariant,
+  so a value of `Cred[fs.read]` may be used as a `Cred[(fs.read, proc)]`
+  (assignment, argument, return, `push`): its methods perform at most what
+  the wider type allows. It never narrows. The widening is at the converted
+  value's own type only: `List[Cred[fs.read]]` is not a
+  `List[Cred[(fs.read, proc)]]`. Every other effect argument must match
+  exactly (XO0701).
 - **Structs may take effect parameters** (`struct Cache[K, V, fx: Effects]`),
   and effect sets may be written as type arguments (`Cache[Int, Item, net.dial]`).
 - **Effect arguments may be omitted.** Writing `Cache[Int, Item]` leaves the
@@ -2708,6 +2840,21 @@ let tools = os.proc.only(["git"])
 processes to commands; a denied operation fails before any effect.
 `xo audit` (10.1) lists the attenuations whose arguments are constants
 and whether each capability passed into a dependency is attenuated.
+
+A program narrows what code may do by building an `Os` with a literal
+(decision 0307). A field the literal leaves out is that capability's
+no-access value (decision 0585): `fs` denies every read and write
+(`read_only().write_only()`), `net`, `env` and `proc` admit nothing
+(`only([])`), and `stdio` drops output and has no input and no terminal.
+`clock`, `rand` and `tasks` have no no-access value and must be written
+(`XO0403` otherwise). A written field is the value given, so leaving a
+field out can only take authority away; adding a field to `Os` never
+breaks a literal:
+
+```
+let plugin_os = Os{fs: os.fs.sub("plugins").read_only(), clock: os.clock, rand: os.rand, tasks: os.tasks}
+// plugin_os.net, .env, .proc deny; plugin_os.stdio is silent
+```
 
 A library cannot open a file or a socket unless it is handed a capability. A
 dependency's reach is visible in its signatures.
@@ -3224,6 +3371,16 @@ test "retries after 503" {
   Without `--real` such a test is skipped, and the summary line names every
   skip's reason (`ok: 1 passed, 0 failed, 1 skipped (1 uses net: run with
   --real)`; decision 0437).
+- The summary line counts the written tests (test blocks and property
+  tests); the generated contract checks (`contract fuzz: MODULE.F`) are
+  counted apart, in a note on the same line, with or without `-v`:
+  `FAIL: 0 passed, 1 failed, 0 skipped (contract fuzz: 1 function ok)`,
+  or `(contract fuzz: 3 functions: 2 ok, 1 failed)`. A failing contract
+  check makes the run fail as a failing test does. A `--- FAIL` line
+  names the seed (`(main.xo:3:1, seed 8812)`) for a property or contract
+  test, whose inputs come from it, and for any test run with a seed other
+  than the default 1 (pinned, `--seed`, `--explore`); a plain failing test
+  run with the default seed has only its location (owner, 2026-11-10).
 - A test run sees only the fakes unless `--real` is given, so its result
   depends only on the test binary and the run's flags: a passed native
   run of a binary that links no `use go` or C binding may be replayed
@@ -3255,6 +3412,7 @@ test "retries after 503" {
 | `xo lsp` | Language Server Protocol server over stdio for editors: diagnostics with quick fixes, hover, definition, references, rename, document symbols, semantic tokens, formatting |
 | `xo serve` | Resident checker on a unix socket; `xo check`, `xo query`, and inside a module `xo def`, `refs`, `type`, `symbols` and `doc` use it automatically when it answers, reusing an answer until a file under the module root or std changes |
 | `xo fmt` | Canonical format, no options |
+| `xo repl [--eval=TEXT] [--session=FILE] [--json] [--effects=...] [--keep]` | An interactive session (decision 0572): each entry is checked, built and run as part of a session program; definitions persist, a plain binding carries to later entries as a pinned literal (its effect does not run again), a `var` keeps its latest value; `:type`, `:doc`, `:undo`, `:reset`, `:quit`; `--eval` runs entries and exits, `--json` speaks a line protocol for agents. Experimental while the decision's later stages are open |
 | `xo fix [--dry-run] [--from=draft-0.N] [--edition=preview]` | Apply all machine fixes until none apply, xo.mod and xo.work lines included (`edition 2026` becomes `edition preview`, `xo 2026` becomes `xo preview`, `XO1315`); `--from` migrates code written for an older draft (interpolation, prelude variants, `let _ =` discards, scope timeouts, Map index reads) |
 | `xo vet` | Advisory checks, never errors (a directory, a `.xo` file's findings, a std directory checked as std, or `--std-module=M`; decision 0289): checker warnings plus `XO0207` (`??` precedence trap), `XO0208` (each `ignore_err` with its reason), `XO0530` (a field's large payload bound and shared, decision 0263), `XO0531` (a large parameter only stored while each caller passes its last use, decision 0263), `XO0532` (a Map value changed through a copy and stored back, `Map.update` instead; decision 0266), `XO0534` (a task capturing a value of 32 or more heap fields, core 5.1; decision 0294), `XO0703` (declared effect never performed), `XO0901` (`dbg` left in code), `XO0902` (`tls.Verify.None`, decision 0281), `XO0903` (an Fs, Net, or Proc error defaulted away by `.ok() ?? d` or `Err(_) => <empty>`; `// xo:allow XO0903 <reason>` silences one), `XO0904` (an embedded file git ignores or does not track; decision 0304), `XO1103` (use of Go packages per module), `XO0535` (`${x.debug()}` written as `${x:?}`, with the fix; decision 0296), `XO0536` (a list element copied out, changed, and stored back; decision 0294), `XO0906` (a four line `match` that `x ?? return v` or `r ?? e => return v` writes shorter; decision 0321), `XO0538` (a closure's capture written after its creation). `--cost` (decision 0327) builds the program up to its reference counting and adds notes on costs its source does not show: `XO0907` (a loop that copies a map's entries first), `XO0908` (an element counted up and down each iteration, or by a prelude callback walk such as `xs.any(fn ...)` over elements holding heap memory), `XO0909` (a list updated in a loop while a holder made in the same iteration keeps it shared, so each update copies it), `XO0910` (a value over 8 words copied into a closure, or out of a collection into an Option in a loop), `XO0911` (a view of a parameter's text or bytes made in a loop, or an element of its split or lines, stored in a field or a returned collection: it keeps the whole input alive; `clone()` it, decision 0330). |
 | `xo def`, `xo refs`, `xo type`, `xo doc NAME`, `xo symbols` | Agents' lookups on `xo lsp`'s engine (decision 0261): `def NAME`, `refs NAME`, `type FILE:LINE:COL`, `doc NAME` (a name, or a module path and name: `std/tls.client`), `symbols [DIR] [--pub]` (the directory's own declarations, private ones too); a name in any form `xo query def` takes, std and runtime modules included (decision 0289); `--dir` (a workspace root checks the modules under it); text at a terminal, `--json` or `--text` to choose; exit 0 with an answer, 1 for no match, 2 for usage |
@@ -3264,7 +3422,7 @@ test "retries after 503" {
 | `xo doc` | Docs from doc comments; `xo doc std` lists the std modules this xo ships, a line each |
 | `xo clean -cache [-n]` | Remove every cache under `<user cache>/xo` (build directories, the native back end's cache, GOCACHE, test binaries, watch builds, xo dev outputs, the test infrastructure's caches) and print the bytes freed per cache; `-n` prints what it would remove and removes nothing. Never touches anything outside `<user cache>/xo`; the module cache and the prebuilt seeds stay; an entry whose build lock a running process holds is left. `xo clean` without `-cache` is a usage error |
 | `xo debug [--batch] [--json] [--timeout=DUR] [-c CMD]... PROG [ARGS]`, `xo debug --dap` | Run a native program with its debug information under xo's own debugger (11.5; macOS arm64, Linux and Windows amd64): break, run, continue, step, next, finish, print, locals, backtrace, frame, threads, quit; `--json` gives the protocol of 11.5, `--dap` the Debug Adapter Protocol for editors |
-| `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156); `xo get` checks each newly required version in full once (`xo check`, recorded per version in the module cache) and warns about its errors, since a build checks a dependency's bodies only as it reaches them (decision 0517; XO_GET_CHECK=0 skips it), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126). Every command takes `--offline` and `--workspace=off` |
+| `xo get [--accept-effects] <path>[@version]`, `xo mod tidy`, `xo mod accept-effects [<path>...]`, `xo vendor`, `xo mod clean`, `xo mod proxy serve`, `xo mod sumdb keygen`, `xo mod sumdb serve` | Dependencies (4.2, 4.3): require a module version, tidy xo.mod and xo.lock, record wider effects of dependencies in xo.lock (decision 0156); `xo get` checks each newly required version in full once (`xo check`, recorded per version in the module cache) and warns about its errors, since a build checks a dependency's bodies only as it reaches them (decision 0517; XO_GET_CHECK=0 skips it), copy dependencies into vendor/, empty the module cache, serve a module cache as a module proxy (decision 0126), make a checksum log key and run a checksum log (decision 0124). Every command takes `--offline` and `--workspace=off` |
 | `xo audit [--json] [--no-gc] [<dir>]` | Supply chain report (decision 0156): per dependency its effects, its xo.lock effects line (ok, widened, narrowed, unlocked), its ceiling, and its escape hatches (`use c`, impure `use go`) with the vouches covering them; this module's attenuations (`only`, `sub`, `read_only`, `write_only`, `cwd`) with constant arguments, the capabilities it passes into dependencies and whether each is attenuated, vouches that match nothing, and the check's diagnostics. JSON with `--json` or when stdout is not a terminal (an agent piping it gets JSON), text otherwise. Exit 1 when the check has errors |
 | `xo init <path>`, `xo publish [--check]` | Start a module (xo.mod, xo.work gitignored); check a release against the previous tag (4.2) |
 | `xo explain <code>` | Long form explanation of a diagnostic |
@@ -3453,7 +3611,8 @@ does (decision 0131).
     `XO0209` (a method of a `var` binding: `xs = xs.sort()`), `XO0169` (commas between
     match arms), `XO0173` (`use` after declarations), `XO0701` (an effect
     argument left out of a parameter type, which stays an abstract effect
-    variable), `XO0408` (TypeScript's `const x = f()`), `XO0110` (Kotlin's
+    variable; a declaration's corrected `uses` clause, in its declared
+    callers too), `XO0408` (TypeScript's `const x = f()`), `XO0110` (Kotlin's
     `"$name"`, literal text in Xo), `XO0205` (`x?.f` optional chaining in
     a function that does not return an optional), `XO0403` (a missing
     `reason`), `XO0404` (JSON for tuples), `XO0101`, `XO0502`, and the lexical
@@ -3664,7 +3823,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0437` | error | checker | the `string` wire option on a field that is not a Bool, integer, float or Str, or an Option of one (core 2.2, decision 0555) |
 | `XO0438` | warning | checker | an argument of a `log.debug`, `log.info`, `log.warn` or `log.error` call (or a Logger's) performs an effect other than `log`; it runs only when the record is at or above the configured level (decision 0558, std.md 6) |
 | `XO0501` | error | checker | var method called on a non var binding (core 3.4) |
-| `XO0502` | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
+| `XO0502` | error | checker | assignment to an immutable binding, to a captured variable, or to an element of `Bytes` (core 5.2, 3.3) |
 | `XO0503` | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
 | `XO0510` | error | checker | use of a moved Buf, StrBuilder, BytesBuilder, or std move only handle (core 5.3) |
 | `XO0520` | error | checker | mutation of a copied or stored collection element is never written back (core 5.2) |
@@ -3678,6 +3837,8 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO0538` | warning | vet | a `var` local written after a closure that reads it was created and before the closure is used: the closure keeps the value from its creation (core 5.1) |
 | `XO0539` | error | checker | a destructuring assignment names the same place twice (core 5.2, decision 0536) |
 | `XO0540` | warning | checker | a `Mutex.with` closure writes its `var` value, then a path returns `Err`, which undoes the write (core 5.4) |
+| `XO0541` | warning | vet | a slice of a `raw.bytes_buf` buffer that a loop reads into again is kept past the iteration (pushed, stored outside the loop, returned) without `.clone()`: the next read changes it (decision 0330 views) |
+| `XO0542` | warning | vet | `x ?? lit <op> z`: an operator binding tighter than `??` after a literal default applies only to the default (`x ?? (lit <op> z)`); `(x ?? lit) <op> z` is likely meant (core 15 precedence) |
 | `XO0601` | error | checker | name does not resolve (core 4.3) |
 | `XO0602` | error | checker | import path does not yield a valid local name (core 4.1) |
 | `XO0603` | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
@@ -3761,6 +3922,7 @@ decision 0215); a test (internal/repotest) keeps this table equal to it.
 | `XO1515` | error | build | a program built for wasip2/wasm reaches what its world does not have: processes, or files or sockets in a `wasi:http` component (a command has `wasi:filesystem` since 2026-11-02 and `wasi:sockets` since 2026-11-03); the message names the call and how it is reached (decision 0447); on wasip3/wasm also a program that is not a `wasi:http` component (stage 5) |
 | `XO1516` | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447); no longer reported since stage 3 (2026-11-02), when such a program became a `wasi:cli/command` component |
 | `XO1517` | error | build | a windows program's resource input that cannot be used: the `--versioninfo` JSON cannot be read or parsed, an `--icon` file cannot be read or is not an icon, a `--manifest` file cannot be read; the message carries goversioninfo's text (decision 0560) |
+| `XO1518` | error | checker | a function's `as c "name"` clause breaks a C export rule: a method, not `pub fn`, generic, a `var` parameter, a Bool or function type parameter, more than 8 integer parameter words, a Bytes, Str, Bool or function type result, a name that is not a C identifier or starts with `xo_` (decision 0574) |
 
 `XO1001` is reserved: no `std/sys/<os>` module exists yet (14), so it is
 never reported.
@@ -4134,6 +4296,29 @@ after the other targets are built (exit status 1). Several targets write
 directory; `-o NAME` for a windows target with no extension writes
 `NAME.exe`.
 
+`--targets=linux/riscv64`, not part of `all`, builds for 64-bit RISC-V
+Linux (RV64GC, the lp64d ABI) with `--backend=llvm` only (decision 0571);
+naming it with no `--backend` is an error that names `--backend=llvm`,
+reported after the other targets are built (exit status 1).
+It cross links against a riscv64 glibc sysroot (`XO_LINUXSYSROOT`). Fault
+traces, `XO_PROF` and asynchronous preemption work as on linux/arm64
+(decision 0571 stage 2).
+
+`--targets=freebsd/amd64` and `--targets=freebsd/arm64`, not part of
+`all`, build static FreeBSD 14 executables with the native backends and
+Xo's ELF linker, from any host (decision 0573). A `use c` binding's C is
+compiled freestanding by clang against FreeBSD's headers (`XO_FREEBSDSYSROOT`)
+and linked with no C library: it may call the part of the C library Xo's
+runtime defines (malloc, free, memcpy, strlen and the like); other C library
+functions (printf's family, calloc) do not link for FreeBSD yet, and a
+binding's `link` libraries are an error. Programs run on FreeBSD 14 (decision 0573 stages 2 and
+3; every LLVM golden that builds passes in FreeBSD 14.5 VMs on both
+architectures): threads, the poller (kqueue), signals, time, the file
+system, processes, networking, fault traces with frames, `XO_PROF` and
+std/debug profiles, and asynchronous preemption (SIGURG through
+thr_kill, as on Linux) work as on Linux. Runtime calls that exist only
+on Linux (statx, sched_getaffinity, sysinfo) fail with ENOSYS there.
+
 `--targets=wasip2/wasm`, not part of `all`, builds a WASI 0.2 component and
 is named alone (decision 0447). A program that calls `http.serve_component`
 is a `wasi:http` 0.2 component (the `wasi:http/proxy` world); any other
@@ -4197,8 +4382,8 @@ written yet.
 
 There are no build tags and no filename based platform selection.
 `target` is a predeclared compile time constant with fields
-`os: TargetOs` (`Linux Darwin Windows Wasi`) and `arch: TargetArch`
-(`Amd64 Arm64 Wasm32`):
+`os: TargetOs` (`Linux Darwin Windows Wasi FreeBSD`) and `arch: TargetArch`
+(`Amd64 Arm64 Wasm32 Riscv64`):
 
 ```
 pub fn config_dir(env: Env) -> Str ! Error uses env {
@@ -4226,6 +4411,9 @@ pub fn config_dir(env: Env) -> Str ! Error uses env {
 
 ## 13. Editions and compatibility [P1]
 
+The written policy, what 0.x promises today and what 1.0 will promise, is
+decision 0567; this section is its source for the 1.0 promise.
+
 - `xo.mod` declares an `edition`. The compiler supports every edition ever
   released. Modules on different editions link together.
 - Before 1.0 the only edition is `preview` (decision 0155). It is not
@@ -4234,6 +4422,11 @@ pub fn config_dir(env: Env) -> Str ! Error uses env {
   before decision 0155, is an alias of `preview` during the 0.x releases;
   `xo check` reports the fixable note `XO1315` on it and `xo fix`
   rewrites it.
+- During 0.x every breaking change ships with an `xo fix` rewrite (or a
+  diagnostic that names the replacement) and a CHANGELOG entry marked
+  **Breaking**; a deprecated form is removed no sooner than one minor release
+  after its deprecation is announced; a diagnostic code never changes meaning
+  (decision 0567).
 - At 1.0 the first frozen edition is named and `xo fix` rewrites
   `edition preview` to it mechanically. The compatibility promise below
   starts with that edition, not with `preview`.
@@ -4302,7 +4495,8 @@ Param       = [ "var" ] ( ident ":" Type [ "=" Expr ] | "self" ) .   // self: in
 ErrSpec     = "!" [ Type ] .
 FnClause    = "uses" ( EffectList | "(" EffectList ")" )
             | "requires" [ "(" "debug" ")" ] Expr [ "else" Expr ]
-            | "ensures" [ "(" "debug" ")" ] Expr .
+            | "ensures" [ "(" "debug" ")" ] Expr
+            | "as" "c" string .                      // a C export (3.2, decision 0574)
 EffectList  = Effect { "," Effect } .
 Effect      = ident [ "." ident ] .
 

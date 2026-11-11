@@ -448,6 +448,10 @@ struct ParseErr {
   layout: Str
   at: Int
   msg: Str
+  go_kind: Int = 0
+  go_elem: Str = ""
+  go_rest: Str = ""
+  go_msg: Str = ""
 }
 ```
 
@@ -461,7 +465,7 @@ Displays as `at byte 5 of "2026-1x-09": expected 2 digit month`.
 fn (e: ParseErr) display() -> Str
 ```
 
-[Source: `std/time.xo:182`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L182)
+[Source: `std/time.xo:188`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L188)
 
 ### LayoutErr
 
@@ -474,7 +478,7 @@ struct LayoutErr {
 
 Displays as `bad layout "{yr}": unknown field {yr}`.
 
-[Source: `std/time.xo:185`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L185)
+[Source: `std/time.xo:191`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L191)
 
 #### LayoutErr.display
 
@@ -482,7 +486,7 @@ Displays as `bad layout "{yr}": unknown field {yr}`.
 fn (e: LayoutErr) display() -> Str
 ```
 
-[Source: `std/time.xo:190`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L190)
+[Source: `std/time.xo:196`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L196)
 
 ## Functions
 
@@ -614,7 +618,7 @@ fn format(t: Time, z: Zone, layout: Str) -> Str
 Faults on a bad layout (a constant layout is checked at compile time).
 `{frac}` and `{frac:N}` include their leading `.`: write `{second}{frac:7}`, not `{second}.{frac:7}`.
 
-[Source: `std/time.xo:194`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L194)
+[Source: `std/time.xo:200`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L200)
 
 ### parse
 
@@ -625,7 +629,7 @@ fn parse(s: Str, layout: Str, z: Zone) -> Time ! ParseErr
 Strict: accepts exactly the layout. `z` applies when the text has no
 offset.
 
-[Source: `std/time.xo:197`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L197)
+[Source: `std/time.xo:203`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L203)
 
 ### check_layout
 
@@ -633,4 +637,4 @@ offset.
 fn check_layout(layout: Str) -> () ! LayoutErr
 ```
 
-[Source: `std/time.xo:198`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L198)
+[Source: `std/time.xo:204`](https://github.com/xo-lang/xo/blob/main/std/time.xo#L204)

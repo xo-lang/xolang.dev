@@ -98,6 +98,7 @@ generated: "scripts/sync-content.py from `xo doc std/testing`; edit the doc comm
   - method [`FakeStdio.stderr_is_tty`](#fakestdiostderr_is_tty)
   - method [`FakeStdio.width`](#fakestdiowidth)
   - method [`FakeStdio.read_secret`](#fakestdioread_secret)
+  - method [`FakeStdio.raw_input`](#fakestdioraw_input)
   - method [`FakeStdio.read_bytes`](#fakestdioread_bytes)
   - method [`FakeStdio.read_all_bytes`](#fakestdioread_all_bytes)
   - method [`FakeStdio.set_input`](#fakestdioset_input)
@@ -124,6 +125,7 @@ generated: "scripts/sync-content.py from `xo doc std/testing`; edit the doc comm
   - method [`FakeProc.usage`](#fakeprocusage)
   - method [`FakeProc.children_usage`](#fakeprocchildren_usage)
   - method [`FakeProc.killed`](#fakeprockilled)
+  - method [`FakeProc.runs`](#fakeprocruns)
 - fn [`expect`](#expect)
 - fn [`gen`](#gen)
 - fn [`logs`](#logs)
@@ -876,13 +878,21 @@ fn (s: FakeStdio) read_secret(prompt: Str) -> Str? ! IoErr uses stdio
 
 [Source: `std/testing.xo:152`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L152)
 
+#### FakeStdio.raw_input
+
+```xo
+fn (s: FakeStdio) raw_input(on: Bool) -> Bool uses stdio
+```
+
+[Source: `std/testing.xo:153`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L153)
+
 #### FakeStdio.read_bytes
 
 ```xo
 fn (s: FakeStdio) read_bytes(max: Int) -> Bytes? ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:153`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L153)
+[Source: `std/testing.xo:154`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L154)
 
 #### FakeStdio.read_all_bytes
 
@@ -890,7 +900,7 @@ fn (s: FakeStdio) read_bytes(max: Int) -> Bytes? ! IoErr uses stdio
 fn (s: FakeStdio) read_all_bytes() -> Bytes ! IoErr uses stdio
 ```
 
-[Source: `std/testing.xo:154`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L154)
+[Source: `std/testing.xo:155`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L155)
 
 #### FakeStdio.set_input
 
@@ -898,7 +908,7 @@ fn (s: FakeStdio) read_all_bytes() -> Bytes ! IoErr uses stdio
 fn (s: FakeStdio) set_input(text: Str)
 ```
 
-[Source: `std/testing.xo:155`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L155)
+[Source: `std/testing.xo:156`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L156)
 
 #### FakeStdio.set_tty
 
@@ -909,7 +919,7 @@ fn (s: FakeStdio) set_tty(width: Int)
 The streams are terminals of `width` columns (0: not terminals, the
 default), for code that checks `stdout_is_tty` or `width`.
 
-[Source: `std/testing.xo:158`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L158)
+[Source: `std/testing.xo:159`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L159)
 
 #### FakeStdio.set_input_bytes
 
@@ -919,7 +929,7 @@ fn (s: FakeStdio) set_input_bytes(data: Bytes)
 
 Standard input holds these bytes (any bytes, for `read_bytes`).
 
-[Source: `std/testing.xo:160`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L160)
+[Source: `std/testing.xo:161`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L161)
 
 #### FakeStdio.output
 
@@ -927,7 +937,7 @@ Standard input holds these bytes (any bytes, for `read_bytes`).
 fn (s: FakeStdio) output() -> Str
 ```
 
-[Source: `std/testing.xo:161`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L161)
+[Source: `std/testing.xo:162`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L162)
 
 #### FakeStdio.errors
 
@@ -935,7 +945,7 @@ fn (s: FakeStdio) output() -> Str
 fn (s: FakeStdio) errors() -> Str
 ```
 
-[Source: `std/testing.xo:162`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L162)
+[Source: `std/testing.xo:163`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L163)
 
 ### FakeProc
 
@@ -943,7 +953,7 @@ fn (s: FakeStdio) errors() -> Str
 struct FakeProc {}
 ```
 
-[Source: `std/testing.xo:164`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L164)
+[Source: `std/testing.xo:165`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L165)
 
 #### FakeProc.exit
 
@@ -951,7 +961,7 @@ struct FakeProc {}
 fn (p: FakeProc) exit(code: Int) -> Never uses proc
 ```
 
-[Source: `std/testing.xo:165`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L165)
+[Source: `std/testing.xo:166`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L166)
 
 #### FakeProc.set_grace
 
@@ -959,7 +969,7 @@ fn (p: FakeProc) exit(code: Int) -> Never uses proc
 fn (p: FakeProc) set_grace(d: Duration) uses proc
 ```
 
-[Source: `std/testing.xo:166`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L166)
+[Source: `std/testing.xo:167`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L167)
 
 #### FakeProc.run
 
@@ -967,7 +977,7 @@ fn (p: FakeProc) set_grace(d: Duration) uses proc
 fn (p: FakeProc) run(cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses proc
 ```
 
-[Source: `std/testing.xo:167`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L167)
+[Source: `std/testing.xo:168`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L168)
 
 #### FakeProc.only
 
@@ -975,7 +985,7 @@ fn (p: FakeProc) run(cmd: Str, args: List[Str]) -> ProcOutput ! ProcErr uses pro
 fn (p: FakeProc) only(cmds: List[Str]) -> Proc
 ```
 
-[Source: `std/testing.xo:168`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L168)
+[Source: `std/testing.xo:169`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L169)
 
 #### FakeProc.cmd
 
@@ -983,7 +993,7 @@ fn (p: FakeProc) only(cmds: List[Str]) -> Proc
 fn (p: FakeProc) cmd(name: Str, args: List[Str] = []) -> Cmd
 ```
 
-[Source: `std/testing.xo:169`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L169)
+[Source: `std/testing.xo:170`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L170)
 
 #### FakeProc.pipeline
 
@@ -991,7 +1001,7 @@ fn (p: FakeProc) cmd(name: Str, args: List[Str] = []) -> Cmd
 fn (p: FakeProc) pipeline(cmds: List[Cmd]) -> ProcOutput ! ProcErr uses proc
 ```
 
-[Source: `std/testing.xo:170`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L170)
+[Source: `std/testing.xo:171`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L171)
 
 #### FakeProc.exit_code
 
@@ -999,7 +1009,7 @@ fn (p: FakeProc) pipeline(cmds: List[Cmd]) -> ProcOutput ! ProcErr uses proc
 fn (p: FakeProc) exit_code() -> Int?
 ```
 
-[Source: `std/testing.xo:171`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L171)
+[Source: `std/testing.xo:172`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L172)
 
 #### FakeProc.signal_after
 
@@ -1007,7 +1017,7 @@ fn (p: FakeProc) exit_code() -> Int?
 fn (p: FakeProc) signal_after(d: Duration)
 ```
 
-[Source: `std/testing.xo:172`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L172)
+[Source: `std/testing.xo:173`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L173)
 
 #### FakeProc.on_run
 
@@ -1015,7 +1025,7 @@ fn (p: FakeProc) signal_after(d: Duration)
 fn (p: FakeProc) on_run(cmd: Str, out: ProcOutput)
 ```
 
-[Source: `std/testing.xo:173`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L173)
+[Source: `std/testing.xo:174`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L174)
 
 #### FakeProc.kill
 
@@ -1025,7 +1035,7 @@ fn (p: FakeProc) kill(pid: Int, signal: Str = "TERM") -> () ! ProcErr uses proc
 
 Records the signal; nothing is sent (decision 0190).
 
-[Source: `std/testing.xo:175`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L175)
+[Source: `std/testing.xo:176`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L176)
 
 #### FakeProc.notify
 
@@ -1033,7 +1043,7 @@ Records the signal; nothing is sent (decision 0190).
 fn (p: FakeProc) notify(signals: List[Signal]) -> Chan[Signal] uses proc
 ```
 
-[Source: `std/testing.xo:176`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L176)
+[Source: `std/testing.xo:177`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L177)
 
 #### FakeProc.stop_notify
 
@@ -1041,7 +1051,7 @@ fn (p: FakeProc) notify(signals: List[Signal]) -> Chan[Signal] uses proc
 fn (p: FakeProc) stop_notify(c: Chan[Signal]) uses proc
 ```
 
-[Source: `std/testing.xo:177`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L177)
+[Source: `std/testing.xo:178`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L178)
 
 #### FakeProc.request_stop
 
@@ -1049,7 +1059,7 @@ fn (p: FakeProc) stop_notify(c: Chan[Signal]) uses proc
 fn (p: FakeProc) request_stop() uses proc
 ```
 
-[Source: `std/testing.xo:178`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L178)
+[Source: `std/testing.xo:179`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L179)
 
 #### FakeProc.pid
 
@@ -1057,7 +1067,7 @@ fn (p: FakeProc) request_stop() uses proc
 fn (p: FakeProc) pid() -> Int uses proc
 ```
 
-[Source: `std/testing.xo:179`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L179)
+[Source: `std/testing.xo:180`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L180)
 
 #### FakeProc.ppid
 
@@ -1065,7 +1075,7 @@ fn (p: FakeProc) pid() -> Int uses proc
 fn (p: FakeProc) ppid() -> Int uses proc
 ```
 
-[Source: `std/testing.xo:180`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L180)
+[Source: `std/testing.xo:181`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L181)
 
 #### FakeProc.usage
 
@@ -1073,7 +1083,7 @@ fn (p: FakeProc) ppid() -> Int uses proc
 fn (p: FakeProc) usage() -> ProcUsage uses proc
 ```
 
-[Source: `std/testing.xo:181`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L181)
+[Source: `std/testing.xo:182`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L182)
 
 #### FakeProc.children_usage
 
@@ -1081,7 +1091,7 @@ fn (p: FakeProc) usage() -> ProcUsage uses proc
 fn (p: FakeProc) children_usage() -> ProcUsage uses proc
 ```
 
-[Source: `std/testing.xo:182`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L182)
+[Source: `std/testing.xo:183`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L183)
 
 #### FakeProc.killed
 
@@ -1091,7 +1101,19 @@ fn (p: FakeProc) killed() -> List[Str]
 
 The signals kill recorded, as "NAME PID", oldest first.
 
-[Source: `std/testing.xo:184`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L184)
+[Source: `std/testing.xo:185`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L185)
+
+#### FakeProc.runs
+
+```xo
+fn (p: FakeProc) runs() -> List[Str]
+```
+
+The commands the test's code asked to run (`run`, a `Cmd`, a pipeline), oldest first, found or not (a command with no `on_run`
+is listed and answers NotFound). Each entry is the program and then each argument after a space; an empty program or argument,
+or one with a space or that Go's strconv.Quote writes differently, is written as strconv.Quote does (`"my sub"`, `"a\"b"`).
+
+[Source: `std/testing.xo:189`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L189)
 
 ## Functions
 
@@ -1143,4 +1165,4 @@ std.md writes `main: fn(Os) -> () ! Error` without effects; a main
 performs effects on its `os`, so the effects pass through an effect
 variable here (a pure function type would reject every real main).
 
-[Source: `std/testing.xo:191`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L191)
+[Source: `std/testing.xo:196`](https://github.com/xo-lang/xo/blob/main/std/testing.xo#L196)

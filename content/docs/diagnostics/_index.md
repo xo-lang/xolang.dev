@@ -92,7 +92,7 @@ prints the explanation below in a terminal.
 | [`XO0437`](xo0437/) | error | checker | the `string` wire option on a field that is not a Bool, integer, float or Str, or an Option of one (core 2.2, decision 0555) |
 | [`XO0438`](xo0438/) | warning | checker | an argument of a `log.debug`, `log.info`, `log.warn` or `log.error` call (or a Logger's) performs an effect other than `log`; it runs only when the record is at or above the configured level (decision 0558, std.md 6) |
 | [`XO0501`](xo0501/) | error | checker | var method called on a non var binding (core 3.4) |
-| [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding or to a captured variable (core 5.2, 3.3) |
+| [`XO0502`](xo0502/) | error | checker | assignment to an immutable binding, to a captured variable, or to an element of `Bytes` (core 5.2, 3.3) |
 | [`XO0503`](xo0503/) | error | checker | one variable or overlapping places passed to two `var` parameters of one call (core 5.2, decision 0111) |
 | [`XO0510`](xo0510/) | error | checker | use of a moved Buf, StrBuilder, BytesBuilder, or std move only handle (core 5.3) |
 | [`XO0520`](xo0520/) | error | checker | mutation of a copied or stored collection element is never written back (core 5.2) |
@@ -106,6 +106,8 @@ prints the explanation below in a terminal.
 | [`XO0538`](xo0538/) | warning | vet | a `var` local written after a closure that reads it was created and before the closure is used: the closure keeps the value from its creation (core 5.1) |
 | [`XO0539`](xo0539/) | error | checker | a destructuring assignment names the same place twice (core 5.2, decision 0536) |
 | [`XO0540`](xo0540/) | warning | checker | a `Mutex.with` closure writes its `var` value, then a path returns `Err`, which undoes the write (core 5.4) |
+| [`XO0541`](xo0541/) | warning | vet | a slice of a `raw.bytes_buf` buffer that a loop reads into again is kept past the iteration (pushed, stored outside the loop, returned) without `.clone()`: the next read changes it (decision 0330 views) |
+| [`XO0542`](xo0542/) | warning | vet | `x ?? lit <op> z`: an operator binding tighter than `??` after a literal default applies only to the default (`x ?? (lit <op> z)`); `(x ?? lit) <op> z` is likely meant (core 15 precedence) |
 | [`XO0601`](xo0601/) | error | checker | name does not resolve (core 4.3) |
 | [`XO0602`](xo0602/) | error | checker | import path does not yield a valid local name (core 4.1) |
 | [`XO0603`](xo0603/) | error | checker | name declared twice in one scope, or a predeclared name redefined (core 3.1, 1.4) |
@@ -189,4 +191,5 @@ prints the explanation below in a terminal.
 | [`XO1515`](xo1515/) | error | build | a program built for wasip2/wasm reaches what its world does not have: processes, or files or sockets in a `wasi:http` component (a command has `wasi:filesystem` since 2026-11-02 and `wasi:sockets` since 2026-11-03); the message names the call and how it is reached (decision 0447); on wasip3/wasm also a program that is not a `wasi:http` component (stage 5) |
 | [`XO1516`](xo1516/) | error | build | a program built for wasip2/wasm whose main never calls `http.serve_component` (decision 0447); no longer reported since stage 3 (2026-11-02), when such a program became a `wasi:cli/command` component |
 | [`XO1517`](xo1517/) | error | build | a windows program's resource input that cannot be used: the `--versioninfo` JSON cannot be read or parsed, an `--icon` file cannot be read or is not an icon, a `--manifest` file cannot be read; the message carries goversioninfo's text (decision 0560) |
+| [`XO1518`](xo1518/) | error | checker | a function's `as c "name"` clause breaks a C export rule: a method, not `pub fn`, generic, a `var` parameter, a Bool or function type parameter, more than 8 integer parameter words, a Bytes, Str, Bool or function type result, a name that is not a C identifier or starts with `xo_` (decision 0574) |
 {.codes}

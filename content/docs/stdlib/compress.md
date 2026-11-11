@@ -20,6 +20,7 @@ generated: "scripts/sync-content.py from `xo doc std/compress`; edit the doc com
 - type [`Decompressor`](#decompressor)
   - method [`Decompressor.write`](#decompressorwrite)
   - method [`Decompressor.finish`](#decompressorfinish)
+- type [`LzwOrder`](#lzworder)
 - fn [`gzip`](#gzip)
 - fn [`gunzip`](#gunzip)
 - fn [`deflate`](#deflate)
@@ -28,6 +29,8 @@ generated: "scripts/sync-content.py from `xo doc std/compress`; edit the doc com
 - fn [`unzlib`](#unzlib)
 - fn [`compressor`](#compressor)
 - fn [`decompressor`](#decompressor)
+- fn [`lzw_encode`](#lzw_encode)
+- fn [`lzw_decode`](#lzw_decode)
 
 ## Types
 
@@ -161,6 +164,21 @@ fn (var d: Decompressor) finish() -> Bytes ! CompressErr
 
 [Source: `std/compress.xo:74`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L74)
 
+### LzwOrder
+
+```xo
+enum LzwOrder {
+  LSB
+  MSB
+} derive Eq, Display
+```
+
+The bit order of an LZW stream (Go's compress/lzw Order): LSB (GIF, and
+TIFF's predecessor) packs codes from the low end of each byte, MSB (PDF,
+TIFF) from the high end.
+
+[Source: `std/compress.xo:79`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L79)
+
 ## Functions
 
 ### gzip
@@ -236,3 +254,30 @@ fn decompressor(format: Format, max_size: Int = 1073741824) -> Decompressor
 ```
 
 [Source: `std/compress.xo:71`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L71)
+
+### lzw_encode
+
+```xo
+fn lzw_encode(data: Bytes, order: LzwOrder, lit_width: Int) -> Bytes ! CompressErr
+```
+
+Go's compress/lzw writer over a whole buffer: the codes Go writes for
+the data, a leading clear code, a table reset when the 12 bit codes run
+out, then the end code. lit_width (2 to 8) is the width of a literal code
+and every byte must fit in it. Errors are Go's texts: `lzw: litWidth 9
+out of range`, `lzw: input byte too large for the litWidth`.
+
+[Source: `std/compress.xo:89`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L89)
+
+### lzw_decode
+
+```xo
+fn lzw_decode(data: Bytes, order: LzwOrder, lit_width: Int, max_size: Int = 1073741824) -> Bytes ! CompressErr
+```
+
+Go's compress/lzw reader over a whole buffer: the bytes up to the end
+code (anything after it is ignored). Errors are Go's texts: `lzw: invalid
+code`, `unexpected EOF` (no end code), `lzw: litWidth 1 out of range`, or
+`lzw: output exceeds max_size (N bytes)`.
+
+[Source: `std/compress.xo:95`](https://github.com/xo-lang/xo/blob/main/std/compress.xo#L95)

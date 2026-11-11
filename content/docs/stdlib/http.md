@@ -2227,7 +2227,7 @@ no scheme and no host is resolved against req's escaped path (Go's
 rules: the path's directory, `.` and `..` cleaned, a trailing slash
 kept, the query kept apart), non ASCII bytes of the Location percent
 encoded; a GET or HEAD gets `text/html; charset=utf-8` and a GET the
-body `<a href="URL">Status Text</a>.` on a line.
+body `<a href="URL">Status Text</a>.` and two newlines (Go prints the body with Fprintln).
 
 [Source: `std/http.xo:306`](https://github.com/xo-lang/xo/blob/main/std/http.xo#L306)
 

@@ -149,6 +149,7 @@ The bytes written so far.
 enum Aead {
   AesGcm
   ChaCha20Poly1305
+  Aes128CbcHmacSha256
 }
 ```
 
@@ -164,9 +165,10 @@ it without encrypting it.
 fn (a: Aead) nonce_size() -> Int
 ```
 
-The nonce's size in bytes: 12 for both.
+The nonce's size in bytes: 12 for AesGcm and ChaCha20Poly1305, 16 for
+Aes128CbcHmacSha256.
 
-[Source: `std/crypto.xo:85`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L85)
+[Source: `std/crypto.xo:94`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L94)
 
 #### Aead.overhead
 
@@ -174,9 +176,11 @@ The nonce's size in bytes: 12 for both.
 fn (a: Aead) overhead() -> Int
 ```
 
-The bytes a sealed message is longer than its plaintext: 16 (the tag).
+The bytes a sealed message is longer than its plaintext: 16 (the tag);
+for Aes128CbcHmacSha256 at most 32 (1 to 16 bytes of padding, then the
+tag).
 
-[Source: `std/crypto.xo:87`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L87)
+[Source: `std/crypto.xo:98`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L98)
 
 ### AeadKey
 
@@ -188,7 +192,7 @@ A key ready to seal and open messages: its key schedule is made once,
 so keep one for many messages. It never displays, prints, or encodes its
 key (no Display, no derive Json), as a `Secret[T]`.
 
-[Source: `std/crypto.xo:92`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L92)
+[Source: `std/crypto.xo:103`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L103)
 
 #### AeadKey.alg
 
@@ -196,7 +200,7 @@ key (no Display, no derive Json), as a `Secret[T]`.
 fn (k: AeadKey) alg() -> Aead
 ```
 
-[Source: `std/crypto.xo:105`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L105)
+[Source: `std/crypto.xo:116`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L116)
 
 #### AeadKey.seal_random
 
@@ -208,7 +212,7 @@ plaintext sealed under a random nonce from `r`, the nonce first: the
 way to seal unless a protocol counts nonces (Go's
 cipher.NewGCMWithRandomNonce). Open it with open_random.
 
-[Source: `std/crypto.xo:109`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L109)
+[Source: `std/crypto.xo:120`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L120)
 
 #### AeadKey.open_random
 
@@ -218,7 +222,7 @@ fn (k: AeadKey) open_random(sealed: Bytes, aad: Bytes = b"") -> Bytes ! AeadErr
 
 A message from seal_random, checked and decrypted.
 
-[Source: `std/crypto.xo:111`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L111)
+[Source: `std/crypto.xo:122`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L122)
 
 #### AeadKey.seal
 
@@ -231,7 +235,7 @@ nonce_size() bytes, else a fault): the ciphertext, then the 16 byte tag.
 A nonce must never be used twice with one key: a repeat breaks both the
 confidentiality and the authenticity of every message under the key.
 
-[Source: `std/crypto.xo:116`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L116)
+[Source: `std/crypto.xo:127`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L127)
 
 #### AeadKey.open
 
@@ -242,7 +246,7 @@ fn (k: AeadKey) open(nonce: Bytes, sealed: Bytes, aad: Bytes = b"") -> Bytes ! A
 sealed checked and decrypted; Err (and no plaintext) when it was
 changed, the nonce or aad differ, or it is shorter than the tag.
 
-[Source: `std/crypto.xo:119`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L119)
+[Source: `std/crypto.xo:130`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L130)
 
 ### AeadErr
 
@@ -256,7 +260,7 @@ An AEAD error: `cipher: message authentication failed` for every
 sealed message that does not open (whatever check failed), or a key
 size error from aead_key.
 
-[Source: `std/crypto.xo:97`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L97)
+[Source: `std/crypto.xo:108`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L108)
 
 #### AeadErr.display
 
@@ -264,7 +268,7 @@ size error from aead_key.
 fn (e: AeadErr) display() -> Str
 ```
 
-[Source: `std/crypto.xo:101`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L101)
+[Source: `std/crypto.xo:112`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L112)
 
 ### PemBlock
 
@@ -279,7 +283,7 @@ struct PemBlock {
 A PEM block (encoding/pem): its type (`PUBLIC KEY`), headers, and
 decoded bytes.
 
-[Source: `std/crypto.xo:135`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L135)
+[Source: `std/crypto.xo:146`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L146)
 
 ### KeyErr
 
@@ -291,7 +295,7 @@ struct KeyErr {
 
 Go's error texts (`x509: failed to parse public key`, ...).
 
-[Source: `std/crypto.xo:142`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L142)
+[Source: `std/crypto.xo:153`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L153)
 
 #### KeyErr.display
 
@@ -299,7 +303,7 @@ Go's error texts (`x509: failed to parse public key`, ...).
 fn (e: KeyErr) display() -> Str
 ```
 
-[Source: `std/crypto.xo:146`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L146)
+[Source: `std/crypto.xo:157`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L157)
 
 ### KeyAlg
 
@@ -314,7 +318,7 @@ enum KeyAlg {
 }
 ```
 
-[Source: `std/crypto.xo:148`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L148)
+[Source: `std/crypto.xo:159`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L159)
 
 ### PublicKey
 
@@ -324,7 +328,7 @@ struct PublicKey {}
 
 A public key: ==; Debug text `<publickey>`.
 
-[Source: `std/crypto.xo:158`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L158)
+[Source: `std/crypto.xo:169`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L169)
 
 #### PublicKey.alg
 
@@ -332,7 +336,7 @@ A public key: ==; Debug text `<publickey>`.
 fn (k: PublicKey) alg() -> KeyAlg
 ```
 
-[Source: `std/crypto.xo:165`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L165)
+[Source: `std/crypto.xo:176`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L176)
 
 ### PrivateKey
 
@@ -342,7 +346,7 @@ struct PrivateKey {}
 
 A private key: Debug text `<privatekey>`, never key material.
 
-[Source: `std/crypto.xo:171`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L171)
+[Source: `std/crypto.xo:182`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L182)
 
 #### PrivateKey.alg
 
@@ -350,7 +354,7 @@ A private key: Debug text `<privatekey>`, never key material.
 fn (k: PrivateKey) alg() -> KeyAlg
 ```
 
-[Source: `std/crypto.xo:178`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L178)
+[Source: `std/crypto.xo:189`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L189)
 
 #### PrivateKey.public_key
 
@@ -358,7 +362,7 @@ fn (k: PrivateKey) alg() -> KeyAlg
 fn (k: PrivateKey) public_key() -> PublicKey
 ```
 
-[Source: `std/crypto.xo:179`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L179)
+[Source: `std/crypto.xo:190`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L190)
 
 ## Functions
 
@@ -523,7 +527,7 @@ fn aead_key(alg: Aead, key: Bytes) -> AeadKey ! AeadErr
 
 alg's key; Err when `key` is not a length alg takes.
 
-[Source: `std/crypto.xo:104`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L104)
+[Source: `std/crypto.xo:115`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L115)
 
 ### hkdf_extract
 
@@ -534,7 +538,7 @@ fn hkdf_extract(h: Hash, secret: Bytes, salt: Bytes = b"") -> Bytes
 HKDF-Extract (RFC 5869, Go's hkdf.Extract): the pseudorandom key,
 h.size() bytes, from `secret` and `salt` (empty: h.size() zero bytes).
 
-[Source: `std/crypto.xo:123`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L123)
+[Source: `std/crypto.xo:134`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L134)
 
 ### hkdf_expand
 
@@ -546,7 +550,7 @@ HKDF-Expand (Go's hkdf.Expand): n bytes of keying material from a
 pseudorandom key and `info`. Faults when n is negative or over 255
 times h.size().
 
-[Source: `std/crypto.xo:127`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L127)
+[Source: `std/crypto.xo:138`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L138)
 
 ### hkdf
 
@@ -556,7 +560,7 @@ fn hkdf(h: Hash, secret: Bytes, salt: Bytes, info: Bytes, n: Int) -> Bytes
 
 HKDF, extract then expand (Go's hkdf.Key).
 
-[Source: `std/crypto.xo:129`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L129)
+[Source: `std/crypto.xo:140`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L140)
 
 ### parse_public_key
 
@@ -567,7 +571,7 @@ fn parse_public_key(der: Bytes) -> PublicKey ! KeyErr
 PKIX SubjectPublicKeyInfo (x509.ParsePKIXPublicKey) or PKCS #1
 RSAPublicKey DER.
 
-[Source: `std/crypto.xo:162`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L162)
+[Source: `std/crypto.xo:173`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L173)
 
 ### marshal_public_key
 
@@ -577,7 +581,7 @@ fn marshal_public_key(k: PublicKey) -> Bytes
 
 PKIX DER (x509.MarshalPKIXPublicKey).
 
-[Source: `std/crypto.xo:164`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L164)
+[Source: `std/crypto.xo:175`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L175)
 
 ### jwk_public_key
 
@@ -588,7 +592,7 @@ fn jwk_public_key(jwk: Str) -> PublicKey ! KeyErr
 A JWK's public key (RFC 7517; kty RSA, EC with crv P-256, P-384, or
 P-521, OKP with crv Ed25519; private members ignored).
 
-[Source: `std/crypto.xo:168`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L168)
+[Source: `std/crypto.xo:179`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L179)
 
 ### parse_private_key
 
@@ -598,7 +602,7 @@ fn parse_private_key(der: Bytes) -> PrivateKey ! KeyErr
 
 PKCS #8, PKCS #1, or SEC 1 EC DER, as Go's parsers tell them apart.
 
-[Source: `std/crypto.xo:174`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L174)
+[Source: `std/crypto.xo:185`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L185)
 
 ### marshal_private_key
 
@@ -609,7 +613,7 @@ fn marshal_private_key(k: PrivateKey) -> Bytes
 k as PKCS #8 DER (Go's MarshalPKCS8PrivateKey), which parse_private_key
 reads back; pem_encode it as a "PRIVATE KEY" block to save it.
 
-[Source: `std/crypto.xo:177`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L177)
+[Source: `std/crypto.xo:188`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L188)
 
 ### ecdsa_private_key
 
@@ -624,7 +628,7 @@ ecdsa.ParseRawPrivateKey: 0 and d at or above the order are KeyErr
 `invalid scalar length`, and any other alg is KeyErr. `public_key()` of
 the result is the public point (AWS SigV4a derives its key this way).
 
-[Source: `std/crypto.xo:186`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L186)
+[Source: `std/crypto.xo:197`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L197)
 
 ### pem_decode
 
@@ -635,7 +639,7 @@ fn pem_decode(text: Str) -> List[PemBlock]
 Every PEM block in text, in order (pem.Decode repeated on the rest);
 text outside blocks and malformed blocks are skipped.
 
-[Source: `std/crypto.xo:190`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L190)
+[Source: `std/crypto.xo:201`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L201)
 
 ### pem_encode
 
@@ -645,7 +649,7 @@ fn pem_encode(b: PemBlock) -> Str ! KeyErr
 
 pem.EncodeToMemory: KeyErr for a header key holding a colon.
 
-[Source: `std/crypto.xo:192`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L192)
+[Source: `std/crypto.xo:203`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L203)
 
 ### verify
 
@@ -657,7 +661,7 @@ RSA PKCS #1 v1.5 or ECDSA (ASN.1 DER) over msg hashed with h, or
 Ed25519 over msg itself; false for a key, hash, or signature that does
 not fit.
 
-[Source: `std/crypto.xo:197`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L197)
+[Source: `std/crypto.xo:208`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L208)
 
 ### verify_pss
 
@@ -667,7 +671,7 @@ fn verify_pss(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
 
 RSA PSS, any salt length (PSSSaltLengthAuto).
 
-[Source: `std/crypto.xo:199`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L199)
+[Source: `std/crypto.xo:210`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L210)
 
 ### verify_raw_ecdsa
 
@@ -677,7 +681,7 @@ fn verify_raw_ecdsa(k: PublicKey, h: Hash, msg: Bytes, sig: Bytes) -> Bool
 
 ECDSA with the fixed size r || s of JWS (RFC 7518 3.4).
 
-[Source: `std/crypto.xo:201`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L201)
+[Source: `std/crypto.xo:212`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L212)
 
 ### sign
 
@@ -687,7 +691,7 @@ fn sign(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses rand
 
 RSA PKCS #1 v1.5, ECDSA (ASN.1 DER, a hedged nonce from r), or Ed25519.
 
-[Source: `std/crypto.xo:203`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L203)
+[Source: `std/crypto.xo:214`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L214)
 
 ### sign_pss
 
@@ -697,7 +701,7 @@ fn sign_pss(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr uses 
 
 RSA PSS with a salt as long as the hash, from r.
 
-[Source: `std/crypto.xo:205`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L205)
+[Source: `std/crypto.xo:216`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L216)
 
 ### sign_raw_ecdsa
 
@@ -707,7 +711,7 @@ fn sign_raw_ecdsa(r: Rand, k: PrivateKey, h: Hash, msg: Bytes) -> Bytes ! KeyErr
 
 ECDSA as the fixed size r || s of JWS.
 
-[Source: `std/crypto.xo:207`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L207)
+[Source: `std/crypto.xo:218`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L218)
 
 ### generate_key
 
@@ -719,4 +723,4 @@ A new key from r (Go's GenerateKey): an ECDSA or Ed25519 key, or an RSA
 key of `bits` (1024 to 8192, exponent 65537; other algorithms ignore
 it). The same r gives the same key on every backend.
 
-[Source: `std/crypto.xo:211`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L211)
+[Source: `std/crypto.xo:222`](https://github.com/xo-lang/xo/blob/main/std/crypto.xo#L222)

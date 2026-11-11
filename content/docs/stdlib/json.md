@@ -10,6 +10,7 @@ generated: "scripts/sync-content.py from `xo doc std/json`; edit the doc comment
 ## Index
 
 - type [`DecodeErr`](#decodeerr)
+  - method [`DecodeErr.go_text`](#decodeerrgo_text)
 - type [`Patch`](#patch)
   - method [`Patch.apply_to`](#patchapply_to)
   - method [`Patch.apply_opt`](#patchapply_opt)
@@ -51,6 +52,8 @@ generated: "scripts/sync-content.py from `xo doc std/json`; edit the doc comment
 - fn [`compact`](#compact)
 - fn [`decode`](#decode)
 - fn [`decode_str`](#decode_str)
+- fn [`decode_go`](#decode_go)
+- fn [`decode_go_str`](#decode_go_str)
 - fn [`to_value`](#to_value)
 - fn [`parse_value`](#parse_value)
 - fn [`decoder`](#decoder)
@@ -72,7 +75,22 @@ struct DecodeErr {
 
 Displays as "at $.user.email: expected string".
 
-[Source: `std/json.xo:22`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L22)
+[Source: `std/json.xo:26`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L26)
+
+#### DecodeErr.go_text
+
+```xo
+fn (e: DecodeErr) go_text() -> Str
+```
+
+encoding/json's text for a syntax error (decision 0553): the text of
+Go's SyntaxError, `unexpected end of JSON input` for a truncated text;
+any other error returns its msg. A text that ends inside a literal or
+a number still gives the truncation text, where Go names the literal
+(`in literal null (expecting 'l')`): that needs a field on DecodeErr,
+which waits for the next seed (gotchas/std-error-struct-field-needs-compiler-first.md).
+
+[Source: `std/json.xo:37`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L37)
 
 ### Patch
 
@@ -84,7 +102,7 @@ enum Patch[T] {
 } derive Json
 ```
 
-[Source: `std/json.xo:30`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L30)
+[Source: `std/json.xo:42`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L42)
 
 #### Patch.apply_to
 
@@ -92,7 +110,7 @@ enum Patch[T] {
 fn (p: Patch[T]) apply_to(current: T) -> T
 ```
 
-[Source: `std/json.xo:27`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L27)
+[Source: `std/json.xo:39`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L39)
 
 #### Patch.apply_opt
 
@@ -100,7 +118,7 @@ fn (p: Patch[T]) apply_to(current: T) -> T
 fn (p: Patch[T]) apply_opt(current: T?) -> T?
 ```
 
-[Source: `std/json.xo:28`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L28)
+[Source: `std/json.xo:40`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L40)
 
 ### Value
 
@@ -123,7 +141,7 @@ its first position, with its last value, as `decode` reads objects),
 and a number without a fraction or exponent that fits an Int is `Int`,
 any other number `Num`.
 
-[Source: `std/json.xo:41`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L41)
+[Source: `std/json.xo:53`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L53)
 
 #### Value.encode
 
@@ -134,7 +152,7 @@ fn (v: Value) encode() -> Str
 The JSON text of v, as `encode` writes its parts (strings escaped,
 numbers, objects in their order).
 
-[Source: `std/json.xo:64`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L64)
+[Source: `std/json.xo:76`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L76)
 
 #### Value.get
 
@@ -145,7 +163,7 @@ fn (v: Value) get(key: Str) -> Value?
 The value of an object's field key; None for a missing key or a value
 that is not an object.
 
-[Source: `std/json.xo:67`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L67)
+[Source: `std/json.xo:79`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L79)
 
 ### Decoder
 
@@ -158,7 +176,7 @@ decision 0309): bytes in, the values completed so far out; push style,
 no I/O of its own.
 @move_only
 
-[Source: `std/json.xo:73`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L73)
+[Source: `std/json.xo:85`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L85)
 
 #### Decoder.write
 
@@ -169,7 +187,7 @@ fn (var d: Decoder) write(data: Bytes) -> List[Value] ! DecodeErr
 The values the input so far completes (a number at the very end waits
 for what follows it).
 
-[Source: `std/json.xo:79`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L79)
+[Source: `std/json.xo:91`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L91)
 
 #### Decoder.finish
 
@@ -180,7 +198,7 @@ fn (var d: Decoder) finish() -> List[Value] ! DecodeErr
 The rest; a value that did not end is `invalid JSON: unexpected EOF`.
 @moves
 
-[Source: `std/json.xo:82`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L82)
+[Source: `std/json.xo:94`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L94)
 
 ### Token
 
@@ -201,7 +219,7 @@ enum Token {
 One token of a JSON text (decision 0495; Go's Decoder.Token). An object
 member's name is `Key`; a number keeps its text as written.
 
-[Source: `std/json.xo:88`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L88)
+[Source: `std/json.xo:100`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L100)
 
 ### TokenReader
 
@@ -216,7 +234,7 @@ unescaped as `decode` does (invalid UTF-8 and lone surrogate escapes
 become U+FFFD); errors are `DecodeErr` at `$` with `decode`'s texts.
 @move_only
 
-[Source: `std/json.xo:106`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L106)
+[Source: `std/json.xo:118`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L118)
 
 #### TokenReader.write
 
@@ -227,7 +245,7 @@ fn (var r: TokenReader) write(data: Bytes) -> List[Token] ! DecodeErr
 The tokens the input so far completes (a number at the very end waits
 for what follows it).
 
-[Source: `std/json.xo:116`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L116)
+[Source: `std/json.xo:128`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L128)
 
 #### TokenReader.finish
 
@@ -239,7 +257,7 @@ The rest; input that ends inside an array, an object or a token is
 `invalid JSON: unexpected EOF`. An error found after the tokens it
 returns is the next call's (of `finish` or `next`).
 
-[Source: `std/json.xo:120`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L120)
+[Source: `std/json.xo:132`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L132)
 
 #### TokenReader.next
 
@@ -250,7 +268,7 @@ fn (var r: TokenReader) next() -> Token? ! DecodeErr
 The next token; None at the end of the input (or, in push style, when
 the next token is not complete yet).
 
-[Source: `std/json.xo:123`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L123)
+[Source: `std/json.xo:135`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L135)
 
 #### TokenReader.more
 
@@ -261,7 +279,7 @@ fn (var r: TokenReader) more() -> Bool
 Go's Decoder.More: another element or member follows in the current
 array or object (false at the end of the input).
 
-[Source: `std/json.xo:126`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L126)
+[Source: `std/json.xo:138`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L138)
 
 #### TokenReader.offset
 
@@ -271,7 +289,7 @@ fn (r: TokenReader) offset() -> Int
 
 Go's Decoder.InputOffset: the byte offset after the last token.
 
-[Source: `std/json.xo:128`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L128)
+[Source: `std/json.xo:140`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L140)
 
 #### TokenReader.skip
 
@@ -282,7 +300,7 @@ fn (var r: TokenReader) skip() -> () ! DecodeErr
 Skips the value that starts at the next token: a scalar, or an array or
 object through its end.
 
-[Source: `std/json.xo:131`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L131)
+[Source: `std/json.xo:143`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L143)
 
 #### TokenReader.value
 
@@ -292,7 +310,7 @@ fn (var r: TokenReader) value() -> Value ! DecodeErr
 
 The value that starts at the next token, as `parse_value` reads it.
 
-[Source: `std/json.xo:133`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L133)
+[Source: `std/json.xo:145`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L145)
 
 ### JsonWriter
 
@@ -309,7 +327,7 @@ call out of order (a value where a key is due, an unclosed array at
 `finish`) faults: it is a bug in the caller.
 @move_only
 
-[Source: `std/json.xo:143`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L143)
+[Source: `std/json.xo:155`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L155)
 
 #### JsonWriter.object_start
 
@@ -317,7 +335,7 @@ call out of order (a value where a key is due, an unclosed array at
 fn (var w: JsonWriter) object_start()
 ```
 
-[Source: `std/json.xo:146`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L146)
+[Source: `std/json.xo:158`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L158)
 
 #### JsonWriter.object_end
 
@@ -325,7 +343,7 @@ fn (var w: JsonWriter) object_start()
 fn (var w: JsonWriter) object_end()
 ```
 
-[Source: `std/json.xo:147`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L147)
+[Source: `std/json.xo:159`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L159)
 
 #### JsonWriter.array_start
 
@@ -333,7 +351,7 @@ fn (var w: JsonWriter) object_end()
 fn (var w: JsonWriter) array_start()
 ```
 
-[Source: `std/json.xo:148`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L148)
+[Source: `std/json.xo:160`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L160)
 
 #### JsonWriter.array_end
 
@@ -341,7 +359,7 @@ fn (var w: JsonWriter) array_start()
 fn (var w: JsonWriter) array_end()
 ```
 
-[Source: `std/json.xo:149`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L149)
+[Source: `std/json.xo:161`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L161)
 
 #### JsonWriter.key
 
@@ -349,7 +367,7 @@ fn (var w: JsonWriter) array_end()
 fn (var w: JsonWriter) key(name: Str)
 ```
 
-[Source: `std/json.xo:150`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L150)
+[Source: `std/json.xo:162`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L162)
 
 #### JsonWriter.str
 
@@ -357,7 +375,7 @@ fn (var w: JsonWriter) key(name: Str)
 fn (var w: JsonWriter) str(s: Str)
 ```
 
-[Source: `std/json.xo:151`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L151)
+[Source: `std/json.xo:163`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L163)
 
 #### JsonWriter.int
 
@@ -365,7 +383,7 @@ fn (var w: JsonWriter) str(s: Str)
 fn (var w: JsonWriter) int(n: Int)
 ```
 
-[Source: `std/json.xo:152`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L152)
+[Source: `std/json.xo:164`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L164)
 
 #### JsonWriter.float
 
@@ -375,7 +393,7 @@ fn (var w: JsonWriter) float(f: Float) -> () ! DecodeErr
 
 NaN and infinities are refused (Go's UnsupportedValueError).
 
-[Source: `std/json.xo:154`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L154)
+[Source: `std/json.xo:166`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L166)
 
 #### JsonWriter.number
 
@@ -385,7 +403,7 @@ fn (var w: JsonWriter) number(text: Str) -> () ! DecodeErr
 
 A number as written, checked against the JSON grammar.
 
-[Source: `std/json.xo:156`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L156)
+[Source: `std/json.xo:168`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L168)
 
 #### JsonWriter.bool
 
@@ -393,7 +411,7 @@ A number as written, checked against the JSON grammar.
 fn (var w: JsonWriter) bool(b: Bool)
 ```
 
-[Source: `std/json.xo:157`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L157)
+[Source: `std/json.xo:169`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L169)
 
 #### JsonWriter.null
 
@@ -401,7 +419,7 @@ fn (var w: JsonWriter) bool(b: Bool)
 fn (var w: JsonWriter) null()
 ```
 
-[Source: `std/json.xo:158`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L158)
+[Source: `std/json.xo:170`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L170)
 
 #### JsonWriter.raw
 
@@ -411,7 +429,7 @@ fn (var w: JsonWriter) raw(text: Str) -> () ! DecodeErr
 
 Go's RawMessage: a JSON text, written compacted.
 
-[Source: `std/json.xo:160`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L160)
+[Source: `std/json.xo:172`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L172)
 
 #### JsonWriter.value
 
@@ -421,7 +439,7 @@ fn (var w: JsonWriter) value(v: Value) -> () ! DecodeErr
 
 A Value, token by token (a Num that is NaN or infinite is refused).
 
-[Source: `std/json.xo:162`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L162)
+[Source: `std/json.xo:174`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L174)
 
 #### JsonWriter.finish
 
@@ -433,7 +451,7 @@ The text written; every array and object must be closed. Values
 written at the top level are separated by a newline (Go's Encoder).
 @moves
 
-[Source: `std/json.xo:166`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L166)
+[Source: `std/json.xo:178`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L178)
 
 ## Functions
 
@@ -510,6 +528,25 @@ fn decode_str[T: Json](s: Str) -> T ! DecodeErr
 
 [Source: `std/json.xo:19`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L19)
 
+### decode_go
+
+```xo
+fn decode_go[T: Json](data: Bytes) -> T ! DecodeErr
+```
+
+decode with Go's decoder rules (decision 0553): a null leaves a field's
+zero value and a missing field takes it, as encoding/json does.
+
+[Source: `std/json.xo:22`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L22)
+
+### decode_go_str
+
+```xo
+fn decode_go_str[T: Json](s: Str) -> T ! DecodeErr
+```
+
+[Source: `std/json.xo:23`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L23)
+
 ### to_value
 
 ```xo
@@ -519,7 +556,7 @@ fn to_value[T: Json](v: T) -> Value
 The value of v's JSON encoding (`encode`): field names are its JSON
 names (`derive Json(case:)`, decision 0277).
 
-[Source: `std/json.xo:59`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L59)
+[Source: `std/json.xo:71`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L71)
 
 ### parse_value
 
@@ -529,7 +566,7 @@ fn parse_value(text: Str) -> Value ! DecodeErr
 
 The value of a JSON text; `DecodeErr` at `$` with `decode`'s texts.
 
-[Source: `std/json.xo:61`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L61)
+[Source: `std/json.xo:73`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L73)
 
 ### decoder
 
@@ -539,7 +576,7 @@ fn decoder(max_value: Int = 67108864) -> Decoder
 
 One value may be at most max_value bytes.
 
-[Source: `std/json.xo:76`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L76)
+[Source: `std/json.xo:88`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L88)
 
 ### from_value
 
@@ -549,7 +586,7 @@ fn from_value[T: Json](v: Value) -> T ! DecodeErr
 
 The typed value of v, as decode reads it from v's text.
 
-[Source: `std/json.xo:84`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L84)
+[Source: `std/json.xo:96`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L96)
 
 ### token_reader
 
@@ -560,7 +597,7 @@ fn token_reader(max_token: Int = 67108864) -> TokenReader
 One token may be at most max_token bytes (a string or number waiting
 for the rest of its text in push style).
 
-[Source: `std/json.xo:110`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L110)
+[Source: `std/json.xo:122`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L122)
 
 ### tokens
 
@@ -571,7 +608,7 @@ fn tokens(data: Bytes) -> TokenReader
 A reader over a whole text: `next` gives its tokens; the empty text and
 white space give None at once.
 
-[Source: `std/json.xo:113`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L113)
+[Source: `std/json.xo:125`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L125)
 
 ### json_writer
 
@@ -579,4 +616,4 @@ white space give None at once.
 fn json_writer(escape_html: Bool = true) -> JsonWriter
 ```
 
-[Source: `std/json.xo:145`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L145)
+[Source: `std/json.xo:157`](https://github.com/xo-lang/xo/blob/main/std/json.xo#L157)

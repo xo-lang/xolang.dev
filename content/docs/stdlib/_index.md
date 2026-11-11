@@ -38,14 +38,17 @@ what each module follows in Go's standard library is in the [coverage table](../
 | [`std/dns`](dns/) | Go's DNS record lookups (net.LookupMX, LookupTXT, LookupSRV, LookupAddr) over a Net: `uses net.di... |
 | [`std/embed`](embed/) | A Dir is the files a constant embeds at build time: `const SITE: embed.Dir = embed("static")`. |
 | [`std/fnv`](fnv/) | Go's hash/fnv: the Fowler-Noll-Vo hashes FNV-1 and FNV-1a, 32, 64 and 128 bits. |
+| [`std/gif`](gif/) | Go's image/gif over whole buffers: Decode, DecodeAll, DecodeConfig, Encode and EncodeAll, with Go... |
 | [`std/go`](go/) | Bindings written by `xo bind` (internal/gobind) import this module for `go.Error`; user code need... |
 | [`std/grpc`](grpc/) | std/grpc (decision 0535): gRPC over std/http's HTTP/2. |
 | [`std/heap`](heap/) | A binary heap ordered by a comparison the caller gives, after Go's container/heap (heap.go: Init,... |
 | [`std/html`](html/) | Go's html package: the five HTML special characters escaped, and entities (named, including the l... |
 | [`std/htmlent`](htmlent/) | A declaration file so the Go backend compiles the lookups from std/native/htmlent.xo. |
+| [`std/htmlparse`](htmlparse/) | golang.org/x/net/html's tree builder (parse.go, node.go, const.go, foreign.go, doctype.go, render... |
 | [`std/htmltok`](htmltok/) | golang.org/x/net/html's Tokenizer (token.go, BSD license, Copyright 2010 The Go Authors): the HTM... |
 | [`std/http`](http/) | see spec/std.md 4 |
 | [`std/idna`](idna/) | Internationalised domain names as in golang.org/x/net/idna: UTS 46 mapping and validation, RFC 34... |
+| [`std/image`](image/) | Go's image and image/color over one Image: the pixel models of std/png and std/jpeg in one enum, ... |
 | [`std/jpeg`](jpeg/) | Go's image/jpeg Decode and DecodeConfig over whole buffers: baseline and progressive JPEG, every ... |
 | [`std/json`](json/) | Which types implement `Json` is builtin to the checker (std.md 5 table): scalars, Str, Bytes, Dur... |
 | [`std/jwt`](jwt/) | JSON Web Tokens in the JWS compact form (RFC 7515, RFC 7519) on std/crypto, with golang-jwt/jwt v... |

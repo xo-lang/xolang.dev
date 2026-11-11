@@ -6,12 +6,12 @@ description: "Prelude methods and the standard library surface."
 toc: true
 hideTitle: true
 source: "https://github.com/xo-lang/xo/blob/main/spec/std.md"
-status: "draft 0.45 (2026-11-08; the same draft number as `spec/core.md`, decision 0089)"
+status: "draft 0.47 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)"
 generated: "scripts/sync-content.py from spec/std.md; edit the source, not this file"
 ---
 # Xo Standard Library and Prelude
 
-Status: draft 0.45 (2026-11-08; the same draft number as `spec/core.md`, decision 0089)
+Status: draft 0.47 (2026-11-10; the same draft number as `spec/core.md`, decision 0089)
 Companion to `spec/core.md`.
 
 Signatures are written in Xo syntax. `[var]` before a receiver means the method
@@ -100,6 +100,10 @@ When a value is passed where an interface type is expected (for example a
 ### 2.1 Numbers
 
 ```
+Int.max: Int                         // 9223372036854775807, a type constant (no parentheses)
+Int.min: Int                         // -9223372036854775808
+Int8.max: Int8 ... Int64.min: Int64  // every sized type's bounds, each of its own type
+UInt8.max: UInt8 ... UInt64.max: UInt64, UInt8.min ... UInt64.min (0)
 Int.parse(s: Str) -> Int?
 Int.parse_base(s: Str, base: Int) -> Int?   // base 2 to 36, or 0 for 0b, 0o, 0x, 0 prefixes and _ separators
 Float.parse(s: Str) -> Float?
@@ -176,6 +180,15 @@ backend (decision 0385, golden float_fma). Special values are Go's:
 `(-1.0).log()` is NaN, `(0.0).log()` is -Inf, `x.pow(0.0)` is 1.0. Float
 constants (`Float.PI`, `Float.INF`) are a later step; `Float.parse("inf")`
 gives infinity.
+
+The integer bounds `Int.max`, `Int.min`, `Int8.max` ... `UInt64.max` are
+type constants (decision 0587): written without parentheses, constant
+expressions (usable in a `const`, a pattern, a range), each of its own
+type. They are not the Ord methods: `a.max(b)` is still the larger of two
+values, and `Int.max(a, b)` is XO0407 naming `a.max(b)`. `-Int.min`
+overflows and faults, as any Int arithmetic does. The prelude declares
+them as constants documented `@static Int.max` (core 4.6), so the
+constants' own names (`INT_MAX`) are not in scope.
 
 A conversion is a call on the type name, `Float(n)`, not an associated
 function: there is no `Float.from(n)`. XO0601 for an unknown associated
@@ -352,6 +365,8 @@ fn (xs: List[T]) find(f: fn(T) -> Bool) -> T?
 fn (xs: List[T]) any(f: fn(T) -> Bool) -> Bool   // also all
 fn (xs: List[T]) sort() -> List[T]           // T: Ord, stable
 fn (xs: List[T]) sort_by[K: Ord](key: fn(T) -> K) -> List[T]
+fn (xs: List[T]) sort_by_desc[K: Ord](key: fn(T) -> K) -> List[T]   // greatest key first, stable
+fn (xs: List[T]) sort_with(cmp: fn(T, T) -> Ordering) -> List[T]     // stable (decision 0586)
 fn (xs: List[T]) group_by[K: Hash](key: fn(T) -> K) -> List[(K, List[T])]   // keys in first appearance order, each group in input order
 fn (xs: List[T]) reverse() -> List[T]
 fn (xs: List[T]) to_set() -> Set[T]
@@ -371,7 +386,28 @@ fn (var xs: List[T]) heapify()                  // make any list a heap
 fn ([var] xs: List[T]) set(i: Int, x: T)     // also xs[i] = x on a var list
 fn (var xs: List[T]) sort_in_place()         // T: Ord, stable, sorts the receiver
 fn (var xs: List[T]) sort_in_place_by[K: Ord](key: fn(T) -> K)   // stable
+fn (var xs: List[T]) sort_in_place_by_desc[K: Ord](key: fn(T) -> K)
+fn (var xs: List[T]) sort_in_place_with(cmp: fn(T, T) -> Ordering)
+
+enum Ordering { Less, Equal, Greater }
+a.cmp(b) -> Ordering                         // every Ord type, built in as min and max are
+fn (o: Ordering) reverse() -> Ordering
+fn (o: Ordering) then(next: Ordering) -> Ordering   // o, or next when o is Equal
 ```
+
+A comparator sort (decision 0586): `sort_with(cmp)` orders by a function
+of two elements returning an `Ordering`, stable like Go's
+`slices.SortStableFunc`: equal elements keep their input order, and a
+comparator that is not a strict weak order gives some permutation, never a
+fault. Its errors and effects propagate as `sort_by`'s do: the first error
+stops the sort and is returned, and `sort_in_place_with` leaves the
+receiver unchanged then. A multi-key order chains `then`:
+`ws.sort_with(fn(a, b) { b.count.cmp(a.count).then(a.name.cmp(b.name)) })`
+is count descending, then name ascending. `sort_by_desc(key)` orders by key
+from greatest to least, stable, without negating the key (so `Int.min` and
+`Str` keys work). `a.cmp(b)` is `Less` when `a < b`, `Greater` when `b < a`,
+else `Equal` (a NaN compares Equal); `cmp` is a method name, so a type's own
+`cmp` shadows it as any method does.
 
 `sort` of a `List[Int]` runs Go's pattern-defeating quicksort (the
 algorithm of `slices.Sort`), which does not keep equal elements in input
@@ -649,7 +685,10 @@ line, a clock that runs ahead, a read-only view) is used wherever the
 capability is expected (core 2.10, rule 2), and a program may
 build an `Os` with a literal, `Os{net: ..., fs: ..., stdio: ...}`, to
 hand code written against `Os` attenuated or wrapped capabilities. Both
-work the same on every backend (decision 0307).
+work the same on every backend (decision 0307). A field the literal
+leaves out denies everything (core 6.3, decision 0585): `fs`, `net`,
+`env`, `proc` and `stdio` may be omitted; `clock`, `rand` and `tasks`
+may not.
 
 ### 3.1 Fs (`uses fs.read` / `fs.write`)
 
@@ -1257,6 +1296,7 @@ fn (s: Stdio) lines() -> List[Str] ! IoErr   // reads all input
 fn (s: Stdio) stdin_is_tty() -> Bool         // also stdout_is_tty, stderr_is_tty
 fn (s: Stdio) width() -> Int?                // columns of the terminal; None without one
 fn (s: Stdio) read_secret(prompt: Str) -> Str? ! IoErr   // a line without echo (passwords)
+fn (s: Stdio) raw_input(on: Bool) -> Bool              // keys as typed (decision 0581)
 fn (s: Stdio) read_bytes(max: Int) -> Bytes? ! IoErr     // any bytes; None at end of input
 fn (s: Stdio) read_all_bytes() -> Bytes ! IoErr
 ```
@@ -1281,6 +1321,20 @@ Terminals (decision 0162), on every backend:
   `read_line`), restores it (also when the read is cancelled), and then
   writes the newline the user typed, which was not echoed. When standard
   input is not a terminal it reads a line without touching anything.
+- `raw_input(true)` sets standard input's terminal to raw input
+  (decision 0581): each byte arrives as it is typed (`read_bytes(1)`
+  returns a key with no Enter), nothing is echoed, the terminal does no
+  line editing, and ctrl-c and ctrl-z arrive as bytes 3 and 26 instead of
+  signals; output is unchanged (`println` still starts the next line at
+  its first column). `raw_input(false)` restores the settings. It returns
+  true when standard input is a terminal it set, false otherwise (a
+  pipe, a file, a test's `FakeStdio`, WASI, FreeBSD for now). The
+  settings are also restored when the program exits, returns from
+  `main`, faults or crashes, so no way out leaves the terminal raw (a
+  signal sent from outside, such as SIGKILL, is not covered). Arrow and
+  function keys arrive as the terminal's escape sequences (`ESC [ A` for
+  up); decoding them is the program's (Windows: the console's virtual
+  terminal input sends the same sequences).
 - `read_bytes(max)` returns at most `max` bytes (at most 1 MiB) of
   standard input as they arrive, any bytes, `None` at the end;
   `read_all_bytes()` the rest of the input. They share the input buffer
@@ -1360,6 +1414,8 @@ child's peak as `max_rss`. On Windows `usage` reads `GetProcessTimes` and
 the peak working set, and the runtime adds each waited child's times
 and peak to the children's totals, which Windows does not keep (the Go
 backend's totals have the times only: `max_rss` 0). WASI answers zeros.
+FreeBSD samples the resident set on clock ticks, so a process that exits
+before its first tick reports `max_rss` 0.
 An attenuated `Proc` answers as the real one: it is the process's own
 state, as `pid`. A test's FakeProc answers with the real process's.
 
@@ -1536,16 +1592,34 @@ type Next = fn(Request) -> Response
 - Registering a handler or middleware counts as performing its effects, so the
   function that builds the router declares them. This is where capabilities
   are captured.
-- Pattern: `"[METHOD ]/path"`. Segments: literal, `{name}` (any segment),
-  `{name:Int}` (must parse as `Int`, else 400 before the handler runs),
-  `{name...}` (rest of the path). Without a method, any method matches.
-  plain strings: `"GET /users/{id:Int}"`.
+- Pattern: `"[METHOD ]/path"`. Segments: literal, `{name}` (any non-empty
+  segment), `{name:Int}` (must parse as `Int`, else 400 before the handler
+  runs), `{name...}` (the rest of the path, from its segment on, a trailing
+  slash included; it needs that segment, so `/f/{p...}` does not match
+  `/f`). Without a method, any method matches. A pattern ending in `/` is a
+  subtree (`/dir/` matches `/dir/` and everything below it); `{$}` as the
+  last segment matches only the path ending there (`/{$}` is `/` alone).
+  Any other pattern is an exact path: `GET /healthz` does not match
+  `/healthz/`. A `GET` pattern also takes `HEAD` requests (the handler sees
+  the method `HEAD`; the server sends the headers and no body). Matching is
+  Go 1.22's ServeMux (std/changes/http.md
+  2026-11-10): the route with the most literal segments wins, a route
+  without a rest before one with, the first registered among equals.
+  Plain strings: `"GET /users/{id:Int}"`.
+- Path cleaning and redirects (Go 1.26's ServeMux): the request path is
+  cleaned (`//`, `.`, `..` resolved, a trailing slash kept); when the
+  cleaned path differs, the answer is a 307 with the cleaned path (and the
+  request's query) in `Location`, whatever routes match. When no route
+  matches the path exactly but a subtree route (`/dir/`) or `{name...}`
+  route matches the path with a trailing slash exactly, the answer is a 307
+  to the path with the slash (`/dir` to `/dir/`). A redirect carries the
+  body Go's `http.Redirect` writes for a GET.
 - Unmatched path: 404 (`{"error":"not found"}`), or the `not_found`
   hook's response. Path matched with another method: 405 (`{"error":"method
   not allowed"}`), or the `method_not_allowed` hook's response; either
-  carries `Allow` listing the methods of the routes that match the path,
-  in registration order without repeats (Go 1.22's ServeMux), unless the
-  hook's response has one. A hook runs as a handler does (inside the
+  carries `Allow` listing the methods of the routes that match the path (or
+  the path with a trailing slash), sorted, `HEAD` after a `GET` route
+  (Go's ServeMux), unless the hook's response has one. A hook runs as a handler does (inside the
   middleware, its error a response, a fault a 500); a mounted router's
   hooks are not copied (its misses are `r`'s).
 - Streamed request bodies (decision 0310): for a `handle_stream` route the
@@ -1672,7 +1746,7 @@ fn (r: Request) query_all(name: Str) -> List[Str]   // every value of a repeated
 fn (r: Request) form() -> url.Values ! url.EscapeErr   // an urlencoded POST, PUT, or PATCH body (20)
 fn (r: Request) multipart_form() -> multipart.Form ! multipart.MultipartErr   // decision 0282
 fn (r: Request) header(name: Str) -> Str?           // case insensitive for a token name; any other name matches only exactly
-fn (r: Request) json[T: Json]() -> T ! json.DecodeErr
+fn (r: Request) json[T: Json]() -> T ! json.DecodeErr   // does not check Content-Type (as Go's json.NewDecoder on r.Body); a key given twice takes the last value (as encoding/json)
 fn (r: Request) with_header(name: Str, value: Str) -> Request
 fn (r: Request) header_values(name: Str) -> List[Str]
 fn (r: Request) host() -> Str                 // Go's Request.Host: the Host header as sent (HTTP/2's :authority)
@@ -2038,7 +2112,7 @@ Connection, Content-Encoding, Content-Length, Content-Range,
 Content-Type, Expect, Host, Keep-Alive, Max-Forwards, Pragma,
 Proxy-Authenticate, Proxy-Authorization, Proxy-Connection, Range, Realm,
 Te, Trailer, Transfer-Encoding and Www-Authenticate. Every backend sends
-and receives them (the native one since e0444461a); golden http_trailers
+and receives them (the native one since 8c0cc7f84); golden http_trailers
 checks the native and Go backends agree.
 
 `display` of these errors prints plain text (decision 0358): `HttpErr` the
@@ -2355,12 +2429,19 @@ pub fn encode[T: Json](v: T) -> Bytes
 pub fn encode_str[T: Json](v: T) -> Str
 pub fn decode[T: Json](data: Bytes) -> T ! DecodeErr
 pub fn decode_str[T: Json](s: Str) -> T ! DecodeErr
+/// decode with encoding/json's rules for null and missing fields (decision
+/// 0553): a null leaves the value at its zero (Option, json.Patch and
+/// json.Value keep their own null), and a missing field takes its zero
+/// value (a declared default still wins). Other errors are decode's.
+pub fn decode_go[T: Json](data: Bytes) -> T ! DecodeErr
+pub fn decode_go_str[T: Json](s: Str) -> T ! DecodeErr
 pub fn encode_indent[T: Json](v: T, prefix: Str = "", indent: Str = "  ") -> Bytes      // Go's MarshalIndent
 pub fn encode_indent_str[T: Json](v: T, prefix: Str = "", indent: Str = "  ") -> Str
 pub fn indent(text: Str, prefix: Str = "", indent: Str = "  ") -> Str ! DecodeErr      // Go's Indent over a text (the whitespace after the value is kept)
 pub fn compact(text: Str) -> Str ! DecodeErr                                            // Go's Compact
 
 struct DecodeErr { path: Str, msg: Str }    // displays as "at $.user.email: expected string"
+fn (e: DecodeErr) go_text() -> Str    // encoding/json's text of a syntax error (decision 0553): "unexpected end of JSON input", "invalid character '}' looking for beginning of value"; a text that ends inside a literal or number gives the truncation text (Go names the literal) until DecodeErr gains a field; any other error returns msg
 
 enum Patch[T] { Absent, Null, Value(v: T) } derive Json
 fn (p: Patch[T]) apply_to(current: T) -> T    // Value(v) gives v; Absent and Null keep current
@@ -2862,7 +2943,14 @@ fn (p: FakeProc) exit_code() -> Int?                  // set when exit was calle
 fn (p: FakeProc) signal_after(d: Duration)            // next run_main gets SIGTERM after d (virtual time)
 fn (p: FakeProc) on_run(cmd: Str, out: ProcOutput)    // also answers Cmd runs (3.8)
 fn (p: FakeProc) killed() -> List[Str]                // the signals kill recorded, "NAME PID" (3.7)
+fn (p: FakeProc) runs() -> List[Str]                  // the commands asked to run, oldest first, found or not
 ```
+
+`runs` lists every command the test's code asked to run (`Proc.run`, `Cmd.output`, `Cmd.run`, `Cmd.spawn`, a pipeline's
+commands), in order, whether or not `on_run` answered it (an unanswered one is listed and fails with NotFound, so a test tells
+"not run" from "run and missing"). An entry is the program and then each argument, separated by single spaces; the program or
+an argument that is empty, contains a space, or that Go's `strconv.Quote` writes differently from its plain text is written as
+`strconv.Quote` writes it (`"my sub"`, `"a\"b"`), so a test can rebuild the arguments. Real processes (`--real`) record nothing.
 
 `FakeProc.kill(pid, signal)` checks its arguments as `Proc.kill` does and
 records the signal instead of sending it (decision 0190).
@@ -3532,12 +3620,12 @@ let k = crypto.aead_key(crypto.Aead.AesGcm, key)?        // key from a KDF or a 
 let sealed = k.seal_random(rand, b"user=42", b"session")
 let plain = k.open_random(sealed, b"session")?           // Err if anything changed
 
-enum Aead { AesGcm, ChaCha20Poly1305 }
-fn (a: Aead) nonce_size() -> Int                         // 12
-fn (a: Aead) overhead() -> Int                           // 16: the tag
+enum Aead { AesGcm, ChaCha20Poly1305, Aes128CbcHmacSha256 }
+fn (a: Aead) nonce_size() -> Int                         // 12; 16 for Aes128CbcHmacSha256 (the IV)
+fn (a: Aead) overhead() -> Int                           // 16: the tag; at most 32 for Aes128CbcHmacSha256 (padding, then the tag)
 struct AeadKey {}                                        // Debug text `<aeadkey>`: never key material
 struct AeadErr { msg: Str }
-fn aead_key(alg: Aead, key: Bytes) -> AeadKey ! AeadErr  // AES: 16, 24, 32 bytes; ChaCha20-Poly1305: 32
+fn aead_key(alg: Aead, key: Bytes) -> AeadKey ! AeadErr  // AES: 16, 24, 32 bytes; ChaCha20-Poly1305: 32; Aes128CbcHmacSha256: 32 (MAC key, then AES key; RFC 7518 5.2.3, JWE A128CBC-HS256; seal gives ciphertext || tag; every open failure is the one error)
 fn (k: AeadKey) alg() -> Aead
 fn (k: AeadKey) seal_random(r: Rand, plaintext: Bytes, aad: Bytes = b"") -> Bytes uses rand
 fn (k: AeadKey) open_random(sealed: Bytes, aad: Bytes = b"") -> Bytes ! AeadErr
@@ -5190,6 +5278,9 @@ pub fn deflate(data: Bytes, level: Level = Level.Default) -> Bytes       // raw 
 pub fn inflate(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
 pub fn zlib(data: Bytes, level: Level = Level.Default) -> Bytes          // RFC 1950
 pub fn unzlib(data: Bytes, max_size: Int = 1073741824) -> Bytes ! CompressErr
+enum LzwOrder { LSB, MSB }  // compress/lzw bit order
+fn lzw_encode(data: Bytes, order: LzwOrder, lit_width: Int) -> Bytes ! CompressErr  // Go's compress/lzw writer over a whole buffer
+fn lzw_decode(data: Bytes, order: LzwOrder, lit_width: Int, max_size: Int = 1073741824) -> Bytes ! CompressErr  // Go's compress/lzw reader
 
 enum Format { Gzip, Deflate, Zlib }
 struct Compressor {}                     // move only (core 5.3)
@@ -5409,7 +5500,7 @@ Every function and method of std/prelude.xo, by type, as declared there
 `static` receiver is a function on the type (`Int.parse(s)`); one with an
 UPPER_SNAKE name and no parameters is a constant, read without a call
 (`Time.UNIX_EPOCH`).
-520 declarations.
+527 declarations.
 
 ### Range
 
@@ -5433,6 +5524,13 @@ fn display(self) -> Str
 
 ```
 fn debug(self) -> Str
+```
+
+### Ordering
+
+```
+fn (o: Ordering) reverse() -> Ordering
+fn (o: Ordering) then(next: Ordering) -> Ordering
 ```
 
 ### Int
@@ -5737,6 +5835,10 @@ fn (xs: List[T]) sort() -> List[T]
 fn (xs: List[T]) sort_by[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[T] ! E uses fx
 fn (var xs: List[T]) sort_in_place()
 fn (var xs: List[T]) sort_in_place_by[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> () ! E uses fx
+fn (xs: List[T]) sort_with[E, fx: Effects](cmp: fn(T, T) -> Ordering ! E uses fx) -> List[T] ! E uses fx
+fn (var xs: List[T]) sort_in_place_with[E, fx: Effects](cmp: fn(T, T) -> Ordering ! E uses fx) -> () ! E uses fx
+fn (xs: List[T]) sort_by_desc[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[T] ! E uses fx
+fn (var xs: List[T]) sort_in_place_by_desc[K: Ord, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> () ! E uses fx
 fn (xs: List[T]) group_by[K: Hash, E, fx: Effects](key: fn(T) -> K ! E uses fx) -> List[(K, List[T])] ! E uses fx
 fn (xs: List[T]) reverse() -> List[T]
 fn (xs: List[T]) to_set() -> Set[T]
@@ -6163,6 +6265,7 @@ fn stdout_is_tty(self) -> Bool uses stdio
 fn stderr_is_tty(self) -> Bool uses stdio
 fn width(self) -> Int? uses stdio
 fn read_secret(self, prompt: Str) -> Str? ! IoErr uses stdio
+fn raw_input(self, on: Bool) -> Bool uses stdio
 fn read_bytes(self, max: Int) -> Bytes? ! IoErr uses stdio
 fn read_all_bytes(self) -> Bytes ! IoErr uses stdio
 ```
@@ -6555,6 +6658,33 @@ fn (r: Ring) handler(auth: fn(http.Request) -> Bool) -> fn(http.Request) -> http
   of at least `min` newest first, at most `n` (all when n <= 0).
   `handler(auth)` answers them as JSON (`?slow=MILLIS&n=N`, defaults 0 and
   100); 403 when `auth` answers false.
+- OpenTelemetry spans (decision 0580): `Span` has defaulted fields after
+  `status`, each `omitempty` in its JSON so an old span reads and writes as
+  before (a strict `json.decode` wants every key; `json.decode_go` takes the
+  missing ones as zero):
+
+```xo
+enum SpanKind { Unspecified, Internal, Server, Client, Producer, Consumer }   // OTLP's numbers
+enum StatusCode { Unset, Ok, Error }
+enum AttrValue { Str(v: Str), Int(v: Int), Float(v: Float), Bool(v: Bool) }
+struct Attr { key: Str, value: AttrValue }
+struct Event { name: Str, time_ns: Int, attributes: List[Attr] = [] }
+// Span after status: trace_id, span_id, parent_id: Str = "" (hex; "root" = no parent), kind: SpanKind? = None,
+// attributes: List[Attr], events: List[Event], status_code: StatusCode? = None, status_message: Str,
+// start_ns, end_ns: Int = 0 (Unix nanoseconds), scope, scope_version, schema_url: Str
+struct Recorder { ring: Ring, clock: Clock, rand: Rand }
+fn recorder(ring: Ring, clock: Clock, rand: Rand) -> Recorder
+fn (r: Recorder) start(name: Str, parent: (Str, Str)? = None, kind: SpanKind = SpanKind.Internal, attributes: List[Attr] = [],
+    scope: Str = "", scope_version: Str = "", schema_url: Str = "") -> Active uses (clock, rand)
+fn (a: Active) ids() -> (Str, Str)                        // (trace id, span id) as hex
+fn (a: Active) set_attributes(attrs: List[Attr])          // the last value per key wins
+fn (a: Active) add_event(name: Str, attributes: List[Attr] = []) uses clock
+fn (a: Active) set_status(code: StatusCode, message: Str = "")   // the message is kept for Error only
+fn (a: Active) end() uses clock                           // records into the Ring once
+```
+
+  A started span has a random 16 byte trace id (or its parent's) and an 8 byte
+  span id, never all zero; its `id` is the trace id.
 
 ## 39. std/html
 
@@ -7947,6 +8077,7 @@ fn (l: Layout) format(t: Time, z: time.Zone) -> Str
 fn (l: Layout) parse(s: Str, z: time.Zone) -> Time ! time.ParseErr
 fn format(t: Time, z: time.Zone, go_layout: Str) -> Str
 fn parse(s: Str, go_layout: Str, z: time.Zone) -> Time ! time.ParseErr
+fn go_text(e: time.ParseErr) -> Str                  // Go's error text of a failed parse
 const ANSIC, UNIX_DATE, RUBY_DATE, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z, RFC3339, RFC3339_NANO, KITCHEN,
       STAMP, STAMP_MILLI, STAMP_MICRO, STAMP_NANO, DATE_TIME, DATE_ONLY, TIME_ONLY: Str
 ```
@@ -7966,6 +8097,11 @@ const ANSIC, UNIX_DATE, RUBY_DATE, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z, R
   is a `ParseErr`; a civil time in a daylight saving gap or overlap is the earlier one (Go leaves it unspecified); a
   zone name `z` does not know is never looked up among all of `z`'s zones, only at that instant; `ParseErr` text is
   core's, not Go's `parsing time ...` wording.
+- `go_text(e)` is the text Go's `time.Parse` gives for the same failure: `parsing time "X" as "LAYOUT": cannot parse "REST" as
+  "ELEM"` (REST is the text from the element's start, ELEM the layout element or literal), `parsing time "X": extra text: "REST"`,
+  `parsing time "X": month out of range` (and day, hour, minute, second, day-of-year), quoted as Go's `time.quote` does. A
+  `ParseErr` that did not come from a Go layout parse (a time outside what a Time holds, core time's parser) gives its display
+  text. The corpus compares it with Go's for every failing case.
 - `layout` plus `RFC3339` and `RFC3339_NANO` texts take Go's fast path in `parse`.
 
 ## 68. std/grpc
@@ -8095,7 +8231,7 @@ fn gen(f: File) -> Str ! ParseErr
 
 The HTML5 tokenizer of golang.org/x/net/html (decision 0548; token.go and the unescape of escape.go, BSD license): a text
 in memory becomes a stream of tokens with Go's rules for raw text elements, comments, doctypes, attributes, entities
-and the buffer limit. There is no tree builder. The token streams are checked against x/net v0.62.0's Tokenizer
+and the buffer limit. The tree builder is std/htmlparse (section 75). The token streams are checked against x/net v0.62.0's Tokenizer
 (testdata/corpus/htmltok: curated and seeded random inputs in plain, AllowCDATA and fragment modes, and with buffer
 limits). The entity tables are shared with std/html through `std/htmlent` (`entity_of(name)` and `entity2_of(name)`, "" for none;
 internal, use std/html for escaping).
@@ -8182,4 +8318,70 @@ leading `@type` (the type must be in the registry). `unmarshal` accepts both nam
 valued forms such as `1e2` and `1.0`), base64 with or without padding in the standard or URL alphabet, enum names or
 numbers, rejects unknown fields (skipped with `discard_unknown`), duplicate fields and a second member of a oneof, treats
 `null` as unset (except for `Value` and `NullValue`), and writes the wire fields in protobuf-go's order (fields by number,
-then oneofs), maps in key order. Checked against protobuf-go's `protojson` (testdata/corpus/protojson).
+then oneofs), maps in key order. A proto2 `required` field that is missing (or `null`) is an error in both directions, at any depth, as
+protobuf-go's protojson reports it (a message of an `Any` too). Checked against protobuf-go's `protojson` (testdata/corpus/protojson).
+
+## 75. std/image
+
+Go's `image` and `image/color` conversions in one module (decision 0578 step 1): the pixel model enum shared by std/png and
+std/jpeg, `Rect`, `Color`, `Image`, and the integer color conversions Go computes, bit for bit.
+
+```xo
+struct Rect { x0: Int, y0: Int, x1: Int, y1: Int }
+struct Color { r: Int, g: Int, b: Int, a: Int }       // 16 bit channels, alpha premultiplied (Go's RGBA())
+enum Model { Gray, Gray16, Paletted, RGBA, NRGBA, RGBA64, NRGBA64, CMYK, YCbCr }
+struct Image { width: Int, height: Int, model: Model, pix: Bytes, stride: Int = 0, palette: List[Int] = [], min_x: Int = 0, min_y: Int = 0,
+               y: Bytes = b"", cb: Bytes = b"", cr: Bytes = b"", y_stride: Int = 0, c_stride: Int = 0, subsample: jpeg.Subsample = S444 }
+fn (c: Color) gray() -> Int                      // color.GrayModel: (19595 r + 38470 g + 7471 b + 1<<15) >> 24
+fn (c: Color) gray16() -> Int                    // color.Gray16Model: the same sum >> 16
+fn (c: Color) nrgba() -> Int                     // color.NRGBAModel as 0xRRGGBBAA
+fn from_nrgba(v: Int) -> Color                   // color.NRGBA.RGBA()
+fn (im: Image) at(x: Int, y: Int) -> Color  // Go's At(x, y).RGBA(); outside the image Go's zero values
+fn web_safe() -> List[Int]                        // palette.WebSafe as 0xRRGGBBAA
+fn plan9() -> List[Int]                           // palette.Plan9 as 0xRRGGBBAA
+fn (var im: Image) set(x: Int, y: Int, c: Color)  // Go's Set: the model's conversion of c; outside the image is ignored; linear in the image (Bytes is immutable)
+fn (im: Image) sub_image(r: Rect) -> Image  // Go's SubImage: clipped, shares the samples, keeps coordinates (min_x, min_y) and strides
+fn (im: Image) crop(r: Rect) -> Image       // sub_image with the rows packed tightly (stride 0)
+fn (im: Image) to_rgba() -> Image                // every pixel through color.RGBAModel: premultiplied 8 bit, tight rows
+fn (im: Image) to_nrgba() -> Image               // color.NRGBAModel (an NRGBA sample or palette entry is kept as it is)
+fn from_png(p: png.Image) -> Image              // the same model and pixels (moved), corner (0, 0)
+fn (im: Image) to_png() -> png.Image?            // tight rows (a sub image is cropped); None for CMYK and YCbCr
+fn from_jpeg(j: jpeg.Image) -> Image            // Gray, CMYK, RGBA and YCbCr (planes and subsample) move without a copy
+fn (im: Image) to_jpeg() -> jpeg.Image?          // None for models JPEG lacks and for a YCbCr sub image
+enum Op { Over, Src }                                    // draw.Op
+fn (var dst: Image) draw(r: Rect, src: Image, sp_x: Int, sp_y: Int, op: Op)  // draw.Draw with a nil mask; Go's results per model pair; a YCbCr destination is left alone
+fn (var dst: Image) draw_mask(r: Rect, src: Image, sp_x: Int, sp_y: Int, mask: Image, mp_x: Int, mp_y: Int, op: Op)  // draw.DrawMask; the mask's alpha scales the source
+fn (var dst: Image) fill(r: Rect, c: Color, op: Op)  // draw.Draw from an image.Uniform
+enum Kernel { NearestNeighbor, ApproxBiLinear, BiLinear, CatmullRom }  // golang.org/x/image/draw interpolators
+fn (var dst: Image) scale(dr: Rect, src: Image, sr: Rect, op: Op, kernel: Kernel)  // x/image/draw Scale: src over sr onto dr
+fn (var dst: Image) floyd_steinberg(r: Rect, src: Image, sp_x: Int, sp_y: Int)  // draw.FloydSteinberg onto a Paletted image; other models are left alone
+fn rgb_to_ycbcr(r: Int, g: Int, b: Int) -> (Int, Int, Int)
+fn ycbcr_to_rgb(y: Int, cb: Int, cr: Int) -> (Int, Int, Int)
+fn rgb_to_cmyk(r: Int, g: Int, b: Int) -> (Int, Int, Int, Int)
+fn cmyk_to_rgb(c: Int, m: Int, y: Int, k: Int) -> (Int, Int, Int)
+```
+
+The conversions are Go's (`image/color`: RGBToYCbCr and YCbCrToRGB with their clamps, RGBToCMYK, CMYKToRGB); the 8 bit
+functions take and return 0 to 255. Checked against Go's `image/color` (testdata/corpus/image). Later steps of 0578 add the
+draw and scaling parts and make std/png and std/jpeg return an `image.Image`.
+
+## 76. std/gif
+
+Go's `image/gif` over whole buffers (decision 0578 step 5), with Go's error texts. Frames are std/image Paletted `Image`s
+(palette entries 0xRRGGBBAA, not premultiplied; `min_x`/`min_y` are the frame offset on the screen). Pure.
+
+```xo
+struct GifErr { msg: Str }
+struct Config { width: Int, height: Int, palette: List[Int] }
+struct Gif { frames: List[image.Image], delay: List[Int], disposal: List[Int], loop_count: Int,
+             width: Int, height: Int, palette: List[Int], background_index: Int }
+fn decode(data: Bytes, max_pixels: Int = 100000000) -> image.Image ! GifErr   // gif.Decode: the first frame
+fn decode_all(data: Bytes, max_pixels: Int = 100000000) -> Gif ! GifErr       // gif.DecodeAll
+fn decode_config(data: Bytes) -> Config ! GifErr                              // gif.DecodeConfig
+fn encode(im: image.Image, num_colors: Int = 256) -> Bytes ! GifErr           // gif.Encode, Floyd-Steinberg onto Plan 9
+fn encode_all(g: Gif) -> Bytes ! GifErr                                       // gif.EncodeAll
+```
+
+`loop_count` is -1 without a NETSCAPE loop extension, 0 for forever. An empty `disposal` is Go's nil. A frame past
+`max_pixels` fails with `image too large`. Checked against Go's `image/gif` (testdata/corpus/gif: encoded animations,
+truncations, byte changes, hand built streams for each error text, Encode over several models, EncodeAll over animations).
