@@ -18,7 +18,7 @@ host (12 CPUs): the release benchmarks and std's tests
 Go at its defaults and tuned, with 0.44.0 as a third server
 ([release-vs-go-a67d277d6-linux-arm64-http.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64-http.md)), both measured on
 main 6fe10a957, 53 commits before the v0.46.0 tag; compile time, build
-memory, binary size and std's tests of the released 0.48.1 on the same host
+memory, binary size and std's tests of 0.48.1 (0.48.2 without its Windows link fix) on the same host
 ([release-vs-go-v0.48.1-linux-arm64.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.48.1-linux-arm64.md)), which hold for 0.48.2
 (it changes only the Windows linker); and the survey of every `bench/perf` case of 2026-11-07
 ([xo-vs-go-survey-2026-11-07.md](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-07.md)).
@@ -86,7 +86,7 @@ Wall time and peak memory (max RSS), Xo over Go:
 `xo test --std-module` of the base64 and json ports against `go test` of
 the Go packages they were ported from, cold (every cache emptied) and
 after an edit (one function appended to the module under test), 3 rounds,
-the released 0.48.1
+with Xo 0.48.1
 ([lines 62-120](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.48.1-linux-arm64.md#L62-L120)):
 
 | test | wall | max RSS |
@@ -155,7 +155,7 @@ overlap.
 
 ## Compile time, binary size and build memory
 
-The released 0.48.1, one build each, wall milliseconds and the build's
+Xo 0.48.1, one build each, wall milliseconds and the build's
 peak resident memory
 ([release-vs-go-v0.48.1-linux-arm64.md lines 33-51](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.48.1-linux-arm64.md#L33-L51)).
 Warm is the third unchanged build, with the whole-build cache off; edit
