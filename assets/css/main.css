@@ -269,6 +269,16 @@ button.btn:disabled { opacity: .6; cursor: progress; }
 .play-pane pre { margin: 0; padding: 14px 16px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
 .play-sys { color: #9c8c7c; }
 .play-err { color: var(--err); }
+.play-repl { display: flex; flex-direction: column; overflow: hidden; }
+.play-repl[hidden] { display: none; }
+.play-repl pre { flex: 1; overflow: auto; min-height: 0; }
+.play-repl-in { color: #efe3d2; }
+.play-repl-val { color: var(--ok); }
+.play-repl-form { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid #3a3029; background: #29221d; }
+.play-repl-prompt { color: #9c8c7c; font: 13px "JetBrains Mono", monospace; }
+.play-repl-form input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #efe3d2; font: 13px/1.6 "JetBrains Mono", monospace; }
+.play-repl-form input:disabled { color: #9c8c7c; }
+.play-repl-form button:disabled { opacity: .45; cursor: default; }
 .play-problems { list-style: none; margin: 0; padding: 8px 0; font: 13px/1.55 "JetBrains Mono", monospace; }
 .play-problems li { padding: 8px 16px; border-bottom: 1px solid #3a3029; }
 .play-ok { color: var(--ok); }

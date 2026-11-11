@@ -15,6 +15,7 @@ const MAX_OUTPUT = 4 << 20; // bytes of stdout or stderr kept from a run
 let manifest = null;
 let compiler = null; // WebAssembly.Module
 let stdFiles = null; // [{path, file}]
+let record = null; // File: std's declaration record, when the manifest has one
 
 async function loadManifest() {
   if (!manifest) {
@@ -77,6 +78,15 @@ async function asset(name, progress) {
 async function load(progress) {
   if (!compiler) compiler = await WebAssembly.compile(await asset("xoc", progress));
   if (!stdFiles) stdFiles = unbundle(await asset("std", progress));
+  // std's declaration record (decision 0583 lever (b) in the xo repo):
+  // the compiler loads std's declarations from it instead of checking
+  // them on every build (an older manifest has none)
+  if (!record && (await loadManifest()).files.rec) record = new File(await asset("rec", progress), { readonly: true });
+}
+
+// env is the compiler's environment: XO_PLAY_RECORD when there is a record.
+function env() {
+  return record ? ["HOME=/w", "PWD=/w", "XO_PLAY_RECORD=/w/std.rec"] : ["HOME=/w", "PWD=/w"];
 }
 
 // unbundle splits a bundle (scripts/build-playground.py) into read
@@ -132,11 +142,13 @@ function text(s) {
 
 // workspace is a fresh /w: std, the source, and an output directory.
 function workspace(source) {
-  return new Directory(new Map([
+  const w = new Directory(new Map([
     ["std", tree(stdFiles)],
     ["src", new Directory(new Map([["main.xo", text(source)], ["xo.mod", text(MODULE)]]))],
     ["out", new Directory(new Map())],
   ]));
+  if (record) w.contents.set("std.rec", record);
+  return w;
 }
 
 // xoc runs one `--play` command of the compiler with /w the workspace and
@@ -146,7 +158,7 @@ function workspace(source) {
 function xoc(args, w) {
   const stdout = collector(), stderr = collector();
   const fds = [new OpenFile(new File([])), stdout, stderr, new PreopenDirectory(".", w.contents), new PreopenDirectory("/", new Map([["w", w]]))];
-  const wasi = new WASI(["xoc", "--std=/w/std", "--wd=/w", "--play", ...args], ["HOME=/w", "PWD=/w"], fds, { debug: false });
+  const wasi = new WASI(["xoc", "--std=/w/std", "--wd=/w", "--play", ...args], env(), fds, { debug: false });
   const inst = new WebAssembly.Instance(compiler, { wasi_snapshot_preview1: wasi.wasiImport });
   let code;
   try {
@@ -202,6 +214,114 @@ async function build(source, progress, status, test) {
   return { diagnostics: out.diagnostics, wasm: prog.data.slice().buffer };
 }
 
+// ---- REPL ---------------------------------------------------------------
+
+// The REPL is one long-lived compiler instance running `--play repl`
+// (decision 0583 in the xo repo): it keeps the session's checked state, so
+// an entry builds only itself. It reads its requests from stdin, one JSON
+// line each, and an empty stdin suspends it through JSPI (WebAssembly
+// JavaScript Promise Integration: fd_read is WebAssembly.Suspending and
+// _start runs through WebAssembly.promising), which leaves this worker free
+// for check, format, and build meanwhile. An entry that builds is a WASI
+// module; the page runs it in its own runner worker, as a program, and
+// sends back its output.
+const JSPI = typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
+const NO_JSPI = "The REPL needs WebAssembly JavaScript Promise Integration (JSPI), which this browser does not have yet (Chrome and Edge have it since version 137). Run, format, and the problems tab work here as usual.";
+const WARM = "fn main(os: Os) {\n  let xs = [1, 2, 3]\n  os.stdio.println(\"${xs.len()}\")\n}\n";
+let repl = null; // { inst, sess, send, reply, ended }
+
+async function startRepl() {
+  const sess = new Directory(new Map([["xo.mod", text("module sess\n")]]));
+  const w = new Directory(new Map([
+    ["std", tree(stdFiles)],
+    ["warm", new Directory(new Map([["main.xo", text(WARM)], ["xo.mod", text("module warm\n")]]))],
+    ["sess", sess],
+  ]));
+  if (record) w.contents.set("std.rec", record);
+  const queue = []; // encoded request lines not yet read
+  let wake = null;
+  const send = (obj) => { queue.push(new TextEncoder().encode(JSON.stringify(obj) + "\n")); if (wake) { wake(); wake = null; } };
+  let pend = "";
+  const replies = [];
+  let rwake = null;
+  const stdout = new ConsoleStdout((buf) => {
+    pend += new TextDecoder().decode(buf);
+    let i;
+    while ((i = pend.indexOf("\n")) >= 0) { replies.push(pend.slice(0, i)); pend = pend.slice(i + 1); }
+    if (replies.length && rwake) { rwake(); rwake = null; }
+  });
+  const stderr = collector();
+  const fds = [new OpenFile(new File([])), stdout, stderr, new PreopenDirectory(".", w.contents), new PreopenDirectory("/", new Map([["w", w]]))];
+  const wasi = new WASI(["xoc", "--std=/w/std", "--wd=/w", "--play", "repl", "/w/warm", "/w/sess"], env(), fds, { debug: false });
+  const r = { sess, send, ended: null };
+  const syncRead = wasi.wasiImport.fd_read;
+  const fdRead = new WebAssembly.Suspending(async (fd, iovs, iovsLen, nread) => {
+    if (fd !== 0) return syncRead(fd, iovs, iovsLen, nread);
+    while (!queue.length) await new Promise((res) => (wake = res));
+    const buf = r.inst.exports.memory.buffer;
+    const view = new DataView(buf);
+    let total = 0;
+    for (let k = 0; k < iovsLen && queue.length; k++) {
+      const p = view.getUint32(iovs + 8 * k, true), len = view.getUint32(iovs + 8 * k + 4, true);
+      const src = queue[0], m = Math.min(len, src.length);
+      new Uint8Array(buf, p, m).set(src.subarray(0, m));
+      total += m;
+      if (m === src.length) queue.shift(); else queue[0] = src.subarray(m);
+      if (m < len) break;
+    }
+    view.setUint32(nread, total, true);
+    return 0;
+  });
+  r.inst = await WebAssembly.instantiate(compiler, { wasi_snapshot_preview1: { ...wasi.wasiImport, fd_read: fdRead } });
+  wasi.inst = r.inst;
+  WebAssembly.promising(r.inst.exports._start)().then(
+    () => { r.ended = "the REPL's compiler ended"; },
+    (e) => { r.ended = "the REPL's compiler stopped: " + (e && e.message || e) + "\n" + stderr.text().slice(0, 2000); },
+  ).finally(() => { if (rwake) { rwake(); rwake = null; } });
+  // the next reply line, or an error once the compiler has ended
+  r.reply = async () => {
+    while (!replies.length) {
+      if (r.ended) throw new Error(r.ended);
+      await new Promise((res) => (rwake = res));
+    }
+    const line = replies.shift();
+    const out = JSON.parse(line);
+    if (out.error) throw new Error(out.error);
+    return out;
+  };
+  return r;
+}
+
+// replStep sends one request to the REPL and returns its reply, or, for an
+// entry that built, the module to run ({ run }); the compiler's memory is
+// in mem (MB).
+async function replStep(req, progress, status) {
+  if (!JSPI) return { unsupported: NO_JSPI };
+  if (!repl || repl.ended) {
+    const restarted = repl !== null;
+    repl = null;
+    status("Loading the toolchain");
+    await load(progress);
+    status("Starting the REPL");
+    repl = await startRepl();
+    if (restarted && !req.in) return { reply: { ok: false, err: "The REPL restarted; its session is empty.\n" } };
+  }
+  repl.send(req);
+  let r;
+  try {
+    r = await repl.reply();
+  } catch (e) {
+    repl = null;
+    throw e;
+  }
+  const mem = Math.round(repl.inst.exports.memory.buffer.byteLength / 1048576);
+  if (r.run) {
+    const f = repl.sess.contents.get("entry.wasm");
+    return { run: f.data.slice().buffer, mem };
+  }
+  return { reply: r, mem };
+}
+
 self.onmessage = async (e) => {
   const { id, cmd, source } = e.data;
   const progress = (name, got, total) => self.postMessage({ id, progress: { name, got, total } });
@@ -212,8 +332,9 @@ self.onmessage = async (e) => {
     else if (cmd === "format") result = await format(source, progress);
     else if (cmd === "build") result = await build(source, progress, status, false);
     else if (cmd === "test") result = await build(source, progress, status, true);
+    else if (cmd === "repl") result = await replStep(source, progress, status);
     else throw new Error("unknown command " + cmd);
-    self.postMessage({ id, result }, result.wasm ? [result.wasm] : []);
+    self.postMessage({ id, result }, result.wasm ? [result.wasm] : result.run ? [result.run] : []);
   } catch (err) {
     self.postMessage({ id, error: String(err && err.message || err) });
   }

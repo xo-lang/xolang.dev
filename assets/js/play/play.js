@@ -546,6 +546,114 @@ function testArgs() {
   return args;
 }
 
+// ---- REPL -------------------------------------------------------------
+
+// The REPL tab sends each entry to the toolchain worker's long-lived
+// compiler (toolchain.js replStep); an entry that builds runs here in its
+// own runner worker, under the same limits as a program, and its output
+// goes back to the compiler, which keeps the session's definitions.
+const replLog = document.getElementById("play-repl-log");
+const replIn = document.getElementById("play-repl-in");
+const replReset = document.getElementById("play-repl-reset");
+const replHistory = [];
+let replAt = 0;
+let replBusy = false;
+const replOK = typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
+
+if (!replOK) {
+  replLog.replaceChildren(el("span", "play-sys", "The REPL needs WebAssembly JavaScript Promise Integration (JSPI), which this browser does not have yet (Chrome and Edge have it since version 137). Run, format, and the problems tab work here as usual.\n"));
+  replIn.disabled = replReset.disabled = true;
+  replIn.placeholder = "not available in this browser";
+}
+
+// runEntry runs a built entry and returns its output (stdout and stderr
+// together, as the compiler reads them) and exit status.
+function runEntry(wasm) {
+  return new Promise((resolve) => {
+    let out = "";
+    const w = new Worker(root.dataset.runner, { type: "module" });
+    const end = (code, extra) => { clearTimeout(timer); w.terminate(); resolve({ ran: out + (extra || ""), code }); };
+    const timer = setTimeout(() => end(124, "\n[stopped: the entry ran for more than " + RUN_LIMIT_MS / 1000 + " s]\n"), RUN_LIMIT_MS);
+    w.onmessage = (e) => {
+      const m = e.data;
+      if (m.text != null) out += m.text;
+      else if (m.truncated) out += "\n[output truncated at 1 MB]\n";
+      else if (m.crash) end(1, "\n[the entry could not run: " + m.crash + "]\n");
+      else if ("exit" in m) end(m.exit === null ? 1 : m.exit);
+    };
+    w.onerror = (e) => end(1, "\n[the entry stopped: " + (e.message || "out of memory") + "]\n");
+    w.postMessage({ wasm, args: ["play"] }, [wasm]);
+  });
+}
+
+function replShow(r) {
+  if (r.out) replLog.append(r.out.endsWith("\n") ? r.out : r.out + "\n");
+  for (const d of r.diagnostics || []) {
+    const at = d.span ? (d.span.line + ":" + d.span.col + ": ") : "";
+    replLog.append(el("span", "play-err", at + (d.code ? d.code + " " : "") + d.message + "\n"));
+  }
+  // an entry that does not check says so in its diagnostics and again in
+  // err: the diagnostics, with their positions, are enough
+  if (r.err && !(r.diagnostics || []).length) replLog.append(el("span", r.ok ? "play-sys" : "play-err", r.err.endsWith("\n") ? r.err : r.err + "\n"));
+  if (r.value != null) replLog.append(el("span", "play-repl-val", r.value + (r.typ ? "  " : "")), r.typ ? el("span", "play-sys", ": " + r.typ) : "", "\n");
+}
+
+async function replSend(req) {
+  let r = await request("repl", req, (s) => setStatus(s + "…"));
+  if (r.mem) root.dataset.replMem = String(r.mem);
+  if (r.unsupported) return { ok: false, err: r.unsupported };
+  if (r.run) {
+    setStatus("Running…");
+    const ran = await runEntry(r.run);
+    r = await request("repl", ran);
+    if (r.mem) root.dataset.replMem = String(r.mem);
+  }
+  return r.reply;
+}
+
+async function replEnter(src) {
+  if (!replOK || replBusy || !src.trim()) return;
+  if (!consented()) { askConsent(); return; }
+  replBusy = true;
+  replIn.disabled = true;
+  replHistory.push(src);
+  replAt = replHistory.length;
+  replLog.append(el("span", "play-repl-in", "› " + src + "\n"));
+  try {
+    const t0 = performance.now();
+    replShow(await replSend({ in: src }));
+    root.dataset.replMs = String(Math.round(performance.now() - t0));
+  } catch (e) {
+    replLog.append(el("span", "play-err", e.message + "\n"));
+    if (/restarted|stopped/.test(e.message)) replLog.append(el("span", "play-sys", "The next entry starts a new session.\n"));
+  }
+  setStatus("");
+  replBusy = false;
+  replIn.disabled = false;
+  replIn.value = "";
+  replIn.focus();
+  replLog.scrollTop = replLog.scrollHeight;
+  root.dataset.replDone = String(replHistory.length);
+}
+
+document.getElementById("play-repl-form").addEventListener("submit", (e) => { e.preventDefault(); replEnter(replIn.value); });
+replIn.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp" && replAt > 0) { replIn.value = replHistory[--replAt]; e.preventDefault(); }
+  else if (e.key === "ArrowDown" && replAt < replHistory.length) { replAt++; replIn.value = replHistory[replAt] || ""; e.preventDefault(); }
+});
+replReset.addEventListener("click", async () => {
+  if (!replOK || replBusy || !consented()) return;
+  replBusy = true;
+  try {
+    replShow(await replSend({ cmd: "reset" }));
+    replLog.append(el("span", "play-sys", "[session reset]\n"));
+  } catch (e) {
+    replLog.append(el("span", "play-err", e.message + "\n"));
+  }
+  setStatus("");
+  replBusy = false;
+});
+
 runBtn.addEventListener("click", () => run(false));
 testBtn.addEventListener("click", () => run(true));
 fmtBtn.addEventListener("click", format);
@@ -584,7 +692,7 @@ async function sizes() {
     const f = m.files;
     const set = (k, v) => { const e = consentBox.querySelector('[data-size="' + k + '"]'); if (e) e.textContent = v; };
     // the compiler and std, for checking and running alike
-    set("check", mb(f.xoc.compressed + f.std.compressed));
+    set("check", mb(f.xoc.compressed + f.std.compressed + (f.rec ? f.rec.compressed : 0)));
   } catch (e) {
     // keep the sizes written in the page
   }

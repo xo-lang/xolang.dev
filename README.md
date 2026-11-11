@@ -62,12 +62,23 @@ The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it
 - `scripts/build-playground.py [xo repo]` builds the page's WebAssembly into
   `static/play/assets/` and `static/play/manifest.json`: `xoc` (the Xo
   compiler with its own wasm backend, selfhost/wasm built for wasm by
-  itself, run with `--play check|fmt|build`) and `std` (a bundle of std's
-  sources), brotli compressed and named by hash, about 2 MB in all. Rerun
-  it after compiler or std changes; it needs the repo's `bin/xo`.
+  itself, run with `--play check|fmt|build|repl`), `std` (a bundle of std's
+  sources) and `rec` (std's declaration record, which
+  `scripts/play-record.mjs` has the compiler write in Node over the page's
+  own paths; decision 0583 in the xo repo), brotli compressed and named by
+  hash, about 6.4 MB in all. Rerun it after compiler or std changes; it
+  needs the repo's `bin/xo`, `brotli` and `node`.
 - `assets/js/play/`: `play.js` (page), `highlight.js` (editor coloring),
   `toolchain.js` (worker running the compiler over an in-memory file
-  system), `runner.js` (one worker per run).
+  system, and the REPL's long-lived compiler), `runner.js` (one worker per
+  run, and per REPL entry).
+- The repl tab (decision 0583 in the xo repo): one compiler instance runs
+  `--play repl` for the whole session, its stdin read through JSPI
+  (WebAssembly JavaScript Promise Integration), so it waits for the next
+  entry without blocking the worker; each entry that builds runs in a
+  runner worker under the same limits as a program. A browser without
+  JSPI (Firefox and Safari in 2026) shows why in the tab and disables its
+  input; run, format, and problems work as before.
 - No `use go` (refused with a clear message), no generated Go tab, and no
   tests yet; the Go-era playground that had them (Go's compiler and linker
   in the tab, 23.5 MB) is in git history and decision 0242.

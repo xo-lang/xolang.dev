@@ -284,6 +284,38 @@ async function main() {
     if (/too large/.test(note)) pass("oversized share link refused");
     else fail("oversized link", note);
 
+    // the REPL tab (decision 0583 in the xo repo): entries keep the
+    // session's definitions, a value prints with its type, an error says
+    // its code, and an entry's output shows; without JSPI it says why
+    await b.eval(`document.querySelector('[data-tab=repl]').click(); true`);
+    if (await b.eval(`typeof WebAssembly.Suspending === 'function'`)) {
+      const replRun = async (src) => {
+        const n = await b.eval(`Number(document.getElementById('play').dataset.replDone || 0)`);
+        await b.eval(`(() => { const i = document.getElementById('play-repl-in'); i.value = ${JSON.stringify(src)}; document.getElementById('play-repl-form').requestSubmit(); return true; })()`);
+        await b.until(`Number(document.getElementById('play').dataset.replDone || 0) > ${n}`, 120000);
+        return b.eval(`document.getElementById('play-repl-log').innerText`);
+      };
+      const t0 = Date.now();
+      await replRun("1 + 2");
+      const first = Date.now() - t0;
+      await replRun("let xs = [3, 1, 2]");
+      await replRun("fn sq(x: Int) -> Int { x * x }");
+      const t1 = Date.now();
+      await replRun("sq(xs.len())");
+      const later = Date.now() - t1;
+      await replRun("nope(1)");
+      const log = await replRun("os.stdio.println(\"hi\")");
+      const want = [/› 1 \+ 2\n3\n/, /› sq\(xs\.len\(\)\)\n9\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/];
+      const miss = want.filter((r) => !r.test(log));
+      if (miss.length) fail("repl", miss.join(" ") + "\n" + log.slice(-800));
+      else pass("repl keeps definitions, values, errors, output", `first ${first} ms, later ${later} ms, compiler memory ${await b.eval(`document.getElementById('play').dataset.replMem`)} MB`);
+    } else {
+      const msg = await b.eval(`document.getElementById('play-repl-log').innerText + (document.getElementById('play-repl-in').disabled ? ' [disabled]' : '')`);
+      if (/needs WebAssembly JavaScript Promise Integration/.test(msg) && /\[disabled\]/.test(msg)) pass("repl says it needs JSPI");
+      else fail("repl without JSPI", msg);
+    }
+    await b.eval(`document.querySelector('[data-tab=output]').click(); true`);
+
     // phones: nothing is wider than the screen, the toolbar, test options,
     // tooltip, and Go tab fit, and the editor is above the output
     await b.viewport(390, 844, true);

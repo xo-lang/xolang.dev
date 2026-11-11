@@ -1,15 +1,20 @@
 {
-  "xo": "21620368",
+  "xo": "aab17fd1",
   "files": {
     "xoc": {
-      "path": "assets/xoc-20e5db5939ae.brotli",
-      "size": 22528218,
-      "compressed": 2402324
+      "path": "assets/xoc-392b685bb05d.brotli",
+      "size": 57919726,
+      "compressed": 4454796
     },
     "std": {
-      "path": "assets/std-963e0e281fd2.brotli",
-      "size": 5704853,
-      "compressed": 1174238
+      "path": "assets/std-ae077a375fc5.brotli",
+      "size": 8512452,
+      "compressed": 1680097
+    },
+    "rec": {
+      "path": "assets/rec-fcb6b11dfcc0.brotli",
+      "size": 1235756,
+      "compressed": 240883
     }
   }
 }

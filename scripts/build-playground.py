@@ -16,6 +16,11 @@ history and decision 0242 have it.) This script uses the repo's bin/xo:
                WASI module, which the runner worker runs
   std.bundle   the .xo sources (and xo.mod files) of the repo's std, which
                the compiler reads at /w/std
+  std.rec      std's declaration record (decision 0583 lever (b)), which
+               scripts/play-record.mjs has the compiler write over the
+               page's own paths (it needs node); the page's compiler loads
+               it instead of checking std's declarations on every build and
+               REPL entry
 
 Each is compressed with brotli (the `brotli` command) and named by its
 hash; manifest.json lists them with their sizes and the repo commit. The
@@ -37,7 +42,10 @@ OUT = os.path.join(SITE, "static", "play", "assets")
 
 def run(args, cwd):
     print("+", " ".join(args), flush=True)
-    return subprocess.run(args, cwd=cwd, check=True, capture_output=True, text=True).stdout
+    r = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit("%s failed (exit %d):\n%s%s" % (args[0], r.returncode, r.stdout[-4000:], r.stderr[-4000:]))
+    return r.stdout
 
 
 def bundle(files):
@@ -75,9 +83,15 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         xoc = os.path.join(tmp, "xoc.wasm")
         run([xo, "build", "--backend=wasm", "-o", xoc, "compiler/wasm"], REPO)
+        std = bundle(std_files())
+        stdpath = os.path.join(tmp, "std.bundle")
+        open(stdpath, "wb").write(std)
+        rec = os.path.join(tmp, "std.rec")
+        print(run(["node", os.path.join(SITE, "scripts", "play-record.mjs"), xoc, stdpath, rec], SITE).strip())
         parts = {
             "xoc": open(xoc, "rb").read(),
-            "std": bundle(std_files()),
+            "std": std,
+            "rec": open(rec, "rb").read(),
         }
         if os.path.isdir(OUT):
             shutil.rmtree(OUT)
