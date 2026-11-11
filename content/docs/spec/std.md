@@ -2112,7 +2112,7 @@ Connection, Content-Encoding, Content-Length, Content-Range,
 Content-Type, Expect, Host, Keep-Alive, Max-Forwards, Pragma,
 Proxy-Authenticate, Proxy-Authorization, Proxy-Connection, Range, Realm,
 Te, Trailer, Transfer-Encoding and Www-Authenticate. Every backend sends
-and receives them (the native one since 8c0cc7f84); golden http_trailers
+and receives them (the native one since e0444461a); golden http_trailers
 checks the native and Go backends agree.
 
 `display` of these errors prints plain text (decision 0358): `HttpErr` the
