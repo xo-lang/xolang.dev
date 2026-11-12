@@ -1,10 +1,10 @@
 {
-  "xo": "6e48f0f72",
+  "xo": "2ca00e811",
   "files": {
     "xoc": {
-      "path": "assets/xoc-ee03b87a0111.brotli",
-      "size": 16338429,
-      "compressed": 2260112
+      "path": "assets/xoc-e264ccb5cf6e.brotli",
+      "size": 17271449,
+      "compressed": 2287912
     },
     "std": {
       "path": "assets/std-6fbea126214d.brotli",
@@ -72,9 +72,9 @@
       "compressed": 13043
     },
     "stdp11": {
-      "path": "assets/stdp11-9047aa807fc4.brotli",
-      "size": 45351,
-      "compressed": 11209
+      "path": "assets/stdp11-f5721162d383.brotli",
+      "size": 45567,
+      "compressed": 11309
     },
     "stdp12": {
       "path": "assets/stdp12-d1d784a38e89.brotli",
