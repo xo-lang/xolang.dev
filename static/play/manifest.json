@@ -1,20 +1,20 @@
 {
-  "xo": "ddd37586",
+  "xo": "6e48f0f72",
   "files": {
     "xoc": {
-      "path": "assets/xoc-9e27dac3e3b7.brotli",
-      "size": 16951526,
-      "compressed": 2243342
+      "path": "assets/xoc-ee03b87a0111.brotli",
+      "size": 16338429,
+      "compressed": 2260112
     },
     "std": {
-      "path": "assets/std-e2b562e1df70.brotli",
-      "size": 2182971,
-      "compressed": 431832
+      "path": "assets/std-6fbea126214d.brotli",
+      "size": 2184664,
+      "compressed": 432437
     },
     "rec": {
-      "path": "assets/rec-98f51884bcff.brotli",
-      "size": 1239888,
-      "compressed": 241204
+      "path": "assets/rec-65200f1c303b.brotli",
+      "size": 1240476,
+      "compressed": 241026
     },
     "stdp0": {
       "path": "assets/stdp0-e29ce5b2075b.brotli",
@@ -72,19 +72,19 @@
       "compressed": 13043
     },
     "stdp11": {
-      "path": "assets/stdp11-1b46d04b0506.brotli",
-      "size": 44232,
-      "compressed": 10934
+      "path": "assets/stdp11-9047aa807fc4.brotli",
+      "size": 45351,
+      "compressed": 11209
     },
     "stdp12": {
-      "path": "assets/stdp12-29eabf7d338c.brotli",
-      "size": 809911,
-      "compressed": 195924
+      "path": "assets/stdp12-d1d784a38e89.brotli",
+      "size": 814487,
+      "compressed": 196844
     },
     "stdp13": {
-      "path": "assets/stdp13-04e534ae260f.brotli",
-      "size": 92617,
-      "compressed": 22615
+      "path": "assets/stdp13-b6c64e947ddc.brotli",
+      "size": 96790,
+      "compressed": 23359
     },
     "stdp14": {
       "path": "assets/stdp14-2697d0587cbe.brotli",
@@ -102,14 +102,14 @@
       "compressed": 6547
     },
     "stdp17": {
-      "path": "assets/stdp17-c077a905e9fc.brotli",
-      "size": 231255,
-      "compressed": 44406
+      "path": "assets/stdp17-6f76364c33b7.brotli",
+      "size": 232027,
+      "compressed": 44480
     },
     "stdp18": {
-      "path": "assets/stdp18-5e50e69911e6.brotli",
-      "size": 135721,
-      "compressed": 30228
+      "path": "assets/stdp18-a9b08189bc66.brotli",
+      "size": 136384,
+      "compressed": 30411
     },
     "stdp19": {
       "path": "assets/stdp19-9d626d1ae29c.brotli",
@@ -137,9 +137,9 @@
       "compressed": 14754
     },
     "stdp24": {
-      "path": "assets/stdp24-cf2fc1885a49.brotli",
-      "size": 23134,
-      "compressed": 6278
+      "path": "assets/stdp24-9f276e1e6379.brotli",
+      "size": 24501,
+      "compressed": 6710
     },
     "stdp25": {
       "path": "assets/stdp25-b641624b3b0e.brotli",
@@ -152,9 +152,9 @@
       "compressed": 3490
     },
     "stdp27": {
-      "path": "assets/stdp27-0426783ccdbc.brotli",
-      "size": 71169,
-      "compressed": 15861
+      "path": "assets/stdp27-6fbb876aaa63.brotli",
+      "size": 76237,
+      "compressed": 17054
     },
     "stdp28": {
       "path": "assets/stdp28-f77cf810f2a0.brotli",
@@ -382,9 +382,9 @@
       "compressed": 5014
     },
     "stdp73": {
-      "path": "assets/stdp73-752b3d94ef02.brotli",
-      "size": 34803,
-      "compressed": 9119
+      "path": "assets/stdp73-579cce025638.brotli",
+      "size": 35621,
+      "compressed": 9406
     },
     "stdp74": {
       "path": "assets/stdp74-4b080298d080.brotli",
@@ -397,9 +397,9 @@
       "compressed": 5635
     },
     "stdp76": {
-      "path": "assets/stdp76-31bcdea1104c.brotli",
-      "size": 9321,
-      "compressed": 2296
+      "path": "assets/stdp76-987c7f8442d9.brotli",
+      "size": 11114,
+      "compressed": 2722
     },
     "stdp77": {
       "path": "assets/stdp77-ef14bc88f460.brotli",
@@ -417,9 +417,9 @@
       "compressed": 3434
     },
     "stdp80": {
-      "path": "assets/stdp80-7cedac60a129.brotli",
-      "size": 226284,
-      "compressed": 54928
+      "path": "assets/stdp80-7657fd4fd97d.brotli",
+      "size": 227391,
+      "compressed": 55268
     },
     "stdp81": {
       "path": "assets/stdp81-bfd4013b4745.brotli",
@@ -542,9 +542,9 @@
       "compressed": 4058
     },
     "stdp105": {
-      "path": "assets/stdp105-4f442cf88475.brotli",
-      "size": 180030,
-      "compressed": 32927
+      "path": "assets/stdp105-730300772379.brotli",
+      "size": 180273,
+      "compressed": 33047
     },
     "stdp106": {
       "path": "assets/stdp106-71046c372764.brotli",
