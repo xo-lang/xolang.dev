@@ -168,6 +168,41 @@ const SAFETY = [
 async function replPage(b, base) {
   const steps = JSON.parse(readFileSync(join(SITE, "data", "repl.json"), "utf8")).steps;
   await b.go(base + "/repl/");
+  // a session's entries keep its definitions, a value prints with its
+  // type, an error says its code, an entry's output shows, and a std
+  // module the first load lacks is fetched; then a fresh page for the
+  // walkthrough. Without JSPI the page says why.
+  await b.eval(`(() => { const ok = document.getElementById('play-consent-ok'); if (ok && !ok.closest('[hidden]')) ok.click(); return true; })()`);
+  if (await b.eval(`typeof WebAssembly.Suspending === 'function'`)) {
+    const replRun = async (src) => {
+      const n = await b.eval(`Number(document.getElementById('repl').dataset.replDone || 0)`);
+      await b.eval(`(() => { const i = document.getElementById('play-repl-in'); i.value = ${JSON.stringify(src)}; document.getElementById('play-repl-form').requestSubmit(); return true; })()`);
+      await b.until(`Number(document.getElementById('repl').dataset.replDone || 0) > ${n}`, 120000);
+      return b.eval(`document.getElementById('play-repl-log').innerText`);
+    };
+    const t0 = Date.now();
+    await replRun("1 + 2");
+    const first = Date.now() - t0;
+    await replRun("let xs = [3, 1, 2]");
+    await replRun("fn sq(x: Int) -> Int { x * x }");
+    const t1 = Date.now();
+    await replRun("sq(xs.len())");
+    const later = Date.now() - t1;
+    await replRun("nope(1)");
+    await replRun("os.stdio.println(\"hi\")");
+    // a std module the first load does not have: its pack is fetched
+    await replRun("use std/path");
+    const log = await replRun("path.base(\"/a/b.txt\")");
+    const want = [/› 1 \+ 2\n3( {2}: Int)?\n/, /› sq\(xs\.len\(\)\)\n9( {2}: Int)?\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/, /› path\.base\("\/a\/b\.txt"\)\n"?b\.txt"?/];
+    const miss = want.filter((r) => !r.test(log));
+    if (miss.length) fail("repl page", miss.join(" ") + "\n" + log.slice(-800));
+    else pass("repl page keeps definitions, values, errors, output", `first ${first} ms, later ${later} ms, compiler memory ${await b.eval(`document.getElementById('repl').dataset.replMem`)} MB`);
+  } else {
+    const msg = await b.eval(`document.getElementById('play-repl-log').innerText + (document.getElementById('play-repl-in').disabled ? ' [disabled]' : '')`);
+    if (/needs WebAssembly JavaScript Promise Integration/.test(msg) && /\[disabled\]/.test(msg)) pass("repl page says it needs JSPI");
+    else fail("repl page without JSPI", msg);
+  }
+  await b.go(base + "/repl/");
   if (!(await b.eval(`typeof WebAssembly.Suspending === 'function'`))) {
     pass("repl page skipped: no JSPI in this browser");
     return;
@@ -345,40 +380,9 @@ async function main() {
     if (/too large/.test(note)) pass("oversized share link refused");
     else fail("oversized link", note);
 
-    // the REPL tab (decision 0583 in the xo repo): entries keep the
-    // session's definitions, a value prints with its type, an error says
-    // its code, and an entry's output shows; without JSPI it says why
-    await b.eval(`document.querySelector('[data-tab=repl]').click(); true`);
-    if (await b.eval(`typeof WebAssembly.Suspending === 'function'`)) {
-      const replRun = async (src) => {
-        const n = await b.eval(`Number(document.getElementById('play').dataset.replDone || 0)`);
-        await b.eval(`(() => { const i = document.getElementById('play-repl-in'); i.value = ${JSON.stringify(src)}; document.getElementById('play-repl-form').requestSubmit(); return true; })()`);
-        await b.until(`Number(document.getElementById('play').dataset.replDone || 0) > ${n}`, 120000);
-        return b.eval(`document.getElementById('play-repl-log').innerText`);
-      };
-      const t0 = Date.now();
-      await replRun("1 + 2");
-      const first = Date.now() - t0;
-      await replRun("let xs = [3, 1, 2]");
-      await replRun("fn sq(x: Int) -> Int { x * x }");
-      const t1 = Date.now();
-      await replRun("sq(xs.len())");
-      const later = Date.now() - t1;
-      await replRun("nope(1)");
-      await replRun("os.stdio.println(\"hi\")");
-      // a std module the first load does not have: its pack is fetched
-      await replRun("use std/path");
-      const log = await replRun("path.base(\"/a/b.txt\")");
-      const want = [/› 1 \+ 2\n3( {2}: Int)?\n/, /› sq\(xs\.len\(\)\)\n9( {2}: Int)?\n/, /› nope\(1\)\n1:1: XO0601 [^\n]*\n›/, /\nhi\n/, /› path\.base\("\/a\/b\.txt"\)\n"?b\.txt"?/];
-      const miss = want.filter((r) => !r.test(log));
-      if (miss.length) fail("repl", miss.join(" ") + "\n" + log.slice(-800));
-      else pass("repl keeps definitions, values, errors, output", `first ${first} ms, later ${later} ms, compiler memory ${await b.eval(`document.getElementById('play').dataset.replMem`)} MB`);
-    } else {
-      const msg = await b.eval(`document.getElementById('play-repl-log').innerText + (document.getElementById('play-repl-in').disabled ? ' [disabled]' : '')`);
-      if (/needs WebAssembly JavaScript Promise Integration/.test(msg) && /\[disabled\]/.test(msg)) pass("repl says it needs JSPI");
-      else fail("repl without JSPI", msg);
-    }
-    await b.eval(`document.querySelector('[data-tab=output]').click(); true`);
+    // the REPL lives on /repl/ only (owner, 2026-11-12): no repl tab here
+    if (await b.eval(`!document.querySelector('[data-tab=repl]') && !document.getElementById('play-repl-in')`)) pass("play page has no repl tab");
+    else fail("play page", "a repl tab is still there");
 
     // the REPL page (/repl/): each walkthrough step's entries, typed by
     // their buttons and run with Enter, print what data/repl.json expects

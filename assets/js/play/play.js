@@ -4,7 +4,7 @@
 // Everything shown from code or its output goes through textContent.
 
 import { client, el, consented, agree, sizes as showSizes } from "./client.js";
-import { mountRepl, RUN_LIMIT_MS } from "./repl.js";
+import { RUN_LIMIT_MS } from "./repl.js";
 
 const root = document.getElementById("play");
 const code = document.getElementById("play-code");
@@ -489,21 +489,6 @@ function testArgs() {
   if (explore > 1) args.push("-explore", String(Math.min(explore, 1000)));
   return args;
 }
-
-// ---- REPL -------------------------------------------------------------
-
-// the REPL tab (repl.js, shared with the REPL page)
-mountRepl({
-  root,
-  log: document.getElementById("play-repl-log"),
-  form: document.getElementById("play-repl-form"),
-  input: document.getElementById("play-repl-in"),
-  reset: document.getElementById("play-repl-reset"),
-  request,
-  setStatus,
-  ready: consented,
-  ask: askConsent,
-});
 
 runBtn.addEventListener("click", () => run(false));
 testBtn.addEventListener("click", () => run(true));
