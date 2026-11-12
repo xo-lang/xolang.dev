@@ -154,16 +154,16 @@ function lacksFile(e) {
 async function withStd(f, progress, status) {
   let out;
   try {
-    out = f();
+    out = await f();
   } catch (e) {
     if (!lacksFile(e)) throw e;
     if (status) status("Loading the rest of std");
     if (!(await allStd(progress))) throw e;
-    return f();
+    return await f();
   }
   if (lacksModule(out)) {
     if (status) status("Loading the rest of std");
-    if (await allStd(progress)) out = f();
+    if (await allStd(progress)) out = await f();
   }
   return out;
 }
@@ -281,16 +281,78 @@ function xoc(args, w) {
   return out;
 }
 
+// ---- one compiler a visit -------------------------------------------------
+
+// With JSPI, check, format and build go to one long-lived compiler running
+// `--play serve` (decision 0621 in the xo repo), not a new instance a
+// request: V8 frees an instance late (up to 8 alive, 13 to 20 MB of
+// compiled code each; bench/results/browser-play-tab-2026-11-12.md). Its
+// /w is refilled before each request, and the requests run one at a time.
+// An older compiler without serve answers with a usage error, and the page
+// goes back to an instance a request; so does a browser without JSPI.
+const SERVE_MAX_MB = 256; // a compiler grown past this is replaced after its request
+let srv = null; // the visit's compiler: { inst, w, send, reply, ended }
+let serveOff = false;
+let serveTail = Promise.resolve(); // the last request: the next waits for it
+
+// compile runs one `--play` command with source as the program: through
+// the visit's compiler when it can, else a new instance. It returns the
+// reply and the workspace the command ran in.
+async function compile(args, source) {
+  if (JSPI && !serveOff) {
+    const r = serveTail.then(() => served(args, source));
+    serveTail = r.catch(() => {});
+    const out = await r;
+    if (out) return out;
+  }
+  const w = workspace(source);
+  return { out: xoc(args, w), w };
+}
+
+// served is compile through the visit's compiler, or null when this
+// compiler has no serve.
+async function served(args, source) {
+  if (serveOff) return null;
+  if (!srv || srv.ended) {
+    srv = null;
+    const w = new Directory(new Map());
+    const r = await server(["xoc", "--std=/w/std", "--wd=/w", "--play", "serve"], w);
+    r.w = w;
+    srv = r;
+  }
+  const s = srv;
+  // a fresh workspace each request: std as it is now (packs fetched since
+  // join it), the program, an empty out
+  s.w.contents.clear();
+  for (const [k, v] of workspace(source).contents) s.w.contents.set(k, v);
+  let out;
+  try {
+    s.send(args);
+    out = await s.reply(false);
+  } catch (e) {
+    srv = null;
+    throw e;
+  }
+  if (out.error && /^usage: --play/.test(out.error)) {
+    serveOff = true;
+    srv = null;
+    return null;
+  }
+  if (s.inst.exports.memory.buffer.byteLength / 1048576 > SERVE_MAX_MB) srv = null;
+  if (out.error) throw new Error(out.error);
+  // this request's entries: the next request replaces them, not changes them
+  return { out, w: new Directory(new Map(s.w.contents)) };
+}
+
 async function check(source, progress) {
   await load(progress);
   await needStd(source, progress);
-  return withStd(() => xoc(["check", "/w/src"], workspace(source)), progress, null);
+  return withStd(async () => (await compile(["check", "/w/src"], source)).out, progress, null);
 }
 
 async function format(source, progress) {
   await load(progress);
-  const w = workspace(source);
-  const out = xoc(["fmt", "/w/src/main.xo"], w);
+  const { out, w } = await compile(["fmt", "/w/src/main.xo"], source);
   const f = w.contents.get("src").contents.get("main.xo");
   return { source: new TextDecoder().decode(f.data), changed: out.changed };
 }
@@ -312,9 +374,10 @@ async function build(source, progress, status, test) {
   await needStd(source, progress);
   status("Compiling");
   let w;
-  const out = await withStd(() => {
-    w = workspace(source);
-    return xoc(["build", "/w/src", "/w/out/prog.wasm"], w);
+  const out = await withStd(async () => {
+    const r = await compile(["build", "/w/src", "/w/out/prog.wasm"], source);
+    w = r.w;
+    return r.out;
   }, progress, status);
   if (!out.ok) {
     if (out.unsupported) return { diagnostics: out.diagnostics, refused: "This program uses something the wasm backend does not support yet: " + out.unsupported };
@@ -349,6 +412,16 @@ async function startRepl() {
     ["sess", sess],
   ]));
   if (record) w.contents.set("std.rec", record);
+  const r = await server(["xoc", "--std=/w/std", "--wd=/w", "--play", "repl", "/w/warm", "/w/sess"], w);
+  r.sess = sess;
+  return r;
+}
+
+// server starts a long-lived compiler with argv and /w the directory w: it
+// reads one JSON request a line on standard input (fd_read suspends under
+// JSPI until send queues one) and answers one JSON line each, which reply
+// returns (and throws for {"error"} when it is told to).
+async function server(argv, w) {
   const queue = []; // encoded request lines not yet read
   let wake = null;
   const send = (obj) => { queue.push(new TextEncoder().encode(JSON.stringify(obj) + "\n")); if (wake) { wake(); wake = null; } };
@@ -363,8 +436,8 @@ async function startRepl() {
   });
   const stderr = collector();
   const fds = [new OpenFile(new File([])), stdout, stderr, new PreopenDirectory(".", w.contents), new PreopenDirectory("/", new Map([["w", w]]))];
-  const wasi = new WASI(["xoc", "--std=/w/std", "--wd=/w", "--play", "repl", "/w/warm", "/w/sess"], env(), fds, { debug: false });
-  const r = { sess, send, ended: null };
+  const wasi = new WASI(argv, env(), fds, { debug: false });
+  const r = { send, ended: null };
   const syncRead = wasi.wasiImport.fd_read;
   const fdRead = new WebAssembly.Suspending(async (fd, iovs, iovsLen, nread) => {
     if (fd !== 0) return syncRead(fd, iovs, iovsLen, nread);
@@ -390,14 +463,14 @@ async function startRepl() {
     (e) => { r.ended = "the REPL's compiler stopped: " + (e && e.message || e) + "\n" + stderr.text().slice(0, 2000); },
   ).finally(() => { if (rwake) { rwake(); rwake = null; } });
   // the next reply line, or an error once the compiler has ended
-  r.reply = async () => {
+  r.reply = async (throwError = true) => {
     while (!replies.length) {
       if (r.ended) throw new Error(r.ended);
       await new Promise((res) => (rwake = res));
     }
     const line = replies.shift();
     const out = JSON.parse(line);
-    if (out.error) throw new Error(out.error);
+    if (out.error && throwError) throw new Error(out.error);
     return out;
   };
   return r;
