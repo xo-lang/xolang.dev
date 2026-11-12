@@ -41,6 +41,7 @@
     <button class="btn ghost" id="play-test" type="button" title="Run the test blocks (xo test)">test</button>
     <button class="btn primary" id="play-run" type="button" title="Run (Ctrl+Enter)">run</button>
   </div>
+  <p class="play-callout">Trying Xo one line at a time? Open the <a href="{{ "repl/" | relURL }}">REPL</a>: each entry is checked, compiled, and run in this tab, beside a guided walkthrough of the language.</p>
   <p class="play-note" id="play-note">Your code is checked, compiled, and run in this browser tab. It never leaves your machine.</p>
   <div class="play-consent" id="play-consent" hidden>
     <p><b>This playground runs Xo's own compiler in your browser</b>, with its WebAssembly backend: no Go toolchain. Checking and running code download the compiler and the standard library once (<span data-size="check">2 MB</span>); downloads are cached per browser and version. Nothing is uploaded. Tests and <code>use go</code> are not supported yet.</p>

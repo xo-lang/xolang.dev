@@ -383,6 +383,10 @@ async function main() {
     // the REPL lives on /repl/ only (owner, 2026-11-12): no repl tab here
     if (await b.eval(`!document.querySelector('[data-tab=repl]') && !document.getElementById('play-repl-in')`)) pass("play page has no repl tab");
     else fail("play page", "a repl tab is still there");
+    if (await b.eval(`[...document.querySelectorAll('.play-callout a')].some((a) => new URL(a.href).pathname === '/repl/')`)) pass("play page links to the REPL page");
+    else fail("play page", "no link to /repl/ at the top");
+    await b.go(base + "/play/");
+    await b.shot("play-desktop");
 
     // the REPL page (/repl/): each walkthrough step's entries, typed by
     // their buttons and run with Enter, print what data/repl.json expects
@@ -393,6 +397,7 @@ async function main() {
     // tooltip, and Go tab fit, and the editor is above the output
     await b.viewport(390, 844, true);
     await b.go(base + "/play/");
+    await b.shot("play-phone");
     await b.eval(HELPERS);
     await b.eval(`t.set(${JSON.stringify(ignored.source)}); true`);
     await b.until(`document.querySelector('#play-hl .xmark-error')`, 15000);
