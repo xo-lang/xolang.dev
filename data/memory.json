@@ -8,9 +8,9 @@
     "baseline_from": "xo 64114ab43, 2026-11-12 (bench/results/browser-repl-page-2026-11-12.md)"
   },
   "play": {
-    "what": "the renderer processes' RSS peak (MB) over 30 runs of the default program on /play/",
-    "baseline_mb": 1376,
-    "baseline_from": "xo 0.50.0 (a69475152), 2026-11-12: the highest of 3 runs (1374, 1376, 1307 MB), headless Chrome on the development Mac (darwin/arm64)"
+    "what": "the /play/ tab renderer's peak memory footprint (MB, macOS phys_footprint_peak) over 30 builds and runs of the default program",
+    "baseline_mb": 482,
+    "baseline_from": "xo 0.50.0, 2026-11-12: the highest of 3 runs (482, 472, 480 MB; 339 to 343 MB after the 30th run), headless Chrome on the development Mac (darwin/arm64)"
   },
   "session": [
     "use std/adler32",

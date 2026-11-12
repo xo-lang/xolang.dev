@@ -8,16 +8,20 @@
 //         memory never shrinks, so the last is the peak). Fails above
 //         max_mb (the owner's bar) or above baseline_mb plus slack, or when
 //         an entry's value is not session_values'.
-//   play  /play/'s default program run 30 times (the REPL is not on this
-//         page): the renderer processes' RSS after each run (ps). Fails
-//         above baseline_mb plus slack.
+//   play  /play/'s default program built and run 30 times (the download
+//         consent accepted, each run's output checked): the tab's renderer
+//         process's peak memory footprint (macOS `footprint`,
+//         phys_footprint_peak: what Activity Monitor and Chrome's task
+//         manager show, without the freed pages RSS still counts). Fails
+//         above baseline_mb plus slack. RSS summed over renderers measured
+//         headless Chrome's own extension processes (about 900 MB).
 //
 // MEMORY_ONLY=repl|play runs one; MEMORY_RUNS=N repeats each N times and
 // checks the highest peak; MEMORY_NOCHECK=1 measures without failing (to
 // take a baseline); MEMORY_OUT=FILE writes the numbers as JSON. The last
 // line is "memory: ..." with each peak and its budget. Exit 1 on a failed
-// budget or value, 2 when the page could not be driven. Darwin and Linux
-// (CHROME names the browser; ps reads RSS).
+// budget or value, 2 when the page could not be driven. Darwin only (the
+// footprint tool; CHROME names the browser).
 import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -34,6 +38,10 @@ const nocheck = process.env.MEMORY_NOCHECK === "1";
 const CHROME = process.env.CHROME || (process.platform === "darwin" ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" : "google-chrome");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".css": "text/css", ".wasm": "application/wasm", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
 
+if (process.platform !== "darwin") {
+  console.error("test-memory: darwin only (macOS footprint reads the tab's memory)");
+  process.exit(2);
+}
 if (!existsSync(join(root, "repl", "index.html")) || !existsSync(join(root, "play", "index.html"))) {
   console.error(`test-memory: no /repl/ or /play/ page in ${root} (build the site with hugo first)`);
   process.exit(2);
@@ -84,12 +92,24 @@ async function browser() {
       await new Promise((r) => setTimeout(r, 100));
     }
   };
-  // the renderer processes of this profile (the page and its workers)
-  const rss = () => {
-    const out = execFileSync("ps", ["-axo", "rss=,command="], { encoding: "utf8" });
-    let kb = 0;
-    for (const l of out.split("\n")) if (l.includes(profile) && l.includes("--type=renderer")) kb += Number(l.trim().split(/\s+/)[0]);
-    return Math.round(kb / 1024);
+  // the tab's renderer: this profile's renderer with the most resident
+  // memory once the page has built a program (the others are headless
+  // Chrome's own extension and WebUI renderers, about 100 MB each)
+  const tabPid = () => {
+    const out = execFileSync("ps", ["-axo", "pid=,rss=,command="], { encoding: "utf8" });
+    let best = null;
+    for (const l of out.split("\n")) {
+      if (!l.includes(profile) || !l.includes("--type=renderer")) continue;
+      const [pid, kb] = l.trim().split(/\s+/);
+      if (!best || Number(kb) > best.kb) best = { pid, kb: Number(kb) };
+    }
+    return best && best.pid;
+  };
+  // macOS footprint of a process: [now, peak] in MB
+  const footprint = (pid) => {
+    const out = execFileSync("/usr/bin/footprint", ["-p", pid], { encoding: "utf8", maxBuffer: 64 << 20 });
+    const mb = (re) => { const m = out.match(re); if (!m) throw new Error("footprint: no " + re); return Math.round(Number(m[1]) * { KB: 1 / 1024, MB: 1, GB: 1024 }[m[2]]); };
+    return [mb(/phys_footprint: ([\d.]+) (KB|MB|GB)/), mb(/phys_footprint_peak: ([\d.]+) (KB|MB|GB)/)];
   };
   await send("Runtime.enable");
   await send("Page.enable");
@@ -104,7 +124,7 @@ async function browser() {
     await new Promise((r) => setTimeout(r, 1500));
     try { rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); } catch (e) {}
   };
-  return { ev, until, rss, go, close };
+  return { ev, until, tabPid, footprint, go, close };
 }
 
 // repl: the session's entries on /repl/; the peak and any wrong value
@@ -141,16 +161,19 @@ async function playOnce() {
     await b.go("/play/");
     const idle = `(() => { const r = document.getElementById('play-run'), t = document.getElementById('play-test'); return !r.disabled && !t.disabled && r.textContent === 'run' && t.textContent === 'test'; })()`;
     await b.until(idle);
-    await new Promise((r) => setTimeout(r, 2000));
-    let peak = b.rss();
-    for (let i = 0; i < 30; i++) {
+    // the download consent (client.js's CONSENT key; a run without it only
+    // shows the consent box and builds nothing)
+    await b.ev(`localStorage.setItem('xo-play-download-ok', '1'); true`);
+    const wrong = [];
+    for (let i = 1; i <= 30; i++) {
       await b.ev(`document.getElementById('play-run').click(); true`);
       await new Promise((r) => setTimeout(r, 250));
       await b.until(idle);
-      peak = Math.max(peak, b.rss());
+      const out = await b.ev(`document.getElementById('play-output').innerText`);
+      if (!/\[exit 0 in \d+ ms\]/.test(out)) { wrong.push(`run ${i}: ${out.slice(0, 200)}`); break; }
     }
-    const out = await b.ev(`document.getElementById('play-output').innerText`);
-    return { peak, wrong: /error|stopped/i.test(out) ? [`the default program's output: ${out.slice(0, 200)}`] : [] };
+    const [now, peak] = b.footprint(b.tabPid());
+    return { peak, now, wrong };
   } finally {
     await b.close();
   }
@@ -180,6 +203,7 @@ try {
     for (let k = 0; k < runs; k++) {
       const r = await playOnce();
       peaks.push(r.peak);
+      console.log(`play run ${k + 1}: footprint peak ${r.peak} MB, ${r.now} MB after the 30th run`);
       for (const w of r.wrong) { console.log("FAIL play: " + w); failed = true; }
     }
     const peak = Math.max(...peaks);
@@ -188,7 +212,7 @@ try {
     const ok = cap === 0 || peak <= cap;
     if (cap === 0 && !nocheck) { console.log("FAIL play: data/memory.json has no play baseline_mb"); failed = true; }
     if (!ok && !nocheck) failed = true;
-    lines.push(`play renderer RSS peak ${peak} MB (${peaks.join(", ")}; budget ${cap || "none"}: baseline ${cfg.play.baseline_mb} + ${cfg.slack * 100}%)${ok ? "" : " OVER"}`);
+    lines.push(`play tab footprint peak ${peak} MB (${peaks.join(", ")}; budget ${cap || "none"}: baseline ${cfg.play.baseline_mb} + ${cfg.slack * 100}%)${ok ? "" : " OVER"}`);
   }
 } catch (e) {
   console.error("test-memory: " + e.message);
