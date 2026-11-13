@@ -1,20 +1,20 @@
 {
-  "xo": "6d0a9dc7c",
+  "xo": "c78769cb",
   "files": {
     "xoc": {
-      "path": "assets/xoc-e264ccb5cf6e.brotli",
-      "size": 17271449,
-      "compressed": 2287912
+      "path": "assets/xoc-9888c0d2f327.brotli",
+      "size": 16445205,
+      "compressed": 2299863
     },
     "std": {
-      "path": "assets/std-6fbea126214d.brotli",
-      "size": 2184664,
-      "compressed": 432437
+      "path": "assets/std-5b15c60d4543.brotli",
+      "size": 2195437,
+      "compressed": 434910
     },
     "rec": {
-      "path": "assets/rec-65200f1c303b.brotli",
-      "size": 1240476,
-      "compressed": 241026
+      "path": "assets/rec-f2d956dc855b.brotli",
+      "size": 1376301,
+      "compressed": 269623
     },
     "stdp0": {
       "path": "assets/stdp0-e29ce5b2075b.brotli",
@@ -37,9 +37,9 @@
       "compressed": 26288
     },
     "stdp4": {
-      "path": "assets/stdp4-090e3faf1de9.brotli",
-      "size": 28115,
-      "compressed": 7097
+      "path": "assets/stdp4-26085afa8fe8.brotli",
+      "size": 28772,
+      "compressed": 7356
     },
     "stdp5": {
       "path": "assets/stdp5-835940da683a.brotli",
@@ -52,9 +52,9 @@
       "compressed": 1104
     },
     "stdp7": {
-      "path": "assets/stdp7-62ffc635ce73.brotli",
-      "size": 2021,
-      "compressed": 764
+      "path": "assets/stdp7-a3da50bd38b3.brotli",
+      "size": 2307,
+      "compressed": 831
     },
     "stdp8": {
       "path": "assets/stdp8-dd2a7dc2f5c8.brotli",
@@ -67,489 +67,509 @@
       "compressed": 1910
     },
     "stdp10": {
-      "path": "assets/stdp10-cbcb8e741d0b.brotli",
-      "size": 50720,
-      "compressed": 13043
+      "path": "assets/stdp10-cf9be4b0a617.brotli",
+      "size": 51414,
+      "compressed": 13314
     },
     "stdp11": {
-      "path": "assets/stdp11-f5721162d383.brotli",
-      "size": 45567,
-      "compressed": 11309
+      "path": "assets/stdp11-baf471b55439.brotli",
+      "size": 53680,
+      "compressed": 13135
     },
     "stdp12": {
-      "path": "assets/stdp12-d1d784a38e89.brotli",
-      "size": 814487,
-      "compressed": 196844
+      "path": "assets/stdp12-9ba2dfb5688e.brotli",
+      "size": 648037,
+      "compressed": 164854
     },
     "stdp13": {
-      "path": "assets/stdp13-b6c64e947ddc.brotli",
-      "size": 96790,
-      "compressed": 23359
+      "path": "assets/stdp13-e5e2da77a077.brotli",
+      "size": 170723,
+      "compressed": 34013
     },
     "stdp14": {
-      "path": "assets/stdp14-2697d0587cbe.brotli",
+      "path": "assets/stdp14-533c5e2fb70d.brotli",
+      "size": 97002,
+      "compressed": 23384
+    },
+    "stdp15": {
+      "path": "assets/stdp15-2697d0587cbe.brotli",
       "size": 15196,
       "compressed": 4851
     },
-    "stdp15": {
-      "path": "assets/stdp15-680dc65da4c1.brotli",
+    "stdp16": {
+      "path": "assets/stdp16-680dc65da4c1.brotli",
       "size": 87348,
       "compressed": 21918
     },
-    "stdp16": {
-      "path": "assets/stdp16-8ba3e920972e.brotli",
-      "size": 25441,
-      "compressed": 6547
-    },
     "stdp17": {
-      "path": "assets/stdp17-6f76364c33b7.brotli",
-      "size": 232027,
-      "compressed": 44480
+      "path": "assets/stdp17-7354e535d042.brotli",
+      "size": 25630,
+      "compressed": 6624
     },
     "stdp18": {
-      "path": "assets/stdp18-a9b08189bc66.brotli",
-      "size": 136384,
-      "compressed": 30411
+      "path": "assets/stdp18-51b5f02fed6b.brotli",
+      "size": 103092,
+      "compressed": 23099
     },
     "stdp19": {
-      "path": "assets/stdp19-9d626d1ae29c.brotli",
+      "path": "assets/stdp19-2b0f89f51d57.brotli",
+      "size": 235327,
+      "compressed": 44920
+    },
+    "stdp20": {
+      "path": "assets/stdp20-8748248bc512.brotli",
+      "size": 37230,
+      "compressed": 10100
+    },
+    "stdp21": {
+      "path": "assets/stdp21-9d626d1ae29c.brotli",
       "size": 106881,
       "compressed": 25956
     },
-    "stdp20": {
-      "path": "assets/stdp20-6a3d2c960dd8.brotli",
-      "size": 62830,
-      "compressed": 16068
+    "stdp22": {
+      "path": "assets/stdp22-188340e3bdea.brotli",
+      "size": 62910,
+      "compressed": 16142
     },
-    "stdp21": {
-      "path": "assets/stdp21-aaebd659929c.brotli",
+    "stdp23": {
+      "path": "assets/stdp23-aaebd659929c.brotli",
       "size": 76364,
       "compressed": 16312
     },
-    "stdp22": {
-      "path": "assets/stdp22-a7b2d678219e.brotli",
+    "stdp24": {
+      "path": "assets/stdp24-a7b2d678219e.brotli",
       "size": 91618,
       "compressed": 26121
     },
-    "stdp23": {
-      "path": "assets/stdp23-9ac85d4b7a8d.brotli",
-      "size": 59167,
-      "compressed": 14754
-    },
-    "stdp24": {
-      "path": "assets/stdp24-9f276e1e6379.brotli",
-      "size": 24501,
-      "compressed": 6710
-    },
     "stdp25": {
-      "path": "assets/stdp25-b641624b3b0e.brotli",
+      "path": "assets/stdp25-fef0e16738d3.brotli",
+      "size": 60207,
+      "compressed": 15078
+    },
+    "stdp26": {
+      "path": "assets/stdp26-6a927e252484.brotli",
+      "size": 26088,
+      "compressed": 7186
+    },
+    "stdp27": {
+      "path": "assets/stdp27-b641624b3b0e.brotli",
       "size": 112451,
       "compressed": 26459
     },
-    "stdp26": {
-      "path": "assets/stdp26-bfd93468301a.brotli",
+    "stdp28": {
+      "path": "assets/stdp28-bfd93468301a.brotli",
       "size": 12891,
       "compressed": 3490
     },
-    "stdp27": {
-      "path": "assets/stdp27-6fbb876aaa63.brotli",
-      "size": 76237,
-      "compressed": 17054
+    "stdp29": {
+      "path": "assets/stdp29-a1440a05bcf0.brotli",
+      "size": 77491,
+      "compressed": 17488
     },
-    "stdp28": {
-      "path": "assets/stdp28-f77cf810f2a0.brotli",
+    "stdp30": {
+      "path": "assets/stdp30-f77cf810f2a0.brotli",
       "size": 4417,
       "compressed": 1509
     },
-    "stdp29": {
-      "path": "assets/stdp29-09a017a4bc61.brotli",
+    "stdp31": {
+      "path": "assets/stdp31-09a017a4bc61.brotli",
       "size": 7477,
       "compressed": 1997
     },
-    "stdp30": {
-      "path": "assets/stdp30-8539386bf8eb.brotli",
+    "stdp32": {
+      "path": "assets/stdp32-8539386bf8eb.brotli",
       "size": 24638,
       "compressed": 9143
     },
-    "stdp31": {
-      "path": "assets/stdp31-7c148fcf9e86.brotli",
+    "stdp33": {
+      "path": "assets/stdp33-7c148fcf9e86.brotli",
       "size": 4367,
       "compressed": 1402
     },
-    "stdp32": {
-      "path": "assets/stdp32-5d8d5c78d0d5.brotli",
+    "stdp34": {
+      "path": "assets/stdp34-5d8d5c78d0d5.brotli",
       "size": 7084,
       "compressed": 2287
     },
-    "stdp33": {
-      "path": "assets/stdp33-1b5b89f3dd17.brotli",
+    "stdp35": {
+      "path": "assets/stdp35-1b5b89f3dd17.brotli",
       "size": 41780,
       "compressed": 9883
     },
-    "stdp34": {
-      "path": "assets/stdp34-354f04dd2a80.brotli",
+    "stdp36": {
+      "path": "assets/stdp36-354f04dd2a80.brotli",
       "size": 39506,
       "compressed": 8724
     },
-    "stdp35": {
-      "path": "assets/stdp35-090f1ffb5a97.brotli",
+    "stdp37": {
+      "path": "assets/stdp37-090f1ffb5a97.brotli",
       "size": 23860,
       "compressed": 6267
     },
-    "stdp36": {
-      "path": "assets/stdp36-614cee8586a7.brotli",
-      "size": 10650,
-      "compressed": 3281
-    },
-    "stdp37": {
-      "path": "assets/stdp37-5fc9e0c97156.brotli",
-      "size": 3123,
-      "compressed": 1152
-    },
     "stdp38": {
-      "path": "assets/stdp38-57c663e7084f.brotli",
-      "size": 7463,
-      "compressed": 2146
+      "path": "assets/stdp38-26beb7978aed.brotli",
+      "size": 12440,
+      "compressed": 3750
     },
     "stdp39": {
-      "path": "assets/stdp39-d37653cfa467.brotli",
-      "size": 17286,
-      "compressed": 4685
+      "path": "assets/stdp39-90ae2a50f95c.brotli",
+      "size": 5766,
+      "compressed": 1873
     },
     "stdp40": {
-      "path": "assets/stdp40-1abcb4d7da39.brotli",
+      "path": "assets/stdp40-9c2231ea915f.brotli",
+      "size": 19882,
+      "compressed": 5267
+    },
+    "stdp41": {
+      "path": "assets/stdp41-aa7e6d7c7141.brotli",
+      "size": 18108,
+      "compressed": 4963
+    },
+    "stdp42": {
+      "path": "assets/stdp42-1abcb4d7da39.brotli",
       "size": 25210,
       "compressed": 6690
     },
-    "stdp41": {
-      "path": "assets/stdp41-3daad8946e51.brotli",
-      "size": 13230,
-      "compressed": 3720
-    },
-    "stdp42": {
-      "path": "assets/stdp42-51c5d4fb93d9.brotli",
-      "size": 31311,
-      "compressed": 8242
-    },
     "stdp43": {
-      "path": "assets/stdp43-f0a40ed0921e.brotli",
+      "path": "assets/stdp43-f124dccd809c.brotli",
+      "size": 13450,
+      "compressed": 3799
+    },
+    "stdp44": {
+      "path": "assets/stdp44-15118b862dab.brotli",
+      "size": 33482,
+      "compressed": 8880
+    },
+    "stdp45": {
+      "path": "assets/stdp45-f0a40ed0921e.brotli",
       "size": 2101,
       "compressed": 707
     },
-    "stdp44": {
-      "path": "assets/stdp44-b7e32084787a.brotli",
-      "size": 678805,
-      "compressed": 147375
+    "stdp46": {
+      "path": "assets/stdp46-a55d6ed6267f.brotli",
+      "size": 704938,
+      "compressed": 153616
     },
-    "stdp45": {
-      "path": "assets/stdp45-e42967b39c95.brotli",
+    "stdp47": {
+      "path": "assets/stdp47-082ca1b62fdf.brotli",
+      "size": 360688,
+      "compressed": 53351
+    },
+    "stdp48": {
+      "path": "assets/stdp48-e42967b39c95.brotli",
       "size": 53401,
       "compressed": 21522
     },
-    "stdp46": {
-      "path": "assets/stdp46-325ead0c7c24.brotli",
+    "stdp49": {
+      "path": "assets/stdp49-325ead0c7c24.brotli",
       "size": 201970,
       "compressed": 41102
     },
-    "stdp47": {
-      "path": "assets/stdp47-f25b6ffb3537.brotli",
+    "stdp50": {
+      "path": "assets/stdp50-f25b6ffb3537.brotli",
       "size": 12300,
       "compressed": 3727
     },
-    "stdp48": {
-      "path": "assets/stdp48-1109e7d43170.brotli",
+    "stdp51": {
+      "path": "assets/stdp51-1109e7d43170.brotli",
       "size": 15203,
       "compressed": 4289
     },
-    "stdp49": {
-      "path": "assets/stdp49-1ef2ef21d3f6.brotli",
+    "stdp52": {
+      "path": "assets/stdp52-1ef2ef21d3f6.brotli",
       "size": 10817,
       "compressed": 3688
     },
-    "stdp50": {
-      "path": "assets/stdp50-95b86432afda.brotli",
+    "stdp53": {
+      "path": "assets/stdp53-95b86432afda.brotli",
       "size": 160318,
       "compressed": 40051
     },
-    "stdp51": {
-      "path": "assets/stdp51-da46b017bd64.brotli",
+    "stdp54": {
+      "path": "assets/stdp54-da46b017bd64.brotli",
       "size": 2922,
       "compressed": 1019
     },
-    "stdp52": {
-      "path": "assets/stdp52-684b070110e3.brotli",
+    "stdp55": {
+      "path": "assets/stdp55-684b070110e3.brotli",
       "size": 9480,
       "compressed": 2818
     },
-    "stdp53": {
-      "path": "assets/stdp53-4374d8b6b43a.brotli",
+    "stdp56": {
+      "path": "assets/stdp56-4374d8b6b43a.brotli",
       "size": 10915,
       "compressed": 2890
     },
-    "stdp54": {
-      "path": "assets/stdp54-7f31379c12f2.brotli",
+    "stdp57": {
+      "path": "assets/stdp57-7f31379c12f2.brotli",
       "size": 6082,
       "compressed": 1847
     },
-    "stdp55": {
-      "path": "assets/stdp55-b58639f1da57.brotli",
+    "stdp58": {
+      "path": "assets/stdp58-b58639f1da57.brotli",
       "size": 4467,
       "compressed": 1517
     },
-    "stdp56": {
-      "path": "assets/stdp56-b63e2e218c6c.brotli",
+    "stdp59": {
+      "path": "assets/stdp59-b63e2e218c6c.brotli",
       "size": 17837,
       "compressed": 4802
     },
-    "stdp57": {
-      "path": "assets/stdp57-889b9272d98e.brotli",
+    "stdp60": {
+      "path": "assets/stdp60-889b9272d98e.brotli",
       "size": 55800,
       "compressed": 13066
     },
-    "stdp58": {
-      "path": "assets/stdp58-03f0830d406f.brotli",
+    "stdp61": {
+      "path": "assets/stdp61-03f0830d406f.brotli",
       "size": 62348,
       "compressed": 13296
     },
-    "stdp59": {
-      "path": "assets/stdp59-b4d3e8979b29.brotli",
+    "stdp62": {
+      "path": "assets/stdp62-b4d3e8979b29.brotli",
       "size": 42830,
       "compressed": 9826
     },
-    "stdp60": {
-      "path": "assets/stdp60-d11e9515e647.brotli",
+    "stdp63": {
+      "path": "assets/stdp63-d11e9515e647.brotli",
       "size": 3979,
       "compressed": 1494
     },
-    "stdp61": {
-      "path": "assets/stdp61-8d35b380770b.brotli",
+    "stdp64": {
+      "path": "assets/stdp64-8d35b380770b.brotli",
       "size": 23914,
       "compressed": 6557
     },
-    "stdp62": {
-      "path": "assets/stdp62-58b0cf686635.brotli",
+    "stdp65": {
+      "path": "assets/stdp65-58b0cf686635.brotli",
       "size": 4062,
       "compressed": 1351
     },
-    "stdp63": {
-      "path": "assets/stdp63-0671fff958c2.brotli",
+    "stdp66": {
+      "path": "assets/stdp66-0671fff958c2.brotli",
       "size": 52176,
       "compressed": 11246
     },
-    "stdp64": {
-      "path": "assets/stdp64-dd5a4ca71b28.brotli",
+    "stdp67": {
+      "path": "assets/stdp67-dd5a4ca71b28.brotli",
       "size": 11224,
       "compressed": 3048
     },
-    "stdp65": {
-      "path": "assets/stdp65-b1839592f1d0.brotli",
+    "stdp68": {
+      "path": "assets/stdp68-b1839592f1d0.brotli",
       "size": 81792,
       "compressed": 14416
     },
-    "stdp66": {
-      "path": "assets/stdp66-092acd768bb0.brotli",
+    "stdp69": {
+      "path": "assets/stdp69-092acd768bb0.brotli",
       "size": 28318,
       "compressed": 6095
     },
-    "stdp67": {
-      "path": "assets/stdp67-a0e20b985075.brotli",
+    "stdp70": {
+      "path": "assets/stdp70-2d2d28219094.brotli",
+      "size": 7726,
+      "compressed": 2533
+    },
+    "stdp71": {
+      "path": "assets/stdp71-a0e20b985075.brotli",
       "size": 261917,
       "compressed": 29470
     },
-    "stdp68": {
-      "path": "assets/stdp68-15701e9223c1.brotli",
+    "stdp72": {
+      "path": "assets/stdp72-15701e9223c1.brotli",
       "size": 263532,
       "compressed": 28449
     },
-    "stdp69": {
-      "path": "assets/stdp69-f172ab9b1336.brotli",
-      "size": 56403,
-      "compressed": 15783
+    "stdp73": {
+      "path": "assets/stdp73-c6c830fa3633.brotli",
+      "size": 57032,
+      "compressed": 15992
     },
-    "stdp70": {
-      "path": "assets/stdp70-cd2de8244f9f.brotli",
+    "stdp74": {
+      "path": "assets/stdp74-cd2de8244f9f.brotli",
       "size": 116759,
       "compressed": 27323
     },
-    "stdp71": {
-      "path": "assets/stdp71-88618a4a3a20.brotli",
+    "stdp75": {
+      "path": "assets/stdp75-88618a4a3a20.brotli",
       "size": 24053,
       "compressed": 6408
     },
-    "stdp72": {
-      "path": "assets/stdp72-3e42b532bd25.brotli",
+    "stdp76": {
+      "path": "assets/stdp76-3e42b532bd25.brotli",
       "size": 17755,
       "compressed": 5014
     },
-    "stdp73": {
-      "path": "assets/stdp73-579cce025638.brotli",
+    "stdp77": {
+      "path": "assets/stdp77-579cce025638.brotli",
       "size": 35621,
       "compressed": 9406
     },
-    "stdp74": {
-      "path": "assets/stdp74-4b080298d080.brotli",
+    "stdp78": {
+      "path": "assets/stdp78-4b080298d080.brotli",
       "size": 29823,
       "compressed": 8350
     },
-    "stdp75": {
-      "path": "assets/stdp75-5f5b37285ddf.brotli",
+    "stdp79": {
+      "path": "assets/stdp79-5f5b37285ddf.brotli",
       "size": 20772,
       "compressed": 5635
     },
-    "stdp76": {
-      "path": "assets/stdp76-987c7f8442d9.brotli",
+    "stdp80": {
+      "path": "assets/stdp80-987c7f8442d9.brotli",
       "size": 11114,
       "compressed": 2722
     },
-    "stdp77": {
-      "path": "assets/stdp77-ef14bc88f460.brotli",
+    "stdp81": {
+      "path": "assets/stdp81-ef14bc88f460.brotli",
       "size": 10784,
       "compressed": 3598
     },
-    "stdp78": {
-      "path": "assets/stdp78-4d4eade07492.brotli",
+    "stdp82": {
+      "path": "assets/stdp82-4d4eade07492.brotli",
       "size": 4603,
       "compressed": 1728
     },
-    "stdp79": {
-      "path": "assets/stdp79-16163dcd2a3d.brotli",
+    "stdp83": {
+      "path": "assets/stdp83-16163dcd2a3d.brotli",
       "size": 12489,
       "compressed": 3434
     },
-    "stdp80": {
-      "path": "assets/stdp80-7657fd4fd97d.brotli",
-      "size": 227391,
-      "compressed": 55268
+    "stdp84": {
+      "path": "assets/stdp84-94c9391f4a5e.brotli",
+      "size": 228242,
+      "compressed": 55481
     },
-    "stdp81": {
-      "path": "assets/stdp81-bfd4013b4745.brotli",
+    "stdp85": {
+      "path": "assets/stdp85-bfd4013b4745.brotli",
       "size": 15736,
       "compressed": 2851
     },
-    "stdp82": {
-      "path": "assets/stdp82-9653200d6309.brotli",
+    "stdp86": {
+      "path": "assets/stdp86-9653200d6309.brotli",
       "size": 3788,
       "compressed": 1193
     },
-    "stdp83": {
-      "path": "assets/stdp83-3be85baecb46.brotli",
+    "stdp87": {
+      "path": "assets/stdp87-3be85baecb46.brotli",
       "size": 64748,
       "compressed": 13982
     },
-    "stdp84": {
-      "path": "assets/stdp84-d0d26bbe3d1f.brotli",
+    "stdp88": {
+      "path": "assets/stdp88-d0d26bbe3d1f.brotli",
       "size": 7528,
       "compressed": 1856
     },
-    "stdp85": {
-      "path": "assets/stdp85-c6644a5b6c10.brotli",
+    "stdp89": {
+      "path": "assets/stdp89-c6644a5b6c10.brotli",
       "size": 19355,
       "compressed": 4791
     },
-    "stdp86": {
-      "path": "assets/stdp86-61a327ff1593.brotli",
+    "stdp90": {
+      "path": "assets/stdp90-61a327ff1593.brotli",
       "size": 24289,
       "compressed": 8097
     },
-    "stdp87": {
-      "path": "assets/stdp87-a3d8a2169465.brotli",
+    "stdp91": {
+      "path": "assets/stdp91-a3d8a2169465.brotli",
       "size": 10035,
       "compressed": 2878
     },
-    "stdp88": {
-      "path": "assets/stdp88-c679980bb270.brotli",
+    "stdp92": {
+      "path": "assets/stdp92-c679980bb270.brotli",
       "size": 86595,
       "compressed": 20034
     },
-    "stdp89": {
-      "path": "assets/stdp89-0e83520f69fb.brotli",
+    "stdp93": {
+      "path": "assets/stdp93-0e83520f69fb.brotli",
       "size": 188166,
       "compressed": 16147
     },
-    "stdp90": {
-      "path": "assets/stdp90-2cded1cd78ad.brotli",
-      "size": 11584,
-      "compressed": 3800
+    "stdp94": {
+      "path": "assets/stdp94-bcc7ed873e13.brotli",
+      "size": 11648,
+      "compressed": 3830
     },
-    "stdp91": {
-      "path": "assets/stdp91-2ec555f47d06.brotli",
+    "stdp95": {
+      "path": "assets/stdp95-2ec555f47d06.brotli",
       "size": 151677,
       "compressed": 34925
     },
-    "stdp92": {
-      "path": "assets/stdp92-407fc4a58ce4.brotli",
+    "stdp96": {
+      "path": "assets/stdp96-407fc4a58ce4.brotli",
       "size": 18344,
       "compressed": 5558
     },
-    "stdp93": {
-      "path": "assets/stdp93-b23484564674.brotli",
+    "stdp97": {
+      "path": "assets/stdp97-b23484564674.brotli",
       "size": 17410,
       "compressed": 5112
     },
-    "stdp94": {
-      "path": "assets/stdp94-5b77d34ef8b1.brotli",
+    "stdp98": {
+      "path": "assets/stdp98-5b77d34ef8b1.brotli",
       "size": 10926,
       "compressed": 3252
     },
-    "stdp95": {
-      "path": "assets/stdp95-51bed999f4d7.brotli",
-      "size": 171242,
-      "compressed": 37744
+    "stdp99": {
+      "path": "assets/stdp99-54b0f3bd44c8.brotli",
+      "size": 172995,
+      "compressed": 38301
     },
-    "stdp96": {
-      "path": "assets/stdp96-a51babc72519.brotli",
+    "stdp100": {
+      "path": "assets/stdp100-a51babc72519.brotli",
       "size": 2844,
       "compressed": 1007
     },
-    "stdp97": {
-      "path": "assets/stdp97-8161b832d48e.brotli",
-      "size": 54010,
-      "compressed": 11200
+    "stdp101": {
+      "path": "assets/stdp101-0bbe203b72b5.brotli",
+      "size": 54045,
+      "compressed": 11215
     },
-    "stdp98": {
-      "path": "assets/stdp98-532bc33b44d3.brotli",
+    "stdp102": {
+      "path": "assets/stdp102-532bc33b44d3.brotli",
       "size": 33948,
       "compressed": 7824
     },
-    "stdp99": {
-      "path": "assets/stdp99-6b5b245af0d1.brotli",
+    "stdp103": {
+      "path": "assets/stdp103-6b5b245af0d1.brotli",
       "size": 35972,
       "compressed": 8276
     },
-    "stdp100": {
-      "path": "assets/stdp100-9b04332614bc.brotli",
+    "stdp104": {
+      "path": "assets/stdp104-9b04332614bc.brotli",
       "size": 4832,
       "compressed": 1390
     },
-    "stdp101": {
-      "path": "assets/stdp101-af18729e703e.brotli",
+    "stdp105": {
+      "path": "assets/stdp105-af18729e703e.brotli",
       "size": 4506,
       "compressed": 1719
     },
-    "stdp102": {
-      "path": "assets/stdp102-b074541f8773.brotli",
+    "stdp106": {
+      "path": "assets/stdp106-b074541f8773.brotli",
       "size": 33719,
       "compressed": 9280
     },
-    "stdp103": {
-      "path": "assets/stdp103-da1740b859c9.brotli",
+    "stdp107": {
+      "path": "assets/stdp107-da1740b859c9.brotli",
       "size": 54243,
       "compressed": 12896
     },
-    "stdp104": {
-      "path": "assets/stdp104-4ada5b498e46.brotli",
+    "stdp108": {
+      "path": "assets/stdp108-4ada5b498e46.brotli",
       "size": 14381,
       "compressed": 4058
     },
-    "stdp105": {
-      "path": "assets/stdp105-730300772379.brotli",
+    "stdp109": {
+      "path": "assets/stdp109-730300772379.brotli",
       "size": 180273,
       "compressed": 33047
     },
-    "stdp106": {
-      "path": "assets/stdp106-71046c372764.brotli",
-      "size": 7773,
-      "compressed": 1603
+    "stdp110": {
+      "path": "assets/stdp110-c0659a7bf87a.brotli",
+      "size": 372754,
+      "compressed": 127169
     }
   },
   "stdpacks": [
@@ -659,7 +679,11 @@
     "stdp103",
     "stdp104",
     "stdp105",
-    "stdp106"
+    "stdp106",
+    "stdp107",
+    "stdp108",
+    "stdp109",
+    "stdp110"
   ],
   "stdmods": {
     "std/adler32": [
@@ -685,7 +709,9 @@
       "stdp17",
       "stdp18",
       "stdp19",
-      "stdp20"
+      "stdp20",
+      "stdp21",
+      "stdp22"
     ],
     "std/amqptest": [
       "stdp1",
@@ -708,13 +734,15 @@
       "stdp18",
       "stdp19",
       "stdp20",
-      "stdp21"
+      "stdp21",
+      "stdp22",
+      "stdp23"
     ],
     "std/archive": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp23"
+      "stdp24",
+      "stdp25"
     ],
     "std/asn1": [
       "stdp2",
@@ -724,34 +752,35 @@
       "stdp6",
       "stdp7",
       "stdp8",
-      "stdp24",
-      "stdp25",
       "stdp26",
-      "stdp27"
+      "stdp27",
+      "stdp28",
+      "stdp29"
     ],
     "std/big": [
       "stdp2",
       "stdp3",
       "stdp4",
-      "stdp25"
+      "stdp27"
     ],
     "std/cbor": [
       "stdp2",
+      "stdp3",
       "stdp9",
       "stdp10",
       "stdp11",
-      "stdp31",
-      "stdp33"
+      "stdp33",
+      "stdp35"
     ],
     "std/cli": [
       "stdp2",
-      "stdp34"
+      "stdp36"
     ],
     "std/compress": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp35"
+      "stdp24",
+      "stdp37"
     ],
     "std/cookiejar": [
       "stdp2",
@@ -773,11 +802,11 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
-      "stdp36",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
       "stdp38",
       "stdp39",
@@ -785,13 +814,16 @@
       "stdp41",
       "stdp42",
       "stdp43",
-      "stdp44"
+      "stdp44",
+      "stdp45",
+      "stdp46",
+      "stdp47"
     ],
     "std/crc32": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp45"
+      "stdp24",
+      "stdp48"
     ],
     "std/cron": [
       "stdp2",
@@ -800,8 +832,8 @@
       "stdp6",
       "stdp7",
       "stdp8",
-      "stdp27",
-      "stdp47"
+      "stdp29",
+      "stdp50"
     ],
     "std/crypto": [
       "stdp2",
@@ -812,11 +844,12 @@
       "stdp10",
       "stdp11",
       "stdp12",
-      "stdp13"
+      "stdp13",
+      "stdp14"
     ],
     "std/csv": [
       "stdp2",
-      "stdp48"
+      "stdp51"
     ],
     "std/debug": [
       "stdp2",
@@ -838,20 +871,22 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp49",
-      "stdp50"
+      "stdp45",
+      "stdp46",
+      "stdp52",
+      "stdp53"
     ],
     "std/dns": [
       "stdp2",
@@ -859,26 +894,26 @@
       "stdp5",
       "stdp6",
       "stdp7",
-      "stdp14",
       "stdp15",
-      "stdp52"
+      "stdp16",
+      "stdp55"
     ],
     "std/embed": [
       "stdp2",
-      "stdp53",
-      "stdp54"
+      "stdp56",
+      "stdp57"
     ],
     "std/gif": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp31",
-      "stdp35",
-      "stdp45",
-      "stdp56",
-      "stdp57",
-      "stdp58",
-      "stdp59"
+      "stdp24",
+      "stdp33",
+      "stdp37",
+      "stdp48",
+      "stdp59",
+      "stdp60",
+      "stdp61",
+      "stdp62"
     ],
     "std/grpc": [
       "stdp2",
@@ -900,19 +935,21 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp61"
+      "stdp45",
+      "stdp46",
+      "stdp64"
     ],
     "std/http": [
       "stdp2",
@@ -934,29 +971,69 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
-      "stdp44"
+      "stdp44",
+      "stdp45",
+      "stdp46"
+    ],
+    "std/httpproxy": [
+      "stdp2",
+      "stdp3",
+      "stdp4",
+      "stdp5",
+      "stdp6",
+      "stdp7",
+      "stdp8",
+      "stdp9",
+      "stdp10",
+      "stdp11",
+      "stdp12",
+      "stdp13",
+      "stdp14",
+      "stdp15",
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp19",
+      "stdp20",
+      "stdp21",
+      "stdp22",
+      "stdp24",
+      "stdp25",
+      "stdp29",
+      "stdp37",
+      "stdp39",
+      "stdp40",
+      "stdp41",
+      "stdp42",
+      "stdp43",
+      "stdp44",
+      "stdp45",
+      "stdp46",
+      "stdp70",
+      "stdp71",
+      "stdp72"
     ],
     "std/image": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp31",
-      "stdp35",
-      "stdp45",
-      "stdp57",
-      "stdp58",
-      "stdp59"
+      "stdp24",
+      "stdp33",
+      "stdp37",
+      "stdp48",
+      "stdp60",
+      "stdp61",
+      "stdp62"
     ],
     "std/internal": [
       "stdp2",
@@ -967,24 +1044,28 @@
       "stdp7",
       "stdp8",
       "stdp12",
-      "stdp14",
-      "stdp16",
+      "stdp13",
+      "stdp15",
       "stdp17",
       "stdp18",
-      "stdp50",
-      "stdp69",
-      "stdp70"
+      "stdp19",
+      "stdp20",
+      "stdp53",
+      "stdp73",
+      "stdp74"
     ],
     "std/json": [
       "stdp2",
+      "stdp3",
       "stdp10",
       "stdp11"
     ],
     "std/jsonrpc": [
       "stdp2",
+      "stdp3",
       "stdp10",
       "stdp11",
-      "stdp71"
+      "stdp75"
     ],
     "std/jwt": [
       "stdp2",
@@ -996,16 +1077,19 @@
       "stdp11",
       "stdp12",
       "stdp13",
-      "stdp72"
+      "stdp14",
+      "stdp76"
     ],
     "std/log": [
       "stdp2",
       "stdp3",
       "stdp5",
+      "stdp6",
+      "stdp7",
       "stdp10",
       "stdp11",
-      "stdp37",
-      "stdp38"
+      "stdp39",
+      "stdp40"
     ],
     "std/mail": [
       "stdp2",
@@ -1020,9 +1104,10 @@
       "stdp11",
       "stdp12",
       "stdp13",
-      "stdp27",
-      "stdp39",
-      "stdp73"
+      "stdp14",
+      "stdp29",
+      "stdp41",
+      "stdp77"
     ],
     "std/metrics": [
       "stdp2",
@@ -1044,19 +1129,21 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp74"
+      "stdp45",
+      "stdp46",
+      "stdp78"
     ],
     "std/otlp": [
       "stdp2",
@@ -1078,23 +1165,25 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp28",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
+      "stdp30",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp74",
-      "stdp75",
-      "stdp76",
-      "stdp77"
+      "stdp45",
+      "stdp46",
+      "stdp78",
+      "stdp79",
+      "stdp80",
+      "stdp81"
     ],
     "std/otp": [
       "stdp2",
@@ -1106,44 +1195,50 @@
       "stdp11",
       "stdp12",
       "stdp13",
-      "stdp29",
-      "stdp41",
-      "stdp78"
+      "stdp14",
+      "stdp31",
+      "stdp43",
+      "stdp82"
     ],
     "std/png": [
       "stdp2",
       "stdp3",
-      "stdp22",
-      "stdp31",
-      "stdp35",
-      "stdp45",
-      "stdp59"
+      "stdp24",
+      "stdp33",
+      "stdp37",
+      "stdp48",
+      "stdp62"
     ],
     "std/prelude": [
       "stdp2",
       "stdp3",
+      "stdp4",
       "stdp5",
       "stdp6",
       "stdp7",
       "stdp10",
-      "stdp14",
+      "stdp12",
       "stdp15",
-      "stdp37",
-      "stdp43",
-      "stdp50",
-      "stdp69",
-      "stdp80"
+      "stdp16",
+      "stdp17",
+      "stdp18",
+      "stdp39",
+      "stdp45",
+      "stdp53",
+      "stdp73",
+      "stdp84"
     ],
     "std/protojson": [
       "stdp2",
+      "stdp3",
       "stdp9",
       "stdp10",
       "stdp11",
-      "stdp76",
-      "stdp81",
-      "stdp82",
-      "stdp83",
-      "stdp84"
+      "stdp80",
+      "stdp85",
+      "stdp86",
+      "stdp87",
+      "stdp88"
     ],
     "std/smtp": [
       "stdp2",
@@ -1165,8 +1260,10 @@
       "stdp18",
       "stdp19",
       "stdp20",
-      "stdp39",
-      "stdp90"
+      "stdp21",
+      "stdp22",
+      "stdp41",
+      "stdp94"
     ],
     "std/sql": [
       "stdp2",
@@ -1188,7 +1285,9 @@
       "stdp18",
       "stdp19",
       "stdp20",
-      "stdp91"
+      "stdp21",
+      "stdp22",
+      "stdp95"
     ],
     "std/sqlite": [
       "stdp2",
@@ -1210,8 +1309,10 @@
       "stdp18",
       "stdp19",
       "stdp20",
-      "stdp91",
-      "stdp92"
+      "stdp21",
+      "stdp22",
+      "stdp95",
+      "stdp96"
     ],
     "std/sse": [
       "stdp2",
@@ -1233,28 +1334,31 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp93"
+      "stdp45",
+      "stdp46",
+      "stdp97"
     ],
     "std/template": [
       "stdp2",
+      "stdp3",
       "stdp10",
       "stdp11",
-      "stdp41",
-      "stdp63",
-      "stdp64",
-      "stdp95"
+      "stdp43",
+      "stdp66",
+      "stdp67",
+      "stdp99"
     ],
     "std/testing": [
       "stdp2",
@@ -1276,22 +1380,24 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp54",
-      "stdp79",
-      "stdp91",
-      "stdp97"
+      "stdp45",
+      "stdp46",
+      "stdp57",
+      "stdp83",
+      "stdp95",
+      "stdp101"
     ],
     "std/time": [
       "stdp2",
@@ -1300,7 +1406,7 @@
       "stdp6",
       "stdp7",
       "stdp8",
-      "stdp27"
+      "stdp29"
     ],
     "std/timego": [
       "stdp2",
@@ -1309,8 +1415,8 @@
       "stdp6",
       "stdp7",
       "stdp8",
-      "stdp27",
-      "stdp98"
+      "stdp29",
+      "stdp102"
     ],
     "std/tls": [
       "stdp2",
@@ -1331,13 +1437,16 @@
       "stdp17",
       "stdp18",
       "stdp19",
-      "stdp20"
+      "stdp20",
+      "stdp21",
+      "stdp22"
     ],
     "std/toml": [
       "stdp2",
+      "stdp3",
       "stdp10",
       "stdp11",
-      "stdp99"
+      "stdp103"
     ],
     "std/trace": [
       "stdp2",
@@ -1359,19 +1468,21 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp77"
+      "stdp45",
+      "stdp46",
+      "stdp81"
     ],
     "std/udp": [
       "stdp2",
@@ -1379,9 +1490,9 @@
       "stdp5",
       "stdp6",
       "stdp7",
-      "stdp14",
       "stdp15",
-      "stdp100"
+      "stdp16",
+      "stdp104"
     ],
     "std/uuid": [
       "stdp2",
@@ -1392,14 +1503,16 @@
       "stdp7",
       "stdp8",
       "stdp12",
-      "stdp14",
-      "stdp16",
+      "stdp13",
+      "stdp15",
       "stdp17",
       "stdp18",
-      "stdp50",
-      "stdp69",
-      "stdp70",
-      "stdp101"
+      "stdp19",
+      "stdp20",
+      "stdp53",
+      "stdp73",
+      "stdp74",
+      "stdp105"
     ],
     "std/websocket": [
       "stdp2",
@@ -1421,19 +1534,21 @@
       "stdp18",
       "stdp19",
       "stdp20",
+      "stdp21",
       "stdp22",
-      "stdp23",
-      "stdp27",
-      "stdp35",
+      "stdp24",
+      "stdp25",
+      "stdp29",
       "stdp37",
-      "stdp38",
       "stdp39",
       "stdp40",
       "stdp41",
       "stdp42",
       "stdp43",
       "stdp44",
-      "stdp102"
+      "stdp45",
+      "stdp46",
+      "stdp106"
     ],
     "std/x509": [
       "stdp2",
@@ -1447,18 +1562,20 @@
       "stdp12",
       "stdp13",
       "stdp14",
-      "stdp16",
+      "stdp15",
+      "stdp17",
       "stdp18",
-      "stdp20"
+      "stdp20",
+      "stdp22"
     ],
     "std/xml": [
       "stdp2",
-      "stdp103"
+      "stdp107"
     ],
     "std/xmlcodec": [
       "stdp2",
-      "stdp103",
-      "stdp104"
+      "stdp107",
+      "stdp108"
     ],
     "std/yaml": [
       "stdp2",
@@ -1469,131 +1586,135 @@
       "stdp8",
       "stdp10",
       "stdp11",
-      "stdp27",
-      "stdp105"
+      "stdp29",
+      "stdp109"
     ],
     "std/base64": [
       "stdp9"
     ],
     "std/bcrypt": [
       "stdp9",
-      "stdp30"
-    ],
-    "std/netip": [
-      "stdp16"
-    ],
-    "std/charset": [
-      "stdp26"
-    ],
-    "std/backoff": [
-      "stdp28"
-    ],
-    "std/base32": [
-      "stdp29"
-    ],
-    "std/binary": [
-      "stdp31"
-    ],
-    "std/bufio": [
       "stdp32"
     ],
+    "std/netip": [
+      "stdp17"
+    ],
+    "std/publicsuffix": [
+      "stdp17",
+      "stdp47"
+    ],
+    "std/charset": [
+      "stdp28"
+    ],
+    "std/backoff": [
+      "stdp30"
+    ],
+    "std/base32": [
+      "stdp31"
+    ],
+    "std/binary": [
+      "stdp33"
+    ],
+    "std/bufio": [
+      "stdp34"
+    ],
     "std/multipart": [
-      "stdp39",
-      "stdp40",
       "stdp41",
-      "stdp42"
+      "stdp42",
+      "stdp43",
+      "stdp44"
     ],
     "std/textproto": [
-      "stdp39"
-    ],
-    "std/mime": [
-      "stdp40"
-    ],
-    "std/url": [
       "stdp41"
     ],
+    "std/mime": [
+      "stdp42"
+    ],
+    "std/url": [
+      "stdp43"
+    ],
     "std/crc64": [
-      "stdp46"
+      "stdp49"
     ],
     "std/deque": [
-      "stdp51"
+      "stdp54"
     ],
     "std/fnv": [
-      "stdp55"
-    ],
-    "std/jpeg": [
       "stdp58"
     ],
+    "std/jpeg": [
+      "stdp61"
+    ],
     "std/go": [
-      "stdp60"
-    ],
-    "std/heap": [
-      "stdp62"
-    ],
-    "std/html": [
-      "stdp63",
-      "stdp64"
-    ],
-    "std/htmlent": [
       "stdp63"
     ],
-    "std/htmlparse": [
-      "stdp63",
-      "stdp65",
+    "std/heap": [
+      "stdp65"
+    ],
+    "std/html": [
+      "stdp66",
+      "stdp67"
+    ],
+    "std/htmlent": [
       "stdp66"
+    ],
+    "std/htmlparse": [
+      "stdp66",
+      "stdp68",
+      "stdp69"
     ],
     "std/htmltok": [
-      "stdp63",
-      "stdp66"
+      "stdp66",
+      "stdp69"
     ],
     "std/idna": [
-      "stdp67",
-      "stdp68"
+      "stdp71",
+      "stdp72"
     ],
     "std/norm": [
-      "stdp68"
+      "stdp72"
     ],
     "std/protobuf": [
-      "stdp76"
+      "stdp80"
     ],
     "std/protodesc": [
-      "stdp76",
-      "stdp81",
-      "stdp82"
-    ],
-    "std/protowire": [
-      "stdp76",
-      "stdp82"
-    ],
-    "std/protowkt": [
-      "stdp76",
-      "stdp82",
-      "stdp84"
-    ],
-    "std/path": [
-      "stdp79"
-    ],
-    "std/protoparse": [
-      "stdp85"
-    ],
-    "std/random": [
+      "stdp80",
+      "stdp85",
       "stdp86"
     ],
+    "std/protowire": [
+      "stdp80",
+      "stdp86"
+    ],
+    "std/protowkt": [
+      "stdp80",
+      "stdp86",
+      "stdp88"
+    ],
+    "std/path": [
+      "stdp83"
+    ],
+    "std/protoparse": [
+      "stdp89"
+    ],
+    "std/random": [
+      "stdp90"
+    ],
     "std/rate": [
-      "stdp87"
+      "stdp91"
     ],
     "std/regexp": [
-      "stdp88",
-      "stdp89"
+      "stdp92",
+      "stdp93"
     ],
     "std/uniclass": [
-      "stdp89"
+      "stdp93"
     ],
     "std/tabwriter": [
-      "stdp94"
+      "stdp98"
     ],
     "std/term": [
-      "stdp96"
+      "stdp100"
     ]
   }
 }

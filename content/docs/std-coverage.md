@@ -6,7 +6,7 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.50.1 (development, main 43b28c7e4 of 2026-11-13); Go 1.26.11. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.51.0 (development, main c78769cbf of 2026-11-13); Go 1.26.11. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
@@ -434,7 +434,7 @@ Overall {{< level "Solid" >}}. Added v0.7.0 (2026-10-08).
 
 #### `std/httpproxy` {#mod-httpproxy}
 
-Overall {{< level "Early" >}}. Added unreleased (2026-11-12).
+Overall {{< level "Early" >}}. Added v0.51.0 (2026-11-12).
 
 - Features {{< level "Solid" >}}: no Go package maps to it; covers its own domain's common uses.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/httpproxy" >}}: Go's tests ported.
@@ -626,7 +626,7 @@ Overall {{< level "Early" >}}. Added v0.44.0 (2026-11-07).
 
 #### `std/publicsuffix` {#mod-publicsuffix}
 
-Overall {{< level "Early" >}}. Added unreleased (2026-11-12).
+Overall {{< level "Early" >}}. Added v0.51.0 (2026-11-12).
 
 - Features {{< level "Solid" >}}: no Go package maps to it; covers its own domain's common uses.
 - Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/publicsuffix" >}}: Go's tests ported.
