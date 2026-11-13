@@ -10,6 +10,9 @@
 set -eu
 cd "$(dirname "$0")/.."
 XO=${XO:-xo}
+# without an xo the mistakes loop would write "command not found" into
+# every check.txt (2026-11-13): stop first
+command -v "$XO" >/dev/null 2>&1 || { echo "check-examples: no xo ($XO); set XO=path/to/xo" >&2; exit 2; }
 fail=0
 for d in examples/tour/*/ examples/book/*/; do
   name=$(basename "$d")
