@@ -6,7 +6,7 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.50.1 (development, main 4e80cfe42 of 2026-11-13); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.50.1 (development, main 43b28c7e4 of 2026-11-13); Go 1.26.11. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
@@ -34,7 +34,7 @@ Each `std` module gets three marks, one per axis, and an overall level that is t
 
 How a mark is read here: *Features* from the rows of the coverage table that name the module (all done is Proven, any partial is Solid; a module with no Go package is Solid and says so). *Testing* from the committed corpus of Go's tests under `internal/stdtest/testdata/corpus`, Go differential tests, and fuzz tests for modules that parse untrusted input. *Performance* from a committed result file with a Go twin. A mark with no committed evidence is Early, so a missing result is the gap to close, not a hidden number. The dates are those of the result files, which can be older than this page; a re-run can only move a mark if the file is replaced.
 
-Today: overall 1 Proven, 24 Solid, 64 Early of 89 (prelude and 88 modules). Per axis, features 37/52/0, testing 1/63/25, performance 16/18/55 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
+Today: overall 1 Proven, 24 Solid, 64 Early of 89 (prelude and 88 modules). Per axis, features 37/52/0, testing 2/62/25, performance 16/18/55 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
 
 ### Per module
 
@@ -127,7 +127,7 @@ Marks only. Each module has its three marks (F features, T testing, P performanc
 | [`std/url`](#mod-url) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/httpurlfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/url-parse-2026-10-23.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported + fuzz · Performance 0.78x instr." >}} |
 | [`std/uuid`](#mod-uuid) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/uuid" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows3-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.72 to 1x" >}} |
 | [`std/websocket`](#mod-websocket) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows3-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing own tests · Performance 0.4 to 1.12x" >}} |
-| [`std/x509`](#mod-x509) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/x509/x509_test.xo" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/2 · Testing ported + fuzz · Performance 0.98x" >}} |
+| [`std/x509`](#mod-x509) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/x509" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/2 · Testing race, stress, fuzz 1M, review · Performance 0.98x" >}} |
 | [`std/xml`](#mod-xml) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/xmlfuzz/xmlfuzz_test.xo" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported + fuzz · Performance 0.95 to 1.15x" >}} |
 | [`std/xmlcodec`](#mod-xmlcodec) | {{< level "Solid" "" "F" "Features" >}} {{< level "Early" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/xmlcodec" "T" "Testing" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features own domain · Testing ported, no fuzz · Performance 0.57 to 1.13x" >}} |
 | [`std/yaml`](#mod-yaml) | {{< level "Solid" "" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/yaml" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features own domain · Testing ported · Performance no row" >}} |
@@ -821,7 +821,7 @@ Overall {{< level "Early" >}}. Added v0.24.0 (2026-10-21).
 Overall {{< level "Solid" >}}. Added v0.35.0 (2026-10-29).
 
 - Features {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: 1 of 2 mapped Go rows done, 1 partial.
-- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/x509/x509_test.xo" >}}: Go's tests ported; fuzz cases in its corpus.
+- Testing {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/x509" >}}: Proven evidence (race, stress, fuzz, review; decision 0616): TestX509Fuzz 1000000 cases per backend, 2 backends (arm64,llvm), 13m54s, 0 mismatches.
 - Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows2-2026-11-03.md" >}}: parse, verify, create and CRL at most 0.98 of Go's wall (2026-11-03).
 
 #### `std/xml` {#mod-xml}
