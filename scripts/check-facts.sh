@@ -36,7 +36,8 @@ for f in "${files[@]}"; do
   done < <(grep -nE '(^|[^0-9.])v?0\.[0-9]+\.[0-9]+([^0-9]|$)' "$f" || true)
 done
 tag=$(sed -n 's/^tag = "\(.*\)"$/\1/p' data/release.toml)
-newest=$(grep -l '^date:' content/releases/[0-9]*.md | while read -r p; do
+# a draft release page (draft: true, prepared before its cut) is not the newest
+newest=$(grep -L '^draft: *true' content/releases/[0-9]*.md | xargs grep -l '^date:' | while read -r p; do
   printf '%s %s\n' "$(sed -n 's/^date: *//p' "$p")" "$p"; done | sort -r | head -1 | cut -d' ' -f2)
 ptag=$(sed -n 's/^tag: *"\(.*\)"$/\1/p' "$newest")
 if [ "$ptag" != "$tag" ]; then
