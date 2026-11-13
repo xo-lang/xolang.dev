@@ -110,6 +110,7 @@ FUZZ = {  # module -> (evidence path, text)
     "cbor": ("internal/stdtest/cborfuzz_test.go", "1,500 seeded inputs from a byte level builder (random head widths, indefinite lengths, floats of every width, tags, simple values, repeated keys, text that is not UTF-8, then bits flipped, cuts, insertions) against fxamacker/cbor v2 (Go has no CBOR in its standard library), plus 12,000 fresh cases on arm64 and LLVM and the RFC 8949 Appendix A examples"),
     "compress": ("internal/stdtest/compressfuzz_test.go", "2,000 hostile DEFLATE, zlib and gzip streams (hand-built blocks and corrupted Go output) against Go's decoders, error texts exact, plus streaming and max_size, on every backend"),
     "archive": ("internal/stdtest/archivefuzz_test.go", "2,010 hostile tar and zip archives (Go-written and hand-built headers, cut and field-mutated) against Go's archive/tar and archive/zip readers on every backend"),
+    "time": ("internal/stdtest/timefuzz_test.go", "2,000 random layouts of named fields against Go's time with their Go twins: format equal, Go's own text parsed to its instant, changed texts accepted only as Go accepts them, on every backend"),
     "mime": ("internal/stdtest/mimefuzz_test.go", "2,000 cases against Go's mime and net/http: hostile Content-Type headers (RFC 2231, continuations, duplicates), format_media_type, every DetectContentType signature, on every backend"),
     "mail": ("internal/stdtest/mailfuzz_test.go", "2,000 addresses, address lists, header blocks and dates against Go's net/mail (RFC 2047, groups, folds, zones) on every backend"),
 }
@@ -185,12 +186,19 @@ def table_facts(path):
             continue
         cells = [c.strip() for c in l.strip().strip("|").split("|")]
         if col is None:
+            # a before/after table (one change's --ab) is not a row against
+            # Go: std-twin-time-2026-11-03.md's "ratio" was after/before and
+            # read as Xo/Go, so time showed Proven at 5.4x Go's format
+            if any("before" in c.lower() or "after" in c.lower() for c in cells):
+                col = "skip"
+                rows = []
+                continue
             for i, c in enumerate(cells):
                 if c.lower() in ("ratio", "xo / go", "xo/go"):
                     col = i; break
             rows = []
             continue
-        if set("".join(cells)) <= set("-: "):
+        if col == "skip" or set("".join(cells)) <= set("-: "):
             continue
         try:
             rows.append((cells[0], float(cells[col])))
