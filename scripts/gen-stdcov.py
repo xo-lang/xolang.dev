@@ -2,7 +2,7 @@
 # gen-stdcov.py XO_REPO WEBSITE_REPO: writes content/docs/std-coverage.md from the xo repo's committed files
 # (a checkout of xo-lang/xo at the commit to describe; needs go, git and its std/VERSION). Regenerate for each release:
 #   python3 scripts/gen-stdcov.py ~/path/to/xo .   then review the diff (the levels come from committed evidence).
-import os, re, subprocess, sys, json, collections
+import datetime, os, re, subprocess, sys, json, collections
 
 XO = sys.argv[1]
 WEB = sys.argv[2]
@@ -248,7 +248,48 @@ def feat(m):
         return "Solid", f"{c.get('done',0)} of {len(st)} mapped Go rows done, {c.get('partial',0)} partial", "knowledgebase/infrastructure/std-coverage.md"
     return "Proven", f"all {len(st)} mapped Go rows done", "knowledgebase/infrastructure/std-coverage.md"
 
+
+# decision 0616 section 5: the Proven marks of the testing and performance axes come from the committed
+# evidence files std/evidence/MODULE/KIND.md (a `key: value` header, then text). A file counts with
+# `result: pass` while its `source` matches the module's source hash now (scripts/stdproven hash), or
+# for 90 days after its date (section 3's "and one minor release" is not checked here). Testing is
+# Proven with race, stress and fuzz (and review, for the modules 0616 lists or that committed one).
+EVIDENCE_REVIEW = {"crypto", "tls", "http", "x509"}
+def evidence(m):
+    d = f"{XO}/std/evidence/{m}"
+    if not os.path.isdir(d):
+        return {}
+    cur = None
+    out = {}
+    for k in ("race", "stress", "fuzz", "review", "perf"):
+        f = f"{d}/{k}.md"
+        if not os.path.isfile(f):
+            continue
+        hdr = {}
+        for l in open(f):
+            mm = re.match(r"^([a-z]+): (.*)$", l.rstrip("\n"))
+            if not mm:
+                break
+            hdr[mm.group(1)] = mm.group(2).split("  #")[0].strip()
+        if hdr.get("result") != "pass":
+            continue
+        if cur is None:
+            cur = subprocess.run(["go", "run", "./scripts/stdproven", "hash", m], capture_output=True, text=True, cwd=XO).stdout.split("\n")[0].strip()
+        fresh = hdr.get("source") == cur
+        if not fresh:
+            age = (datetime.date.today() - datetime.date.fromisoformat(hdr.get("date", "1970-01-01"))).days
+            fresh = age <= 90
+        if fresh:
+            out[k] = (hdr, f"std/evidence/{m}/{k}.md")
+    return out
+EV = {}
+
 def test(m):
+    ev0 = EV.setdefault(m, evidence(m))
+    need = ["race", "stress", "fuzz"] + (["review"] if m in EVIDENCE_REVIEW or os.path.isfile(f"{XO}/std/evidence/{m}/review.md") else [])
+    if all(k in ev0 for k in need):
+        kinds = ", ".join(need)
+        return "Proven", f"Proven evidence ({kinds}; decision 0616): {ev0['fuzz'][0].get('measure', '')}", f"std/evidence/{m}"
     has_corpus = m in corpus
     diff = m in GODIFF
     if not (has_corpus or diff):
@@ -262,6 +303,12 @@ def test(m):
     return "Solid", what, ev
 
 def perf(m):
+    ev0 = EV.setdefault(m, evidence(m))
+    if "perf" in ev0:
+        h, f = ev0["perf"]
+        mm = re.search(r"worst Xo / Go (\d+\.\d+)", h.get("measure", ""))
+        if mm and float(mm.group(1)) <= 1.05:
+            return "Proven", f"worst case {mm.group(1)} of Go's wall over {h.get('measure','').split(',')[0]} ({h.get('date','')})", f
     if m in PERF:
         lv, ev, fact = PERF[m]
         return lv, fact, ev
@@ -285,6 +332,7 @@ def short_test(t):
     if x.startswith("own tests"): return "own tests"
     base = "differential" if "differential" in x and "ported" not in x else "ported"
     if "no fuzz harness" in x: return base + ", no fuzz"
+    if x.startswith("Proven evidence"): return "race, stress, fuzz 1M" + (", review" if "review" in x else "")
     if "hostile" in x: return base + " + hostile"
     if "fuzz" in x: return base + " + fuzz"
     return base
@@ -324,7 +372,7 @@ w("weight: 7")
 w("toc: true")
 w("---")
 w("")
-w(f"As of Xo {'0.36 (development, main %s of %s)' % (head, headdate)}; Go {gover[2:]}. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md]({GH}knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).")
+w(f"As of Xo {'%s (development, main %s of %s)' % (version, head, headdate)}; Go {gover[2:]}. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md]({GH}knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).")
 w("")
 w("## Summary")
 w("")

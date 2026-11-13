@@ -6,7 +6,7 @@ weight: 7
 toc: true
 ---
 
-As of Xo 0.36 (development, main d9c2b4fe7 of 2026-11-13); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
+As of Xo 0.50.1 (development, main 4e80cfe42 of 2026-11-13); Go 1.26.1. Every count below comes from a command run on that commit: `go list std` without internal and vendor packages, and the table in the repository's [std-coverage.md](https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md) (decision 0276: Go's standard library is std's reference scope).
 
 ## Summary
 
@@ -34,7 +34,7 @@ Each `std` module gets three marks, one per axis, and an overall level that is t
 
 How a mark is read here: *Features* from the rows of the coverage table that name the module (all done is Proven, any partial is Solid; a module with no Go package is Solid and says so). *Testing* from the committed corpus of Go's tests under `internal/stdtest/testdata/corpus`, Go differential tests, and fuzz tests for modules that parse untrusted input. *Performance* from a committed result file with a Go twin. A mark with no committed evidence is Early, so a missing result is the gap to close, not a hidden number. The dates are those of the result files, which can be older than this page; a re-run can only move a mark if the file is replaced.
 
-Today: overall 0 Proven, 25 Solid, 64 Early of 89 (prelude and 88 modules). Per axis, features 37/52/0, testing 0/64/25, performance 16/18/55 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
+Today: overall 1 Proven, 24 Solid, 64 Early of 89 (prelude and 88 modules). Per axis, features 37/52/0, testing 1/63/25, performance 16/18/55 (Proven/Solid/Early). No module has the committed `--race`, load stress, long fuzz and security review evidence that Proven testing needs yet.
 
 ### Per module
 
@@ -83,7 +83,7 @@ Marks only. Each module has its three marks (F features, T testing, P performanc
 | [`std/idna`](#mod-idna) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/idna" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-idna-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 0.44 to 0.98x" >}} |
 | [`std/image`](#mod-image) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/image" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 0/1 · Testing ported · Performance no row" >}} |
 | [`std/jpeg`](#mod-jpeg) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/jpegfuzz_test.go" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/std-twin-rows6-2026-11-03.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance 1.01 to 1.04x" >}} |
-| [`std/json`](#mod-json) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported + fuzz · Performance 0.33 to 0.49x instr." >}} |
+| [`std/json`](#mod-json) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/json" "T" "Testing" >}} {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/json/perf.md" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing race, stress, fuzz 1M, review · Performance 0.98x" >}} |
 | [`std/jsonrpc`](#mod-jsonrpc) | {{< level "Solid" "" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/jsonrpc" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features own domain · Testing ported · Performance no row" >}} |
 | [`std/jwt`](#mod-jwt) | {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/jwt" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/1 · Testing ported · Performance no row" >}} |
 | [`std/log`](#mod-log) | {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" "F" "Features" >}} {{< level "Early" "" "T" "Testing" >}} {{< level "Early" "" "P" "Performance" >}} {{< covdesc "Features 1/2 · Testing own tests · Performance no row" >}} |
@@ -466,11 +466,11 @@ Overall {{< level "Solid" >}}. Added v0.37.0 (2026-11-03).
 
 #### `std/json` {#mod-json}
 
-Overall {{< level "Solid" >}}. Added v0.7.0 (2026-10-08).
+Overall {{< level "Proven" >}}. Added v0.7.0 (2026-10-08).
 
 - Features {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/knowledgebase/infrastructure/std-coverage.md" >}}: all 1 mapped Go rows done.
-- Testing {{< level "Solid" "https://github.com/xo-lang/xo/blob/main/internal/stdtest/testdata/corpus/jsonfuzz/jsonfuzz_test.xo" >}}: Go's tests ported; fuzz corpus against encoding/json (2,022 cases; internal/stdtest/jsonfuzz_test.go runs fresh seeds).
-- Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md" >}}: 0.33 to 0.49 of Go's instructions on native (2026-10-21).
+- Testing {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/json" >}}: Proven evidence (race, stress, fuzz, review; decision 0616): TestJsonFuzz 1000000 cases per backend, 2 backends (arm64,llvm), 1h16m41s, 0 mismatches.
+- Performance {{< level "Proven" "https://github.com/xo-lang/xo/blob/main/std/evidence/json/perf.md" >}}: worst case 0.980 of Go's wall over 25 cases of 8 twin directories (2026-11-13).
 
 #### `std/jsonrpc` {#mod-jsonrpc}
 
