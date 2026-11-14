@@ -1,10 +1,10 @@
 {
-  "xo": "c78769cb",
+  "xo": "44bd5ccd",
   "files": {
     "xoc": {
-      "path": "assets/xoc-9888c0d2f327.brotli",
-      "size": 16445205,
-      "compressed": 2299863
+      "path": "assets/xoc-1c27ef24d4e4.brotli",
+      "size": 16445636,
+      "compressed": 2299721
     },
     "std": {
       "path": "assets/std-5b15c60d4543.brotli",
