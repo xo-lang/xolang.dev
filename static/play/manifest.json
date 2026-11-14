@@ -1,5 +1,5 @@
 {
-  "xo": "44bd5ccd",
+  "xo": "e391d9a4",
   "files": {
     "xoc": {
       "path": "assets/xoc-1c27ef24d4e4.brotli",
@@ -137,14 +137,14 @@
       "compressed": 16312
     },
     "stdp24": {
-      "path": "assets/stdp24-a7b2d678219e.brotli",
-      "size": 91618,
-      "compressed": 26121
+      "path": "assets/stdp24-7a1ff1e016ad.brotli",
+      "size": 98628,
+      "compressed": 27535
     },
     "stdp25": {
-      "path": "assets/stdp25-fef0e16738d3.brotli",
-      "size": 60207,
-      "compressed": 15078
+      "path": "assets/stdp25-0e2b76e8c085.brotli",
+      "size": 61725,
+      "compressed": 15461
     },
     "stdp26": {
       "path": "assets/stdp26-6a927e252484.brotli",
@@ -162,9 +162,9 @@
       "compressed": 3490
     },
     "stdp29": {
-      "path": "assets/stdp29-a1440a05bcf0.brotli",
-      "size": 77491,
-      "compressed": 17488
+      "path": "assets/stdp29-27ee322f79db.brotli",
+      "size": 84148,
+      "compressed": 19343
     },
     "stdp30": {
       "path": "assets/stdp30-f77cf810f2a0.brotli",
@@ -202,9 +202,9 @@
       "compressed": 8724
     },
     "stdp37": {
-      "path": "assets/stdp37-090f1ffb5a97.brotli",
-      "size": 23860,
-      "compressed": 6267
+      "path": "assets/stdp37-d30f8a766618.brotli",
+      "size": 24826,
+      "compressed": 6547
     },
     "stdp38": {
       "path": "assets/stdp38-26beb7978aed.brotli",
@@ -247,9 +247,9 @@
       "compressed": 707
     },
     "stdp46": {
-      "path": "assets/stdp46-a55d6ed6267f.brotli",
-      "size": 704938,
-      "compressed": 153616
+      "path": "assets/stdp46-2f4825f230b8.brotli",
+      "size": 705779,
+      "compressed": 153704
     },
     "stdp47": {
       "path": "assets/stdp47-082ca1b62fdf.brotli",
@@ -352,9 +352,9 @@
       "compressed": 11246
     },
     "stdp67": {
-      "path": "assets/stdp67-dd5a4ca71b28.brotli",
-      "size": 11224,
-      "compressed": 3048
+      "path": "assets/stdp67-ee23fab43b30.brotli",
+      "size": 11781,
+      "compressed": 3290
     },
     "stdp68": {
       "path": "assets/stdp68-b1839592f1d0.brotli",
