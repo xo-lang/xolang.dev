@@ -150,7 +150,29 @@ selection did not. Two changes fix it:
   an IR input, on one offload host, and copies it to every host. A gate
   then finds its base's manifest instead of building it.
 
-We will publish the measurement of that once it is on main. Figures are
+Both are on main now. The same change on the timing host, first with the
+ancestor rule alone (the gate built its base's manifest), then with the
+watcher's manifest of its base already on every host:
+
+| | Before | Ancestor rule | Base's manifest shared |
+|---|---:|---:|---:|
+| Choosing the LLVM golden programs | 1,956 s | 1,330 s | 1,253 s |
+| Goldens selected | 0 of 723 | 0 of 728 | 0 of 731 |
+| llvm step | 3,250 s | 1,396 s | 1,335 s |
+| arm64 step | 1,778 s | 1,586 s | 1,447 s |
+| cmd step | 1,415 s | 1,132 s | 1,050 s |
+| All steps | 3,322 s | 1,658 s | 1,519 s |
+
+That is 55 minutes down to 25. It is short of the 25 minute target by
+about 20 seconds, and the selection is still the slowest part. With the
+base's manifest shared, the selection only builds the change's own IR.
+Run on its own, that took under 5 minutes. Beside the arm64 and cmd
+tests it took 21, because those builds run at low priority so the tests
+keep the CPU. The arm64 goldens wait for the selection, so it sets the
+wall time too. The next step is to build only the IR of the goldens
+whose inputs a change touches.
+
+Figures are
 from [bench/results/gate-time-2026-11-14.md](https://github.com/xo-lang/xo/blob/main/bench/results/gate-time-2026-11-14.md),
 which keeps every step and test time of each run.
 
