@@ -69,14 +69,15 @@ x86-64 host with the LLVM backend (clang needed). After that, any Xo
 ## Backends and targets
 
 `--backend` picks how a program is built; with none, `xo build`, `xo
-run`, and `xo test` build natively (decision 0248): the arm64 backend on
-arm64 hosts, the LLVM backend elsewhere. Each backend needs different
-tools on the machine.
+run`, and `xo test` build natively (decisions 0248 and 0270): the arm64
+backend for an arm64 target, the amd64 backend for an x86-64 one. Each
+backend needs different tools on the machine.
 
 | Backend | Flag | Builds for | Needs |
 |---|---|---|---|
-| arm64 (default on arm64 hosts) | none, or `--backend=arm64` | darwin/arm64 and linux/arm64 | nothing: Xo's own assembler and linkers |
-| LLVM (default elsewhere) | none, or `--backend=llvm` | the host, including x86-64 Linux and Intel Macs | clang |
+| arm64 (native, the default for arm64) | none, or `--backend=arm64` | darwin/arm64 and linux/arm64 | nothing: Xo's own assembler and linkers |
+| amd64 (native, the default for x86-64) | none, or `--backend=amd64` | linux/amd64, darwin/amd64 and windows/amd64 | nothing: Xo's own assembler and linkers |
+| LLVM | `--backend=llvm` | the host, and the targets clang can build for | clang |
 | Go | `--backend=go` | every target in `--targets`: linux, darwin, windows (amd64 and arm64), and wasip1/wasm | the `go` command, Go 1.24 or newer (or `XO_GO` naming it) |
 | WebAssembly (experimental) | `--backend=wasm` | WASI preview 1 | nothing else; the module runs under any WASI runtime |
 
@@ -91,12 +92,16 @@ tools on the machine.
   the Mac included, linked by Xo's own ELF linker with no C library
   (decision 0243). A Linux program with no `use c` links no C library;
   `XO_NOLIBC=0` links glibc through `cc` instead.
-- `--targets=all` needs `--backend=go`: it builds linux/amd64,
-  linux/arm64, darwin/amd64, darwin/arm64, windows/amd64,
-  windows/arm64, and wasip1/wasm, one binary per target.
+- `--targets=all` builds linux/amd64, linux/arm64, darwin/amd64,
+  darwin/arm64, windows/amd64 and wasip1/wasm, each with its own native
+  backend, as `NAME-OS-ARCH` in `-o`'s directory; windows/arm64 needs
+  `--backend=go`, whose `--targets=all` builds all seven.
 - Windows (x86-64), Intel Macs and x86-64 Linux build with the native
-  x86-64 backend, the default on x86-64 hosts; it is tested on a smaller
-  scale than the arm64 hosts.
+  amd64 backend; it is tested on a smaller scale than the arm64 hosts. A
+  Windows build takes `--versioninfo=FILE.json` (goversioninfo's format),
+  `--icon=FILE.ico` and `--manifest=FILE` (decision 0560).
+- `--targets=wasip2/wasm` builds a program that calls
+  `http.serve_component` as a wasi:http 0.2 component (decision 0447).
 - `use c` works only on the native backends. `use go` needs
   `--backend=go`: without it, such a program is a usage error naming the
   Go package.
@@ -139,11 +144,20 @@ Useful flags of all three: `--backend`, `--no-gc`, `-o`, `--json`,
 backend). `xo build` and `xo run` take `--stamp NAME=VALUE` (sets a
 string constant for this build). `xo build` also takes `--targets`,
 `--ld`, `--ci` (fail on unformatted code or a leftover `dbg`),
-`--release`, `-s` (no debug information or local symbols), and
-`--debug-info` (line tables in a release build too). `xo test` takes
-`--seed=N`, `--explore=N`, `--cases=N`, `--run=NAME`, `-v`, and `--real`
-(tests that declare effects run with real capabilities). `xo run` and
-`xo test` take `--profile` and `--trace` (below).
+`--release` (a preset: no debug contracts, no `dbg`, no debug
+information, no profiler or trace recorder, `--opt=O2`; an explicit flag
+wins), `-s` (no debug information or local symbols), `--debug-info`
+(`on`, `off`, or `split`: a `.dSYM` on darwin, a `.debug` file on
+Linux), `--opt=O0..O3` (the LLVM backend), and `--trimpath` (on by
+default: the binary records no path of the building machine). `xo test`
+takes `--seed=N`, `--explore=N`, `--cases=N`, `--run=NAME`, `-v`,
+`--real` (tests that declare effects run with real capabilities),
+`--timeout=D` (each test, 60 s by default), `--count=1`, and
+`--fail-empty`. `xo run` and `xo test` take `--profile` and `--trace`
+(below), and `--watch` (rebuild or rerun after a change to the module's
+sources). In the next release, `xo build`, `xo run` and `xo test` also
+take `--check=free,guard,leak` (or `all`): the native runtime's memory
+checks (decision 0638).
 
 Contract fuzzing runs on every backend (decision 0250); a contract whose
 generated native test does not check yet is skipped and counted per
@@ -183,6 +197,15 @@ or `--trace-support`. Native binaries carry DWARF line tables, so
 | `xo edit` | Semantic edits: `rename`, `add-field`, `change-sig`, rechecked before writing | `xo edit rename --dry-run greet salute` |
 | `xo doc` | Documentation from doc comments | `xo doc .` |
 | `xo explain` | The long explanation of a diagnostic code | `xo explain XO0201` |
+| `xo parse` | Syntax diagnostics only; `--ast` prints each file's syntax tree | `xo parse --json main.xo` |
+| `xo def` | Where a name is declared, with its signature and doc comment | `xo def Counter.next` |
+| `xo refs` | Every reference to a name, the declaration marked | `xo refs greet` |
+| `xo type` | The type and declaration at a position | `xo type main.xo:12:7` |
+| `xo symbols` | A directory's, file's or module's declarations | `xo symbols --pub --module=std/json` |
+
+`xo def`, `xo refs`, `xo type` and `xo symbols` print one record a line,
+so `grep` and `head` cut them; `--json` gives the same answer as JSON.
+They exit 0 with an answer, 1 for no match, and 2 for a usage error.
 
 `xo check --fix` is the agent loop's check: it applies every
 unambiguous fix, reformats what it changed, and reports what remains.
@@ -199,8 +222,10 @@ unambiguous fix, reformats what it changed, and reports what remains.
 | `xo audit` | Supply chain report: each dependency's effects, escape hatches, and the capabilities you pass it | `xo audit .` |
 | `xo publish` | Check a release of your module against its previous tag | `xo publish --check` |
 
-`xo mod clean` empties the module cache, and `xo mod proxy serve`
-serves it as a module proxy. Every module command takes `--offline`.
+`xo mod graph` prints the requirement graph as `go mod graph` does,
+`xo mod clean` empties the module cache, `xo mod proxy serve` serves it
+as a module proxy (`xo mod proxy fill` copies modules to a bucket), and
+`xo mod sumdb` runs a checksum database (`keygen`, `serve`, `restore`). Every module command takes `--offline`.
 See [Dependencies and capabilities](/docs/dependencies/) for effect
 ceilings and vouches.
 
@@ -210,6 +235,7 @@ ceilings and vouches.
 |---|---|---|
 | `xo bind` | Generate bindings of Go packages for `use go` (runs `xo-gobind`) | `xo bind github.com/google/uuid` |
 | `xo bind --c` | Generate bindings of C headers for `use c` | `xo bind --c --link z zlib.h` |
+| `xo proto gen` | Generate `derive Proto` structs and enums from `.proto` files (proto2 and proto3; no services) | `xo proto gen --out=gen api.proto` |
 
 You rarely need to run these yourself: `xo check` and the builds bind a
 missing package or header on first use.
@@ -224,6 +250,9 @@ missing package or header on first use.
 | `xo dump` | The task tree of a running program (Go backend builds) | `xo dump 4121` |
 | `xo trace` | The JSON and summary of an execution trace | `xo trace t.raw` |
 | `xo replay` | Replay a run recorded with `xo run --record=trace.xotrace` (Go backend), or a crash bundle (`.xocrash`) | `xo replay trace.xotrace` |
+| `xo debug` | Run a native program under Xo's own debugger (macOS, Linux, Windows): breakpoints, stepping, `print`, `tasks`; `-p PID` attaches, `--batch -c CMD` scripts it, `--json` for agents, `--dap` for editors | `xo debug --batch -c 'b main.xo:12' -c r -c bt ./prog` |
+| `xo bench --ab` | Run two programs (or one under two settings) in interleaved rounds: per metric the medians, the ratio with a 95% interval, and a verdict (better, worse, within noise) | `xo bench --ab --rounds=9 ./old ./new` |
+| `xo clean -cache` | Remove the caches xo keeps under the user cache directory (`-n` shows what it would remove) | `xo clean -cache -n` |
 | `xo version` | The toolchain version and host | `xo version` |
 
 ## Environment variables
@@ -238,9 +267,17 @@ missing package or header on first use.
 | `XO_PROF` | `cpu`, `heap`, or `cpu,heap`: profile a native program (`XO_PROF_HZ`, `XO_PROF_OUT`) |
 | `XO_TRACE` | A file to record a native program's execution trace into |
 | `XO_TRACEBACK` | `1`: an uncaught fault prints its frames |
-| `XO_THREADS` | How many worker threads a native program's scheduler uses |
+| `XO_THREADS` | How many worker threads a native program's scheduler uses (default: one per CPU the process may run on; on Linux its affinity mask, so `taskset` and a cpuset limit it; in the next release a cgroup CPU quota too, as Go's GOMAXPROCS, decision 0640) |
+| `XO_RTSTATS` | `1`: a native program prints scheduler counters (spawns, steals, wakes, parks) and socket counters at exit |
+| `XO_LEAKCHECK` | `1`: when `main` returns, a native program prints `xo leakcheck: N live of M allocations` |
+| `XO_HEAPSTATS` | `1`: at exit, the heap by size class |
+| `XO_OFFLINE` | `1`: never fetch a module (as `--offline`; a missing module is `XO1303`) |
+| `XO_WORK` | `off`: ignore `xo.work` (as `--workspace=off`) |
 
-## Coming later
+## Developer harnesses
 
-Developer harnesses written in Xo, under an `xo dev` command, are
-planned (decision 0209) but do not exist yet.
+`xo dev` holds the harnesses the project's own tests use (decision 0209),
+not listed by `xo help`: `goldens` (build and run program goldens on a
+backend), `errorcheck`, `codegen` (patterns over the generated code),
+`bisect-pass`, `dwarf`, `unwind`, `symbolize`, `compare`, `size`, and
+others; `xo dev` with no arguments lists them in its usage line.
