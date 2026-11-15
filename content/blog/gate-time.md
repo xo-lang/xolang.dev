@@ -62,9 +62,12 @@ The arm64 step had the same shape, with one more twist we found later.
 
 **An ancestor's manifest.** The goldens whose IR differs between an
 ancestor of the base and the change are the base's selection plus those
-the commits in between changed: a superset. So the gate now uses the
-newest cached manifest within 30 commits of the base, and only builds the
-change's side. Nothing the base would select is lost.
+the commits in between changed: a superset. So the gate first used the
+newest cached manifest within 30 commits of the base, and only built the
+change's side. Nothing the base would select is lost. But it saved time
+only when no compiler commit fell in between, and on a main that moves
+this fast one nearly always does. The next section says what that cost
+and how we fixed it.
 
 **Test areas.** A new file, `scripts/gate-areas.txt`, lists the slow tests
 of the three heaviest packages with the paths that can break them:
@@ -92,12 +95,20 @@ The gate now records each parent's summed subtest time, and those parents
 are scoped too.
 
 **More parallelism for the change's manifest.** The change's side of the
-selection built the 723 IRs four at a time on an 18 CPU host. It now uses
-a third of the CPUs (the gate runs three steps at once).
+selection built the 723 IRs four at a time, and each build was blocked
+half its time. It now runs as many builds as the CPUs and the free memory
+allow. On a 12 CPU host, choosing alone went from 988 to 292 seconds.
 
-## The speedup
+**The arm64 goldens follow the same selection.** The arm64 tests that
+build every golden program now build only the ones whose LLVM IR the
+change alters, when the change leaves the native backend alone (the IR
+and the native code come from the same SSA). For a change to std's CSV
+module, the arm64 package went from 551 to 253 seconds.
 
-The same comment-only change, gated on the same host:
+## The speedup, and a correction
+
+The same comment-only change, gated on the same 18 CPU host, the day the
+fixes went in:
 
 | | Before | After |
 |---|---:|---:|
@@ -108,16 +119,39 @@ The same comment-only change, gated on the same host:
 | cmd step | 1,445 s | 1,059 s |
 | All steps (they run at once) | 3,629 s | 2,014 s |
 
-The gate went from 60 minutes to 34, 44% less, for a change that
-selects nothing. A change outside the compiler skips more: the arm64
-tests that only a compiler pass can break stay out of its gate. The
-largest remaining piece of the llvm step is choosing the goldens itself.
-A third fix is on main and not yet measured: the package's other tests
-now run while the goldens are chosen, and the sanitizer builds (which had
-built every task and network golden even when none was selected) follow
-the selection outside the runtime, scheduler and network code.
+That was 60 minutes down to 34, and it was true for that base. The next
+day we ran it again on our 12 CPU timing host, with nothing else on the
+machine, once on the old code and once on a main with every fix:
 
-Figures are from [bench/results/gate-time-2026-11-14.md](https://github.com/xo-lang/xo/blob/main/bench/results/gate-time-2026-11-14.md),
+| | Before | Now |
+|---|---:|---:|
+| Choosing the LLVM golden programs | 1,956 s | 1,415 s |
+| Goldens selected | 0 of 723 | 722 of 728 |
+| llvm step | 3,250 s | 3,437 s |
+| arm64 step | 1,778 s | 1,749 s |
+| cmd step | 1,415 s | 1,074 s |
+| All steps | 3,322 s | 3,509 s |
+
+The gate was slower than before: 3,509 seconds against 3,322. The only
+cached manifest near its base was 25 commits back, and compiler commits
+in between had changed almost every golden's IR. So the superset was
+everything: 722 of 728 goldens ran, in the llvm step and, through the new
+arm64 selection, in the arm64 step too. We checked 14 pairs of
+consecutive cached manifests: every window with compiler commits differed
+in 647 to 719 goldens. The first run had simply found a close ancestor.
+
+The test scoping held (cmd went from 1,415 to 1,074 seconds). The
+selection did not. Two changes fix it:
+
+- An ancestor's manifest stands in for the base's only when the commits
+  between them change none of the IR's inputs (the compiler and std's
+  sources). Otherwise the gate builds the base's own, at full width.
+- A watcher builds main's manifest once for each main commit that changes
+  an IR input, on one offload host, and copies it to every host. A gate
+  then finds its base's manifest instead of building it.
+
+We will publish the measurement of that once it is on main. Figures are
+from [bench/results/gate-time-2026-11-14.md](https://github.com/xo-lang/xo/blob/main/bench/results/gate-time-2026-11-14.md),
 which keeps every step and test time of each run.
 
 ## How we will catch it next time
@@ -135,6 +169,7 @@ total. So the total now has a check:
 - A regression goes to the lead's bottleneck log. The baseline moves only
   in a commit that says why.
 
-The lesson we took: when a step gains a selection, measure it with an
-empty selection. What remains is the floor, and it is what every
-unrelated change pays.
+Two lessons. When a step gains a selection, measure it with an empty
+selection: what remains is the floor, and every unrelated change pays it.
+And measure it again on a later day, on a quiet machine: our first
+"after" was right for its base and wrong for the next one.
