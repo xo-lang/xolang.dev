@@ -49,7 +49,8 @@ fi
 # and the lead, 2026-11-15: the live page stood at 1 Proven while main had 11):
 # its "main HASH of DATE" is at most 7 days older than the site's HEAD commit,
 # and, when XO_REPO names a checkout of the public xo-lang/xo (the page's
-# hashes are the public repository's), HASH is an ancestor of its origin/main
+# hashes are the public repository's), HASH is an ancestor of its origin/main (main
+# in the publish mirror)
 # (STDCOV_MAX_DAYS changes the 7)
 cov=content/docs/std-coverage.md
 if [ -f "$cov" ]; then
@@ -63,8 +64,14 @@ if [ -f "$cov" ]; then
     if [ "$age" -gt "${STDCOV_MAX_DAYS:-7}" ]; then
       echo "check-facts: $cov describes main $chash of $cdate, $age days before this site commit ($sdate): regenerate with scripts/gen-stdcov.py XO_REPO ."; fail=1
     fi
-    if [ -n "${XO_REPO:-}" ] && ! git -C "$XO_REPO" merge-base --is-ancestor "$chash" origin/main 2>/dev/null; then
-      echo "check-facts: $cov describes $chash, which is not on $XO_REPO's origin/main (XO_REPO must be the public xo-lang/xo)"; fail=1
+    if [ -n "${XO_REPO:-}" ]; then
+      # origin/main in a clone of the public repository; main in the publish
+      # mirror (xo-publish), which has no remote
+      ref=origin/main
+      git -C "$XO_REPO" rev-parse -q --verify "$ref^{commit}" >/dev/null || ref=main
+      if ! git -C "$XO_REPO" merge-base --is-ancestor "$chash" "$ref" 2>/dev/null; then
+        echo "check-facts: $cov describes $chash, which is not on $XO_REPO's $ref (XO_REPO must be the public xo-lang/xo or its publish mirror)"; fail=1
+      fi
     fi
   fi
 fi

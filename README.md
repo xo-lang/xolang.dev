@@ -100,3 +100,18 @@ The announcement bar text lives in `hugo.toml`; set `enabled = false` to hide it
   build them).
 - CI: `.github/workflows/pages.yml` runs the playground test before every
   deploy.
+
+## Every deploy: std coverage from public main
+
+Before each deploy (a release or not), regenerate the std coverage page
+from the public repository's main, never from a private checkout: its
+hashes and links are the public xo-lang/xo's. With the publish mirror at
+public main (after `publish.sh push`):
+
+    python3 scripts/gen-stdcov.py ~/godev/claude-space/xolang/xo-publish . && XO_REPO=~/godev/claude-space/xolang/xo-publish scripts/check-facts.sh
+
+Review the diff and commit it with the deploy. `scripts/check-facts.sh`
+fails when the page's "development, main HASH of DATE" is more than 7
+days older than the site commit (`STDCOV_MAX_DAYS`), and, with `XO_REPO`
+set, when HASH is not on that repository's origin/main (main in the
+publish mirror, which has no remote).
