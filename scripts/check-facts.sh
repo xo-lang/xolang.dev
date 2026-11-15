@@ -45,6 +45,29 @@ if [ "$ptag" != "$tag" ]; then
   echo "check-facts: data/release.toml tag $tag, but the newest release page $newest says $ptag"
   fail=1
 fi
+# std coverage is regenerated from main at every deploy (gen-stdcov.py, Lang 2
+# and the lead, 2026-11-15: the live page stood at 1 Proven while main had 11):
+# its "main HASH of DATE" is at most 7 days older than the site's HEAD commit,
+# and, when XO_REPO names a checkout of the public xo-lang/xo (the page's
+# hashes are the public repository's), HASH is an ancestor of its origin/main
+# (STDCOV_MAX_DAYS changes the 7)
+cov=content/docs/std-coverage.md
+if [ -f "$cov" ]; then
+  lbl=$(grep -o 'development, main [0-9a-f]* of [0-9-]*' "$cov" | head -1)
+  chash=$(echo "$lbl" | awk '{print $3}'); cdate=$(echo "$lbl" | awk '{print $5}')
+  if [ -z "$chash" ] || [ -z "$cdate" ]; then
+    echo "check-facts: $cov has no \"development, main HASH of DATE\" label (regenerate with scripts/gen-stdcov.py XO_REPO .)"; fail=1
+  else
+    sdate=$(git log -1 --format=%cs HEAD)
+    age=$(python3 -c 'import sys, datetime as d; print((d.date.fromisoformat(sys.argv[1]) - d.date.fromisoformat(sys.argv[2])).days)' "$sdate" "$cdate")
+    if [ "$age" -gt "${STDCOV_MAX_DAYS:-7}" ]; then
+      echo "check-facts: $cov describes main $chash of $cdate, $age days before this site commit ($sdate): regenerate with scripts/gen-stdcov.py XO_REPO ."; fail=1
+    fi
+    if [ -n "${XO_REPO:-}" ] && ! git -C "$XO_REPO" merge-base --is-ancestor "$chash" origin/main 2>/dev/null; then
+      echo "check-facts: $cov describes $chash, which is not on $XO_REPO's origin/main (XO_REPO must be the public xo-lang/xo)"; fail=1
+    fi
+  fi
+fi
 # the std reference: one page per module, the index lists exactly those pages, and no page names the release
 if [ -d content/docs/stdlib ]; then
   idx=content/docs/stdlib/_index.md
