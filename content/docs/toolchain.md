@@ -93,9 +93,14 @@ backend needs different tools on the machine.
   (decision 0243). A Linux program with no `use c` links no C library;
   `XO_NOLIBC=0` links glibc through `cc` instead.
 - `--targets=all` builds linux/amd64, linux/arm64, darwin/amd64,
-  darwin/arm64, windows/amd64 and wasip1/wasm, each with its own native
-  backend, as `NAME-OS-ARCH` in `-o`'s directory; windows/arm64 needs
-  `--backend=go`, whose `--targets=all` builds all seven.
+  darwin/arm64, windows/amd64, windows/arm64 and wasip1/wasm, each with
+  its own native backend, as `NAME-OS-ARCH` in `-o`'s directory.
+  freebsd/amd64 and freebsd/arm64 build natively when named (decision
+  0573); linux/riscv64 builds only with `--backend=llvm` (decision 0571).
+- `--lib=shared` or `--lib=static` builds the root package as a C
+  library with `NAME.h` beside it; its `pub fn ... as c "name"`
+  functions are the exports (decision 0574). On Windows, `--lib=shared`
+  writes `NAME.dll` and its import library `NAME.lib`.
 - Windows (x86-64), Intel Macs and x86-64 Linux build with the native
   amd64 backend; it is tested on a smaller scale than the arm64 hosts. A
   Windows build takes `--versioninfo=FILE.json` (goversioninfo's format),
