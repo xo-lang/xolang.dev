@@ -18,6 +18,9 @@ CGO_ENABLED=0 GOBIN=$PWD/.tools/bin go install github.com/gohugoio/hugo@v0.167.0
 # posts at or before the moment you publish, with an offset
 # (2026-10-27T15:50:00-04:00), and check the page is in public/ after a
 # build. This has dropped pages several times (latest: the 0.33 notes).
+# scripts/check-future.sh fails on such a page (pages.yml runs it before
+# the build; HUGO=path names another hugo).
+scripts/check-future.sh
 
 # Refresh the spec, release notes, and diagnostic code pages from the Xo
 # repo (default ../../codelang, or $XO_REPO, or a path argument). Builds
