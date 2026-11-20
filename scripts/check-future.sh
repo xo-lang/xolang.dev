@@ -12,7 +12,13 @@ out=$("$hugo" list future)
 pages=$(printf '%s\n' "$out" | tail -n +2 | grep -v '^$' || true)
 if [ -n "$pages" ]; then
   echo "check-future: these pages are dated in the future and Hugo would leave them out:"
-  printf '%s\n' "$pages" | cut -d, -f1,4,6
+  # path, date and publishDate; a CSV reader, since Hugo quotes a title
+  # with a comma and cut -d, split inside it (task #504)
+  printf '%s\n' "$out" | python3 -I -c 'import csv, sys
+rows = list(csv.reader(sys.stdin))
+for r in rows[1:]:
+    if r:
+        print(",".join([r[0], r[3], r[5]]))'
   exit 1
 fi
 echo "check-future: ok"
