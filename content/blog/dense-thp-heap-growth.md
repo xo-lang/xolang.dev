@@ -157,6 +157,13 @@ change has a test in `heapos_test.xo` that reads the process's `smaps`
 and finds no huge page mapping where there should be none, and each
 fails without its change.
 
+With both fixes in, grpcreflect's stress ran 60 minutes three times on
+linux/arm64 host 3 (64 tasks, arm64 backend, at c719f98f0): every answer as
+expected, and the resident set grew 2.0%, 8.0% and 4.0% from the mark
+(the median of minutes 30 to 32) to the end (the median of the last 3
+minutes), with a peak of 94 to 98 MB
+([std/evidence/grpcreflect/stress.md](https://github.com/xo-lang/xo/blob/main/std/evidence/grpcreflect/stress.md)).
+
 ## What we keep from it
 
 - **A rule for the heap.** Every path that gives pages back under dense
