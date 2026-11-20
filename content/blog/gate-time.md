@@ -1,6 +1,6 @@
 ---
 title: "The test floor: why selecting fewer tests did not make our gates faster"
-date: 2026-11-14T18:00:00-05:00
+date: 2026-11-20T09:00:00-05:00
 description: "Every push to Xo runs a gate. Over two days the LLVM step of that gate averaged 45 minutes, even for a change that selected no test programs at all. How we found the fixed floor, the two costs hiding under it, what we changed, and the daily check that keeps it from coming back."
 ---
 
@@ -171,6 +171,14 @@ tests it took 21, because those builds run at low priority so the tests
 keep the CPU. The arm64 goldens wait for the selection, so it sets the
 wall time too. The next step is to build only the IR of the goldens
 whose inputs a change touches.
+
+**Since then** (2026-11-17 to 2026-11-20): a gate whose change leaves the
+IR inputs alone reuses its base's manifest, filtered to the change's scope,
+instead of building the base's compiler and IR (commit 9d1b071c7), and a
+gate that does build one shares it with the host's other gates (4b53bd23b).
+A selection keyed by each golden's LLVM binary is in testing behind a
+flag (decision 0657, stage 2; bb8021698). We have not measured these
+end to end yet; the figures above are the last we have.
 
 Figures are
 from [bench/results/gate-time-2026-11-14.md](https://github.com/xo-lang/xo/blob/main/bench/results/gate-time-2026-11-14.md),
