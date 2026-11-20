@@ -372,6 +372,27 @@ No other module's committed timings were rerun between the commit
 before the register fix and the commit after, so we claim no other
 before and after from them.
 
+## Update: Brotli at the 0.55 release
+
+After this article was written, two more std changes landed for Brotli
+(tasks #457 and #271), and the timing evidence was rerun on the second
+linux/arm64 machine at commit 8211a298b (medians of 9 runs, Go and Xo
+alternating):
+
+| workload | Go ms | Xo ms | Xo / Go |
+|---|---|---|---|
+| text (decode) | 51.4 | 48.4 | 0.942 |
+| html (decode) | 24.4 | 23.1 | 0.946 |
+| mixed (decode) | 24.5 | 21.5 | 0.876 |
+| enc1 | 34.1 | 16.1 | 0.472 |
+| enc6 | 21.9 | 20.4 | 0.930 |
+| enc11 | 172.0 | 176.1 | 1.024 |
+
+On that machine every case but enc11 is now faster than Go, and enc11,
+which was 1.555 there, is 1.024: inside the standard library's Proven
+bar of 1.05. These rows are from one machine; the linux/amd64 and Mac
+figures above were not rerun.
+
 ## Catching the next one before a port does
 
 The lesson is not that Brotli was special. It is that we found these
@@ -392,8 +413,8 @@ ported. So we are building checks that look for the shape directly:
 - A kernel suite: a known set of benchmark kernels ported under bench/,
   each timed against Go and C.
 
-None of the four has landed yet; they are scheduled after the standard
-library reaches its Proven bar. When they do, the next Brotli should
+None of the four has landed yet; they are scheduled now that the
+standard library has reached its Proven bar (2026-11-20). When they do, the next Brotli should
 show up as a red line in a report, not as a 1.49 in a port.
 
 ## Sources and method
@@ -403,6 +424,8 @@ Every number above comes from a file or commit in the Xo repository:
 - Why Brotli, the port's size: knowledgebase/decisions/0666-std-brotli.md
   (Context), and bench/results/ui-wasm-client-2026-11-15.md for the
   client sizes and the 4G estimate.
+- The update's table: std/evidence/brotli/perf.md at commit ac7dbacc3
+  (linux/arm64, measured at 8211a298b; lines 15 to 21).
 - Correctness: std/evidence/brotli/fuzz.md (line 9), stress.md (line 9),
   race.md (line 11).
 - The first timing table: std/evidence/brotli/perf.md at 0d711b43f~1
