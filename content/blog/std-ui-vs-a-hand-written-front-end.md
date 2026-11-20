@@ -2,7 +2,7 @@
 title: "Build a todo app with std/ui, then build it again by hand"
 date: 2026-11-20T09:00:00-05:00
 description: "A step by step tutorial: a shared todo list in Xo with std/ui, where the server and the browser run one update function, from the Model to a wasm client that shows each action before the server answers. Then the same app built the usual way, with hand written HTML, CSS and JavaScript over a JSON API, and measurements of both in Chrome."
-draft: true
+draft: false
 ---
 
 std/ui is Xo's library for web apps. You write four things: a Model, a
