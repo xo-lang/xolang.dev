@@ -175,9 +175,9 @@ These runs started at load 5.
   linux/arm64 comparison, Xo's peak memory was 0.083 to 0.77 of Go's on
   nineteen, and within noise of it on strings (0.994)
   ([release-vs-go-v0.55.0-linux-arm64-run.md, lines 29 to 333](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64-run.md#L29-L333)).
-  A CRUD server under 1,024 connections peaked at 47 to 60 MB against
-  Go's 66 to 78 MB
-  ([net-vs-go-2026-10-22.md, line 33](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-22.md#L33)).
+  The HTTP server's /alloc page peaked at 4,388 KB against tuned Go's
+  1,012,888 KB
+  ([release-vs-go-v0.55.0-linux-arm64-http.md, lines 1 to 69](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64-http.md#L1-L69)).
 - **Startup**: not measured as a comparison yet; it is on the list for
   the next release's run.
 - **Platforms**: Go runs on many more operating systems and
@@ -262,15 +262,16 @@ packages; median of 5 runs a side):
 | time parse | 0.576 | [survey, line 556](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L556) |
 | time civil fields | 0.355 | [survey, line 551](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L551) |
 | csv parse | 0.794 | [survey, line 194](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L194) |
+| WebSocket echo, 64 B text, 20,000 round trips (gorilla/websocket) | 0.937 | [survey, line 623](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L623) |
+| WebSocket echo, 16 KB binary, 5,000 round trips | 0.368 | [survey, line 620](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L620) |
+| WebSocket handshakes, 500 | 0.701 | [survey, line 621](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L621) |
 
-**Network** (native Xo against Go's net/http, crypto/tls, and
-gorilla/websocket, 2026-10-23; Xo's rate over Go's, higher is better
+**Network** (native Xo against Go's net/http and crypto/tls,
+2026-10-23; Xo's rate over Go's, higher is better
 for Xo). The Mac was not quiet: load 5.0 to 5.7 at the start of each
-run, rising to 23 during the CRUD rounds. Reps are interleaved (Xo, Go,
-Xo, Go) so a load burst hits both alike; the table gives the median and
-the number of reps, and the file gives every rep. TLS, HTTP/2,
-WebSocket, and HTTP/1.1 rows run natively on macOS; the CRUD row runs in
-linux/arm64 Docker on the same Mac
+run. Reps are interleaved (Xo, Go, Xo, Go) so a load burst hits both
+alike; the table gives the median and the number of reps, and the file
+gives every rep. The rows run natively on macOS
 ([net-vs-go-2026-10-23.md, lines 7 to 30](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L7-L30)).
 An HTTP server pair on host 1 (scripts/release-vs-go.sh's http section,
 xo 0.55.0, 2026-11-21, 12 rounds a row) compares Go at its defaults
@@ -293,13 +294,8 @@ CPU per request
 | TLS 1.3 bulk, AES-128-GCM | 1.37 | 4 | [line 37](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L37) |
 | TLS 1.2 bulk, ChaCha20-Poly1305 | 1.17 | 5 | [line 38](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L38) |
 | TLS 1.3 handshakes (x25519, P-256, resumed) | 1.04 to 1.46 | 3 | [lines 41 to 43](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L41-L43) |
-| WebSocket echo, 64 B, 1 connection | **0.97** | 5 | [line 54](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L54) |
-| WebSocket echo, 64 B, 16 connections | 1.20 | 5 | [line 55](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L55) |
-| CRUD server, 1,024 connections (Docker) | 1.06 requests/s; 0.87 of Go's CPU per request | 5 | [lines 66 to 67](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L66-L67) |
-| HTTP/1.1 server rows (plain, item, items, echo, router) | 1.08 to 1.43 requests/s; 0.39 to 0.63 of Go's CPU per request | 3 | [lines 81 to 87](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L81-L87) |
 
-The single-connection WebSocket row is within the spread of its reps
-(0.86 to 1.46). An earlier run on 2026-10-22 under heavier load showed
+An earlier run on 2026-10-22 under heavier load showed
 gaps on the bulk TLS and download rows (0.61 to 0.76,
 [net-vs-go-2026-10-22.md](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-22.md#L23-L33));
 the re-measure with interleaved reps did not reproduce them.
