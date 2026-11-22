@@ -116,5 +116,7 @@ public main (after `publish.sh push`):
 Review the diff and commit it with the deploy. `scripts/check-facts.sh`
 fails when the page's "development, main HASH of DATE" is more than 7
 days older than the site commit (`STDCOV_MAX_DAYS`), and, with `XO_REPO`
-set, when HASH is not on that repository's origin/main (main in the
-publish mirror, which has no remote).
+set, when HASH is on neither that repository's origin/main (main in the
+publish mirror, which has no remote) nor a release tag (`v*`: a release's
+page may cite the tag's own commit). `scripts/test-check-facts.sh` tests
+that rule.

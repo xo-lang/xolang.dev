@@ -50,7 +50,8 @@ fi
 # its "main HASH of DATE" is at most 7 days older than the site's HEAD commit,
 # and, when XO_REPO names a checkout of the public xo-lang/xo (the page's
 # hashes are the public repository's), HASH is an ancestor of its origin/main (main
-# in the publish mirror)
+# in the publish mirror) or of one of its release tags (v*: the page cites the
+# release's own commit, which is on the release tag, not on main; task #684)
 # (STDCOV_MAX_DAYS changes the 7)
 cov=content/docs/std-coverage.md
 if [ -f "$cov" ]; then
@@ -69,8 +70,9 @@ if [ -f "$cov" ]; then
       # mirror (xo-publish), which has no remote
       ref=origin/main
       git -C "$XO_REPO" rev-parse -q --verify "$ref^{commit}" >/dev/null || ref=main
-      if ! git -C "$XO_REPO" merge-base --is-ancestor "$chash" "$ref" 2>/dev/null; then
-        echo "check-facts: $cov describes $chash, which is not on $XO_REPO's $ref (XO_REPO must be the public xo-lang/xo or its publish mirror)"; fail=1
+      if ! git -C "$XO_REPO" merge-base --is-ancestor "$chash" "$ref" 2>/dev/null &&
+         [ -z "$(git -C "$XO_REPO" tag --list 'v[0-9]*' --contains "$chash" 2>/dev/null)" ]; then
+        echo "check-facts: $cov describes $chash, which is not on $XO_REPO's $ref or a release tag (XO_REPO must be the public xo-lang/xo or its publish mirror)"; fail=1
       fi
     fi
   fi
