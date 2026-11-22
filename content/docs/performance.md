@@ -211,8 +211,10 @@ one program on each side:
   every std module that imports the edited one checked again
   ([perf-gaps-2026-11-10.md lines 41-60](https://github.com/xo-lang/xo/blob/main/bench/results/perf-gaps-2026-11-10.md#L41-L60)).
   At the front end's peak in a build of `coll`, decoding std's parse
-  trees holds 40.92% of the 114.44MB in use
-  ([release-vs-go-v0.55.0-linux-arm64.md lines 503-527](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md#L503-L527)).
+  trees holds 40.92% of the 114.44MB in use on linux/arm64
+  ([release-vs-go-v0.55.0-linux-arm64.md lines 503-527](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md#L503-L527))
+  and 41.97% of the 112.58MB in use on the Mac
+  ([release-vs-go-v0.55.0.md lines 348-372](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L348-L372)).
 - **Standard library ports** still slower than Go's packages in the
   2026-11-07 survey of 387 cases (geometric mean 0.724, 65 cases more than
   10% slower;
