@@ -100,27 +100,33 @@ request.
 **Builds and binaries** (the CRUD server of the benchmarks below and a
 hello program; Rust with `cargo build --release` and the twins' profile,
 as the measured binaries were built; Go for reference; one build each,
-Apple M4 Pro, 2026-10-24):
+every cold build with its own empty caches, on the linux/arm64 timing
+host, 2026-11-22; times have 10 ms resolution):
 
-| | Rust 1.99.1 | Go 1.26.1 | xo 0.29.0 |
+| | Rust 1.99.1 | Go 1.26.11 | xo 0.55.0 |
 |---|---|---|---|
-| Cold build, CRUD server | 7.6 s | 2.9 s | 2.3 s |
-| Cold build, hello | 1.3 s | 1.4 s | 1.1 s |
-| Warm build, nothing changed (CRUD / hello) | 0.03 / 0.01 s | 0.08 / 0.03 s | 0.03 / 0.03 s |
-| Build after a one-function edit (CRUD / hello) | 2.9 / 1.2 s | 0.24 / 0.09 s | 0.50 / 0.28 s |
-| Peak build memory, cold CRUD build | 410 MB | 311 MB | 992 MB |
-| Binary size, shipping flags (CRUD / hello) | 1.12 / 0.41 MB (`cargo build --release`) | 5.48 / 1.57 MB (`-ldflags="-s -w"`) | 2.28 / 0.67 MB (`xo build --release`) |
-| Binary size, plain build (CRUD / hello) | 1.12 / 0.41 MB (no debug info) | 8.03 / 2.36 MB (with DWARF) | 6.23 / 1.90 MB (with DWARF) |
-| Hello startup, wall | 2.5 ms | 2.8 ms | 2.6 ms |
+| Cold build, CRUD server | 9.58 s | 3.73 s | 2.81 s |
+| Cold build, hello | 0.98 s | 2.36 s | 1.27 s |
+| Warm build, nothing changed (CRUD / hello) | 0.02 / under 0.01 s | 0.07 / 0.05 s | 0.01 / 0.01 s |
+| Build after a one-function edit (CRUD / hello) | 2.96 / 0.95 s | 0.27 / 0.18 s | 0.63 / 0.27 s |
+| Peak build memory, cold CRUD build | 520 MB | 314 MB | 764 MB |
+| Binary size, shipping flags (CRUD / hello) | 1.32 / 0.44 MB (`cargo build --release`) | 5.50 / 1.50 MB (`-ldflags="-s -w"`) | 3.02 / 0.27 MB (`xo build --release`) |
+| Binary size, plain build (CRUD / hello) | 1.32 / 0.44 MB (no debug info) | 7.95 / 2.22 MB (with DWARF) | 9.27 / 2.32 MB (with DWARF) |
+| Hello startup, wall (median) | 0.31 ms | 0.61 ms | 0.52 to 0.53 ms |
 
-Source: [twins-build-2026-10-24.md, lines 20 to 25, 39 to 48 and 58 to 65](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L65).
-**Rust's binaries are the smallest**, by a factor of 1.6 to 2 against Xo's `--release` binaries (4.6 to 5.6 against the plain `xo build`, which keeps 4.1 MB of debug information in the CRUD server; Go's plain build keeps its DWARF too), and its
-no-op build is the fastest. Its cold build of the server is the
+Each startup median is under a millisecond, too short for `xo bench` to
+give a verdict. Source: [twins-build-2026-11-22.md, lines 5 to 26, 38 to 47 and 57 to 64](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-11-22.md#L5-L64).
+**Rust's server binary is the smallest**: 1.32 MB, 0.44 of Xo's
+`--release` binary (3.02 MB), while Xo's `--release` hello (0.27 MB) is
+smaller than Rust's (0.44 MB); the plain `xo build` keeps debug
+information (9.27 MB for the server; Go's plain build keeps its DWARF
+too). A build with nothing changed takes 0.01 to 0.02 s in both. Rust's cold build of the server is the
 slowest, because it compiles axum, hyper, tokio and serde from source,
 and a release build does not compile incrementally, so an edit rebuilds
 the crate (a debug build, which is incremental, was not measured). Xo
-builds use the most memory. Go's build after a one-function edit (0.24 s) is faster than Xo's (0.50 s). Xo's hello started in 1.04 of Rust's time
-with 1.4 times its memory (2.6 MB against 1.8).
+builds use the most memory. Go's build after a one-function edit (0.27 s)
+is faster than Xo's (0.63 s). Xo's hello started in 1.73 of Rust's time
+with 0.88 of its memory (1.29 MB against 1.47 MB).
 
 - **Targets.** Rust lists 8 Tier 1 host targets ("guaranteed to work")
   and many more at Tier 2 and 3

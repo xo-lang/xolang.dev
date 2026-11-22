@@ -103,22 +103,24 @@ median, and used a small fraction of its memory.
   programs, not browser front ends.
 
 **Build, size and startup** (the CRUD server of the benchmarks below and
-a hello program; Node 22.22.1, TypeScript 5.9.3, esbuild 0.28.2; one
-build each, Apple M4 Pro, 2026-10-24):
+a hello program; Node 20.19.2, TypeScript 5.9.3, esbuild 0.28.2; one
+build each, every cold build with its own empty caches, on the
+linux/arm64 timing host, 2026-11-22):
 
-| | TypeScript on Node | xo 0.29.0 |
+| | TypeScript on Node | xo 0.55.0 |
 |---|---|---|
-| Cold build | `tsc` over the project 0.69 s; esbuild bundle of the server 0.37 s | 2.3 s (CRUD server) |
-| Rebuild, nothing changed or one function edited | `tsc` 0.52 s (it keeps no cache); esbuild 0.16 to 0.17 s | 0.03 s unchanged, 0.50 s after an edit |
-| Peak build memory | `tsc` 201 MB; esbuild 76 MB | 992 MB cold, 547 MB after an edit |
-| What ships | a 3 KB bundle plus the 108 MB Node runtime, or a 107 MB single executable application (4.9 s to build) | a 2.3 MB binary (`xo build --release`; 6.2 MB with debug information) |
-| Hello startup, wall | 46.2 ms | 2.8 ms (0.061 of Node's) |
-| Hello startup, peak memory | 36.5 MB | 2.6 MB |
+| Cold build | `tsc` over the project 0.53 s; esbuild bundle of the server 0.05 s | 2.81 s (CRUD server) |
+| Rebuild, nothing changed or one function edited | `tsc` 0.51 to 0.55 s (it keeps no cache); esbuild 0.04 to 0.05 s | 0.01 s unchanged, 0.63 s after an edit |
+| Peak build memory | `tsc` 202 MB; esbuild 48 MB | 764 MB cold, 542 MB after an edit |
+| What ships | a 3 KB bundle plus the 93.4 MB Node runtime, or a 93.5 MB single executable application (1.5 s to build) | a 3.0 MB binary (`xo build --release`; 9.3 MB with debug information) |
+| Hello startup, wall (median) | 45.3 ms | 0.65 ms (0.014 of Node's) |
+| Hello startup, peak memory | 48.7 MB | 0.95 MB |
 
-Source: [twins-build-2026-10-24.md, lines 20, 26 to 27, 31, 39 to 40, 49 to 51 and 66 to 69](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L20-L69).
-A cold build and a build after an edit are faster in TypeScript and use far less memory (Xo's no-change build, 0.03 s, is the exception); Xo's program
-starts 16 times faster and ships as one file of 2.3 MB (`xo build --release`) against
-Node's 107 MB single executable. The single executable application was
+Source: [twins-build-2026-11-22.md, lines 5 to 31, 38 to 39, 48 to 50 and 65 to 68](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-11-22.md#L5-L68).
+A cold build and a build after an edit are faster in TypeScript and use
+far less memory (Xo's no-change build, 0.01 s, is the exception); Xo's
+program starts about 70 times faster and ships as one file of 3.0 MB
+(`xo build --release`) against Node's 93.5 MB single executable. The single executable application was
 checked by starting it and creating a user.
 
 ## Writing it with AI agents

@@ -108,9 +108,9 @@ the third unchanged build:
 | Peak build memory (cold) | 341 to 355 MB | 331 to 362 MB |
 | Peak build memory (warm / edit) | 29 to 30 MB / 69 to 72 MB | 9 to 10 MB / 53 to 64 MB |
 | Binary size (same programs, default builds) | 2.39 to 2.43 MB | 1.63 to 1.82 MB |
-| Binary size, CRUD server, shipping flags (measured with xo 0.29.0, 2026-10-24) | 5.48 MB (`go build -trimpath -ldflags="-s -w"`; 8.03 MB without the flags) | 2.28 MB (`xo build --release`; 6.23 MB without the flag) |
+| Binary size, CRUD server, shipping flags (xo 0.55.0 and Go 1.26.11 on the linux/arm64 timing host, 2026-11-22) | 5.50 MB (`go build -trimpath -ldflags="-s -w"`; 7.95 MB without the flags) | 3.02 MB (`xo build --release`; 9.27 MB without the flag) |
 
-Source: [release-vs-go-v0.55.0.md, lines 1 to 45](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L1-L45). The shipping-flags row: [twins-build-2026-10-24.md, lines 39 to 42](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-10-24.md#L39-L42).
+Source: [release-vs-go-v0.55.0.md, lines 1 to 45](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L1-L45). The shipping-flags row: [twins-build-2026-11-22.md, lines 38 to 41](https://github.com/xo-lang/xo/blob/main/bench/results/twins-build-2026-11-22.md#L38-L41).
 **Xo rebuilds a small program after an edit faster than Go**, and its
 cold builds take about as long (since 0.34 an edit compiles only your own
 code against a prebuilt standard library, and since 0.35 it links only
