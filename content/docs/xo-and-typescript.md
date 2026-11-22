@@ -18,11 +18,12 @@ the rows where Node does as well as Xo or better.
 TypeScript handbook, and claims about Node.js against the Node.js
 documentation, as of 2026-10-23. The newest releases that day were
 TypeScript 7.0 and Node.js 26.12.1 (Current) and 24.22.1 (LTS). The
-measurements used **Node.js 22.22.1** and **TypeScript 5.9.3**, the
-versions pinned in the benchmark's package-lock.json; they will be
-rerun on a current LTS. The Xo in the measurements is a build of main
-between 0.26.0 and 0.27.0 (it reports itself as 0.26.0). Last
-verified: 2026-10-23.
+compute, concurrency and JSON measurements (2026-11-22) used **Node.js
+20.19.2**, the Node of the linux/arm64 timing host, with **TypeScript
+5.9.3** pinned in the benchmark's package-lock.json, against the
+released Xo 0.55.0; the HTTP and build rows are older (Node.js 22.22.1,
+Xo from main between 0.26.0 and 0.27.0) and say so. Last verified:
+2026-11-22.
 
 ## Short version
 
@@ -36,9 +37,11 @@ proven; Xo is experimental (spec draft 0.10, no 1.0 yet).
 (TypeScript's are erased and checked only by `tsc`), errors in function
 signatures, integers that do not lose precision, all CPU cores in one
 process, and one static binary to deploy. In the measurements below Xo
-was 2 to 9 times faster than Node on compute, concurrency and JSON,
-served 4 times the requests of a single Node process at the median,
-and used a small fraction of its memory.
+was 1.1 to 9 times faster than Node on compute, JSON, ping-pong, locks
+and parallel map, about half as fast on spawning many small tasks
+(spawn and fanout, where Node's event loop starts tasks without
+threads), served 4 times the requests of a single Node process at the
+median, and used a small fraction of its memory.
 
 ## What each is for
 
@@ -142,34 +145,38 @@ for the server), and run under `xo bench --ab` with Node as A and Xo as
 B, 10 interleaved rounds; a verdict is "better" or "worse" only when the
 95% interval excludes 1.0, and the file asks that ratios within 10% be
 read as ties. Every program prints a checksum and the run stops if
-Node's and Xo's differ. There is no rwmutex row: Node has no read write
-lock. **Machine**: Apple M4 Pro (12 cores), macOS 27, darwin/arm64,
-with other jobs running (each row waited for a load under 5).
-**Versions**: Node.js 22.22.1, TypeScript 5.9.3; Xo from main between
-0.26.0 and 0.27.0, native backend. **Date**: 2026-10-23. Ratios are Xo
+Node's and Xo's differ, and each runs its work REPEAT times in one
+process so the faster side takes about a second. There is no rwmutex
+row: Node has no read write lock. **Machine**: the linux/arm64 timing
+host (12 CPUs, Linux 7.0), each row starting at a load under 3.
+**Versions**: Node.js 20.19.2, TypeScript 5.9.3 (compiled on another
+host by the pinned compiler, since the timing host has no npm); the
+released xo 0.55.0, native backend. **Date**: 2026-11-22. Ratios are Xo
 over Node; under 1.0 means Xo took less
-([node-vs-xo-2026-10-23.md, lines 1 to 10 and 94 to 99](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L1-L10)).
+([node-vs-xo-2026-11-22.md, lines 1 to 20](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L1-L20)).
 
 | workload | wall time, Xo / Node | verdict | source |
 |---|---|---|---|
-| parallel map (worker threads) | 0.115 | better | [line 43](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L43) |
-| mutex (worker threads) | 0.116 | better | [line 38](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L38) |
-| JSON encode | 0.25 | better | [line 61](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L61) |
-| ping-pong | 0.34 | better | [line 33](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L33) |
-| fib (recursive, 40) | 0.38 | better | [line 15](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L15) |
-| JSON decode | 0.41 | better | [line 51](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L51) |
-| fanout | 0.49 | better | [line 28](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L28) |
-| spawn | 0.99 | within noise | [line 23](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L23) |
+| mutex (worker threads) | 0.116 | better | [line 48](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L48) |
+| parallel map (worker threads) | 0.19 | better | [line 53](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L53) |
+| JSON encode | 0.26 | better | [line 71](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L71) |
+| fib (recursive, 40) | 0.40 | better | [line 25](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L25) |
+| JSON decode | 0.75 | better | [line 61](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L61) |
+| ping-pong | 0.89 | better | [line 43](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L43) |
+| spawn | **2.10** | worse | [line 33](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L33) |
+| fanout | **2.24** | worse | [line 38](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-11-22.md#L38) |
 
-Two caveats. The short rows include Node's start (46 ms for a hello program, above), a large part of
-a 60 to 90 ms run; the fib and parallel map rows are long enough to show
-the engine. And Xo spreads tasks over every core where Node's event loop
-uses one: on spawn the wall time was the same but **Xo used 4.6 times
-Node's CPU** (line 24), and on fanout about twice (line 29, too coarse
-for a verdict). Xo's peak memory was 0.035 to 0.17 of Node's on every
-row (lines 18 to 69).
+Xo spreads tasks over every core where Node's event loop runs them on
+one thread: on spawn and fanout, where each task does almost nothing,
+that costs Xo about twice Node's wall time and CPU time (lines 34 and
+39), and those two rows are the work queue. Since every program repeats
+its work for about a second, Node's start (46 ms for a hello program,
+above) is a small part of each row. Xo's peak memory was 0.010 to 0.036
+of Node's on every row (lines 27 to 73).
 
-**HTTP**: the users CRUD API (`node:http` in one process, against Xo's
+**HTTP** (2026-10-23, on an Apple M4 Pro with Node.js 22.22.1 and Xo
+from main between 0.26.0 and 0.27.0; not rerun with 0.55.0): the users
+CRUD API (`node:http` in one process, against Xo's
 std/http with request arenas), 32 workers on loopback, 10 s measured
 after a 2 s warmup, the median of 3 runs
 ([lines 85 to 91](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L85-L91)):

@@ -16,12 +16,13 @@ better than Xo: CPU per request.
 
 **Versions.** Claims about Python are checked against the Python
 documentation as of **Python 3.15.1** (the newest release, 2026-10-21).
-The measurements used **CPython 3.13.12** from Homebrew, with the
-packages pinned with hashes in the benchmark's requirements.txt
-(uvicorn 0.37.0, uvloop 0.23.0, httptools 0.9.0, Starlette 0.48.0); they
-will be rerun on a current release. The Xo in the measurements is a
-build of main between 0.26.0 and 0.27.0 (it reports itself as 0.26.0).
-Last verified: 2026-10-23.
+The compute, concurrency and JSON measurements (2026-11-22) used
+**CPython 3.13.5**, the Python of the linux/arm64 timing host, against
+the released Xo 0.55.0. The HTTP rows are older: CPython 3.13.12 from
+Homebrew with the packages pinned with hashes in the benchmark's
+requirements.txt (uvicorn 0.37.0, uvloop 0.23.0, httptools 0.9.0,
+Starlette 0.48.0), against Xo from main between 0.26.0 and 0.27.0.
+Last verified: 2026-11-22.
 
 ## Short version
 
@@ -34,7 +35,7 @@ experimental (spec draft 0.10, no 1.0 yet).
 **Consider Xo** when the service is CPU bound or concurrent, when you
 want types the compiler enforces, errors in function signatures, every
 core in one process, and one static binary to deploy. In the
-measurements below Xo was 4 to more than 100 times faster than CPython on
+measurements below Xo was 3 to 50 times faster than CPython on
 compute, concurrency and JSON, and served 1.6 times the requests of
 Python's asyncio server, **but asyncio used about two thirds of Xo's
 CPU per request and had lower tail latency**.
@@ -132,33 +133,37 @@ threads under `threading.Lock` for mutex, `multiprocessing` with one
 process per CPU for parallel map, `json.loads` and `json.dumps`), and
 run under `xo bench --ab` with Python as A and Xo as B, interleaved
 rounds; a verdict is "better" or "worse" only when the 95% interval
-excludes 1.0. The fib and parallel map rows ran 3 rounds because one
-Python run takes seconds ("too few rounds" in the file): read those as
-orders of magnitude. Every program prints a checksum and the run stops
-if Python's and Xo's differ. There is no rwmutex row: the standard
-library has no read write lock. **Machine**: Apple M4 Pro (12 cores),
-macOS 27, darwin/arm64, with other jobs running (each row waited for a
-load under 5). **Versions**: CPython 3.13.12 with the GIL; Xo from main
-between 0.26.0 and 0.27.0, native backend. **Date**: 2026-10-23. Ratios
+excludes 1.0. Each program runs its work REPEAT times in one process so
+Xo's side takes about a second; the fib, ping-pong and parallel map rows
+ran 4 rounds because one Python run takes 20 to 53 s. Every program
+prints a checksum and the run stops if Python's and Xo's differ. There
+is no rwmutex row: the standard library has no read write lock.
+**Machine**: the linux/arm64 timing host (12 CPUs, Linux 7.0), each row
+starting at a load under 3; parallel map, which keeps every core busy,
+runs with a load limit of 15. **Versions**: CPython 3.13.5 with the GIL;
+the released xo 0.55.0, native backend. **Date**: 2026-11-22. Ratios
 are Xo over Python; under 1.0 means Xo took less
-([python-vs-xo-2026-10-23.md, lines 1 to 11 and 99 to 104](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L1-L11)).
+([python-vs-xo-2026-11-22.md, lines 1 to 24](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L1-L24)).
 
 | workload | wall time, Xo / Python | verdict | source |
 |---|---|---|---|
-| ping-pong | 0.009 | better | [line 34](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L34) |
-| parallel map (multiprocessing) | 0.019 | 3 rounds | [line 44](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L44) |
-| fib (recursive, 40) | 0.025 | 3 rounds | [line 16](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L16) |
-| JSON encode | 0.13 | better | [line 62](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L62) |
-| spawn | 0.135 | better | [line 24](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L24) |
-| mutex | 0.15 | better | [line 39](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L39) |
-| fanout | 0.165 | better | [line 29](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L29) |
-| JSON decode | 0.25 | better | [line 52](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L52) |
+| parallel map (multiprocessing) | 0.020 | better (4 rounds) | [line 57](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L57) |
+| fib (recursive, 40) | 0.029 | better (4 rounds) | [line 29](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L29) |
+| spawn | 0.045 | better | [line 37](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L37) |
+| ping-pong | 0.045 | better (4 rounds) | [line 47](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L47) |
+| fanout | 0.11 | better | [line 42](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L42) |
+| JSON encode | 0.14 | better | [line 75](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L75) |
+| mutex | 0.30 | better | [line 52](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L52) |
+| JSON decode | 0.33 | better | [line 65](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-11-22.md#L65) |
 
-Xo's tasks use more cores than Python's: on spawn and fanout Xo used 0.51
-and 0.63 of Python's CPU against 0.135 and 0.165 of its wall time
-(lines 25 and 30).
+On mutex Xo's threads ran on more cores than Python's 8 threads under
+the GIL: 0.53 of Python's CPU time against 0.30 of its wall time (line
+53). Xo's peak memory was 0.049 to 0.17 of Python's on every row (lines
+31 to 77).
 
-**HTTP**: the users CRUD API, given twice for Python: the standard
+**HTTP** (2026-10-23, on an Apple M4 Pro with CPython 3.13.12 and Xo
+from main between 0.26.0 and 0.27.0; not rerun with 0.55.0): the users
+CRUD API, given twice for Python: the standard
 library's `asyncio.Protocol`, and Starlette on uvicorn with uvloop and
 httptools, each in one process, against Xo's std/http with request
 arenas; 32 workers on loopback, 10 s measured after a 2 s warmup, the

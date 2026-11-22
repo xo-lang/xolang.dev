@@ -19,9 +19,9 @@ Rust is faster.
 **Versions.** Claims about Rust are checked against Rust's own
 documentation (the book, the reference, the standard library and Cargo
 docs) as of **Rust 1.99.1** (the newest release, 2026-10-15), which is
-also the Rust the measurements used. The Xo in the measurements is a
-build of main between 0.26.0 and 0.27.0 (it reports itself as 0.26.0);
-they will be rerun with the released 0.27.0. Last verified: 2026-10-23.
+also the Rust the measurements used. The compute, concurrency and JSON
+measurements use the released Xo 0.55.0 (2026-11-22); the HTTP and build
+rows are older and name their version. Last verified: 2026-11-22.
 
 ## Short version
 
@@ -162,30 +162,31 @@ serde_json, axum on tokio), and run under `xo bench --ab` with Rust as A
 and Xo as B, 10 interleaved rounds; a verdict is "better" or "worse"
 only when the 95% interval excludes 1.0, and the file asks that ratios
 within 10% be read as ties. Every program prints a checksum and the run
-stops if Rust's and Xo's differ. **Machine**: Apple M4 Pro (12 cores),
-macOS 27, darwin/arm64, with other jobs running (each row waited for a
-load under 5). **Versions**: rustc 1.99.1 with opt-level 3, one codegen
-unit, thin LTO and `panic = "abort"`; axum 0.8.9, tokio 1.54.1,
-serde_json 1.0.154; Xo from main between 0.26.0 and 0.27.0, native
-backend. **Date**: 2026-10-23. Ratios are Xo over Rust; under 1.0 means
-Xo took less
-([rust-vs-xo-2026-10-23.md, lines 1 to 12 and 146 to 151](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L1-L12)).
+stops if Rust's and Xo's differ, and each runs its work REPEAT times in
+one process so the faster side takes about a second. **Machine**: the
+linux/arm64 timing host (12 CPUs, Linux 7.0), each row starting at a
+load under 3; the lock and parallel map rows, which keep every core
+busy, run with a load limit of 15. **Versions**: rustc 1.99.1 with
+opt-level 3, one codegen unit, thin LTO and `panic = "abort"`; tokio
+1.54.1, serde_json 1.0.154; the released xo 0.55.0, native backend.
+**Date**: 2026-11-22. Ratios are Xo over Rust; under 1.0 means Xo took
+less ([rust-vs-xo-2026-11-22.md, lines 1 to 26](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L1-L26)).
 
 **Compute**
 
 | workload | wall time, Xo / Rust | verdict | source |
 |---|---|---|---|
-| strings | 0.44 | better | [line 47](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L47) |
-| sort | 0.93 | better | [line 32](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L32) |
-| sieve | 0.99 | within noise | [line 22](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L22) |
-| interpreter | **1.22** | worse | [line 37](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L37) |
-| fib | **1.31** | worse | [line 17](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L17) |
-| collatz | **1.42** | worse | [line 42](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L42) |
-| n-body (floating point) | **2.23** | worse | [line 27](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L27) |
+| strings | 0.45 | better | [line 61](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L61) |
+| interpreter | 0.82 | better | [line 51](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L51) |
+| sort | 0.94 | better | [line 46](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L46) |
+| sieve | **1.24** | worse | [line 36](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L36) |
+| fib | **1.30** | worse | [line 31](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L31) |
+| collatz | **1.47** | worse | [line 56](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L56) |
+| n-body (floating point) | **1.48** | worse | [line 41](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L41) |
 
-Peak memory: Xo used about 1.4 times Rust's on fib, nbody, interp and
-collatz (2.6 MB against 1.8 MB), and 0.28 to 0.47 of Rust's on sieve,
-sort and strings (lines 20 to 50).
+Peak memory: Xo used 0.81 to 0.84 of Rust's on fib, nbody, interp and
+collatz, about the same on sort, and 1.22 and 1.34 times Rust's on sieve
+and strings (lines 33 to 63).
 
 **Concurrency** (Rust on tokio's default multi thread runtime and std
 threads; the three async rows are also given on tokio's current thread
@@ -194,34 +195,37 @@ thread)
 
 | workload | wall time, Xo / Rust | verdict | source |
 |---|---|---|---|
-| ping-pong (multi thread runtime) | 0.033 | better | [line 65](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L65) |
-| fanout (multi thread runtime) | 0.87 | better | [line 60](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L60) |
-| parallel map (std threads) | **1.27** | worse | [line 80](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L80) |
-| spawn (multi thread runtime) | **1.39** | worse | [line 55](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L55) |
-| ping-pong (current thread runtime) | **1.49** | worse | [line 95](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L95) |
-| mutex | **1.98** | worse | [line 70](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L70) |
-| rwmutex | **2.48** | worse | [line 75](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L75) |
-| fanout (current thread runtime) | **2.62** | worse | [line 90](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L90) |
-| spawn (current thread runtime) | **3.31** | worse | [line 85](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L85) |
+| ping-pong (multi thread runtime) | 0.005 | better | [line 79](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L79) |
+| fanout (multi thread runtime) | 0.29 | better | [line 74](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L74) |
+| spawn (multi thread runtime) | 0.33 | better | [line 69](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L69) |
+| parallel map (std threads) | 0.71 | better | [line 94](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L94) |
+| spawn (current thread runtime) | 0.83 | better | [line 99](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L99) |
+| ping-pong (current thread runtime) | **1.34** | worse | [line 109](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L109) |
+| fanout (current thread runtime) | **1.39** | worse | [line 104](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L104) |
+| mutex | **1.50** | worse | [line 84](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L84) |
+| rwmutex | **1.57** | worse | [line 89](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L89) |
 
 The large ping-pong win is tokio's multi thread runtime waking another
-worker on every hop; on the current thread runtime, which is how a Rust
-programmer would write that program, Rust is faster. Xo used more CPU
-than Rust on spawn (2.3 times) and parallel map (1.33 times), less on
-multi thread ping-pong, and 1.1 to 3.4 times Rust's peak memory on
-every concurrency row (lines 55 to 98).
+worker on every hop (on this host about 3 s for each of the 10 repeats
+the row runs, against 15 ms for Xo); on the current thread runtime,
+which is how a Rust programmer would write that program, Rust is
+faster. On the locks Xo took longer but used about half of Rust's CPU
+time (0.46 and 0.52), and it used 1.10 times Rust's CPU on parallel
+map; peak memory ranged from 0.46 to 1.36 times Rust's (lines 69 to
+111).
 
 **JSON** (serde_json against Xo's std/json; 1,000 users, 100 rounds)
 
 | workload | wall time, Xo / Rust | verdict | source |
 |---|---|---|---|
-| decode | **1.54** | worse | [line 103](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L103) |
-| encode | **1.53** | worse | [line 113](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L113) |
+| decode | **1.83** | worse | [line 117](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L117) |
+| encode | **1.80** | worse | [line 127](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-11-22.md#L127) |
 
-For scale, the same file's Go column: Xo took 0.36 of Go's
-encoding/json time to decode and 0.71 to encode (lines 108 and 118).
+For scale, the same file's Go column: Xo took 0.28 of Go's
+encoding/json time to decode and 0.55 to encode (lines 122 and 132).
 
-**HTTP**: the users CRUD API (axum on tokio with serde_json, against
+**HTTP** (2026-10-23, on an Apple M4 Pro with Xo from main between
+0.26.0 and 0.27.0; not rerun with 0.55.0): the users CRUD API (axum on tokio with serde_json, against
 Xo's std/http with request arenas), 32 workers on loopback, 10 s
 measured after a 2 s warmup, the median of 3 runs
 ([lines 137 to 143](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L137-L143)):
@@ -242,6 +246,6 @@ half the rate of the first two, for every server), so read the throughput ratio 
 the same to somewhat faster", not as 15%.
 
 These are a young compiler's numbers on one machine; the slower rows
-are the work queue (floating point, locks, task spawn, JSON). The
+are the work queue (floating point, locks, JSON). The
 comparison is rerun from `bench/perf/rust/run.sh` and this page's tables
 are refreshed from its results file.
