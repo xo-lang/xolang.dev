@@ -247,20 +247,21 @@ map and sieve by 1 to 35%, and rwmutex by about 8 times: 64 tasks
 contending on one reader-writer lock, a gap the earlier short run (5 ms
 a side) could not judge.
 
-**Standard library, instructions retired** (fewer is better; Apple M4
-Pro, Go 1.26.1, 2026-10-21; native Xo against Go's packages):
+**Standard library, wall time** (lower is better; linux/arm64 timing
+host, xo 0.55.0 against Go 1.26.11, 2026-11-21; native Xo against Go's
+packages; median of 5 runs a side):
 
-| workload | Xo / Go | source |
+| Workload | Xo / Go | Source |
 |---|---|---|
-| JSON decode (small documents) | 0.33 | [json-vs-go, line 45](https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md#L45) |
-| JSON encode (small documents) | 0.43 | [json-vs-go, line 46](https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md#L46) |
-| multipart parse | **1.15** | [json-vs-go, line 50](https://github.com/xo-lang/xo/blob/main/bench/results/json-vs-go-2026-10-21.md#L50) |
-| regexp match | **7.55** | [regexp-time-csv-vs-go, line 29](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L29) |
-| regexp find_all | **2.83** | [regexp-time-csv-vs-go, line 30](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L30) |
-| time format | **10.06** | [regexp-time-csv-vs-go, line 33](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L33) |
-| time parse | **10.37** | [regexp-time-csv-vs-go, line 34](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L34) |
-| time civil fields | 0.41 | [regexp-time-csv-vs-go, line 35](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L35) |
-| csv parse | **1.67** | [regexp-time-csv-vs-go, line 37](https://github.com/xo-lang/xo/blob/main/bench/results/regexp-time-csv-vs-go-2026-10-21.md#L37) |
+| JSON decode (1,000 small user records) | 0.297 | [survey, line 328](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L328) |
+| JSON encode (1,000 small user records) | 0.544 | [survey, line 329](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L329) |
+| multipart parse | 0.464 | [survey, line 388](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L388) |
+| regexp match | **1.065** | [survey, line 454](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L454) |
+| regexp find_all | 0.796 | [survey, line 453](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L453) |
+| time format | 0.875 | [survey, line 553](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L553) |
+| time parse | 0.576 | [survey, line 556](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L556) |
+| time civil fields | 0.355 | [survey, line 551](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L551) |
+| csv parse | 0.794 | [survey, line 194](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L194) |
 
 **Network** (native Xo against Go's net/http, crypto/tls, and
 gorilla/websocket, 2026-10-23; Xo's rate over Go's, higher is better

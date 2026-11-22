@@ -19,8 +19,8 @@ std's tests
 ([release-vs-go-v0.55.0-linux-arm64.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md)) and the HTTP server against
 Go at its defaults and tuned
 ([release-vs-go-v0.55.0-linux-arm64-http.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64-http.md)), all with the published
-release archive; and the survey of every `bench/perf` case of 2026-11-07
-([xo-vs-go-survey-2026-11-07.md](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-07.md)).
+release archive; and the survey of every `bench/perf` case at 0.55.0
+([xo-vs-go-survey-2026-11-21.md](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.md)).
 Go is go1.26.11 for the 0.55.0 rows.
 
 Last verified: 2026-11-22.
@@ -201,22 +201,19 @@ one program on each side:
   and 41.97% of the 112.58MB in use on the Mac
   ([release-vs-go-v0.55.0.md lines 348-372](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L348-L372)).
 - **Standard library ports** still slower than Go's packages in the
-  2026-11-07 survey of 387 cases (geometric mean 0.724, 65 cases more than
-  10% slower;
-  [lines 21-43](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-07.md#L21-L43)).
-  The largest gaps, as measured then:
-  - time formatting and parsing with a layout: 1.65 to 3.02 times Go;
-  - metrics counters and histograms: 4.25 and 2.72 times client_golang
-    (a fix since cut them to 0.781 and 0.667 of their time,
-    [std/changes/metrics.md](https://github.com/xo-lang/xo/blob/main/std/changes/metrics.md));
-  - JSON string writing (`jsontoken/write`): 1.73 times Go; after a fix
-    it takes 77.4 ms against the survey's 61.6 ms for Go, still behind
-    ([std/changes/json.md](https://github.com/xo-lang/xo/blob/main/std/changes/json.md));
-  - logging below the level: 1.79 times Go before calls below the level
-    stopped evaluating their arguments (not yet re-timed,
-    [std/changes/log.md](https://github.com/xo-lang/xo/blob/main/std/changes/log.md));
-  - text tables (`tabwriter`), CSV reading, IPv6 parsing and
-    Windows-1252 decoding: 1.34 to 1.54 times Go.
+  0.55.0 survey of 642 cases (geometric mean 0.704; 34 of the 492 cases
+  that run 5 ms or more are more than 10% slower;
+  [lines 30-56](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.md#L30-L56)). The largest gaps:
+  - ordered comparison of strings and bytes (`ordcmp`): 2.46 and 2.43
+    times Go;
+  - integer formatting (`strconv/itoa`): 1.50 times Go;
+  - AES block modes, the sieve, trimming characters and CSV formatting:
+    1.29 to 1.41 times Go.
+
+  The 2026-11-07 survey's largest gaps (time layouts, metrics, logging
+  below the level) are now faster than Go; `jsontoken/write` is still
+  1.135 times Go
+  ([lines 58-73](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.md#L58-L73)).
 
   Each fix is logged with its timing in the module's
   [change log](https://github.com/xo-lang/xo/tree/main/std/changes).
@@ -227,7 +224,7 @@ one program on each side:
   the linux/arm64 timing host
   (Linux aarch64, 12 CPUs, 39 GB); the HTTP rows put the server on CPUs
   0 to 5 and the load generator on 6 to 11.
-- **Go**: go1.26.11 for the 0.55.0 rows; go1.26.1 for the survey rows.
+- **Go**: go1.26.11.
 - **Rounds**: 3 per row for the release benchmarks and std's tests, 12
   for the HTTP rows (3 at each of four code alignments), 5 per case for
   the survey (alternating, medians of wall time).
