@@ -184,13 +184,14 @@ one program on each side:
   faster on some programs, slower on others (`coll` 96 against 81).
 - **Binaries are larger than Go's**: 2.51 to 2.64 MB against Go's 2.30
   to 2.31 MB (0.50.1: 2.14 to 2.31 MB).
-- **A large program** (0.50.1, on the Mac): a program linking the Azure
-  compute client (armcompute, 63 files) against Go's armcompute v9.0.0
-  ([release-vs-go-v0.50.1.md lines 122-133](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.50.1.md#L122-L133)): cold 0.66 s
-  and 262 MB against Go's 4.6 s and 924 MB (with std's variants already
-  built, as after any earlier build; 3.4 s and 545 MB for a fresh
-  install's first program), unchanged 38 ms against 106, an edit 226 ms
-  against 304, binary 6.11 MB against 9.28.
+- **A large program** (0.55.0, on the Mac): a program linking the Azure
+  compute client (armcompute) against Go's armcompute v9.0.0
+  ([release-vs-go-v0.55.0.md lines 122-127](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L122-L127)): cold 816 ms
+  and 481 MB against Go's 4766 ms and 920 MB (with std's variants already
+  built; 2709 ms and 859 MB for the first program after install),
+  warm 51 ms against 102, an edit 235 ms against 331, binary 7.99 MB
+  against 9.30. Against 0.50.1 the cold builds peak higher (262 and
+  545 MB then) and the binary is larger (6.11 MB then).
 
 ## Where Xo is behind or even
 
@@ -257,7 +258,8 @@ one program on each side:
 ## Earlier releases
 
 - 0.50.1 on linux/arm64 (compile, test) and the Mac:
-  [release-vs-go-v0.50.1-linux-arm64.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.50.1-linux-arm64.md).
+  [release-vs-go-v0.50.1-linux-arm64.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.50.1-linux-arm64.md) and
+  [release-vs-go-v0.50.1.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.50.1.md).
 - The 0.46.0 cycle (release benchmarks and HTTP, main 6fe10a957):
   [release-vs-go-a67d277d6-linux-arm64.md](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-a67d277d6-linux-arm64.md).
 - 0.40.0 on darwin/arm64 (the release benchmarks, compile time, binary
