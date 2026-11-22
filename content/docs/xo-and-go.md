@@ -198,9 +198,10 @@ designed for the agent's loop:
   form, with a fix.
 - `xo def`, `xo refs`, `xo query`, `xo edit`, and `xo mcp` answer
   semantic questions and make edits through resolved symbols.
-- In a study with two independent authors who each planted 30 safety
-  bugs, Xo prevented or caught 23 to 29, against 13 for Go with strict
-  analyzers and 9 for plain Go. Agents passed their own tests on the
+- In a study of 2026-10-08 (Xo before its first tag, v0.7.0, at spec
+  core draft 0.5) with two independent authors who each planted 30 safety
+  bugs, Xo caught 23 to 29 (25 to 29 with warnings), against 13 for Go
+  with strict analyzers and 9 for plain Go. Agents passed their own tests on the
   first try about as often in both, and Xo programs were about half the
   size; but Go needed no spec in the agent's context, while Xo needed
   about 30k tokens of it per session
