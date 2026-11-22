@@ -163,8 +163,9 @@ const SIGS: List[Sig] = sigs_of(SIG_DATA)
 ```
 
 sniff.go's sniffSignatures in order, made once (sigs() built the list,
-and each HTML pattern's Bytes, on every call: 2026-10-26, with the
-slices below, detect_content_type ran at 8.3x Go's time), decoded from
+and each HTML pattern's Bytes, on every call, which made
+detect_content_type several times slower than Go's; the detect row of
+std/evidence/mime/perf.md), decoded from
 SIG_DATA (as 51 enum literals the list was 6 KB of a wasm module's code).
 
 [Source: `std/mime.xo:622`](https://github.com/xo-lang/xo/blob/main/std/mime.xo#L622)
@@ -457,9 +458,10 @@ fn own(s: Str, big: Bool) -> Str
 fn builtin_type(ext: Str) -> Str?
 ```
 
-BUILTIN's type of ext as it is (a match: walking the list of tuples ran
-type_by_extension at 5.5x Go's map lookup, 2026-10-26; generated from
-BUILTIN, which extensions_by_type still walks).
+BUILTIN's type of ext as it is (a match, since walking the list of tuples
+was several times slower than Go's map lookup; the ext row of
+std/evidence/mime/perf.md; generated from BUILTIN, which
+extensions_by_type still walks).
 
 [Source: `std/mime.xo:540`](https://github.com/xo-lang/xo/blob/main/std/mime.xo#L540)
 

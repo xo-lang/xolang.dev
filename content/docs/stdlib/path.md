@@ -127,8 +127,8 @@ fn cut(p: Str, a: Int, b: Int) -> Str
 
 p[a..b] where both ends are at a `/` or `.` byte or an end of p (every
 cut path makes): a view with no UTF-8 boundary check, which a Str slice
-makes at each end (2026-11-07: llrt_str_slice_chk 7.5% of the parts
-row, as a call).
+makes at each end (a call on the hot path of parts; profile and timings
+in std/evidence/path/perf.md, row parts).
 
 [Source: `std/path.xo:289`](https://github.com/xo-lang/xo/blob/main/std/path.xo#L289)
 
