@@ -266,13 +266,12 @@ packages; median of 5 runs a side):
 | WebSocket echo, 16 KB binary, 5,000 round trips | 0.368 | [survey, line 620](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L620) |
 | WebSocket handshakes, 500 | 0.701 | [survey, line 621](https://github.com/xo-lang/xo/blob/main/bench/results/xo-vs-go-survey-2026-11-21.txt#L621) |
 
-**Network** (native Xo against Go's net/http and crypto/tls,
-2026-10-23; Xo's rate over Go's, higher is better
-for Xo). The Mac was not quiet: load 5.0 to 5.7 at the start of each
-run. Reps are interleaved (Xo, Go, Xo, Go) so a load burst hits both
-alike; the table gives the median and the number of reps, and the file
-gives every rep. The rows run natively on macOS
-([net-vs-go-2026-10-23.md, lines 7 to 30](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L7-L30)).
+**Network** (native Xo against Go's net/http and crypto/tls, xo 0.55.0
+against go1.26.11 on the linux/arm64 timing host, 2026-11-22; Xo's rate
+over Go's, higher is better for Xo). Reps are interleaved (Go, Xo, Go,
+Xo) so a load burst hits both alike; the table gives the median of 5
+reps, and the file gives every rep
+([net-vs-go-2026-11-22-linux-arm64.md, lines 9 to 19](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L9-L19)).
 An HTTP server pair on host 1 (scripts/release-vs-go.sh's http section,
 xo 0.55.0, 2026-11-21, 12 rounds a row) compares Go at its defaults
 (GOGC=100) and Go tuned with `GOGC=off GOMEMLIMIT=1GiB`; Go's /alloc is
@@ -288,17 +287,15 @@ CPU per request
 
 | workload | Xo / Go (median) | reps | source |
 |---|---|---|---|
-| HTTP/2, 100 streams | 2.1 | 3 | [line 40](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L40) |
-| HTTP/2, 1 stream | 1.22 | 3 | [line 39](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L39) |
-| HTTP/2, 256 MiB download | 1.35 | 5 | [line 36](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L36) |
-| TLS 1.3 bulk, AES-128-GCM | 1.37 | 4 | [line 37](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L37) |
-| TLS 1.2 bulk, ChaCha20-Poly1305 | 1.17 | 5 | [line 38](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L38) |
-| TLS 1.3 handshakes (x25519, P-256, resumed) | 1.04 to 1.46 | 3 | [lines 41 to 43](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-23.md#L41-L43) |
+| HTTP/2, 100 streams | 1.508 | 5 | [line 26](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L26) |
+| HTTP/2, 1 stream | 1.221 | 5 | [line 25](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L25) |
+| HTTP/2, 256 MiB download | 1.305 | 5 | [line 27](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L27) |
+| TLS 1.3 handshakes (x25519, P-256, resumed) | 1.344 to 1.417 | 5 | [lines 28 to 30](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L28-L30) |
+| TLS 1.3 bulk, AES-128-GCM | 0.993 | 5 | [line 31](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L31) |
+| TLS 1.2 bulk, ChaCha20-Poly1305 | **0.944** | 5 | [line 32](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-11-22-linux-arm64.md#L32) |
 
-An earlier run on 2026-10-22 under heavier load showed
-gaps on the bulk TLS and download rows (0.61 to 0.76,
-[net-vs-go-2026-10-22.md](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-22.md#L23-L33));
-the re-measure with interleaved reps did not reproduce them.
+TLS 1.3 AES-GCM bulk is even with Go (0.97 to 1.01 per rep); TLS 1.2
+ChaCha20-Poly1305 bulk is the one gap, every rep 0.94 to 0.96.
 
 These are a young compiler's numbers on one machine; the slower rows
 are the work queue. Every release reruns the comparison
