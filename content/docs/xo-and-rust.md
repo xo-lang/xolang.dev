@@ -20,8 +20,8 @@ Rust is faster.
 documentation (the book, the reference, the standard library and Cargo
 docs) as of **Rust 1.99.1** (the newest release, 2026-10-15), which is
 also the Rust the measurements used. The compute, concurrency and JSON
-measurements use the released Xo 0.55.0 (2026-11-22); the HTTP and build
-rows are older and name their version. Last verified: 2026-11-22.
+measurements, the HTTP rows and the build rows use the released Xo
+0.55.0 on the linux/arm64 timing host (2026-11-22). Last verified: 2026-11-22.
 
 ## Short version
 
@@ -31,8 +31,9 @@ allocation and layout, no runtime at all (embedded, kernels, libraries
 called from C), many targets, a large ecosystem (crates.io, tokio,
 serde), or a stable language with a long compatibility record. In the
 measurements below Rust was faster on most compute rows, on JSON, on
-locks, used a quarter of Xo's memory as a web server, and made binaries
-about half the size of Xo's release binaries.
+locks, served more requests per second as a web server with less
+CPU per request and less than half of Xo's memory, and made a server
+binary under half the size of Xo's release binary.
 
 **Consider Xo** when you want much of the same compile-time safety
 (no null, no unhandled errors, exhaustive matches, no data races)
@@ -40,9 +41,8 @@ without lifetimes, borrowing rules, or choosing an async runtime; when
 you want a dependency's capabilities limited and recorded; when
 integer overflow should fault in every build; and when much of the code
 is written by AI agents working from structured compiler feedback. As a
-web server Xo served more requests per second than axum on tokio in the
-measurements below, with lower tail latency, but used more CPU per
-request.
+web server Xo served 0.89 of the requests per second of axum on tokio
+in the measurements below, at 1.5 times its CPU per request.
 
 ## What each is for
 
@@ -230,26 +230,26 @@ map; peak memory ranged from 0.46 to 1.36 times Rust's (lines 69 to
 For scale, the same file's Go column: Xo took 0.28 of Go's
 encoding/json time to decode and 0.55 to encode (lines 122 and 132).
 
-**HTTP** (2026-10-23, on an Apple M4 Pro with Xo from main between
-0.26.0 and 0.27.0; not rerun with 0.55.0): the users CRUD API (axum on tokio with serde_json, against
-Xo's std/http with request arenas), 32 workers on loopback, 10 s
-measured after a 2 s warmup, the median of 3 runs
-([lines 137 to 143](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-2026-10-23.md#L137-L143)):
+**HTTP** (2026-11-22, xo 0.55.0 on the linux/arm64 timing host, axum
+0.8.9 on tokio 1.54.1): the users CRUD API (axum on tokio with
+serde_json, against Xo's std/http with request arenas), 32 workers on
+loopback, 10 s measured after a 2 s warmup, the median of 3 runs
+([rust-vs-xo-http-2026-11-22.md, lines 33 to 35](https://github.com/xo-lang/xo/blob/main/bench/results/rust-vs-xo-http-2026-11-22.md#L33-L35)):
 
 | | Rust (axum) | Xo | Xo / Rust |
 |---|---|---|---|
-| requests/s | 117,564 | 135,452 | 1.15 |
-| p50 latency | 213 µs | 205 µs | 0.96 |
-| p99 latency | 1,193 µs | 823 µs | 0.69 |
-| p99.9 latency | 5,578 µs | 1,786 µs | 0.32 |
-| server CPU per request | 17.61 µs | 21.14 µs | **1.20** |
-| peak RSS | 5.0 MB | 18.7 MB | **3.7** |
+| requests/s | 202,689 | 179,519 | **0.89** |
+| p50 latency | 122 µs | 141 µs | **1.16** |
+| p99 latency | 888 µs | 913 µs | **1.03** |
+| p99.9 latency | 2,096 µs | 2,451 µs | **1.17** |
+| server CPU per request | 7.81 µs | 11.88 µs | **1.52** |
+| peak RSS | 6.0 MB | 14.2 MB | **2.4** |
 
-Xo served more requests in each of the three runs (lines 128 to 135),
-but **axum used less CPU per request and about a quarter of Xo's
-memory**. The runs' spread is wide (the third reached about
-half the rate of the first two, for every server), so read the throughput ratio as "about
-the same to somewhat faster", not as 15%.
+**axum served more requests in each of the three runs** (202,380 to
+204,166 against Xo's 178,741 to 179,838; lines 19 to 27), with lower
+latency at every percentile, two thirds of Xo's CPU per request and
+less than half of its memory. For scale, Go's net/http in the same runs
+served 122,458 requests/s at 27.51 µs of CPU per request (line 33).
 
 These are a young compiler's numbers on one machine; the slower rows
 are the work queue (floating point, locks, JSON). The

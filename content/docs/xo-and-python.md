@@ -18,10 +18,9 @@ better than Xo: CPU per request.
 documentation as of **Python 3.15.1** (the newest release, 2026-10-21).
 The compute, concurrency and JSON measurements (2026-11-22) used
 **CPython 3.13.5**, the Python of the linux/arm64 timing host, against
-the released Xo 0.55.0. The HTTP rows are older: CPython 3.13.12 from
-Homebrew with the packages pinned with hashes in the benchmark's
-requirements.txt (uvicorn 0.37.0, uvloop 0.23.0, httptools 0.9.0,
-Starlette 0.48.0), against Xo from main between 0.26.0 and 0.27.0.
+the released Xo 0.55.0, as did the HTTP rows, with the packages pinned
+with hashes in the benchmark's requirements.txt (uvicorn 0.37.0, uvloop
+0.23.0, httptools 0.9.0, Starlette 0.48.0).
 Last verified: 2026-11-22.
 
 ## Short version
@@ -36,9 +35,9 @@ experimental (spec draft 0.10, no 1.0 yet).
 want types the compiler enforces, errors in function signatures, every
 core in one process, and one static binary to deploy. In the
 measurements below Xo was 3 to 50 times faster than CPython on
-compute, concurrency and JSON, and served 1.6 times the requests of
-Python's asyncio server, **but asyncio used about two thirds of Xo's
-CPU per request and had lower tail latency**.
+compute, concurrency and JSON, and served 2.6 times the requests of
+Python's asyncio server at 0.81 of its CPU per request, **but asyncio
+had lower p99.9 latency**.
 
 ## What each is for
 
@@ -162,32 +161,31 @@ the GIL: 0.53 of Python's CPU time against 0.30 of its wall time (line
 53). Xo's peak memory was 0.049 to 0.17 of Python's on every row (lines
 31 to 77).
 
-**HTTP** (2026-10-23, on an Apple M4 Pro with CPython 3.13.12 and Xo
-from main between 0.26.0 and 0.27.0; not rerun with 0.55.0): the users
-CRUD API, given twice for Python: the standard
+**HTTP** (2026-11-22, CPython 3.13.5 and xo 0.55.0 on the linux/arm64
+timing host): the users CRUD API, given twice for Python: the standard
 library's `asyncio.Protocol`, and Starlette on uvicorn with uvloop and
 httptools, each in one process, against Xo's std/http with request
 arenas; 32 workers on loopback, 10 s measured after a 2 s warmup, the
 median of 3 runs
-([lines 89 to 96](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-2026-10-23.md#L89-L96)):
+([python-vs-xo-http-2026-11-22.md, lines 36 to 38](https://github.com/xo-lang/xo/blob/main/bench/results/python-vs-xo-http-2026-11-22.md#L36-L38)):
 
 | | Python asyncio | Python Starlette | Xo | Xo / asyncio |
 |---|---|---|---|---|
-| requests/s | 82,798 | 32,782 | 134,468 | 1.62 |
-| p50 latency | 349 µs | 925 µs | 201 µs | 0.58 |
-| p99 latency | 906 µs | 1,970 µs | 937 µs | **1.03** |
-| p99.9 latency | 1,618 µs | 4,028 µs | 2,316 µs | **1.43** |
-| server CPU per request | 11.80 µs | 30.30 µs | 18.03 µs | **1.53** |
-| peak RSS | 23.1 MB | 37.6 MB | 19.1 MB | 0.83 |
+| requests/s | 67,763 | 39,382 | 179,364 | 2.6 |
+| p50 latency | 437 µs | 769 µs | 141 µs | 0.32 |
+| p99 latency | 1,019 µs | 1,622 µs | 926 µs | 0.91 |
+| p99.9 latency | 1,317 µs | 1,846 µs | 2,463 µs | **1.87** |
+| server CPU per request | 14.70 µs | 25.39 µs | 11.91 µs | 0.81 |
+| peak RSS | 18.7 MB | 33.5 MB | 14.0 MB | 0.75 |
 
-**Python's asyncio server used less CPU per request than Xo**, in all
-three runs (11.71 to 12.22 µs against Xo's 17.94 to 18.50; lines 76 to
-87), and its p99.9 latency was lower in all three. It is the standard
-library's low-level protocol API on one thread, with no framework;
-Xo's server spreads connections over every core, which bought 1.6
-times the throughput at that CPU cost. A Python service written with a
-framework is closer to the Starlette column: Xo served 4.1 times its
-requests at 0.60 of its CPU per request.
+**Python's asyncio server had lower p99.9 latency than Xo** in all three
+runs (1,295 to 1,345 µs against Xo's 2,363 to 2,647; lines 18 to 29).
+It is the standard library's low-level protocol API on one thread, with
+no framework; Xo's server spreads connections over every core and used
+less CPU per request in every run (11.83 to 11.93 µs against 14.68 to
+14.83). A Python service written with a framework is closer to the
+Starlette column: Xo served 4.6 times its requests at 0.47 of its CPU
+per request.
 
 These are a young compiler's numbers on one machine. The comparison is
 rerun from `bench/perf/python/run.sh` and this page's tables are

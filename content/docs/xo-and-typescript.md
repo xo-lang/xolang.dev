@@ -21,8 +21,7 @@ TypeScript 7.0 and Node.js 26.12.1 (Current) and 24.22.1 (LTS). The
 compute, concurrency and JSON measurements (2026-11-22) used **Node.js
 20.19.2**, the Node of the linux/arm64 timing host, with **TypeScript
 5.9.3** pinned in the benchmark's package-lock.json, against the
-released Xo 0.55.0; the HTTP and build rows are older (Node.js 22.22.1,
-Xo from main between 0.26.0 and 0.27.0) and say so. Last verified:
+released Xo 0.55.0, as did the HTTP and build rows. Last verified:
 2026-11-22.
 
 ## Short version
@@ -40,8 +39,9 @@ process, and one static binary to deploy. In the measurements below Xo
 was 1.1 to 9 times faster than Node on compute, JSON, ping-pong, locks
 and parallel map, about half as fast on spawning many small tasks
 (spawn and fanout, where Node's event loop starts tasks without
-threads), served 4 times the requests of a single Node process at the
-median, and used a small fraction of its memory.
+threads), served 2.1 times the requests of a single Node process at
+about the same CPU per request, and used a small fraction of its
+memory.
 
 ## What each is for
 
@@ -172,34 +172,33 @@ Xo spreads tasks over every core where Node's event loop runs them on
 one thread: on spawn and fanout, where each task does almost nothing,
 that costs Xo about twice Node's wall time and CPU time (lines 34 and
 39), and those two rows are the work queue. Since every program repeats
-its work for about a second, Node's start (46 ms for a hello program,
+its work for about a second, Node's start (45 ms for a hello program,
 above) is a small part of each row. Xo's peak memory was 0.010 to 0.036
 of Node's on every row (lines 27 to 73).
 
-**HTTP** (2026-10-23, on an Apple M4 Pro with Node.js 22.22.1 and Xo
-from main between 0.26.0 and 0.27.0; not rerun with 0.55.0): the users
-CRUD API (`node:http` in one process, against Xo's
-std/http with request arenas), 32 workers on loopback, 10 s measured
-after a 2 s warmup, the median of 3 runs
-([lines 85 to 91](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-2026-10-23.md#L85-L91)):
+**HTTP** (2026-11-22, Node.js 20.19.2 and xo 0.55.0 on the linux/arm64
+timing host): the users CRUD API (`node:http` in one process, against
+Xo's std/http with request arenas), 32 workers on loopback, 10 s
+measured after a 2 s warmup, the median of 3 runs
+([node-vs-xo-http-2026-11-22.md, lines 31 to 33](https://github.com/xo-lang/xo/blob/main/bench/results/node-vs-xo-http-2026-11-22.md#L31-L33)):
 
 | | Node | Xo | Xo / Node |
 |---|---|---|---|
-| requests/s | 30,891 | 124,648 | 4.0 |
-| p50 latency | 528 µs | 214 µs | 0.41 |
-| p99 latency | 9,857 µs | 1,023 µs | 0.10 |
-| p99.9 latency | 27,468 µs | 2,613 µs | 0.095 |
-| server CPU per request | 19.39 µs | 17.56 µs | 0.91 |
-| peak RSS | 63.5 MB | 18.4 MB | 0.29 |
+| requests/s | 83,685 | 179,282 | 2.1 |
+| p50 latency | 344 µs | 142 µs | 0.41 |
+| p99 latency | 920 µs | 921 µs | 1.00 |
+| p99.9 latency | 1,356 µs | 2,431 µs | **1.79** |
+| server CPU per request | 11.94 µs | 11.79 µs | 0.99 |
+| peak RSS | 92.6 MB | 14.4 MB | 0.16 |
 
-Read this table with its runs (lines 75 to 83). Node's three runs
-were far apart: 80,335, 30,891 and 20,432 requests/s. In its best run
-Node used **12.10 µs of CPU per request, less than Xo's 17.56** in the
-same round; Xo's lead in throughput comes from using more than one
-core. Node is measured as one process because a cluster of workers
-would give each worker its own in-memory store, which is not the same
-program (line 98); a Node deployment behind a load balancer with a
-shared database would scale across cores that way.
+Node's three runs served 70,662 to 87,007 requests/s and Xo's 178,309
+to 179,334 (lines 17 to 25). **Node's p99.9 latency was lower** in its
+two faster runs, and its CPU per request was about the same as Xo's
+(11.49 to 14.21 µs against 11.67 to 12.12); Xo's lead in throughput
+comes from using more than one core. Node is measured as one process
+because a cluster of workers would give each worker its own in-memory
+store, which is not the same program; a Node deployment behind a load
+balancer with a shared database would scale across cores that way.
 
 These are a young compiler's numbers on one machine. The comparison is
 rerun from `bench/perf/node/run.sh` and this page's tables are refreshed
