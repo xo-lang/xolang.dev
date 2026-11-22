@@ -130,17 +130,9 @@ armcompute v9.0.0, on the Mac): with std's variants already built, xo's
 cold build took 816 ms and peaked at 481 MB against Go's 4,766 to 5,578
 ms and 893 to 920 MB, an edit 235 ms against 331 to 352 ms, and the
 binary is 7.99 MB against 9.30 MB; the first program after a fresh
-install builds cold in 2,709 ms. Against 0.50.1 the cold builds peak
-higher, the binary is larger, and the unchanged builds take 51 to 56 ms
-against 38 to 46
+install builds cold in 2,709 ms
 ([release-vs-go-v0.55.0.md, lines 113 to 133](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L113-L133)).
 
-For tests the picture is mixed: on five std modules a cold `xo test`
-build took 2.8 to 5.8 s against `go test`'s 2.4 to 8.3 s, with far less
-CPU, because Go compiles each imported std package from source while xo
-links a prebuilt runtime; warm, Xo was 2 to 7 times slower, and after an
-edit 1.7 to 2.2 times slower on the native backend
-([test-speed-vs-go-2026-10-21.md, lines 74 to 86](https://github.com/xo-lang/xo/blob/main/bench/results/test-speed-vs-go-2026-10-21.md#L74-L86)).
 In the 0.55.0 comparison on the Mac, `xo test --std-module` took 0.655 of
 `go test -count=1`'s time on encoding/base64 cold and 0.506 after an
 edit, and 0.40 and 0.347 on encoding/json cold and after an edit, with
@@ -180,9 +172,9 @@ These runs started at load 5.
 
 - Both produce static binaries.
 - **Memory while running**: on the twenty workloads of the 0.55.0
-  linux/arm64 comparison, Xo's peak memory was 0.146 to 0.83 of Go's on
-  nineteen, and within noise of it on strings (1.011)
-  ([release-vs-go-v0.55.0-linux-arm64.md, lines 118 to 422](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md#L118-L422)).
+  linux/arm64 comparison, Xo's peak memory was 0.083 to 0.77 of Go's on
+  nineteen, and within noise of it on strings (0.994)
+  ([release-vs-go-v0.55.0-linux-arm64-run.md, lines 29 to 333](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64-run.md#L29-L333)).
   A CRUD server under 1,024 connections peaked at 47 to 60 MB against
   Go's 66 to 78 MB
   ([net-vs-go-2026-10-22.md, line 33](https://github.com/xo-lang/xo/blob/main/bench/results/net-vs-go-2026-10-22.md#L33)).
@@ -220,46 +212,40 @@ designed for the agent's loop:
 in Go and once in Xo (bench/perf's Go twins: compute, collections,
 concurrency), and runs each workload under `xo bench --ab` with Go as A
 and Xo as B, 3 rounds (run as 4, so each side goes first equally often);
-a verdict is "better" or "worse" only when the 95% interval excludes 1.0,
-and a wall time verdict needs both medians at 100 ms or more ("too short"
-otherwise). **Machine**: host 1, Linux aarch64, 12 cores, 39 GB, load 0
-to 2 at the start of each row. **Versions**: xo 0.55.0 and Go 1.26.11.
-**Date**: 2026-11-22. Ratios are Xo over Go; under 1.0 means Xo took
-less
-([release-vs-go-v0.55.0-linux-arm64.md, lines 1 to 4 and 118 to 422](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md#L118-L422)).
-The darwin/arm64 run of this section failed (every row reads "(failed)"),
-so 0.55.0 has no Mac runtime table
-([release-vs-go-v0.55.0.md, lines 135 to 276](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0.md#L135-L276)).
+a verdict is "better" or "worse" only when the 95% interval excludes 1.0.
+Each pair runs its work REPEAT times on both sides (the count is in each
+row's heading in the file), so the faster side takes about a second and
+every row gets a wall time verdict. **Machine**: host 1, Linux aarch64,
+12 cores, 39 GB, load 0 to 3 at the start of each row. **Versions**: xo
+0.55.0 and Go 1.26.11. **Date**: 2026-11-22. Ratios are Xo over Go;
+under 1.0 means Xo took less
+([release-vs-go-v0.55.0-linux-arm64-run.md, lines 1 to 333](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64-run.md#L1-L333)).
 
 | workload | wall time, Xo / Go | verdict |
 |---|---|---|
-| collections: branch | 0.01 | better |
-| strings | 0.274 | better |
-| interpreter | 0.30 | better |
-| sort | 0.726 | better |
-| collatz | 0.914 | better |
-| fib | 0.936 | better |
-| n-body (floating point) | **1.107** | worse |
-| sieve | **1.201** | worse |
-| collections: iter, push, get, putget, update, copymut | 0.232 to 0.618 | too short |
-| concurrency: mutex, spawn, fanout, ping-pong | 0.289 to 0.898 | too short |
-| concurrency: parallel map | 1.027 | too short |
-| concurrency: rwmutex | 1.123 | too short |
+| collections: branch | 0.001 | better |
+| collections: iter | 0.076 | better |
+| strings | 0.261 | better |
+| concurrency: spawn | 0.298 | better |
+| interpreter | 0.303 | better |
+| concurrency: mutex | 0.319 | better |
+| collections: copymut, putget, get, update | 0.428 to 0.5 | better |
+| concurrency: fanout | 0.467 | better |
+| collections: push | 0.598 | better |
+| sort | 0.758 | better |
+| fib | 0.885 | better |
+| concurrency: ping-pong | 0.929 | better |
+| collatz | 0.995 | better |
+| n-body (floating point) | **1.007** | worse |
+| concurrency: parallel map | **1.023** | worse |
+| sieve | **1.35** | worse |
+| concurrency: rwmutex | **7.913** | worse |
 
-Each row's raw output, with CPU time, peak memory, spreads and intervals:
-[release-vs-go-v0.55.0-linux-arm64.md, lines 118 to 422](https://github.com/xo-lang/xo/blob/main/bench/results/release-vs-go-v0.55.0-linux-arm64.md#L118-L422).
-Sieve and n-body are the rows slower than Go. The parallel map and
-rwmutex are above 1.0 too but ran under 100 ms, too short for a wall time
-verdict; the parallel map's CPU time was worse (1.013), and spawn's
-better (0.155).
-In 0.27.0 rwmutex was 3.58 times Go's time and spawn 1.20. The rwmutex
-row is lock bound: one task at a time can make progress, and Go's
-goroutines stay with the waking P while Xo spread the 64 tasks over all
-its workers at once, so they contended; since 0.29 a task whose loop only
-takes a Mutex or calls Atomic methods starts its spawn site small
-(decision 0363), and a contended RWMutex takes 0.26 of its 0.28 time,
-which closed the gap
-([rwmutex-vs-go-2026-10-23.md, lines 13 to 16 and 50 to 55](https://github.com/xo-lang/xo/blob/main/bench/results/rwmutex-vs-go-2026-10-23.md#L50-L55)).
+Each row's raw output, with CPU time, peak memory, spreads and intervals,
+is in the same file. Four rows are slower than Go: n-body, the parallel
+map and sieve by 1 to 35%, and rwmutex by about 8 times: 64 tasks
+contending on one reader-writer lock, a gap the earlier short run (5 ms
+a side) could not judge.
 
 **Standard library, instructions retired** (fewer is better; Apple M4
 Pro, Go 1.26.1, 2026-10-21; native Xo against Go's packages):
