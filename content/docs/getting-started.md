@@ -81,6 +81,9 @@ tar -xzf xo-{{< release "tag" >}}-windows-amd64.tar.gz -C "$HOME\xo" --strip-com
 [Environment]::SetEnvironmentVariable("Path", "$HOME\xo\bin;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
 ```
 
+On Windows on ARM, use `windows-arm64` in place of `windows-amd64` in
+the four lines that name the archive (there is no `--race` there).
+
 Then, in a new PowerShell window:
 
 ```

@@ -42,7 +42,7 @@ redistribute, in open source and commercial projects alike.
 ## What platforms does Xo run on?
 
 The release archives cover macOS on Apple silicon and Intel, Linux on
-arm64 and x86-64, and Windows on x86-64. The toolchain cross compiles
+arm64 and x86-64, and Windows on x86-64 and arm64. The toolchain cross compiles
 between them and to WebAssembly (WASI), and native programs build with no
 C toolchain.
 
