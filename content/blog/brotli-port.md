@@ -1,7 +1,7 @@
 ---
 title: "Porting Brotli to Xo, and the compiler weaknesses it found"
 date: 2026-11-19T15:00:00-05:00
-draft: true
+draft: false
 description: "A 20,000 line port of Brotli found two compiler weaknesses that, as far as we know, the standard library's other timing twins had not shown: a register allocator that spilled too early in loops with many live values, and Float32 arithmetic that took a detour through double precision. What we saw, what we tried, the fixes, and the checks we are building so the next one is caught earlier."
 ---
 

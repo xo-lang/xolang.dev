@@ -2,7 +2,7 @@
 title: "Hunting a slow heap growth under huge pages"
 date: 2026-11-20T09:00:00-05:00
 description: "A server with a small, flat live heap grew its resident memory 7 to 10% over an hour on Linux, under Xo's default huge page policy. How we found the two bugs behind it (one hour runs, per-minute heap counters, and turning off one path at a time), the fix that made a second, quieter bug worse, and the rule that came out of it."
-draft: true
+draft: false
 ---
 
 On Linux, Xo's heap asks the kernel for transparent huge pages only where
